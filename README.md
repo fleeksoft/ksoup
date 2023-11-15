@@ -38,7 +38,7 @@ commonMain {
 ```
 
 ## Development and Support
-For questions, ideas, or contributions regarding Ksoup, please contact us via [email](mailto:fleeksoft@gmail.com).
+For questions, ideas, or contributions regarding Ksoup, please contact us via [email](mailto:fleeksoft@gmail.com) or create new pull requests.
 
 Report any issues on [our GitHub page](https://github.com/fleeksoft/ksoup/issues), ensuring to check for duplicates beforehand.
 
