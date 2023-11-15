@@ -294,7 +294,6 @@ class TokenQueue(data: String) {
      * @param data string of data to back queue.
      */
     init {
-        Validate.notNull(data)
         queue = data
     }
 

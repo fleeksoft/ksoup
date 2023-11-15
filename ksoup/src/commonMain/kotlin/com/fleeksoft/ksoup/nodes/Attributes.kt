@@ -50,7 +50,6 @@ class Attributes : Iterable<Attribute>, Cloneable<Attributes> {
     }
 
     private fun indexOfKeyIgnoreCase(key: String): Int {
-        Validate.notNull(key)
         for (i in 0 until size) {
             if (key.equals(keys[i], ignoreCase = true)) return i
         }
@@ -98,7 +97,6 @@ class Attributes : Iterable<Attribute>, Cloneable<Attributes> {
 //    @Nullable
     fun getUserData(key: String): Any? {
         var key = key
-        Validate.notNull(key)
         if (!isInternalKey(key)) key = internalKey(key)
         val i = indexOfKeyIgnoreCase(key)
         return if (i == NotFound) null else vals[i]
@@ -127,7 +125,6 @@ class Attributes : Iterable<Attribute>, Cloneable<Attributes> {
      * @return these attributes, for chaining
      */
     fun put(key: String, /*@Nullable*/ value: String?): Attributes {
-        Validate.notNull(key)
         val i = indexOfKey(key)
         if (i != NotFound) vals[i] = value else add(key, value)
         return this
@@ -140,11 +137,9 @@ class Attributes : Iterable<Attribute>, Cloneable<Attributes> {
      * @return these attributes
      * @see .getUserData
      */
-    fun putUserData(key: String, value: Any?): Attributes {
+    fun putUserData(key: String, value: Any): Attributes {
         var key = key
-        Validate.notNull(key)
         if (!isInternalKey(key)) key = internalKey(key)
-        Validate.notNull(value)
         val i = indexOfKey(key)
         if (i != NotFound) vals[i] = value else addObject(key, value)
         return this
@@ -180,7 +175,6 @@ class Attributes : Iterable<Attribute>, Cloneable<Attributes> {
      * @return these attributes, for chaining
      */
     fun put(attribute: Attribute): Attributes {
-        Validate.notNull(attribute)
         put(attribute.key, attribute.value)
         attribute.parent = this
         return this

@@ -213,8 +213,7 @@ open class Element : Node {
      * @param id the ID value to use
      * @return this Element, for chaining
      */
-    fun id(id: String?): Element {
-        Validate.notNull(id)
+    fun id(id: String): Element {
         attr("id", id)
         return this
     }
@@ -519,8 +518,7 @@ open class Element : Node {
      * found.
      */
 //    @Nullable
-    fun closest(evaluator: Evaluator?): Element? {
-        Validate.notNull(evaluator)
+    fun closest(evaluator: Evaluator): Element? {
         var el: Element? = this
         val root = root()
         do {
@@ -609,7 +607,6 @@ open class Element : Node {
      * @return this element, so that you can continue modifying the element
      */
     fun appendTo(parent: Element): Element {
-        Validate.notNull(parent)
         parent.appendChild(this)
         return this
     }
@@ -620,9 +617,8 @@ open class Element : Node {
      * @param child node to add.
      * @return this element, so that you can add more child nodes or elements.
      */
-    fun prependChild(child: Node?): Element {
-        Validate.notNull(child)
-        addChildren(0, child!!)
+    fun prependChild(child: Node): Element {
+        addChildren(0, child)
         return this
     }
 
@@ -726,7 +722,6 @@ open class Element : Node {
      * @return this element
      */
     fun appendText(text: String): Element {
-        Validate.notNull(text)
         val node = TextNode(text)
         appendChild(node)
         return this
@@ -739,7 +734,6 @@ open class Element : Node {
      * @return this element
      */
     fun prependText(text: String): Element {
-        Validate.notNull(text)
         val node = TextNode(text)
         prependChild(node)
         return this
@@ -786,7 +780,7 @@ open class Element : Node {
      * @return this Element, for chaining
      * @see .after
      */
-    override fun before(node: Node?): Element {
+    override fun before(node: Node): Element {
         return super.before(node) as Element
     }
 
@@ -1529,7 +1523,6 @@ open class Element : Node {
      * @return this element, for chaining
      */
     fun classNames(classNames: Set<String>): Element {
-        Validate.notNull(classNames)
         if (classNames.isEmpty()) {
             attributes().remove("class")
         } else {
@@ -1600,7 +1593,6 @@ open class Element : Node {
      * @return this element
      */
     fun addClass(className: String): Element {
-        Validate.notNull(className)
         val classes = classNames()
         classes.add(className)
         classNames(classes)
@@ -1613,7 +1605,6 @@ open class Element : Node {
      * @return this element
      */
     fun removeClass(className: String): Element {
-        Validate.notNull(className)
         val classes = classNames()
         classes.remove(className)
         classNames(classes)
@@ -1626,7 +1617,6 @@ open class Element : Node {
      * @return this element
      */
     fun toggleClass(className: String): Element {
-        Validate.notNull(className)
         val classes = classNames()
         if (classes.contains(className)) classes.remove(className) else classes.add(className)
         classNames(classes)
@@ -1812,7 +1802,6 @@ open class Element : Node {
      * @see Node.forEachNode
      */
     fun forEach(action: Consumer<in Element?>): Element {
-        Validate.notNull(action)
         NodeTraversor.traverse(
             { node, depth -> if (node is Element) action.accept(node) },
             this,

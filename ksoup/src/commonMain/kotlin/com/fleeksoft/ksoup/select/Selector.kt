@@ -130,7 +130,6 @@ object Selector {
      */
     fun select(query: String, roots: Iterable<Element>): Elements {
         Validate.notEmpty(query)
-        Validate.notNull(roots)
         val evaluator: Evaluator = QueryParser.parse(query)
         val elements = Elements()
         val seenElements: IdentityHashMap<Element, Boolean> = IdentityHashMap<Element, Boolean>()

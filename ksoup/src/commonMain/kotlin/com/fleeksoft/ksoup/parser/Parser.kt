@@ -229,7 +229,7 @@ class Parser {
          *
          * @return Document, with empty head, and HTML parsed into body
          */
-        fun parseBodyFragment(bodyHtml: String, baseUri: String?): Document {
+        fun parseBodyFragment(bodyHtml: String, baseUri: String): Document {
             val doc: Document = Document.createShell(baseUri)
             val body: Element = doc.body()
             val nodeList: List<Node> = parseFragment(bodyHtml, body, baseUri)

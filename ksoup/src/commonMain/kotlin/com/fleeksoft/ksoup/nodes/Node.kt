@@ -69,7 +69,7 @@ abstract class Node protected constructor() : Cloneable<Node> {
      * @see .absUrl
      */
     open fun attr(attributeKey: String): String {
-        Validate.notNull(attributeKey)
+        // TODO: if attr not present then null or empty?
         if (!hasAttributes()) return EmptyString
         val value: String = attributes().getIgnoreCase(attributeKey)
         return if (value.isNotEmpty()) {
@@ -121,7 +121,6 @@ abstract class Node protected constructor() : Cloneable<Node> {
      * @return true if the attribute exists, false if not.
      */
     open fun hasAttr(attributeKey: String): Boolean {
-        Validate.notNull(attributeKey)
         if (!hasAttributes()) return false
         if (attributeKey.startsWith("abs:")) {
             val key = attributeKey.substring("abs:".length)
@@ -332,13 +331,12 @@ abstract class Node protected constructor() : Cloneable<Node> {
      * @return this node, for chaining
      * @see .after
      */
-    open fun before(node: Node?): Node {
-        Validate.notNull(node)
+    open fun before(node: Node): Node {
         Validate.notNull(_parentNode)
 
         // if the incoming node is a sibling of this, remove it first so siblingIndex is correct on add
-        if (node!!._parentNode === _parentNode) node!!.remove()
-        _parentNode!!.addChildren(siblingIndex, node!!)
+        if (node._parentNode === _parentNode) node.remove()
+        _parentNode!!.addChildren(siblingIndex, node)
         return this
     }
 
@@ -360,7 +358,6 @@ abstract class Node protected constructor() : Cloneable<Node> {
      * @see .before
      */
     open fun after(node: Node): Node {
-        Validate.notNull(node)
         Validate.notNull(_parentNode)
 
         // if the incoming node is a sibling of this, remove it first so siblingIndex is correct on add
@@ -370,7 +367,6 @@ abstract class Node protected constructor() : Cloneable<Node> {
     }
 
     private fun addSiblingHtml(index: Int, html: String) {
-        Validate.notNull(html)
         Validate.notNull(_parentNode)
         val context: Element? = if (parent() is Element) parent() as Element? else null
         val nodes: List<Node> = NodeUtils.parser(this)!!
@@ -464,7 +460,6 @@ abstract class Node protected constructor() : Cloneable<Node> {
 
     private fun replaceChild(out: Node, inNode: Node) {
         Validate.isTrue(out._parentNode === this)
-        Validate.notNull(inNode)
         if (out === inNode) return // no-op self replacement
         if (inNode._parentNode != null) inNode._parentNode!!.removeChild(inNode)
         val index = out.siblingIndex
@@ -626,7 +621,6 @@ abstract class Node protected constructor() : Cloneable<Node> {
      * @return this node, for chaining
      */
     open fun traverse(nodeVisitor: NodeVisitor): Node {
-        Validate.notNull(nodeVisitor)
         NodeTraversor.traverse(nodeVisitor, this)
         return this
     }
@@ -639,7 +633,6 @@ abstract class Node protected constructor() : Cloneable<Node> {
      * @see Element.forEach
      */
     open fun forEachNode(action: Consumer<in Node>): Node {
-        Validate.notNull(action)
         NodeTraversor.traverse(
             { node, depth -> action.accept(node) },
             this,
@@ -653,7 +646,6 @@ abstract class Node protected constructor() : Cloneable<Node> {
      * @return this node, for chaining
      */
     open fun filter(nodeFilter: NodeFilter): Node {
-        Validate.notNull(nodeFilter)
         NodeTraversor.filter(nodeFilter, this)
         return this
     }

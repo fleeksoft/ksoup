@@ -392,9 +392,8 @@ object StringUtil {
          * Add another item to the joiner, will be separated
          */
         fun add(stringy: Any?): StringJoiner {
-            Validate.notNull(sb) // don't reuse
-            if (!first) sb?.append(separator)
-            sb?.append(stringy)
+            if (!first) sb!!.append(separator)
+            sb!!.append(stringy)
             first = false
             return this
         }
@@ -403,8 +402,7 @@ object StringUtil {
          * Append content to the current item; not separated
          */
         fun append(stringy: Any?): StringJoiner {
-            Validate.notNull(sb) // don't reuse
-            sb?.append(stringy)
+            sb!!.append(stringy)
             return this
         }
 

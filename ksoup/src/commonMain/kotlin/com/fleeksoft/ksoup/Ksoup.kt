@@ -91,7 +91,7 @@ object Ksoup {
     ): Document {
         val result: String =
             runBlocking { NetworkHelper.instance.get(url, headers = headers).bodyAsText() }
-        return parse(result, parser)
+        return parse(html = result, parser = parser, baseUri = url)
     }
 
     /**
@@ -218,7 +218,7 @@ object Ksoup {
      * @see Document.body
      */
     fun parseBodyFragment(bodyHtml: String, baseUri: String?): Document {
-        return Parser.parseBodyFragment(bodyHtml, baseUri)
+        return Parser.parseBodyFragment(bodyHtml, baseUri ?: "")
     }
 
     /**

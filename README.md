@@ -36,7 +36,7 @@ val headlines: Elements = doc.select("#mp-itn b a")
 
 headlines.forEach { headline: Element ->
     val headlineTitle = headline.attr("title")
-    val headlineLink = headline.attr("href")
+    val headlineLink = headline.absUrl("href")
 
     println("$headlineTitle => $headlineLink")
 }

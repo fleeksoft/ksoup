@@ -40,7 +40,6 @@ class Cleaner(safelist: Safelist) {
      * @param safelist safe-list to clean with
      */
     init {
-        Validate.notNull(safelist)
         this.safelist = safelist
     }
 
@@ -52,7 +51,6 @@ class Cleaner(safelist: Safelist) {
      * @return cleaned document.
      */
     fun clean(dirtyDocument: Document): Document {
-        Validate.notNull(dirtyDocument)
         val clean: Document = Document.createShell(dirtyDocument.baseUri())
         copySafeNodes(dirtyDocument.body(), clean.body())
         clean.outputSettings(dirtyDocument.outputSettings().clone())
@@ -83,7 +81,6 @@ class Cleaner(safelist: Safelist) {
      * @return true if no tags or attributes need to be removed; false if they do
      */
     fun isValid(dirtyDocument: Document): Boolean {
-        Validate.notNull(dirtyDocument)
         val clean: Document = Document.createShell(dirtyDocument.baseUri())
         val numDiscarded = copySafeNodes(dirtyDocument.body(), clean.body())
         return (

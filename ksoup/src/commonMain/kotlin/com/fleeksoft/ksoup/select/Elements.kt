@@ -700,7 +700,6 @@ class Elements(private val delegateList: MutableList<Element> = mutableListOf())
      * @since 1.17.1
      */
     override operator fun set(index: Int, element: Element): Element {
-        Validate.notNull(element)
         val old: Element = delegateList.set(index = index, element = element)
         old.replaceWith(element)
         return old

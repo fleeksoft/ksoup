@@ -66,8 +66,6 @@ object NodeTraversor {
      * @param elements Elements to filter.
      */
     fun traverse(visitor: NodeVisitor, elements: Elements) {
-        Validate.notNull(visitor)
-        Validate.notNull(elements)
         elements.forEach {
             traverse(visitor, it)
         }
@@ -126,8 +124,6 @@ object NodeTraversor {
      * @param elements Elements to filter.
      */
     fun filter(filter: NodeFilter, elements: Elements) {
-        Validate.notNull(filter)
-        Validate.notNull(elements)
         elements.forEach { el ->
             if (filter(filter, el) == FilterResult.STOP) return
         }

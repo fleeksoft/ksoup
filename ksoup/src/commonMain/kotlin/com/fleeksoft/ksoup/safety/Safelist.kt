@@ -115,7 +115,6 @@ open class Safelist() {
      * @return this (for chaining)
      */
     fun addTags(vararg tags: String): Safelist {
-        Validate.notNull(tags)
         for (tagName in tags) {
             Validate.notEmpty(tagName)
             Validate.isFalse(
@@ -134,7 +133,6 @@ open class Safelist() {
      * @return this (for chaining)
      */
     fun removeTags(vararg tags: String): Safelist {
-        Validate.notNull(tags)
         for (tag in tags) {
             Validate.notEmpty(tag)
             val tagName = TagName.valueOf(tag)
@@ -166,8 +164,7 @@ open class Safelist() {
      */
     fun addAttributes(tag: String, vararg attributes: String): Safelist {
         Validate.notEmpty(tag)
-        Validate.notNull(attributes)
-        Validate.isTrue(attributes.size > 0, "No attribute names supplied.")
+        Validate.isTrue(attributes.isNotEmpty(), "No attribute names supplied.")
         val tagName = TagName.valueOf(tag)
         tagNames.add(tagName)
         val attributeSet: MutableSet<AttributeKey> = HashSet<AttributeKey>()
@@ -203,8 +200,7 @@ open class Safelist() {
      */
     fun removeAttributes(tag: String, vararg attributes: String): Safelist {
         Validate.notEmpty(tag)
-        Validate.notNull(attributes)
-        Validate.isTrue(attributes.size > 0, "No attribute names supplied.")
+        Validate.isTrue(attributes.isNotEmpty(), "No attribute names supplied.")
         val tagName = TagName.valueOf(tag)
         val attributeSet: MutableSet<AttributeKey> = HashSet<AttributeKey>()
         for (key in attributes) {
@@ -332,7 +328,6 @@ open class Safelist() {
     fun addProtocols(tag: String, attribute: String, vararg protocols: String): Safelist {
         Validate.notEmpty(tag)
         Validate.notEmpty(attribute)
-        Validate.notNull(protocols)
         val tagName = TagName.valueOf(tag)
         val attrKey = AttributeKey.valueOf(attribute)
         val attrMap: MutableMap<AttributeKey, MutableSet<Protocol>>
@@ -373,7 +368,6 @@ open class Safelist() {
     fun removeProtocols(tag: String, attribute: String, vararg removeProtocols: String): Safelist {
         Validate.notEmpty(tag)
         Validate.notEmpty(attribute)
-        Validate.notNull(removeProtocols)
         val tagName = TagName.valueOf(tag)
         val attr = AttributeKey.valueOf(attribute)
 
@@ -523,7 +517,6 @@ open class Safelist() {
         private val value: String
 
         init {
-            Validate.notNull(value)
             this.value = value
         }
 

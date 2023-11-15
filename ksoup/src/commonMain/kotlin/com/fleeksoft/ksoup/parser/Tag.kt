@@ -156,7 +156,6 @@ data class Tag(
         ): Tag {
             var tagName = tagName
             Validate.notEmpty(tagName)
-            Validate.notNull(namespace)
             var tag = Tags[tagName]
             if (tag != null && tag.namespace == namespace) return tag
             tagName = settings!!.normalizeTag(tagName) // the name we'll use

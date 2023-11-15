@@ -180,7 +180,6 @@ class Document(private val namespace: String, private val location: String?) :
      * @param title string to set as title
      */
     fun title(title: String) {
-        Validate.notNull(title)
         var titleEl: Element? = head().selectFirst(titleEval)
         if (titleEl == null) {
             // add to head
@@ -576,7 +575,6 @@ class Document(private val namespace: String, private val location: String?) :
      * @return this document, for chaining.
      */
     fun outputSettings(outputSettings: OutputSettings): Document {
-        Validate.notNull(outputSettings)
         this.outputSettings = outputSettings
         return this
     }
@@ -622,8 +620,7 @@ class Document(private val namespace: String, private val location: String?) :
      * @see Connection.newRequest
      * @since 1.14.1
      */
-    /*fun connection(connection: Connection?): Document {
-        Validate.notNull(connection)
+    /*fun connection(connection: Connection): Document {
         this.connection = connection
         return this
     }*/
@@ -634,8 +631,7 @@ class Document(private val namespace: String, private val location: String?) :
          * @param baseUri baseUri of document
          * @return document with html, head, and body elements.
          */
-        fun createShell(baseUri: String?): Document {
-            Validate.notNull(baseUri)
+        fun createShell(baseUri: String): Document {
             val doc = Document(baseUri)
             doc.parser = doc.parser()
             val html: Element = doc.appendElement("html")
