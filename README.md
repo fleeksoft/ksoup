@@ -28,19 +28,18 @@ As of now, Ksoup does not implement the connection cookies and servlet-related f
 Ksoup is an open source project, a Kotlin Multiplatform port of jsoup, distributed under the MIT license. The source code of Ksoup is available on [GitHub](https://github.com/fleeksoft/ksoup).
 
 ## Getting started
-### Gradle
-```kotlin
-// for kotlin multiplatform
-commonMain {
-    dependencies {
-        implementation("com.fleeksoft:ksoup:0.0.1")
-    }
-}
-```
-
 ### Usage
 ```kotlin
+val doc: Document = Ksoup.connect("https://en.wikipedia.org/")
+println("title: ${doc.title()}")
+val headlines: Elements = doc.select("#mp-itn b a")
 
+headlines.forEach { headline: Element ->
+    val headlineTitle = headline.attr("title")
+    val headlineLink = headline.attr("href")
+
+    println("$headlineTitle => $headlineLink")
+}
 ```
 
 ## Development and Support
