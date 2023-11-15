@@ -1,5 +1,6 @@
 package com.fleeksoft.ksoup.helper
 
+import com.fleeksoft.ksoup.provideHttpClientEngine
 import io.ktor.client.HttpClient
 import io.ktor.client.request.forms.submitForm
 import io.ktor.client.request.get
@@ -10,7 +11,7 @@ import io.ktor.http.parameters
 internal class NetworkHelper(private val client: HttpClient) {
 
     companion object {
-        val instance: NetworkHelper = NetworkHelper(HttpClient { })
+        val instance: NetworkHelper = NetworkHelper(HttpClient(provideHttpClientEngine()))
     }
 
     suspend fun get(

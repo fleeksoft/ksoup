@@ -19,9 +19,7 @@ kotlin {
     }
 
     listOf(
-        iosX64(),
-        iosArm64(),
-        iosSimulatorArm64()
+        iosX64(), iosArm64(), iosSimulatorArm64()
     ).forEach {
         it.binaries.framework {
             baseName = "ksoup"
@@ -31,11 +29,9 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            //put your multiplatform dependencies here
             implementation(libs.ktor.core)
 
             implementation(libs.kotlinx.datetime)
-//            implementation(libs.kotlinx.io)
             implementation(libs.codepoints)
             implementation(libs.okio)
         }
@@ -44,8 +40,20 @@ kotlin {
             implementation(libs.gson)
         }
 
+        jvmMain.dependencies {
+            implementation(libs.ktor.client.okhttp)
+        }
+
         jvmTest.dependencies {
             implementation(libs.kotlin.test)
+        }
+
+        androidMain.dependencies {
+            implementation(libs.ktor.client.okhttp)
+        }
+
+        iosMain.dependencies {
+            implementation(libs.ktor.client.darwin)
         }
     }
 }
@@ -82,5 +90,5 @@ tasks.named("publish").configure {
 }
 
 tasks.named("publishToMavenLocal").configure {
-    dependsOn("iosSimulatorArm64Test")
+    dependsOn("jvmTest")
 }

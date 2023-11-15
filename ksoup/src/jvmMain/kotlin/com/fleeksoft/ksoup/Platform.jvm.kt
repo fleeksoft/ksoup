@@ -1,10 +1,9 @@
 package com.fleeksoft.ksoup
 
-import okio.BufferedSource
-import okio.FileSystem
-import okio.GzipSource
-import okio.Path
-import okio.buffer
+import io.ktor.client.*
+import io.ktor.client.engine.*
+import io.ktor.client.engine.okhttp.*
+import okio.*
 
 actual fun readGzipFile(file: Path): BufferedSource {
     val fileSource = FileSystem.SYSTEM.source(file)
@@ -14,4 +13,12 @@ actual fun readGzipFile(file: Path): BufferedSource {
 
 actual fun readFile(file: Path): BufferedSource {
     return FileSystem.SYSTEM.source(file).buffer()
+}
+
+actual fun provideHttpClientEngine(): HttpClientEngine {
+    return OkHttp.create {
+        config {
+            followRedirects(true)
+        }
+    }
 }
