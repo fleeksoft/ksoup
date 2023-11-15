@@ -2,6 +2,9 @@
 
 **Ksoup** is a Kotlin Multiplatform library for working with real-world HTML and XML. It's a port of the renowned Java library, **jsoup**, and offers an easy-to-use API for URL fetching, data parsing, extraction, and manipulation using DOM, CSS, and xpath selectors.
 
+[![Kotlin](https://img.shields.io/badge/kotlin-1.9.20-blue.svg?logo=kotlin)](http://kotlinlang.org)
+[![Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-green.svg)](https://opensource.org/licenses/Apache-2.0)
+
 Ksoup implements the [WHATWG HTML5](https://html.spec.whatwg.org/multipage/) specification, parsing HTML to the same DOM as modern browsers do, but with support for Android, JVM, and native platforms.
 
 ## Features
@@ -25,9 +28,7 @@ As of now, Ksoup does not implement the connection cookies and servlet-related f
 Ksoup is an open source project, a Kotlin Multiplatform port of jsoup, distributed under the MIT license. The source code of Ksoup is available on [GitHub](https://github.com/fleeksoft/ksoup).
 
 ## Getting started
-- Add the library to dependencies:
-
-## Gradle
+### Gradle
 ```kotlin
 // for kotlin multiplatform
 commonMain {
@@ -35,6 +36,11 @@ commonMain {
         implementation("com.fleeksoft:ksoup:0.0.1")
     }
 }
+```
+
+### Usage
+```kotlin
+
 ```
 
 ## Development and Support
