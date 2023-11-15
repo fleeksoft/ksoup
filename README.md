@@ -49,6 +49,3 @@ Ksoup is in a stable release phase, continually evolving from its jsoup origins.
 
 ## Status with Jsoup
 Updated with the main branch of Jsoup on GitHub [c46870c266b0c1112f4b1d423cf6dd9290d04d2f] as of 14 November 2023.
-
-## ROAD MAP
-- Publish for swift or xcode framework using kmmbridge
