@@ -27,13 +27,13 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
     private var originalState: HtmlTreeBuilderState? = null // original / marked state
     private var baseUriSetFromDoc = false
 
-    /*@Nullable*/
+    
     private var headElement: Element? = null // the current head element
 
-    /*@Nullable*/
+    
     private var formElement: FormElement? = null // the current form element
 
-    /*@Nullable*/
+    
     private var contextElement: Element? =
         null // fragment parse context -- could be null even if fragment parsing
     private var formattingElements: ArrayList<Element?>? =
@@ -340,7 +340,7 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
         stack.add(el)
     }
 
-    private fun insert(el: Element, /*@Nullable*/ token: Token) {
+    private fun insert(el: Element, token: Token) {
         insertNode(el, token)
         stack.add(el)
     }
@@ -414,7 +414,7 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
     }
 
     /** Inserts the provided Node into the current element.  */
-    private fun insertNode(node: Node, /*@Nullable*/ token: Token?) {
+    private fun insertNode(node: Node, token: Token?) {
         // if the stack hasn't been set up yet, elements (doctype, comments) go into the doc
         if (stack.isEmpty()) {
             doc.appendChild(node)
@@ -470,7 +470,7 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
     }
 
     /** Gets the nearest (lowest) HTML element with the given name from the stack.  */
-    /*@Nullable*/
+    
     fun getFromStack(elName: String?): Element? {
         val bottom: Int = stack.size - 1
         val upper = if (bottom >= maxQueueDepth) bottom - maxQueueDepth else 0
@@ -495,7 +495,7 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
     }
 
     /** Pops the stack until the given HTML element is removed.  */
-    /*@Nullable*/
+    
     fun popStackToClose(elName: String?): Element? {
         for (pos in stack.size - 1 downTo 0) {
             val el: Element? = stack[pos]
@@ -509,7 +509,7 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
     }
 
     /** Pops the stack until an element with the supplied name is removed, irrespective of namespace.  */
-    /*@Nullable*/
+    
     fun popStackToCloseAnyNamespace(elName: String?): Element? {
         for (pos in stack.size - 1 downTo 0) {
             val el: Element? = stack[pos]
@@ -564,7 +564,7 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
         }
     }
 
-    /*@Nullable*/
+    
     fun aboveOnStack(el: Element): Element? {
         assert(onStack(el))
         for (pos in stack.size - 1 downTo 0) {
@@ -711,7 +711,7 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
     private fun inSpecificScope(
         targetNames: Array<String>,
         baseTypes: Array<String>,
-        /*@Nullable*/
+        
         extraTypes: Array<String>?,
     ): Boolean {
         // https://html.spec.whatwg.org/multipage/parsing.html#has-an-element-in-the-specific-scope
@@ -791,7 +791,7 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
         return headElement
     }
 
-    /*@Nullable*/
+    
     fun getFormElement(): FormElement? {
         return formElement
     }
@@ -982,7 +982,7 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
         return onStack(formattingElements?.mapNotNull { it }?.toList() ?: emptyList(), el)
     }
 
-    /*@Nullable*/
+    
     fun getActiveFormattingElement(nodeName: String?): Element? {
         for (pos in formattingElements!!.indices.reversed()) {
             val next: Element? = formattingElements?.get(pos)
@@ -1029,7 +1029,7 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
         tmplInsertMode?.add(state)
     }
 
-    /*@Nullable*/
+    
     fun popTemplateMode(): HtmlTreeBuilderState? {
         return if (!tmplInsertMode.isNullOrEmpty()) {
             tmplInsertMode?.removeAt(tmplInsertMode!!.size - 1)
@@ -1042,7 +1042,7 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
         return tmplInsertMode?.size ?: 0
     }
 
-    /*@Nullable*/
+    
     fun currentTemplateMode(): HtmlTreeBuilderState? {
         return if (tmplInsertMode!!.size > 0) tmplInsertMode?.get(tmplInsertMode!!.size - 1) else null
     }

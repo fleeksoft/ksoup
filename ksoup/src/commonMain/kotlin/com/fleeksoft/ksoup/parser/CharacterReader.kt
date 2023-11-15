@@ -22,7 +22,7 @@ internal class CharacterReader {
     private var stringCache: Array<String?>? =
         arrayOfNulls(stringCacheSize) // holds reused strings in this doc, to lessen garbage
 
-    /*@Nullable*/ // optionally track the pos() position of newlines - scans during bufferUp()
+    // optionally track the pos() position of newlines - scans during bufferUp()
     private var newlinePositions: ArrayList<Int>? = null
     private var lineNumberOffset = 1 // line numbers start at 1; += newlinePosition[indexof(pos)]
 
@@ -676,7 +676,7 @@ internal class CharacterReader {
     // we maintain a cache of the previously scanned sequence, and return that if applicable on repeated scans.
     // that improves the situation where there is a sequence of <p<p<p<p<p<p<p...</title> and we're bashing on the <p
     // looking for the </title>. Resets in bufferUp()
-    /*@Nullable*/
+    
     private var lastIcSeq: String? = null // scan cache
     private var lastIcIndex = 0 // nearest found indexOf
 

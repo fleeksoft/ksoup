@@ -167,7 +167,7 @@ internal object Selector {
      * @param root root element to descend into
      * @return the matching element, or **null** if none.
      */
-    /*@Nullable*/
+    
     fun selectFirst(cssQuery: String, root: Element): Element? {
         Validate.notEmpty(cssQuery)
         return Collector.findFirst(QueryParser.parse(cssQuery), root)

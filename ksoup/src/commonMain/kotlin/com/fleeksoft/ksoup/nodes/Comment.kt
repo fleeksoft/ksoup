@@ -70,7 +70,7 @@ public class Comment(data: String) : LeafNode() {
      * Attempt to cast this comment to an XML Declaration node.
      * @return an XML declaration if it could be parsed as one, null otherwise.
      */
-    /*@Nullable*/
+    
     public fun asXmlDeclaration(): XmlDeclaration? {
         val data = getData()
         var decl: XmlDeclaration? = null

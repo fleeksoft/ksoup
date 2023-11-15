@@ -9,7 +9,7 @@ import com.fleeksoft.ksoup.ported.BufferReader
  * Use the `XmlTreeBuilder` when you want to parse XML without any of the HTML DOM rules being applied to the
  * document.
  *
- * Usage example: `Document xmlDoc = Jsoup.parse(html, baseUrl, Parser.xmlParser());`
+ * Usage example: `Document xmlDoc = Ksoup.parse(html, baseUrl, Parser.xmlParser());`
  *
  * @author Sabeeh
  */

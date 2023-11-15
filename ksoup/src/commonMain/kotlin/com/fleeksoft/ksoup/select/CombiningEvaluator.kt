@@ -29,7 +29,7 @@ internal abstract class CombiningEvaluator internal constructor() : Evaluator() 
         return cost
     }
 
-    /*@Nullable*/
+    
     fun rightMostEvaluator(): Evaluator? {
         return if (num > 0) evaluators[num - 1] else null
     }

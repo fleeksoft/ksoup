@@ -218,13 +218,13 @@ class DocumentTest {
     @Test
     fun testOverflowClone() {
         val sb = StringBuilder()
-        sb.append("<head><base href='https://jsoup.org/'>")
+        sb.append("<head><base href='https://ksoup.org/'>")
         for (i in 0..99999) {
             sb.append("<div>")
         }
         sb.append("<p>Hello <a href='/example.html'>there</a>")
         val doc = Ksoup.parse(sb.toString())
-        val expectedLink = "https://jsoup.org/example.html"
+        val expectedLink = "https://ksoup.org/example.html"
         assertEquals(expectedLink, doc.selectFirst("a")!!.attr("abs:href"))
         val clone = doc.clone()
         doc.hasSameValue(clone)

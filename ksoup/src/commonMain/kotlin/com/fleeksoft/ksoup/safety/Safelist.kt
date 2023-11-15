@@ -554,10 +554,10 @@ public open class Safelist() {
          *
          * Example:
          * <pre>`String sourceBodyHtml = "<p>5 is &lt; 6.</p>";
-         * String html = Jsoup.clean(sourceBodyHtml, Safelist.none());
+         * String html = Ksoup.clean(sourceBodyHtml, Safelist.none());
          *
          * Cleaner cleaner = new Cleaner(Safelist.none());
-         * String text = cleaner.clean(Jsoup.parse(sourceBodyHtml)).text();
+         * String text = cleaner.clean(Ksoup.parse(sourceBodyHtml)).text();
          *
          * // html is: 5 is &lt; 6.
          * // text is: 5 is < 6.

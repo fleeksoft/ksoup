@@ -128,7 +128,7 @@ class HtmlParserTest {
 
     @Test
     fun dropsUnterminatedTag() {
-        // jsoup used to parse this to <p>, but whatwg, webkit will drop.
+        // ksoup used to parse this to <p>, but whatwg, webkit will drop.
         val h1 = "<p"
         var doc = Ksoup.parse(h1)
         assertEquals(0, doc.getElementsByTag("p").size)

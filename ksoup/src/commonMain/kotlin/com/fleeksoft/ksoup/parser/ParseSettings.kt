@@ -51,8 +51,8 @@ public class ParseSettings
         return name
     }
 
-    /*@Nullable*/
-    public fun normalizeAttributes(/*@Nullable*/ attributes: Attributes?): Attributes? {
+    
+    public fun normalizeAttributes(attributes: Attributes?): Attributes? {
         if (attributes != null && !preserveAttributeCase) {
             attributes.normalize()
         }

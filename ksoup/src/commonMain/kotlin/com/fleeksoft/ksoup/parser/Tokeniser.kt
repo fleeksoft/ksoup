@@ -261,7 +261,7 @@ internal class Tokeniser(private val reader: CharacterReader, private val errors
     fun isAppropriateEndTagToken(): Boolean =
         lastStartTag != null && tagPending.name().equals(lastStartTag, ignoreCase = true)
 
-    /*@Nullable*/
+    
     fun appropriateEndTagName(): String? {
         return lastStartTag // could be null
     }

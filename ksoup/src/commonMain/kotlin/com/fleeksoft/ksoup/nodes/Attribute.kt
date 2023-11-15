@@ -13,10 +13,10 @@ import com.fleeksoft.ksoup.ported.Cloneable
 public open class Attribute : Map.Entry<String, String?>, Cloneable<Attribute> {
     private var attributeKey: String
 
-    /*@Nullable*/
+    
     private var attributeValue: String?
 
-    /*@Nullable*/
+    
     internal var parent: Attributes?
 
     /**
@@ -25,7 +25,7 @@ public open class Attribute : Map.Entry<String, String?>, Cloneable<Attribute> {
      * @param value attribute value (may be null)
      * @see .createFromEncoded
      */
-    public constructor(key: String, /*@Nullable*/ value: String?) : this(key, value, null)
+    public constructor(key: String, value: String?) : this(key, value, null)
 
     /**
      * Get the attribute key.
@@ -69,7 +69,7 @@ public open class Attribute : Map.Entry<String, String?>, Cloneable<Attribute> {
      * @param newValue the new attribute value; may be null (to set an enabled boolean attribute)
      * @return the previous value (if was null; an empty string)
      */
-    public fun setValue(/*@Nullable*/ newValue: String?): String {
+    public fun setValue(newValue: String?): String {
         var oldVal = this.attributeValue
         if (parent != null) {
             val i: Int = parent!!.indexOfKey(attributeKey)
@@ -109,8 +109,8 @@ public open class Attribute : Map.Entry<String, String?>, Cloneable<Attribute> {
      * @see .createFromEncoded
      */
     public constructor(
-        key: String, /*@Nullable*/
-        value: String?, /*@Nullable*/
+        key: String, 
+        value: String?, 
         parent: Attributes?,
     ) {
         var key = key
@@ -141,7 +141,7 @@ public open class Attribute : Map.Entry<String, String?>, Cloneable<Attribute> {
         return shouldCollapseAttribute(attributeKey, attributeValue, out)
     }
 
-    override fun equals(/*@Nullable*/ o: Any?): Boolean { // note parent not considered
+    override fun equals(o: Any?): Boolean { // note parent not considered
         if (this === o) return true
         if (o == null || this::class != o::class) return false
         val attribute: Attribute = o as Attribute
@@ -198,7 +198,7 @@ public open class Attribute : Map.Entry<String, String?>, Cloneable<Attribute> {
         @Throws(IOException::class)
         protected fun html(
             key: String,
-            /*@Nullable*/
+            
             value: String?,
             accum: Appendable,
             out: Document.OutputSettings,
@@ -210,7 +210,7 @@ public open class Attribute : Map.Entry<String, String?>, Cloneable<Attribute> {
         @Throws(IOException::class)
         fun htmlNoValidate(
             key: String,
-            /*@Nullable*/
+            
             value: String?,
             accum: Appendable,
             out: Document.OutputSettings,
@@ -263,7 +263,7 @@ public open class Attribute : Map.Entry<String, String?>, Cloneable<Attribute> {
             }
         }
 
-        /*@Nullable*/
+        
         /*fun getValidKey(key: String?, syntax: Syntax): String? {
             // we consider HTML attributes to always be valid. XML checks key validity
             var key = key
@@ -307,7 +307,7 @@ public open class Attribute : Map.Entry<String, String?>, Cloneable<Attribute> {
         // collapse unknown foo=null, known checked=null, checked="", checked=checked; write out others
         protected fun shouldCollapseAttribute(
             key: String,
-            /*@Nullable*/
+            
             value: String?,
             out: Document.OutputSettings,
         ): Boolean {

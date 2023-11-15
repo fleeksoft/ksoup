@@ -36,7 +36,7 @@ class NodeTest {
     @Test
     fun setBaseUriIsRecursive() {
         val doc = Ksoup.parse("<div><p></p></div>")
-        val baseUri = "https://jsoup.org"
+        val baseUri = "https://ksoup.org"
         doc.setBaseUri(baseUri)
         assertEquals(baseUri, doc.baseUri())
         assertEquals(baseUri, doc.select("div").first()!!.baseUri())
@@ -45,25 +45,25 @@ class NodeTest {
 
     @Test
     fun handlesAbsPrefix() {
-        val doc = Ksoup.parse("<a href=/foo>Hello</a>", "https://jsoup.org/")
+        val doc = Ksoup.parse("<a href=/foo>Hello</a>", "https://ksoup.org/")
         val a = doc.select("a").first()
         assertEquals("/foo", a!!.attr("href"))
-        assertEquals("https://jsoup.org/foo", a.attr("abs:href"))
+        assertEquals("https://ksoup.org/foo", a.attr("abs:href"))
         assertTrue(a.hasAttr("abs:href"))
     }
 
     @Test
     fun handlesAbsOnImage() {
-        val doc = Ksoup.parse("<p><img src=\"/rez/osi_logo.png\" /></p>", "https://jsoup.org/")
+        val doc = Ksoup.parse("<p><img src=\"/rez/osi_logo.png\" /></p>", "https://ksoup.org/")
         val img = doc.select("img").first()
-        assertEquals("https://jsoup.org/rez/osi_logo.png", img!!.attr("abs:src"))
+        assertEquals("https://ksoup.org/rez/osi_logo.png", img!!.attr("abs:src"))
         assertEquals(img.absUrl("src"), img.attr("abs:src"))
     }
 
     @Test
     fun handlesAbsPrefixOnHasAttr() {
         // 1: no abs url; 2: has abs url
-        val doc = Ksoup.parse("<a id=1 href='/foo'>One</a> <a id=2 href='https://jsoup.org/'>Two</a>")
+        val doc = Ksoup.parse("<a id=1 href='/foo'>One</a> <a id=2 href='https://ksoup.org/'>Two</a>")
         val one = doc.select("#1").first()
         val two = doc.select("#2").first()
         assertFalse(one!!.hasAttr("abs:href"))
@@ -71,7 +71,7 @@ class NodeTest {
         assertEquals("", one.absUrl("href"))
         assertTrue(two!!.hasAttr("abs:href"))
         assertTrue(two.hasAttr("href"))
-        assertEquals("https://jsoup.org/", two.absUrl("href"))
+        assertEquals("https://ksoup.org/", two.absUrl("href"))
     }
 
     @Test
@@ -117,11 +117,11 @@ class NodeTest {
     @Test
     fun absHandlesRelativeQuery() {
         val doc =
-            Ksoup.parse("<a href='?foo'>One</a> <a href='bar.html?foo'>Two</a>", "https://jsoup.org/path/file?bar")
+            Ksoup.parse("<a href='?foo'>One</a> <a href='bar.html?foo'>Two</a>", "https://ksoup.org/path/file?bar")
         val a1 = doc.select("a").first()!!
-        assertEquals("https://jsoup.org/path/file?foo", a1.absUrl("href"))
+        assertEquals("https://ksoup.org/path/file?foo", a1.absUrl("href"))
         val a2 = doc.select("a")[1]
-        assertEquals("https://jsoup.org/path/bar.html?foo", a2.absUrl("href"))
+        assertEquals("https://ksoup.org/path/bar.html?foo", a2.absUrl("href"))
     }
 
     @Test

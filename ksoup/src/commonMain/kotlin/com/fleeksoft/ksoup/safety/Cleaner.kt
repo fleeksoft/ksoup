@@ -64,7 +64,7 @@ public class Cleaner(private val safelist: Safelist) {
      *
      *
      * Example:
-     * <pre>`Document inputDoc = Jsoup.parse(inputHtml);
+     * <pre>`Document inputDoc = Ksoup.parse(inputHtml);
      * Cleaner cleaner = new Cleaner(Safelist.relaxed());
      * boolean isValid = cleaner.isValid(inputDoc);
      * Document normalizedDoc = cleaner.clean(inputDoc);
@@ -96,7 +96,7 @@ public class Cleaner(private val safelist: Safelist) {
      *
      *
      * Example:
-     * <pre>`Document inputDoc = Jsoup.parse(inputHtml);
+     * <pre>`Document inputDoc = Ksoup.parse(inputHtml);
      * Cleaner cleaner = new Cleaner(Safelist.relaxed());
      * boolean isValid = cleaner.isValidBodyHtml(inputHtml);
      * Document normalizedDoc = cleaner.clean(inputDoc);

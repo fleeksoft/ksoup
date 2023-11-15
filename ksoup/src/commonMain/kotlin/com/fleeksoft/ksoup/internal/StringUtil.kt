@@ -383,7 +383,7 @@ internal object StringUtil {
      *
      * @param separator the token to insert between strings
      */(val separator: String?) {
-        /*@Nullable*/
+        
         // sets null on builder release so can't accidentally be reused
         var sb: StringBuilder? = borrowBuilder()
         var first = true

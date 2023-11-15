@@ -26,7 +26,7 @@ class IosGreetingTest {
         val a = Attributes()
         a.put("Tot", "a&p")
         a.put("Hello", "There")
-        a.put("data-name", "Jsoup")
+        a.put("data-name", "Ksoup")
         assertEquals(3, a.size())
         assertTrue(a.hasKey("Tot"))
         assertTrue(a.hasKey("Hello"))
@@ -36,11 +36,11 @@ class IosGreetingTest {
         assertEquals("There", a.getIgnoreCase("hEllo"))
         val dataset: Attributes.Dataset = a.dataset()
         assertEquals(1, dataset.size)
-        assertEquals("Jsoup", dataset["name"])
+        assertEquals("Ksoup", dataset["name"])
         assertEquals("", a["tot"])
         assertEquals("a&p", a["Tot"])
         assertEquals("a&p", a.getIgnoreCase("tot"))
-        assertEquals(" Tot=\"a&amp;p\" Hello=\"There\" data-name=\"Jsoup\"", a.html())
+        assertEquals(" Tot=\"a&amp;p\" Hello=\"There\" data-name=\"Ksoup\"", a.html())
         assertEquals(a.html(), a.toString())
     }
 

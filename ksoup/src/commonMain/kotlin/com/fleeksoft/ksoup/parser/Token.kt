@@ -81,27 +81,27 @@ internal abstract class Token private constructor() {
     }
 
     abstract class Tag : Token() {
-        /*@Nullable*/
+        
         var tagName: String? = null
 
-        /*@Nullable*/
+        
         var normalName: String? = null // lc version of tag name, for case insensitive tree build
         private val attrName: StringBuilder =
             StringBuilder() // try to get attr names and vals in one shot, vs Builder
 
-        /*@Nullable*/
+        
         private var attrNameS: String? = null
         private var hasAttrName = false
         private val attrValue: StringBuilder = StringBuilder()
 
-        /*@Nullable*/
+        
         private var attrValueS: String? = null
         private var hasAttrValue = false
         private var hasEmptyAttrValue =
             false // distinguish boolean attribute from empty string value
         var isSelfClosing = false
 
-        /*@Nullable*/
+        
         var attributes: Attributes? =
             null // start tags get attributes on construction. End tags get attributes on first new attribute (but only for parser convenience, not used).
 

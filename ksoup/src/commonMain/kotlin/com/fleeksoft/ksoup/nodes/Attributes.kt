@@ -107,12 +107,12 @@ public class Attributes : Iterable<Attribute>, Cloneable<Attributes> {
      * Adds a new attribute. Will produce duplicates if the key already exists.
      * @see Attributes.put
      */
-    public fun add(key: String, /*@Nullable*/ value: String?): Attributes {
+    public fun add(key: String, value: String?): Attributes {
         addObject(key, value)
         return this
     }
 
-    private fun addObject(key: String, /*@Nullable*/ value: Any?) {
+    private fun addObject(key: String, value: Any?) {
         checkCapacity(size + 1)
         keys[size] = key
         vals[size] = value
@@ -125,7 +125,7 @@ public class Attributes : Iterable<Attribute>, Cloneable<Attributes> {
      * @param value attribute value (may be null, to set a boolean attribute)
      * @return these attributes, for chaining
      */
-    public fun put(key: String, /*@Nullable*/ value: String?): Attributes {
+    public fun put(key: String, value: String?): Attributes {
         val i = indexOfKey(key)
         if (i != NotFound) vals[i] = value else add(key, value)
         return this
@@ -146,7 +146,7 @@ public class Attributes : Iterable<Attribute>, Cloneable<Attributes> {
         return this
     }
 
-    public fun putIgnoreCase(key: String, /*@Nullable*/ value: String?) {
+    public fun putIgnoreCase(key: String, value: String?) {
         val i = indexOfKeyIgnoreCase(key)
         if (i != NotFound) {
             vals[i] = value
@@ -388,7 +388,7 @@ public class Attributes : Iterable<Attribute>, Cloneable<Attributes> {
      * @param o attributes to compare with
      * @return if both sets of attributes have the same content
      */
-    override fun equals(/*@Nullable*/ o: Any?): Boolean {
+    override fun equals(o: Any?): Boolean {
         if (this === o) return true
         if (o == null || this::class != o::class) return false
         val that = o as Attributes
@@ -512,7 +512,7 @@ public class Attributes : Iterable<Attribute>, Cloneable<Attributes> {
 
         // we track boolean attributes as null in values - they're just keys. so returns empty for consumers
         // casts to String, so only for non-internal attributes
-        fun checkNotNull(/*@Nullable*/ value: Any?): String {
+        fun checkNotNull(value: Any?): String {
             return if (value == null) EmptyString else (value as String?)!!
         }
 

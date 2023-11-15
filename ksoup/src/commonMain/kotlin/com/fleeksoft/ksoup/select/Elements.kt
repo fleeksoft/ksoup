@@ -355,7 +355,7 @@ public class Elements(private val delegateList: MutableList<Element> = mutableLi
 
     /**
      * Wrap the supplied HTML around each matched elements. For example, with HTML
-     * `<p><b>This</b> is <b>Jsoup</b></p>`,
+     * `<p><b>This</b> is <b>Ksoup</b></p>`,
      * `doc.select("b").wrap("<i></i>");`
      * becomes `<p><i><b>This</b></i> is <i><b>com.fleeksoft.ksoup</b></i></p>`
      * @param html HTML to wrap around each element, e.g. `<div class="head"></div>`. Can be arbitrarily deep.
@@ -580,7 +580,7 @@ public class Elements(private val delegateList: MutableList<Element> = mutableLi
         return els
     }
 
-    /*private fun siblings(*//*@Nullable*//* query: String?, next: Boolean, all: Boolean): Elements {
+    /*private fun siblings(*//* query: String?, next: Boolean, all: Boolean): Elements {
         val els = Elements()
         val eval: Evaluator? = if (query != null) QueryParser.parse(query) else null
         for (e in this) {
@@ -611,7 +611,7 @@ public class Elements(private val delegateList: MutableList<Element> = mutableLi
      * Get the first matched element.
      * @return The first matched element, or `null` if contents is empty.
      */
-    /*@Nullable*/
+    
     public fun first(): Element? {
         return if (isEmpty()) null else get(0)
     }
@@ -620,7 +620,7 @@ public class Elements(private val delegateList: MutableList<Element> = mutableLi
      * Get the last matched element.
      * @return The last matched element, or `null` if contents is empty.
      */
-    /*@Nullable*/
+    
     public fun last(): Element? {
         return if (isEmpty()) null else get(size - 1)
     }

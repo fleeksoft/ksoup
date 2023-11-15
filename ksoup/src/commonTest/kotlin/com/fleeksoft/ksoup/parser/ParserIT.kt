@@ -13,7 +13,7 @@ class ParserIT {
     @Test
     @Ignore // disabled by default now, as there more specific unconsume tests
     fun testIssue1251() {
-        // https://github.com/jhy/jsoup/issues/1251
+        // https://github.com/jhy/Ksoup/issues/1251
         val str = StringBuilder("<a href=\"\"ca")
         for (countSpaces in 0..99999) {
             try {

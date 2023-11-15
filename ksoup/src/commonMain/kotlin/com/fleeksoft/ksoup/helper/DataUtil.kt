@@ -343,7 +343,7 @@ internal object DataUtil {
     }
 
     //    @Nullable
-    private fun validateCharset(/*@Nullable*/ cs: String?): String? {
+    private fun validateCharset(cs: String?): String? {
         var cs = cs
         if (cs.isNullOrEmpty()) return null
         cs = cs.trim { it <= ' ' }.replace("[\"']".toRegex(), "")

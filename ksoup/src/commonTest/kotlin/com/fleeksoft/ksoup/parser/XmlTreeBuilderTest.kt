@@ -61,7 +61,7 @@ class XmlTreeBuilderTest {
     }
 
     @Test
-    fun testSupplyParserToJsoupClass() {
+    fun testSupplyParserToKsoupClass() {
         val xml = "<doc><val>One<val>Two</val></bar>Three</doc>"
         val doc = Ksoup.parse(xml, "http://foo.com/", Parser.xmlParser())
         assertEquals(

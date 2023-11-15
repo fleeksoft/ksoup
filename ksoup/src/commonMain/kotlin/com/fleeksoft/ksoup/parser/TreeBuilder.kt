@@ -190,7 +190,7 @@ internal abstract class TreeBuilder {
      * @param node the node that was just inserted
      * @param token the (optional) token that created this node
      */
-    fun onNodeInserted(node: Node, /*@Nullable*/ token: Token?) {
+    fun onNodeInserted(node: Node, token: Token?) {
         trackNodePosition(node, token, true)
     }
 
@@ -204,7 +204,7 @@ internal abstract class TreeBuilder {
         trackNodePosition(node, token, false)
     }
 
-    private fun trackNodePosition(node: Node, /*@Nullable*/ token: Token?, start: Boolean) {
+    private fun trackNodePosition(node: Node, token: Token?, start: Boolean) {
         if (trackSourceRange && token != null) {
             val startPos: Int = token.startPos()
             if (startPos == Token.Unset) return // untracked, virtual token

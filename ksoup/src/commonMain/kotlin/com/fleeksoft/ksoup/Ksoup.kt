@@ -77,11 +77,10 @@ public object Ksoup {
      *
      * Use examples:
      *
-     *  * `Document doc = Jsoup.connect("http://example.com").userAgent("Mozilla").data("name", "com.fleeksoft.ksoup").get();`
-     *  * `Document doc = Jsoup.connect("http://example.com").cookie("auth", "token").post();`
+     *  * `Document doc = Ksoup.connect("http://example.com");`
      *
      * @param url URL to connect to. The protocol must be `http` or `https`.
-     * @return the connection. You can add data, cookies, and headers; set the user-agent, referrer, method; and then execute.
+     * @return the connection. You can add headers.
      *
      */
     public fun connect(
@@ -270,7 +269,7 @@ public object Ksoup {
      * String html = Jsoup.clean(sourceBodyHtml, Safelist.none());
      *
      * Cleaner cleaner = new Cleaner(Safelist.none());
-     * String text = cleaner.clean(Jsoup.parse(sourceBodyHtml)).text();
+     * String text = cleaner.clean(Ksoup.parse(sourceBodyHtml)).text();
      *
      * // html is: 5 is &lt; 6.
      * // text is: 5 is < 6.

@@ -121,7 +121,7 @@ public object Entities {
         return escape(string, DefaultOutput)
     }
 
-    /*@Nullable*/
+    
     private var DefaultOutput: OutputSettings? =
         null // lazy-init, to break circular dependency with OutputSettings
 

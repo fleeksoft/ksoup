@@ -430,9 +430,9 @@ class ElementTest {
     @Test
     fun testFormatHtml() {
         val doc =
-            Ksoup.parse("<title>Format test</title><div><p>Hello <span>jsoup <span>users</span></span></p><p>Good.</p></div>")
+            Ksoup.parse("<title>Format test</title><div><p>Hello <span>ksoup <span>users</span></span></p><p>Good.</p></div>")
         assertEquals(
-            "<html>\n <head>\n  <title>Format test</title>\n </head>\n <body>\n  <div>\n   <p>Hello <span>jsoup <span>users</span></span></p>\n   <p>Good.</p>\n  </div>\n </body>\n</html>",
+            "<html>\n <head>\n  <title>Format test</title>\n </head>\n <body>\n  <div>\n   <p>Hello <span>ksoup <span>users</span></span></p>\n   <p>Good.</p>\n  </div>\n </body>\n</html>",
             doc.html()
         )
     }

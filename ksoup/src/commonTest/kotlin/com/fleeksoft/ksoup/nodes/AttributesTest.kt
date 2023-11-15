@@ -18,7 +18,7 @@ class AttributesTest {
         val a = Attributes()
         a.put("Tot", "a&p")
         a.put("Hello", "There")
-        a.put("data-name", "Jsoup")
+        a.put("data-name", "Ksoup")
         assertEquals(3, a.size())
         assertTrue(a.hasKey("Tot"))
         assertTrue(a.hasKey("Hello"))
@@ -28,11 +28,11 @@ class AttributesTest {
         assertEquals("There", a.getIgnoreCase("hEllo"))
         val dataset: Attributes.Dataset = a.dataset()
         assertEquals(1, dataset.size)
-        assertEquals("Jsoup", dataset["name"])
+        assertEquals("Ksoup", dataset["name"])
         assertEquals("", a["tot"])
         assertEquals("a&p", a["Tot"])
         assertEquals("a&p", a.getIgnoreCase("tot"))
-        assertEquals(" Tot=\"a&amp;p\" Hello=\"There\" data-name=\"Jsoup\"", a.html())
+        assertEquals(" Tot=\"a&amp;p\" Hello=\"There\" data-name=\"Ksoup\"", a.html())
         assertEquals(a.html(), a.toString())
     }
 
@@ -41,7 +41,7 @@ class AttributesTest {
         val a = Attributes()
         a.put("Tot", "a&p")
         a.put("Hello", "There")
-        a.put("data-name", "Jsoup")
+        a.put("data-name", "Ksoup")
         assertTrue(a.hasKey("Tot"))
         val iterator = a.iterator()
         var attr = iterator.next()
@@ -93,7 +93,7 @@ class AttributesTest {
     @Test
     fun testIterator() {
         val a = Attributes()
-        val datas = arrayOf(arrayOf("Tot", "raul"), arrayOf("Hello", "pismuth"), arrayOf("data-name", "Jsoup"))
+        val datas = arrayOf(arrayOf("Tot", "raul"), arrayOf("Hello", "pismuth"), arrayOf("data-name", "Ksoup"))
         for (atts in datas) {
             a.put(atts[0], atts[1])
         }
@@ -205,7 +205,7 @@ class AttributesTest {
         a.put("tot", "one")
         a.put("Hello", "There")
         a.put("hello", "There")
-        a.put("data-name", "Jsoup")
+        a.put("data-name", "Ksoup")
         assertEquals(5, a.size())
         a.remove("Tot")
         a.remove("Hello")

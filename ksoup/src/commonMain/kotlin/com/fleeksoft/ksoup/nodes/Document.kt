@@ -58,20 +58,9 @@ public class Document(private val namespace: String, private val location: Strin
     }
 
     /**
-     * Returns the Connection (Request/Response) object that was used to fetch this document, if any; otherwise, a new
-     * default Connection object. This can be used to continue a session, preserving settings and cookies, etc.
-     * @return the Connection (session) associated with this Document, or an empty one otherwise.
-     * @see Connection.newRequest
-     */
-    /*fun connection(): Connection {
-        return if (connection == null) Jsoup.newSession() else connection
-    }*/
-
-    /**
      * Returns this Document's doctype.
      * @return document type, or null if not set
      */
-    /*@Nullable*/
     public fun documentType(): DocumentType? {
         for (node in childNodes) {
             if (node is DocumentType) {
@@ -301,7 +290,7 @@ public class Document(private val namespace: String, private val location: Strin
     override fun createClone(): Node {
         val document = Document(namespace, location)
         document.outputSettings = this.outputSettings.clone()
-        return document as Document
+        return document
     }
 
     override fun shallowClone(): Document {

@@ -41,7 +41,7 @@ internal object Collector {
      * @param root root of tree to descend
      * @return the first match; `null` if none
      */
-    /*@Nullable*/
+    
     fun findFirst(eval: Evaluator, root: Element): Element? {
         eval.reset()
         val finder = FirstFinder(eval)
@@ -49,10 +49,10 @@ internal object Collector {
     }
 
     internal class FirstFinder(eval: Evaluator) : NodeFilter {
-        /*@Nullable*/
+        
         private var evalRoot: Element? = null
 
-        /*@Nullable*/
+        
         private var match: Element? = null
         private val eval: Evaluator
 
@@ -60,7 +60,7 @@ internal object Collector {
             this.eval = eval
         }
 
-        /*@Nullable*/
+        
         fun find(root: Element?, start: Element): Element? {
             evalRoot = root
             match = null
