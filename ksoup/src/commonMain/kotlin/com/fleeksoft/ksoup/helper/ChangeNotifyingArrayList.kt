@@ -5,7 +5,7 @@ import com.fleeksoft.ksoup.removeRange
 /**
  * Implementation of ArrayList that watches out for changes to the contents.
  */
-abstract class ChangeNotifyingArrayList<E>(initialCapacity: Int) : MutableList<E> {
+internal abstract class ChangeNotifyingArrayList<E>(initialCapacity: Int) : MutableList<E> {
 
     private val delegate: MutableList<E> = ArrayList(initialCapacity)
 

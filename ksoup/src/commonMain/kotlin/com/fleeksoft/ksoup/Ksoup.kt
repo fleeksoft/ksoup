@@ -18,7 +18,7 @@ import okio.Path.Companion.toPath
  *
  * @author Sabeeh
  */
-object Ksoup {
+public object Ksoup {
     /**
      * Parse HTML into a Document. The parser will make a sensible, balanced document tree out of any HTML.
      *
@@ -27,7 +27,7 @@ object Ksoup {
      * before the HTML declares a `<base href>` tag.
      * @return sane HTML
      */
-    fun parse(html: String, baseUri: String): Document {
+    public fun parse(html: String, baseUri: String): Document {
         return Parser.parse(html, baseUri)
     }
 
@@ -41,7 +41,7 @@ object Ksoup {
      * @param parser alternate [parser][Parser.xmlParser] to use.
      * @return sane HTML
      */
-    fun parse(html: String, baseUri: String, parser: Parser): Document {
+    public fun parse(html: String, baseUri: String, parser: Parser): Document {
         return parser.parseInput(html, baseUri)
     }
 
@@ -55,7 +55,7 @@ object Ksoup {
      * @param parser alternate [parser][Parser.xmlParser] to use.
      * @return sane HTML
      */
-    fun parse(html: String, parser: Parser): Document {
+    public fun parse(html: String, parser: Parser): Document {
         return parser.parseInput(html, "")
     }
 
@@ -67,7 +67,7 @@ object Ksoup {
      * @return sane HTML
      * @see .parse
      */
-    fun parse(html: String): Document {
+    public fun parse(html: String): Document {
         return Parser.parse(html, "")
     }
 
@@ -84,7 +84,7 @@ object Ksoup {
      * @return the connection. You can add data, cookies, and headers; set the user-agent, referrer, method; and then execute.
      *
      */
-    fun connect(
+    public fun connect(
         url: String,
         headers: Map<String, String> = mapOf(),
         parser: Parser = Parser.htmlParser(),
@@ -105,7 +105,7 @@ object Ksoup {
      * @throws IOException if the file could not be found, or read, or if the charsetName is invalid.
      */
     @Throws(IOException::class)
-    fun parseFile(file: String, baseUri: String, charsetName: String? = null): Document {
+    public fun parseFile(file: String, baseUri: String, charsetName: String? = null): Document {
         val filePath = file.toPath()
         return DataUtil.load(filePath, charsetName, baseUri)
     }
@@ -121,7 +121,7 @@ object Ksoup {
      * @see .parse
      */
     @Throws(IOException::class)
-    fun parseFile(file: String, charsetName: String? = null): Document {
+    public fun parseFile(file: String, charsetName: String? = null): Document {
         val filePath = file.toPath()
         return DataUtil.load(filePath, charsetName, filePath.toString())
     }
@@ -141,7 +141,7 @@ object Ksoup {
      * @since 1.15.1
      */
     @Throws(IOException::class)
-    fun parseFile(file: String): Document {
+    public fun parseFile(file: String): Document {
         val filePath = file.toPath()
         return DataUtil.load(filePath, null, filePath.toString())
     }
@@ -159,7 +159,7 @@ object Ksoup {
      * @since 1.14.2
      */
     @Throws(IOException::class)
-    fun parseFile(
+    public fun parseFile(
         file: String,
         charsetName: String?,
         baseUri: String,
@@ -179,7 +179,7 @@ object Ksoup {
      * @throws IOException if the file could not be found, or read, or if the charsetName is invalid.
      */
     @Throws(IOException::class)
-    fun parse(
+    public fun parse(
         bufferReader: BufferReader,
         charsetName: String?,
         baseUri: String,
@@ -200,7 +200,7 @@ object Ksoup {
      * @throws IOException if the file could not be found, or read, or if the charsetName is invalid.
      */
     @Throws(IOException::class)
-    fun parse(
+    public fun parse(
         bufferReader: BufferReader,
         charsetName: String?,
         baseUri: String,
@@ -217,7 +217,7 @@ object Ksoup {
      * @return sane HTML document
      * @see Document.body
      */
-    fun parseBodyFragment(bodyHtml: String, baseUri: String?): Document {
+    public fun parseBodyFragment(bodyHtml: String, baseUri: String?): Document {
         return Parser.parseBodyFragment(bodyHtml, baseUri ?: "")
     }
 
@@ -228,32 +228,9 @@ object Ksoup {
      * @return sane HTML document
      * @see Document.body
      */
-    fun parseBodyFragment(bodyHtml: String): Document {
+    public fun parseBodyFragment(bodyHtml: String): Document {
         return Parser.parseBodyFragment(bodyHtml, "")
     }
-
-    /**
-     * Fetch a URL, and parse it as HTML. Provided for compatibility; in most cases use [.connect] instead.
-     *
-     *
-     * The encoding character set is determined by the content-type header or http-equiv meta tag, or falls back to `UTF-8`.
-     *
-     * @param url           URL to fetch (with a GET). The protocol must be `http` or `https`.
-     * @param timeoutMillis Connection and read timeout, in milliseconds. If exceeded, IOException is thrown.
-     * @return The parsed HTML.
-     * @throws java.net.MalformedURLException if the request URL is not a HTTP or HTTPS URL, or is otherwise malformed
-     * @throws HttpStatusException if the response is not OK and HTTP response errors are not ignored
-     * @throws UnsupportedMimeTypeException if the response mime type is not supported and those errors are not ignored
-     * @throws java.net.SocketTimeoutException if the connection times out
-     * @throws IOException if a connection or read error occurs
-     * @see .connect
-     */
-    /*@Throws(IOException::class)
-    fun parse(url: java.net.URL?, timeoutMillis: Int): Document {
-        val con: Connection = HttpConnection.connect(url)
-        con.timeout(timeoutMillis)
-        return con.get()
-    }*/
 
     /**
      * Get safe HTML from untrusted input HTML, by parsing input HTML and filtering it through an allow-list of safe
@@ -265,7 +242,7 @@ object Ksoup {
      * @return safe HTML (body fragment)
      * @see Cleaner.clean
      */
-    fun clean(bodyHtml: String, baseUri: String?, safelist: Safelist): String {
+    public fun clean(bodyHtml: String, baseUri: String?, safelist: Safelist): String {
         val dirty: Document = parseBodyFragment(bodyHtml, baseUri)
         val cleaner = Cleaner(safelist)
         val clean: Document = cleaner.clean(dirty)
@@ -304,7 +281,7 @@ object Ksoup {
      * @return safe HTML (body fragment)
      * @see Cleaner.clean
      */
-    fun clean(bodyHtml: String, safelist: Safelist): String {
+    public fun clean(bodyHtml: String, safelist: Safelist): String {
         return clean(bodyHtml, "", safelist)
     }
 
@@ -323,7 +300,7 @@ object Ksoup {
      * @return safe HTML (body fragment)
      * @see Cleaner.clean
      */
-    fun clean(
+    public fun clean(
         bodyHtml: String,
         baseUri: String?,
         safelist: Safelist,
@@ -359,7 +336,7 @@ object Ksoup {
      * @return true if no tags or attributes were removed; false otherwise
      * @see .clean
      */
-    fun isValid(bodyHtml: String, safelist: Safelist): Boolean {
+    public fun isValid(bodyHtml: String, safelist: Safelist): Boolean {
         return Cleaner(safelist).isValidBodyHtml(bodyHtml)
     }
 }

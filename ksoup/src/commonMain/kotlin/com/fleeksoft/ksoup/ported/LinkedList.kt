@@ -1,3 +1,3 @@
 package com.fleeksoft.ksoup.ported
 
-typealias LinkedList<E> = MutableList<E>
+internal typealias LinkedList<E> = MutableList<E>

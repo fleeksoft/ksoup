@@ -21,14 +21,14 @@ import kotlin.reflect.cast
  *
  * @author Sabeeh, fleeksoft@gmail.com
  */
-class Elements(private val delegateList: MutableList<Element> = mutableListOf()) :
+public class Elements(private val delegateList: MutableList<Element> = mutableListOf()) :
     MutableList<Element> by delegateList {
 
-    constructor(element: Element) : this() {
+    public constructor(element: Element) : this() {
         add(element)
     }
 
-    constructor(elements: Collection<Element>) : this() {
+    public constructor(elements: Collection<Element>) : this() {
         addAll(elements)
     }
 
@@ -36,7 +36,7 @@ class Elements(private val delegateList: MutableList<Element> = mutableListOf())
      * Creates a deep copy of these elements.
      * @return a deep copy
      */
-    fun clone(): Elements {
+    internal fun clone(): Elements {
         val clone = Elements()
         this.forEach { element: Element ->
             clone.add(element.clone())
@@ -56,7 +56,7 @@ class Elements(private val delegateList: MutableList<Element> = mutableListOf())
      * or if the no elements have the attribute, returns empty string.
      * @see .hasAttr
      */
-    fun attr(attributeKey: String): String {
+    public fun attr(attributeKey: String): String {
         for (element in this) {
             if (element.hasAttr(attributeKey)) return element.attr(attributeKey)
         }
@@ -68,7 +68,7 @@ class Elements(private val delegateList: MutableList<Element> = mutableListOf())
      * @param attributeKey attribute key
      * @return true if any of the elements have the attribute; false if none do.
      */
-    fun hasAttr(attributeKey: String): Boolean {
+    public fun hasAttr(attributeKey: String): Boolean {
         for (element in this) {
             if (element.hasAttr(attributeKey)) return true
         }
@@ -82,8 +82,8 @@ class Elements(private val delegateList: MutableList<Element> = mutableListOf())
      * get absolute URLs from relative URLs, e.g.: `doc.select("a").eachAttr("abs:href")` .
      * @return a list of each element's attribute value for the attribute
      */
-    fun eachAttr(attributeKey: String): List<String> {
-        val attrs: MutableList<String> = ArrayList<String>(size)
+    public fun eachAttr(attributeKey: String): List<String> {
+        val attrs: MutableList<String> = ArrayList(size)
         for (element in this) {
             if (element.hasAttr(attributeKey)) attrs.add(element.attr(attributeKey))
         }
@@ -96,7 +96,7 @@ class Elements(private val delegateList: MutableList<Element> = mutableListOf())
      * @param attributeValue attribute value
      * @return this
      */
-    fun attr(attributeKey: String, attributeValue: String?): Elements {
+    public fun attr(attributeKey: String, attributeValue: String?): Elements {
         for (element in this) {
             element.attr(attributeKey, attributeValue)
         }
@@ -108,7 +108,7 @@ class Elements(private val delegateList: MutableList<Element> = mutableListOf())
      * @param attributeKey The attribute to remove.
      * @return this (for chaining)
      */
-    fun removeAttr(attributeKey: String): Elements {
+    public fun removeAttr(attributeKey: String): Elements {
         for (element in this) {
             element.removeAttr(attributeKey)
         }
@@ -120,7 +120,7 @@ class Elements(private val delegateList: MutableList<Element> = mutableListOf())
      * @param className class name to add
      * @return this
      */
-    fun addClass(className: String): Elements {
+    public fun addClass(className: String): Elements {
         for (element in this) {
             element.addClass(className)
         }
@@ -132,7 +132,7 @@ class Elements(private val delegateList: MutableList<Element> = mutableListOf())
      * @param className class name to remove
      * @return this
      */
-    fun removeClass(className: String): Elements {
+    public fun removeClass(className: String): Elements {
         for (element in this) {
             element.removeClass(className)
         }
@@ -144,7 +144,7 @@ class Elements(private val delegateList: MutableList<Element> = mutableListOf())
      * @param className class name to add if missing, or remove if present, from every element.
      * @return this
      */
-    fun toggleClass(className: String): Elements {
+    public fun toggleClass(className: String): Elements {
         for (element in this) {
             element.toggleClass(className)
         }
@@ -156,7 +156,7 @@ class Elements(private val delegateList: MutableList<Element> = mutableListOf())
      * @param className class name to check for
      * @return true if any do, false if none do
      */
-    fun hasClass(className: String): Boolean {
+    public fun hasClass(className: String): Boolean {
         for (element in this) {
             if (element.hasClass(className)) return true
         }
@@ -168,7 +168,7 @@ class Elements(private val delegateList: MutableList<Element> = mutableListOf())
      * @return The form element's value, or empty if not set.
      * @see Element.val
      */
-    fun value(): String {
+    public fun value(): String {
         return if (size > 0) {
             first()!!.value() // first() != null as size() > 0
         } else {
@@ -181,7 +181,7 @@ class Elements(private val delegateList: MutableList<Element> = mutableListOf())
      * @param value The value to set into each matched element
      * @return this (for chaining)
      */
-    fun value(value: String): Elements {
+    public fun value(value: String): Elements {
         for (element in this) element.value(value)
         return this
     }
@@ -196,7 +196,7 @@ class Elements(private val delegateList: MutableList<Element> = mutableListOf())
      * @see Element.text
      * @see .eachText
      */
-    fun text(): String {
+    public fun text(): String {
         val sb: StringBuilder = StringUtil.borrowBuilder()
         for (element in this) {
             if (sb.length != 0) sb.append(" ")
@@ -210,7 +210,7 @@ class Elements(private val delegateList: MutableList<Element> = mutableListOf())
      * @return true if any element has non-blank text content.
      * @see Element.hasText
      */
-    fun hasText(): Boolean {
+    public fun hasText(): Boolean {
         for (element in this) {
             if (element.hasText()) return true
         }
@@ -225,8 +225,8 @@ class Elements(private val delegateList: MutableList<Element> = mutableListOf())
      * @see Element.hasText
      * @see .text
      */
-    fun eachText(): List<String> {
-        val texts: ArrayList<String> = ArrayList<String>(size)
+    public fun eachText(): List<String> {
+        val texts: ArrayList<String> = ArrayList(size)
         for (el in this) {
             if (el.hasText()) texts.add(el.text())
         }
@@ -239,7 +239,7 @@ class Elements(private val delegateList: MutableList<Element> = mutableListOf())
      * @see .text
      * @see .outerHtml
      */
-    fun html(): String {
+    public fun html(): String {
         val sb: StringBuilder = StringUtil.borrowBuilder()
         for (element in this) {
             if (sb.length != 0) sb.append("\n")
@@ -254,7 +254,7 @@ class Elements(private val delegateList: MutableList<Element> = mutableListOf())
      * @see .text
      * @see .html
      */
-    fun outerHtml(): String {
+    public fun outerHtml(): String {
         val sb: StringBuilder = StringUtil.borrowBuilder()
         for (element in this) {
             if (sb.length != 0) sb.append("\n")
@@ -281,7 +281,7 @@ class Elements(private val delegateList: MutableList<Element> = mutableListOf())
      * @return this, for chaining
      * @see Element.tagName
      */
-    fun tagName(tagName: String): Elements {
+    public fun tagName(tagName: String): Elements {
         for (element in this) {
             element.tagName(tagName)
         }
@@ -294,7 +294,7 @@ class Elements(private val delegateList: MutableList<Element> = mutableListOf())
      * @return this, for chaining
      * @see Element.html
      */
-    fun html(html: String): Elements {
+    public fun html(html: String): Elements {
         for (element in this) {
             element.html(html)
         }
@@ -307,7 +307,7 @@ class Elements(private val delegateList: MutableList<Element> = mutableListOf())
      * @return this, for chaining
      * @see Element.prepend
      */
-    fun prepend(html: String): Elements {
+    public fun prepend(html: String): Elements {
         for (element in this) {
             element.prepend(html)
         }
@@ -320,7 +320,7 @@ class Elements(private val delegateList: MutableList<Element> = mutableListOf())
      * @return this, for chaining
      * @see Element.append
      */
-    fun append(html: String): Elements {
+    public fun append(html: String): Elements {
         for (element in this) {
             element.append(html)
         }
@@ -333,7 +333,7 @@ class Elements(private val delegateList: MutableList<Element> = mutableListOf())
      * @return this, for chaining
      * @see Element.before
      */
-    fun before(html: String): Elements {
+    public fun before(html: String): Elements {
         for (element in this) {
             element.before(html)
         }
@@ -346,7 +346,7 @@ class Elements(private val delegateList: MutableList<Element> = mutableListOf())
      * @return this, for chaining
      * @see Element.after
      */
-    fun after(html: String): Elements {
+    public fun after(html: String): Elements {
         for (element in this) {
             element.after(html)
         }
@@ -362,7 +362,7 @@ class Elements(private val delegateList: MutableList<Element> = mutableListOf())
      * @return this (for chaining)
      * @see Element.wrap
      */
-    fun wrap(html: String): Elements {
+    public fun wrap(html: String): Elements {
         Validate.notEmpty(html)
         for (element in this) {
             element.wrap(html)
@@ -389,7 +389,7 @@ class Elements(private val delegateList: MutableList<Element> = mutableListOf())
      * @return this (for chaining)
      * @see Node.unwrap
      */
-    fun unwrap(): Elements {
+    public fun unwrap(): Elements {
         for (element in this) {
             element.unwrap()
         }
@@ -408,7 +408,7 @@ class Elements(private val delegateList: MutableList<Element> = mutableListOf())
      * @see Element.empty
      * @see .remove
      */
-    fun empty(): Elements {
+    public fun empty(): Elements {
         for (element in this) {
             element.empty()
         }
@@ -432,7 +432,7 @@ class Elements(private val delegateList: MutableList<Element> = mutableListOf())
      * @see .empty
      * @see .clear
      */
-    fun remove(): Elements {
+    public fun remove(): Elements {
         for (element in this) {
             element.remove()
         }
@@ -444,7 +444,7 @@ class Elements(private val delegateList: MutableList<Element> = mutableListOf())
      * @param query A [Selector] query
      * @return the filtered list of elements, or an empty list if none match.
      */
-    fun select(query: String): Elements {
+    public fun select(query: String): Elements {
         return Selector.select(query, this)
     }
 
@@ -460,7 +460,7 @@ class Elements(private val delegateList: MutableList<Element> = mutableListOf())
      * @param query the selector query whose results should be removed from these elements
      * @return a new elements list that contains only the filtered results
      */
-    fun not(query: String): Elements {
+    public fun not(query: String): Elements {
         val out: Elements = Selector.select(query, this)
         return Selector.filterOut(this, out)
     }
@@ -473,7 +473,7 @@ class Elements(private val delegateList: MutableList<Element> = mutableListOf())
      * @param index the (zero-based) index of the element in the list to retain
      * @return Elements containing only the specified element, or, if that element did not exist, an empty list.
      */
-    fun eq(index: Int): Elements {
+    public fun eq(index: Int): Elements {
         return if (size > index) Elements(get(index)) else Elements()
     }
 
@@ -482,7 +482,7 @@ class Elements(private val delegateList: MutableList<Element> = mutableListOf())
      * @param query A selector
      * @return true if at least one element in the list matches the query.
      */
-    fun `is`(query: String): Boolean {
+    public fun `is`(query: String): Boolean {
         val eval: Evaluator = QueryParser.parse(query)
         for (e in this) {
             if (e.`is`(eval)) return true
@@ -494,7 +494,7 @@ class Elements(private val delegateList: MutableList<Element> = mutableListOf())
      * Get the immediate next element sibling of each element in this list.
      * @return next element siblings.
      */
-    operator fun next(): Elements {
+    public operator fun next(): Elements {
         return siblings(null, true, false)
     }
 
@@ -503,7 +503,7 @@ class Elements(private val delegateList: MutableList<Element> = mutableListOf())
      * @param query CSS query to match siblings against
      * @return next element siblings.
      */
-    fun next(query: String?): Elements {
+    public fun next(query: String?): Elements {
         return siblings(query, true, false)
     }
 
@@ -511,7 +511,7 @@ class Elements(private val delegateList: MutableList<Element> = mutableListOf())
      * Get each of the following element siblings of each element in this list.
      * @return all following element siblings.
      */
-    fun nextAll(): Elements {
+    public fun nextAll(): Elements {
         return siblings(null, true, true)
     }
 
@@ -520,7 +520,7 @@ class Elements(private val delegateList: MutableList<Element> = mutableListOf())
      * @param query CSS query to match siblings against
      * @return all following element siblings.
      */
-    fun nextAll(query: String?): Elements {
+    public fun nextAll(query: String?): Elements {
         return siblings(query, true, true)
     }
 
@@ -528,7 +528,7 @@ class Elements(private val delegateList: MutableList<Element> = mutableListOf())
      * Get the immediate previous element sibling of each element in this list.
      * @return previous element siblings.
      */
-    fun prev(): Elements {
+    public fun prev(): Elements {
         return siblings(null, false, false)
     }
 
@@ -537,7 +537,7 @@ class Elements(private val delegateList: MutableList<Element> = mutableListOf())
      * @param query CSS query to match siblings against
      * @return previous element siblings.
      */
-    fun prev(query: String?): Elements {
+    public fun prev(query: String?): Elements {
         return siblings(query, false, false)
     }
 
@@ -545,7 +545,7 @@ class Elements(private val delegateList: MutableList<Element> = mutableListOf())
      * Get each of the previous element siblings of each element in this list.
      * @return all previous element siblings.
      */
-    fun prevAll(): Elements {
+    public fun prevAll(): Elements {
         return siblings(null, false, true)
     }
 
@@ -554,7 +554,7 @@ class Elements(private val delegateList: MutableList<Element> = mutableListOf())
      * @param query CSS query to match siblings against
      * @return all previous element siblings.
      */
-    fun prevAll(query: String?): Elements {
+    public fun prevAll(query: String?): Elements {
         return siblings(query, next = false, all = true)
     }
 
@@ -598,7 +598,7 @@ class Elements(private val delegateList: MutableList<Element> = mutableListOf())
      * Get all of the parents and ancestor elements of the matched elements.
      * @return all of the parents and ancestor elements of the matched elements
      */
-    fun parents(): Elements {
+    public fun parents(): Elements {
         val combo: LinkedHashSet<Element> = linkedSetOf()
         for (e in this) {
             combo.addAll(e.parents())
@@ -612,7 +612,7 @@ class Elements(private val delegateList: MutableList<Element> = mutableListOf())
      * @return The first matched element, or `null` if contents is empty.
      */
     /*@Nullable*/
-    fun first(): Element? {
+    public fun first(): Element? {
         return if (isEmpty()) null else get(0)
     }
 
@@ -621,7 +621,7 @@ class Elements(private val delegateList: MutableList<Element> = mutableListOf())
      * @return The last matched element, or `null` if contents is empty.
      */
     /*@Nullable*/
-    fun last(): Element? {
+    public fun last(): Element? {
         return if (isEmpty()) null else get(size - 1)
     }
 
@@ -630,7 +630,7 @@ class Elements(private val delegateList: MutableList<Element> = mutableListOf())
      * @param nodeVisitor the visitor callbacks to perform on each node
      * @return this, for chaining
      */
-    fun traverse(nodeVisitor: NodeVisitor): Elements {
+    public fun traverse(nodeVisitor: NodeVisitor): Elements {
         NodeTraversor.traverse(nodeVisitor, this)
         return this
     }
@@ -640,7 +640,7 @@ class Elements(private val delegateList: MutableList<Element> = mutableListOf())
      * @param nodeFilter the filter callbacks to perform on each node
      * @return this, for chaining
      */
-    fun filter(nodeFilter: NodeFilter): Elements {
+    public fun filter(nodeFilter: NodeFilter): Elements {
         NodeTraversor.filter(nodeFilter, this)
         return this
     }
@@ -650,9 +650,9 @@ class Elements(private val delegateList: MutableList<Element> = mutableListOf())
      * @return a list of [FormElement]s pulled from the matched elements. The list will be empty if the elements contain
      * no forms.
      */
-    fun forms(): List<FormElement> {
-        val forms: ArrayList<FormElement> = ArrayList<FormElement>()
-        for (el in this) if (el is FormElement) forms.add(el as FormElement)
+    public fun forms(): List<FormElement> {
+        val forms: ArrayList<FormElement> = ArrayList()
+        for (el in this) if (el is FormElement) forms.add(el)
         return forms
     }
 
@@ -660,7 +660,7 @@ class Elements(private val delegateList: MutableList<Element> = mutableListOf())
      * Get [Comment] nodes that are direct child nodes of the selected elements.
      * @return Comment nodes, or an empty list if none.
      */
-    fun comments(): List<Comment> {
+    public fun comments(): List<Comment> {
         return childNodesOfType(Comment::class)
     }
 
@@ -668,7 +668,7 @@ class Elements(private val delegateList: MutableList<Element> = mutableListOf())
      * Get [TextNode] nodes that are direct child nodes of the selected elements.
      * @return TextNode nodes, or an empty list if none.
      */
-    fun textNodes(): List<TextNode> {
+    public fun textNodes(): List<TextNode> {
         return childNodesOfType(TextNode::class)
     }
 
@@ -677,12 +677,12 @@ class Elements(private val delegateList: MutableList<Element> = mutableListOf())
      * content of tags such as `script`, `style` etc and are distinct from [TextNode]s.
      * @return Comment nodes, or an empty list if none.
      */
-    fun dataNodes(): List<DataNode> {
+    public fun dataNodes(): List<DataNode> {
         return childNodesOfType(DataNode::class)
     }
 
     private fun <T : Node> childNodesOfType(tClass: KClass<T>): List<T> {
-        val nodes: ArrayList<T> = ArrayList<T>()
+        val nodes: ArrayList<T> = ArrayList()
         for (el in this) {
             for (i in 0 until el.childNodeSize()) {
                 val node: Node = el.childNode(i)
@@ -788,7 +788,7 @@ class Elements(private val delegateList: MutableList<Element> = mutableListOf())
      * @since 1.17.1
      */
 
-    fun removeIf(predicate: (element: Element) -> Boolean): Boolean {
+    public fun removeIf(predicate: (element: Element) -> Boolean): Boolean {
         val toRemoveEls = mutableListOf<Element>()
         this.forEach { el ->
             if (predicate(el)) {
@@ -806,7 +806,7 @@ class Elements(private val delegateList: MutableList<Element> = mutableListOf())
      * @param operator the operator to apply to each element
      * @since 1.17.1
      */
-    fun replaceAll(operator: (element: Element) -> Element) {
+    public fun replaceAll(operator: (element: Element) -> Element) {
         for (i in this.indices) {
             this[i] = operator(this[i])
         }

@@ -26,11 +26,11 @@ import com.fleeksoft.ksoup.select.NodeFilter.FilterResult
  * Within [NodeFilter.tail], both are equivalent to [FilterResult.CONTINUE].
  *
  */
-interface NodeFilter {
+public interface NodeFilter {
     /**
      * Filter decision.
      */
-    enum class FilterResult {
+    public enum class FilterResult {
         /** Continue processing the tree  */
         CONTINUE,
 
@@ -53,7 +53,7 @@ interface NodeFilter {
      * @param depth the depth of the node, relative to the root node. E.g., the root node has depth 0, and a child node of that will have depth 1.
      * @return Filter decision
      */
-    open fun head(node: Node, depth: Int): FilterResult
+    public open fun head(node: Node, depth: Int): FilterResult
 
     /**
      * Callback for when a node is last visited, after all of its descendants have been visited.
@@ -63,7 +63,7 @@ interface NodeFilter {
      * @param depth the depth of the node, relative to the root node. E.g., the root node has depth 0, and a child node of that will have depth 1.
      * @return Filter decision
      */
-    fun tail(node: Node?, depth: Int): FilterResult {
+    public fun tail(node: Node?, depth: Int): FilterResult {
         return FilterResult.CONTINUE
     }
 }

@@ -3,7 +3,6 @@ package com.fleeksoft.ksoup.parser
 import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.internal.Normalizer
 import com.fleeksoft.ksoup.internal.StringUtil
-import com.fleeksoft.ksoup.internal.StringUtil.inSorted
 import com.fleeksoft.ksoup.nodes.CDataNode
 import com.fleeksoft.ksoup.nodes.Comment
 import com.fleeksoft.ksoup.nodes.DataNode
@@ -23,7 +22,7 @@ import kotlin.jvm.JvmOverloads
 /**
  * HTML Tree Builder; creates a DOM from Tokens.
  */
-open class HtmlTreeBuilder : TreeBuilder() {
+internal open class HtmlTreeBuilder : TreeBuilder() {
     private var state: HtmlTreeBuilderState? = null // the current state
     private var originalState: HtmlTreeBuilderState? = null // original / marked state
     private var baseUriSetFromDoc = false
@@ -528,7 +527,7 @@ open class HtmlTreeBuilder : TreeBuilder() {
         for (pos in stack.size - 1 downTo 0) {
             val el: Element? = stack[pos]
             stack.removeAt(pos)
-            if (inSorted(
+            if (StringUtil.inSorted(
                     el!!.normalName(),
                     elNames.toList().toTypedArray(),
                 ) && NamespaceHtml == el.tag().namespace()
@@ -723,9 +722,9 @@ open class HtmlTreeBuilder : TreeBuilder() {
             val el: Element? = stack[pos]
             if (el?.tag()?.namespace() != NamespaceHtml) continue
             val elName: String = el.normalName()
-            if (inSorted(elName, targetNames)) return true
-            if (inSorted(elName, baseTypes)) return false
-            if (extraTypes != null && inSorted(elName, extraTypes)) return false
+            if (StringUtil.inSorted(elName, targetNames)) return true
+            if (StringUtil.inSorted(elName, baseTypes)) return false
+            if (extraTypes != null && StringUtil.inSorted(elName, extraTypes)) return false
         }
         // Validate.fail("Should not be reachable"); // would end up false because hitting 'html' at root (basetypes)
         return false
@@ -763,7 +762,7 @@ open class HtmlTreeBuilder : TreeBuilder() {
             val el: Element = stack[pos] ?: continue
             val elName: String = el.normalName()
             if (elName == targetName) return true
-            if (!inSorted(elName, TagSearchSelectScope)) {
+            if (!StringUtil.inSorted(elName, TagSearchSelectScope)) {
                 // all elements except
                 return false
             }
@@ -779,7 +778,7 @@ open class HtmlTreeBuilder : TreeBuilder() {
         // don't walk too far up the tree
         for (pos in bottom downTo top) {
             val elName: String = stack[pos]?.normalName() ?: continue
-            if (!inSorted(elName, allowedTags)) return true
+            if (!StringUtil.inSorted(elName, allowedTags)) return true
         }
         return false
     }
@@ -827,7 +826,7 @@ open class HtmlTreeBuilder : TreeBuilder() {
      * process, then the UA must perform the above steps as if that element was not in the above list.
      */
     fun generateImpliedEndTags(excludeTag: String?) {
-        while (inSorted(currentElement().normalName(), TagSearchEndTags)) {
+        while (StringUtil.inSorted(currentElement().normalName(), TagSearchEndTags)) {
             if (excludeTag != null && currentElementIs(excludeTag)) break
             pop()
         }
@@ -841,7 +840,7 @@ open class HtmlTreeBuilder : TreeBuilder() {
     fun generateImpliedEndTags(thorough: Boolean = false) {
         val search = if (thorough) TagThoroughSearchEndTags else TagSearchEndTags
         while (NamespaceHtml == currentElement().tag().namespace() &&
-            inSorted(currentElement().normalName(), search)
+            StringUtil.inSorted(currentElement().normalName(), search)
         ) {
             pop()
         }
@@ -857,7 +856,7 @@ open class HtmlTreeBuilder : TreeBuilder() {
         // todo: mathml's mi, mo, mn
         // todo: svg's foreigObject, desc, title
         val name: String = el.normalName()
-        return inSorted(name, TagSearchSpecial)
+        return StringUtil.inSorted(name, TagSearchSpecial)
     }
 
     fun lastFormattingElement(): Element? {
@@ -965,7 +964,7 @@ open class HtmlTreeBuilder : TreeBuilder() {
 
     fun clearFormattingElementsToLastMarker() {
         while (!formattingElements!!.isEmpty()) {
-            val el: Element = removeLastFormattingElement() ?: break
+            removeLastFormattingElement() ?: break
         }
     }
 

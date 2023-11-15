@@ -8,7 +8,7 @@ import com.fleeksoft.ksoup.ported.IdentityHashMap
 /**
  * Base structural evaluator.
  */
-abstract class StructuralEvaluator(evaluator: Evaluator) : Evaluator() {
+internal abstract class StructuralEvaluator(evaluator: Evaluator) : Evaluator() {
     val evaluator: Evaluator
 
     // Memoize inner matches, to save repeated re-evaluations of parent, sibling etc.

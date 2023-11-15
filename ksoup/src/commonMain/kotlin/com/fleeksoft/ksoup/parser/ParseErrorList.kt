@@ -5,9 +5,9 @@ package com.fleeksoft.ksoup.parser
  *
  * @author Sabeeh
  */
-class ParseErrorList private constructor(
+public class ParseErrorList private constructor(
     private val initialCapacity: Int,
-    val maxSize: Int,
+    public val maxSize: Int,
 ) : MutableList<ParseError> by mutableListOf() {
     // FIXME: initialCapacity ignored
     /**
@@ -16,24 +16,24 @@ class ParseErrorList private constructor(
      */
     internal constructor(copy: ParseErrorList) : this(copy.initialCapacity, copy.maxSize)
 
-    fun canAddError(): Boolean {
+    public fun canAddError(): Boolean {
         return size < maxSize
     }
 
-    fun clone(): ParseErrorList {
+    internal fun clone(): ParseErrorList {
         // As there's no direct `clone()` in Kotlin's MutableList,
         // we need to manually create a new instance and add all items.
         return ParseErrorList(initialCapacity, maxSize).also { it.addAll(this) }
     }
 
-    companion object {
+    public companion object {
         private const val INITIAL_CAPACITY = 16
 
-        fun noTracking(): ParseErrorList {
+        public fun noTracking(): ParseErrorList {
             return ParseErrorList(0, 0)
         }
 
-        fun tracking(maxSize: Int): ParseErrorList {
+        public fun tracking(maxSize: Int): ParseErrorList {
             return ParseErrorList(INITIAL_CAPACITY, maxSize)
         }
     }

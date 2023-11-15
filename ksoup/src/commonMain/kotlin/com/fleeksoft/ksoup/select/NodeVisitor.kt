@@ -12,7 +12,7 @@ import com.fleeksoft.ksoup.nodes.Node
  * emit a start tag for a node, and `tail` to create the end tag.
  *
  */
-fun interface NodeVisitor {
+public fun interface NodeVisitor {
     /**
      * Callback for when a node is first visited.
      *
@@ -24,7 +24,7 @@ fun interface NodeVisitor {
      * @param depth the depth of the node, relative to the root node. E.g., the root node has depth 0, and a child node
      * of that will have depth 1.
      */
-    fun head(node: Node, depth: Int)
+    public fun head(node: Node, depth: Int)
 
     /**
      * Callback for when a node is last visited, after all of its descendants have been visited.
@@ -38,7 +38,7 @@ fun interface NodeVisitor {
      * @param depth the depth of the node, relative to the root node. E.g., the root node has depth 0, and a child node
      * of that will have depth 1.
      */
-    fun tail(node: Node, depth: Int) {
+    public fun tail(node: Node, depth: Int) {
         // no-op by default, to allow just specifying the head() method
     }
 }

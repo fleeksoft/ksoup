@@ -58,7 +58,7 @@ import com.fleeksoft.ksoup.nodes.Element
  * XSS attack examples (that com.fleeksoft.ksoup will safegaurd against the default Cleaner and Safelist configuration).
  *
  */
-open class Safelist() {
+public open class Safelist() {
     private val tagNames: MutableSet<TagName>
     private val attributes: MutableMap<TagName, MutableSet<AttributeKey>> // tag -> attribute[]. allowed attributes [href] for a tag.
     private val enforcedAttributes: MutableMap<TagName, MutableMap<AttributeKey, AttributeValue>>
@@ -85,7 +85,7 @@ open class Safelist() {
      * Deep copy an existing Safelist to a new Safelist.
      * @param copy the Safelist to copy
      */
-    constructor(copy: Safelist) : this() {
+    public constructor(copy: Safelist) : this() {
         tagNames.addAll(copy.tagNames)
         for ((key, value) in copy.attributes) {
             attributes[key] = HashSet<AttributeKey>(value)
@@ -114,7 +114,7 @@ open class Safelist() {
      * @param tags tag names to allow
      * @return this (for chaining)
      */
-    fun addTags(vararg tags: String): Safelist {
+    public fun addTags(vararg tags: String): Safelist {
         for (tagName in tags) {
             Validate.notEmpty(tagName)
             Validate.isFalse(
@@ -132,7 +132,7 @@ open class Safelist() {
      * @param tags tag names to disallow
      * @return this (for chaining)
      */
-    fun removeTags(vararg tags: String): Safelist {
+    public fun removeTags(vararg tags: String): Safelist {
         for (tag in tags) {
             Validate.notEmpty(tag)
             val tagName = TagName.valueOf(tag)
@@ -162,7 +162,7 @@ open class Safelist() {
      * @param attributes List of valid attributes for the tag
      * @return this (for chaining)
      */
-    fun addAttributes(tag: String, vararg attributes: String): Safelist {
+    public fun addAttributes(tag: String, vararg attributes: String): Safelist {
         Validate.notEmpty(tag)
         Validate.isTrue(attributes.isNotEmpty(), "No attribute names supplied.")
         val tagName = TagName.valueOf(tag)
@@ -198,7 +198,7 @@ open class Safelist() {
      * @param attributes List of invalid attributes for the tag
      * @return this (for chaining)
      */
-    fun removeAttributes(tag: String, vararg attributes: String): Safelist {
+    public fun removeAttributes(tag: String, vararg attributes: String): Safelist {
         Validate.notEmpty(tag)
         Validate.isTrue(attributes.isNotEmpty(), "No attribute names supplied.")
         val tagName = TagName.valueOf(tag)
@@ -244,7 +244,7 @@ open class Safelist() {
      * @param value The enforced attribute value
      * @return this (for chaining)
      */
-    fun addEnforcedAttribute(tag: String, attribute: String, value: String): Safelist {
+    public fun addEnforcedAttribute(tag: String, attribute: String, value: String): Safelist {
         Validate.notEmpty(tag)
         Validate.notEmpty(attribute)
         Validate.notEmpty(value)
@@ -270,7 +270,7 @@ open class Safelist() {
      * @param attribute   The attribute name
      * @return this (for chaining)
      */
-    fun removeEnforcedAttribute(tag: String, attribute: String): Safelist {
+    public fun removeEnforcedAttribute(tag: String, attribute: String): Safelist {
         Validate.notEmpty(tag)
         Validate.notEmpty(attribute)
         val tagName = TagName.valueOf(tag)
@@ -302,7 +302,7 @@ open class Safelist() {
      * @return this Safelist, for chaining.
      * @see .addProtocols
      */
-    fun preserveRelativeLinks(preserve: Boolean): Safelist {
+    public fun preserveRelativeLinks(preserve: Boolean): Safelist {
         preserveRelativeLinks = preserve
         return this
     }
@@ -325,7 +325,7 @@ open class Safelist() {
      * @param protocols List of valid protocols
      * @return this, for chaining
      */
-    fun addProtocols(tag: String, attribute: String, vararg protocols: String): Safelist {
+    public fun addProtocols(tag: String, attribute: String, vararg protocols: String): Safelist {
         Validate.notEmpty(tag)
         Validate.notEmpty(attribute)
         val tagName = TagName.valueOf(tag)
@@ -365,7 +365,7 @@ open class Safelist() {
      * @param removeProtocols List of invalid protocols
      * @return this, for chaining
      */
-    fun removeProtocols(tag: String, attribute: String, vararg removeProtocols: String): Safelist {
+    public fun removeProtocols(tag: String, attribute: String, vararg removeProtocols: String): Safelist {
         Validate.notEmpty(tag)
         Validate.notEmpty(attribute)
         val tagName = TagName.valueOf(tag)
@@ -396,7 +396,7 @@ open class Safelist() {
      * @param tag test tag
      * @return true if allowed
      */
-    open fun isSafeTag(tag: String): Boolean {
+    public open fun isSafeTag(tag: String): Boolean {
         return tagNames.contains(TagName.valueOf(tag))
     }
 
@@ -407,7 +407,7 @@ open class Safelist() {
      * @param attr attribute under test
      * @return true if allowed
      */
-    open fun isSafeAttribute(tagName: String, el: Element, attr: Attribute): Boolean {
+    public open fun isSafeAttribute(tagName: String, el: Element, attr: Attribute): Boolean {
         val tag = TagName.valueOf(tagName)
         val key = AttributeKey.valueOf(attr.key)
         val okSet: Set<AttributeKey>? = attributes[tag]
@@ -468,7 +468,7 @@ open class Safelist() {
      * @param tagName the tag
      * @return the attributes that will be enforced; empty if none are set for the given tag
      */
-    fun getEnforcedAttributes(tagName: String): Attributes {
+    public fun getEnforcedAttributes(tagName: String): Attributes {
         val attrs = Attributes()
         val tag = TagName.valueOf(tagName)
         if (enforcedAttributes.containsKey(tag)) {
@@ -523,16 +523,16 @@ open class Safelist() {
         override fun hashCode(): Int {
             val prime = 31
             var result = 1
-            result = prime * result + (value?.hashCode() ?: 0)
+            result = prime * result + value.hashCode()
             return result
         }
 
-        override fun equals(obj: Any?): Boolean {
-            if (this === obj) return true
-            if (obj == null) return false
-            if (this::class != obj::class) return false
-            val other = obj as TypedValue
-            return value == other.value
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other == null) return false
+            if (this::class != other::class) return false
+            val obj = other as TypedValue
+            return value == obj.value
         }
 
         override fun toString(): String {
@@ -540,7 +540,7 @@ open class Safelist() {
         }
     }
 
-    companion object {
+    public companion object {
         private const val All = ":all"
 
         /**
@@ -565,7 +565,7 @@ open class Safelist() {
          *
          * @return safelist
          */
-        fun none(): Safelist {
+        public fun none(): Safelist {
             return Safelist()
         }
 
@@ -575,7 +575,7 @@ open class Safelist() {
          *
          * @return safelist
          */
-        fun simpleText(): Safelist {
+        public fun simpleText(): Safelist {
             return Safelist()
                 .addTags("b", "em", "i", "strong", "u")
         }
@@ -598,7 +598,7 @@ open class Safelist() {
          *
          * @return safelist
          */
-        fun basic(): Safelist {
+        public fun basic(): Safelist {
             return Safelist()
                 .addTags(
                     "a", "b", "blockquote", "br", "cite", "code", "dd", "dl", "dt", "em",
@@ -620,7 +620,7 @@ open class Safelist() {
          *
          * @return safelist
          */
-        fun basicWithImages(): Safelist {
+        public fun basicWithImages(): Safelist {
             return basic()
                 .addTags("img")
                 .addAttributes("img", "align", "alt", "height", "src", "title", "width")
@@ -638,7 +638,7 @@ open class Safelist() {
          *
          * @return safelist
          */
-        fun relaxed(): Safelist {
+        public fun relaxed(): Safelist {
             return Safelist()
                 .addTags(
                     "a", "b", "blockquote", "br", "caption", "cite", "code", "col",

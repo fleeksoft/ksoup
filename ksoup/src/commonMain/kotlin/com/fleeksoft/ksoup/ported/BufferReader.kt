@@ -7,7 +7,7 @@ import okio.Closeable
 import okio.IOException
 import kotlin.math.min
 
-open class BufferReader : Closeable {
+public open class BufferReader : Closeable {
     // TODO: optimize it may be using single bytearray
     // TODO: buffer reader size limit
     private val originalBuffer: Buffer
@@ -16,11 +16,11 @@ open class BufferReader : Closeable {
     private var closed: Boolean = false
 
 
-    constructor() {
+    public constructor() {
         this.originalBuffer = Buffer()
     }
 
-    constructor(bufferReader: BufferReader, maxSize: Int) {
+    public constructor(bufferReader: BufferReader, maxSize: Int) {
         this.originalBuffer = Buffer()
         val source = bufferReader.getActiveBuffer()
         val size = if (maxSize == 0) {
@@ -32,24 +32,24 @@ open class BufferReader : Closeable {
     }
 
     // TODO: not sure if copy it or direct assign it
-    constructor(buffer: Buffer) : this(buffer.peek().readByteArray())
+    public constructor(buffer: Buffer) : this(buffer.peek().readByteArray())
 
     // TODO: not sure if copy it or direct assign it
-    constructor(bufferReader: BufferReader) : this(
+    public constructor(bufferReader: BufferReader) : this(
         bufferReader.getActiveBuffer().peek().readByteArray()
     )
 
-    constructor(byteArray: ByteArray) {
+    public constructor(byteArray: ByteArray) {
         this.originalBuffer = Buffer()
         this.originalBuffer.write(byteArray)
     }
 
 
-    constructor(data: String) : this(data.toByteArray())
+    public constructor(data: String) : this(data.toByteArray())
 
-    fun remaining(): Int = getActiveBuffer().buffer.size.toInt()
+    public fun remaining(): Int = getActiveBuffer().buffer.size.toInt()
 
-    fun rewind() {
+    public fun rewind() {
         reset()
         val currentBuffer = getCurrentBuffer()
         currentBuffer.clear()
@@ -67,9 +67,9 @@ open class BufferReader : Closeable {
     }
 
 
-    fun exhausted(): Boolean = getActiveBuffer().exhausted()
+    public fun exhausted(): Boolean = getActiveBuffer().exhausted()
 
-    fun getActiveBuffer(): Buffer {
+    public fun getActiveBuffer(): Buffer {
         if (closed) {
             throw IOException("Buffer closed!")
         }
@@ -80,25 +80,25 @@ open class BufferReader : Closeable {
         return getCurrentBuffer()
     }
 
-    fun size(): Long = getActiveBuffer().size
+    public fun size(): Long = getActiveBuffer().size
 
-    open fun read(sink: ByteArray, offset: Int, byteCount: Int): Int {
+    public open fun read(sink: ByteArray, offset: Int, byteCount: Int): Int {
         return getActiveBuffer().read(sink = sink, offset = offset, byteCount = byteCount)
     }
 
-    open fun read(): Int {
+    public open fun read(): Int {
         return getActiveBuffer().readByte().toInt()
     }
 
-    open fun readByteArray(): ByteArray {
+    public open fun readByteArray(): ByteArray {
         return getActiveBuffer().readByteArray()
     }
 
-    fun skip(byteCount: Long) {
+    public fun skip(byteCount: Long) {
         getActiveBuffer().skip(byteCount)
     }
 
-    fun skipFirstUnicodeChar(length: Int) {
+    public fun skipFirstUnicodeChar(length: Int) {
         //        ignore x characters which can be 2-4 byte each for UTF-8
         val firstByte = getActiveBuffer().peek().readByte().toInt()
 
@@ -115,33 +115,33 @@ open class BufferReader : Closeable {
         getActiveBuffer().skip((firstCharLength * length).toLong())
     }
 
-    fun mark(readlimit: Int = 0) {
+    public fun mark(readlimit: Int = 0) {
         val activeBuffer = getActiveBuffer()
         _markBuffer = Buffer()
         activeBuffer.copyTo(_markBuffer!!)
     }
 
-    fun getPeek(): BufferedSource {
+    public fun getPeek(): BufferedSource {
         return getActiveBuffer().peek()
     }
 
-    fun reset() {
+    public fun reset() {
         _markBuffer = null
     }
 
-    open fun read(b: ByteArray): Int = this[b]
+    public open fun read(b: ByteArray): Int = this[b]
 
-    operator fun get(pos: Int): Byte {
+    public operator fun get(pos: Int): Byte {
         return getActiveBuffer().buffer[pos.toLong()]
     }
 
-    operator fun get(byteArray: ByteArray): Int {
+    public operator fun get(byteArray: ByteArray): Int {
         return getActiveBuffer().buffer.read(byteArray)
     }
 
 
-    fun readString(): String = getActiveBuffer().readByteArray().decodeToString()
-    fun readCharArray(): CharArray = readString().toCharArray()
+    public fun readString(): String = getActiveBuffer().readByteArray().decodeToString()
+    public fun readCharArray(): CharArray = readString().toCharArray()
 
     override fun close() {
         closed = true

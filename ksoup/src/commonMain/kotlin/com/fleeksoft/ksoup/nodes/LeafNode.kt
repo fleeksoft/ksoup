@@ -1,8 +1,8 @@
 package com.fleeksoft.ksoup.nodes
 
-abstract class LeafNode : Node() {
-    var value: Any? =
-        null // either a string value, or an attribute map (in the rare case multiple attributes are set)
+public abstract class LeafNode : Node() {
+    // either a string value, or an attribute map (in the rare case multiple attributes are set)
+    internal var value: Any? = null
 
     override fun hasAttributes(): Boolean {
         return value is Attributes
@@ -22,11 +22,11 @@ abstract class LeafNode : Node() {
         }
     }
 
-    fun coreValue(): String {
+    public fun coreValue(): String {
         return attr(nodeName())
     }
 
-    fun coreValue(value: String?) {
+    public fun coreValue(value: String?) {
         attr(nodeName(), value)
     }
 

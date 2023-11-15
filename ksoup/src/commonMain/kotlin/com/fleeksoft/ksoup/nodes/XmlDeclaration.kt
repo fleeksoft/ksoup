@@ -8,7 +8,7 @@ import com.fleeksoft.ksoup.internal.StringUtil
 /**
  * An XML Declaration.
  */
-class XmlDeclaration(name: String, isProcessingInstruction: Boolean) : LeafNode() {
+public class XmlDeclaration(name: String, isProcessingInstruction: Boolean) : LeafNode() {
     // todo this impl isn't really right, the data shouldn't be attributes, just a run of text after the name
     private val isProcessingInstruction: Boolean
 
@@ -30,24 +30,19 @@ class XmlDeclaration(name: String, isProcessingInstruction: Boolean) : LeafNode(
      * Get the name of this declaration.
      * @return name of this declaration.
      */
-    fun name(): String {
-        return coreValue()!!
+    public fun name(): String {
+        return coreValue()
     }
 
-    val wholeDeclaration: String
-        /**
-         * Get the unencoded XML declaration.
-         * @return XML declaration
-         */
-        get() {
-            val sb: StringBuilder = StringUtil.borrowBuilder()
-            try {
-                getWholeDeclaration(sb, Document.OutputSettings())
-            } catch (e: IOException) {
-                throw SerializationException(e)
-            }
-            return StringUtil.releaseBuilder(sb).trim()
+    public fun getWholeDeclaration(): String {
+        val sb: StringBuilder = StringUtil.borrowBuilder()
+        try {
+            getWholeDeclaration(sb, Document.OutputSettings())
+        } catch (e: IOException) {
+            throw SerializationException(e)
         }
+        return StringUtil.releaseBuilder(sb).trim()
+    }
 
     @Throws(IOException::class)
     private fun getWholeDeclaration(accum: Appendable, out: Document.OutputSettings) {
@@ -95,6 +90,6 @@ class XmlDeclaration(name: String, isProcessingInstruction: Boolean) : LeafNode(
     }
 
     override fun clone(): XmlDeclaration {
-        return this.clone() as XmlDeclaration
+        return this.clone()
     }
 }

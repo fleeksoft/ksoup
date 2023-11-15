@@ -6,7 +6,7 @@ import com.fleeksoft.ksoup.nodes.Attributes
 /**
  * Controls parser case settings, to optionally preserve tag and/or attribute name case.
  */
-class ParseSettings
+public class ParseSettings
 /**
  * Define parse settings.
  * @param tag preserve tag case?
@@ -15,14 +15,14 @@ class ParseSettings
     /**
      * Returns true if preserving tag name case.
      */
-    fun preserveTagCase(): Boolean {
+    public fun preserveTagCase(): Boolean {
         return preserveTagCase
     }
 
     /**
      * Returns true if preserving attribute case.
      */
-    fun preserveAttributeCase(): Boolean {
+    public fun preserveAttributeCase(): Boolean {
         return preserveAttributeCase
     }
 
@@ -34,7 +34,7 @@ class ParseSettings
     /**
      * Normalizes a tag name according to the case preservation setting.
      */
-    fun normalizeTag(name: String): String {
+    public fun normalizeTag(name: String): String {
         var name = name
         name = name.trim { it <= ' ' }
         if (!preserveTagCase) name = lowerCase(name)
@@ -44,7 +44,7 @@ class ParseSettings
     /**
      * Normalizes an attribute according to the case preservation setting.
      */
-    fun normalizeAttribute(name: String): String {
+    public fun normalizeAttribute(name: String): String {
         var name = name
         name = name.trim { it <= ' ' }
         if (!preserveAttributeCase) name = lowerCase(name)
@@ -52,26 +52,26 @@ class ParseSettings
     }
 
     /*@Nullable*/
-    fun normalizeAttributes(/*@Nullable*/ attributes: Attributes?): Attributes? {
+    public fun normalizeAttributes(/*@Nullable*/ attributes: Attributes?): Attributes? {
         if (attributes != null && !preserveAttributeCase) {
             attributes.normalize()
         }
         return attributes
     }
 
-    companion object {
+    public companion object {
         /**
          * HTML default settings: both tag and attribute names are lower-cased during parsing.
          */
-        val htmlDefault: ParseSettings = ParseSettings(false, false)
+        public val htmlDefault: ParseSettings = ParseSettings(false, false)
 
         /**
          * Preserve both tag and attribute case.
          */
-        val preserveCase: ParseSettings = ParseSettings(true, true)
+        public val preserveCase: ParseSettings = ParseSettings(true, true)
 
         /** Returns the normal name that a Tag will have (trimmed and lower-cased)  */
-        fun normalName(name: String?): String {
+        public fun normalName(name: String?): String {
             return lowerCase(name!!.trim { it <= ' ' })
         }
     }

@@ -10,14 +10,14 @@ import com.fleeksoft.ksoup.ported.Cloneable
 /**
  * A single key + value attribute. (Only used for presentation.)
  */
-open class Attribute : Map.Entry<String, String?>, Cloneable<Attribute> {
+public open class Attribute : Map.Entry<String, String?>, Cloneable<Attribute> {
     private var attributeKey: String
 
     /*@Nullable*/
     private var attributeValue: String?
 
     /*@Nullable*/
-    var parent: Attributes?
+    internal var parent: Attributes?
 
     /**
      * Create a new attribute from unencoded (raw) key and value.
@@ -25,7 +25,7 @@ open class Attribute : Map.Entry<String, String?>, Cloneable<Attribute> {
      * @param value attribute value (may be null)
      * @see .createFromEncoded
      */
-    constructor(key: String, /*@Nullable*/ value: String?) : this(key, value, null)
+    public constructor(key: String, /*@Nullable*/ value: String?) : this(key, value, null)
 
     /**
      * Get the attribute key.
@@ -38,7 +38,7 @@ open class Attribute : Map.Entry<String, String?>, Cloneable<Attribute> {
      * Set the attribute key; case is preserved.
      * @param key the new key; must not be null
      */
-    fun setKey(key: String) {
+    internal fun setKey(key: String) {
         var key = key
         key = key.trim { it <= ' ' }
         Validate.notEmpty(key) // trimming could potentially make empty, so validate here
@@ -60,7 +60,7 @@ open class Attribute : Map.Entry<String, String?>, Cloneable<Attribute> {
      * Check if this Attribute has a value. Set boolean attributes have no value.
      * @return if this is a boolean attribute / attribute without a value
      */
-    fun hasDeclaredValue(): Boolean {
+    public fun hasDeclaredValue(): Boolean {
         return attributeValue != null
     }
 
@@ -69,7 +69,7 @@ open class Attribute : Map.Entry<String, String?>, Cloneable<Attribute> {
      * @param newValue the new attribute value; may be null (to set an enabled boolean attribute)
      * @return the previous value (if was null; an empty string)
      */
-    fun setValue(/*@Nullable*/ newValue: String?): String? {
+    public fun setValue(/*@Nullable*/ newValue: String?): String {
         var oldVal = this.attributeValue
         if (parent != null) {
             val i: Int = parent!!.indexOfKey(attributeKey)
@@ -86,7 +86,7 @@ open class Attribute : Map.Entry<String, String?>, Cloneable<Attribute> {
      * Get the HTML representation of this attribute; e.g. `href="index.html"`.
      * @return HTML
      */
-    fun html(): String {
+    public fun html(): String {
         val sb: StringBuilder = StringUtil.borrowBuilder()
         try {
             html(sb, Document("").outputSettings())
@@ -104,11 +104,11 @@ open class Attribute : Map.Entry<String, String?>, Cloneable<Attribute> {
     /**
      * Create a new attribute from unencoded (raw) key and value.
      * @param key attribute key; case is preserved.
-     * @param val attribute value (may be null)
+     * @param value attribute value (may be null)
      * @param parent the containing Attributes (this Attribute is not automatically added to said Attributes)
      * @see .createFromEncoded
      */
-    constructor(
+    public constructor(
         key: String, /*@Nullable*/
         value: String?, /*@Nullable*/
         parent: Attributes?,
@@ -129,7 +129,7 @@ open class Attribute : Map.Entry<String, String?>, Cloneable<Attribute> {
         return html()
     }
 
-    fun isDataAttribute(): Boolean = isDataAttribute(attributeKey)
+    public fun isDataAttribute(): Boolean = isDataAttribute(attributeKey)
 
     /**
      * Collapsible if it's a boolean attribute and value is empty or same as name
@@ -161,7 +161,7 @@ open class Attribute : Map.Entry<String, String?>, Cloneable<Attribute> {
         return attribute
     }
 
-    companion object {
+    internal companion object {
         private val booleanAttributes = arrayOf(
             "allowfullscreen",
             "async",

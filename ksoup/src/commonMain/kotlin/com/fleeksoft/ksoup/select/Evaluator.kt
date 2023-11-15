@@ -18,7 +18,7 @@ import kotlin.jvm.JvmOverloads
 /**
  * Evaluates that an element matches the selector.
  */
-abstract class Evaluator protected constructor() {
+internal abstract class Evaluator protected constructor() {
     /**
      * Test if the element meets the evaluator's requirements.
      *

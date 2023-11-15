@@ -9,7 +9,7 @@ import com.fleeksoft.ksoup.ported.BufferReader
 import com.fleeksoft.ksoup.ported.System
 import kotlin.math.min
 
-class ConstrainableSource(
+internal class ConstrainableSource(
     bufferReader: BufferReader,
     maxSize: Int
 ) : BufferReader(bufferReader, maxSize) {

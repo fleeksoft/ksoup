@@ -9,7 +9,7 @@ import de.cketti.codepoints.appendCodePoint
 /**
  * Readers the input stream into tokens.
  */
-class Tokeniser(private val reader: CharacterReader, private val errors: ParseErrorList) {
+internal class Tokeniser(private val reader: CharacterReader, private val errors: ParseErrorList) {
     private var state = TokeniserState.Data
     private var emitPending: Token? = null
     private var isEmitPending = false

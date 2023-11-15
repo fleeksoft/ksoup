@@ -10,7 +10,7 @@ import com.fleeksoft.ksoup.ported.assert
 /**
  * Parses a CSS selector into an Evaluator tree.
  */
-class QueryParser private constructor(query: String) {
+internal class QueryParser private constructor(query: String) {
     private val tq: TokenQueue
     private val query: String
     private val evals: MutableList<Evaluator> = ArrayList<Evaluator>()

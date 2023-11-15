@@ -9,7 +9,7 @@ import com.fleeksoft.ksoup.internal.StringUtil
  *
  * @author Sabeeh, fleeksoft@gmail.com
  */
-open class TextNode(text: String) : LeafNode() {
+public open class TextNode(text: String) : LeafNode() {
     /**
      * Create a new TextNode representing the supplied (unencoded) text).
      *
@@ -29,7 +29,7 @@ open class TextNode(text: String) : LeafNode() {
      * @return Unencoded, normalised text.
      * @see TextNode.getWholeText
      */
-    open fun text(): String {
+    public open fun text(): String {
         return StringUtil.normaliseWhitespace(getWholeText())
     }
 
@@ -38,14 +38,14 @@ open class TextNode(text: String) : LeafNode() {
      * @param text unencoded text
      * @return this, for chaining
      */
-    fun text(text: String?): TextNode {
+    public fun text(text: String?): TextNode {
         coreValue(text)
         return this
     }
 
-    fun getWholeText(): String = coreValue()
+    public fun getWholeText(): String = coreValue()
 
-    fun isBlank(): Boolean = StringUtil.isBlank(coreValue())
+    public fun isBlank(): Boolean = StringUtil.isBlank(coreValue())
 
     /**
      * Split this text node into two nodes at the specified string offset. After splitting, this node will contain the
@@ -53,7 +53,7 @@ open class TextNode(text: String) : LeafNode() {
      * @param offset string offset point to split node at.
      * @return the newly created text node containing the text after the offset.
      */
-    fun splitText(offset: Int): TextNode {
+    public fun splitText(offset: Int): TextNode {
         val text: String = coreValue()
         Validate.isTrue(offset >= 0, "Split offset must be not be negative")
         Validate.isTrue(
@@ -125,28 +125,28 @@ open class TextNode(text: String) : LeafNode() {
         return super.clone() as TextNode
     }
 
-    companion object {
+    public companion object {
         /**
          * Create a new TextNode from HTML encoded (aka escaped) data.
          * @param encodedText Text containing encoded HTML (e.g. `&lt;`)
          * @return TextNode containing unencoded data (e.g. `<`)
          */
-        fun createFromEncoded(encodedText: String): TextNode {
+        public fun createFromEncoded(encodedText: String): TextNode {
             val text: String = Entities.unescape(encodedText)
             return TextNode(text)
         }
 
-        fun normaliseWhitespace(text: String): String {
+        internal fun normaliseWhitespace(text: String): String {
             var text = text
             text = StringUtil.normaliseWhitespace(text)
             return text
         }
 
-        fun stripLeadingWhitespace(text: String): String {
+        internal fun stripLeadingWhitespace(text: String): String {
             return text.replaceFirst("^\\s+".toRegex(), "")
         }
 
-        fun lastCharIsWhitespace(sb: StringBuilder): Boolean {
+        internal fun lastCharIsWhitespace(sb: StringBuilder): Boolean {
             return sb.isNotEmpty() && sb[sb.length - 1] == ' '
         }
     }

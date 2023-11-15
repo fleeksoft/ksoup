@@ -6,7 +6,7 @@ import com.fleeksoft.ksoup.nodes.Element
 /**
  * Base combining (and, or) evaluator.
  */
-abstract class CombiningEvaluator internal constructor() : Evaluator() {
+internal abstract class CombiningEvaluator internal constructor() : Evaluator() {
     // maintain original order so that #toString() is sensible
     val evaluators: ArrayList<Evaluator> = ArrayList<Evaluator>()
     val sortedEvaluators: ArrayList<Evaluator> = ArrayList<Evaluator>()

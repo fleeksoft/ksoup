@@ -1,8 +1,8 @@
 package com.fleeksoft.ksoup.ported
 
-class CloneNotSupportedException : Exception {
-    constructor()
-    constructor(message: String?)
-    constructor(message: String?, cause: Throwable?)
-    constructor(cause: Throwable?)
+public class CloneNotSupportedException : Exception {
+    public constructor()
+    public constructor(message: String?)
+    public constructor(message: String?, cause: Throwable?)
+    public constructor(cause: Throwable?)
 }

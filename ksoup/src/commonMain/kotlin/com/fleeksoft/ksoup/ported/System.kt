@@ -5,7 +5,7 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.nanoseconds
 import kotlin.time.Duration.Companion.seconds
 
-class System {
+internal class System {
     companion object {
         fun nanoTime(): Long {
             return Clock.System.now().epochSeconds.seconds.inWholeNanoseconds

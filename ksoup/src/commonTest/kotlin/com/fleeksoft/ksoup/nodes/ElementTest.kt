@@ -2755,7 +2755,7 @@ Three
     }
 
     @Test
-    fun getElementsMatchingOwnTextValidation(): Unit {
+    fun getElementsMatchingOwnTextValidation() {
         val doc = Ksoup.parse(reference)
         val ex: Throwable =
             assertFailsWith<IllegalArgumentException> { doc.getElementsMatchingOwnText("\\x") }

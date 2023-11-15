@@ -2,7 +2,7 @@ package com.fleeksoft.ksoup.ported
 
 import de.cketti.codepoints.deluxe.CodePoint
 
-class Character {
+internal class Character {
     companion object {
         fun isDigit(codePoint: CodePoint): Boolean {
             return codePoint.value.toChar().isDigit()

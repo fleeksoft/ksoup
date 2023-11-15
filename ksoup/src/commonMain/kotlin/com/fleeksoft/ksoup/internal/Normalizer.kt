@@ -3,7 +3,7 @@ package com.fleeksoft.ksoup.internal
 /**
  * Util methods for normalizing strings. Jsoup internal use only, please don't depend on this API.
  */
-object Normalizer {
+internal object Normalizer {
     /** Drops the input string to lower case.  */
     fun lowerCase(input: String?): String {
         return input?.lowercase() ?: ""

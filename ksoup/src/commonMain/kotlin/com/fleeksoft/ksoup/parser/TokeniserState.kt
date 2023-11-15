@@ -5,7 +5,7 @@ import com.fleeksoft.ksoup.nodes.DocumentType
 /**
  * States and transition activations for the Tokeniser.
  */
-enum class TokeniserState {
+internal enum class TokeniserState {
     Data {
         // in data state, gather characters until a character reference or tag is found
         override fun read(t: Tokeniser, r: CharacterReader) {

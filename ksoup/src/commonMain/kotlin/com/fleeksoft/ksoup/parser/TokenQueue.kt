@@ -8,7 +8,7 @@ import com.fleeksoft.ksoup.internal.StringUtil
  *
  * @author Sabeeh
  */
-class TokenQueue(data: String) {
+internal class TokenQueue(data: String) {
     private var queue: String
     private var pos = 0
     fun isEmpty(): Boolean = remainingLength() == 0

@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalForeignApi::class)
+@file:OptIn(ExperimentalForeignApi::class, ExperimentalForeignApi::class)
 
 package com.fleeksoft.ksoup
 
@@ -21,7 +21,7 @@ import platform.zlib.inflateEnd
 import platform.zlib.inflateInit2
 import platform.zlib.z_stream
 
-fun decompressGzip(input: ByteArray): ByteArray {
+internal fun decompressGzip(input: ByteArray): ByteArray {
     val outputBuffer = ByteArray(1024 * 10) // Adjust size as needed, ensuring it's large enough
     val inputSize = input.size.toULong()
 

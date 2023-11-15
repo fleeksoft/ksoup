@@ -162,7 +162,7 @@ class XmlTreeBuilderTest {
         assertEquals("1", decl.attr("version"))
         assertEquals("UTF-8", decl.attr("encoding"))
         assertEquals("else", decl.attr("something"))
-        assertEquals("version=\"1\" encoding=\"UTF-8\" something=\"else\"", decl.wholeDeclaration)
+        assertEquals("version=\"1\" encoding=\"UTF-8\" something=\"else\"", decl.getWholeDeclaration())
         assertEquals(
             "<?xml version=\"1\" encoding=\"UTF-8\" something=\"else\"?>",
             decl.outerHtml()

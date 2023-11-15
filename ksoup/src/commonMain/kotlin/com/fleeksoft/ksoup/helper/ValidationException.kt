@@ -3,7 +3,7 @@ package com.fleeksoft.ksoup.helper
 /**
  * Validation exceptions, as thrown by the methods in [Validate].
  */
-class ValidationException(msg: String?) : IllegalArgumentException(msg) {
+public class ValidationException(msg: String?) : IllegalArgumentException(msg) {
     // TODO: incomplete
     /*@Synchronized
     overrie fun fillInStackTrace(): Throwable {

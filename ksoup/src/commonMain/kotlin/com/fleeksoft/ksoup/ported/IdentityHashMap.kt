@@ -1,6 +1,6 @@
 package com.fleeksoft.ksoup.ported
 
-class IdentityHashMap<K, V> : MutableMap<K, V> {
+internal class IdentityHashMap<K, V> : MutableMap<K, V> {
     private val delegate: MutableMap<IdentityWrapper<K>, V> = mutableMapOf<IdentityWrapper<K>, V>()
 
     private class IdentityWrapper<T>(val value: T) {

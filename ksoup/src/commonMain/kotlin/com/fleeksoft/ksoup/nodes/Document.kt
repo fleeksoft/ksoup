@@ -19,7 +19,14 @@ import com.fleeksoft.ksoup.ported.Cloneable
  *
  * @author Sabeeh, fleeksoft@gmail.com
  */
-class Document(private val namespace: String, private val location: String?) :
+
+/**
+ * Create a new, empty Document, in the specified namespace.
+ * @param namespace the namespace of this Document's root node.
+ * @param baseUri base URI of document
+ * @see .createShell
+ */
+public class Document(private val namespace: String, private val location: String?) :
     Element(Tag.valueOf("#root", namespace, ParseSettings.htmlDefault), location) {
     //    private var connection: Connection? = null // the connection this doc was fetched from, if any
     private var outputSettings = OutputSettings()
@@ -27,13 +34,17 @@ class Document(private val namespace: String, private val location: String?) :
     private var quirksMode = QuirksMode.noQuirks
     private var updateMetaCharset = false
 
+    init {
+        parser = Parser.htmlParser() // default, but overridable
+    }
+
     /**
      * Create a new, empty Document, in the HTML namespace.
      * @param baseUri base URI of document
      * @see com.fleeksoft.ksoup.Ksoup.parseFile
      * @see .Document
      */
-    constructor(baseUri: String?) : this(Parser.NamespaceHtml, baseUri)
+    public constructor(baseUri: String?) : this(Parser.NamespaceHtml, baseUri)
 
     /**
      * Get the URL this Document was parsed from. If the starting URL is a redirect,
@@ -42,7 +53,7 @@ class Document(private val namespace: String, private val location: String?) :
      * Will return an empty string if the location is unknown (e.g. if parsed from a String).
      * @return location
      */
-    fun location(): String? {
+    public fun location(): String? {
         return location
     }
 
@@ -61,7 +72,7 @@ class Document(private val namespace: String, private val location: String?) :
      * @return document type, or null if not set
      */
     /*@Nullable*/
-    fun documentType(): DocumentType? {
+    public fun documentType(): DocumentType? {
         for (node in childNodes) {
             if (node is DocumentType) {
                 return node
@@ -96,7 +107,7 @@ class Document(private val namespace: String, private val location: String?) :
      *
      * @return `head` element.
      */
-    fun head(): Element {
+    public fun head(): Element {
         val html: Element = htmlEl()
         var el: Element? = html.firstElementChild()
         while (el != null) {
@@ -115,7 +126,7 @@ class Document(private val namespace: String, private val location: String?) :
      * @return `body` element for documents with a `<body>`, a new `<body>` element if the document
      * had no contents, or the outermost `<frameset> element` for frameset documents.
      */
-    fun body(): Element {
+    public fun body(): Element {
         val html: Element = htmlEl()
         var el: Element? = html.firstElementChild()
         while (el != null) {
@@ -132,7 +143,7 @@ class Document(private val namespace: String, private val location: String?) :
      * @see FormElement.elements
      * @since 1.15.4
      */
-    fun forms(): List<FormElement> {
+    public fun forms(): List<FormElement> {
         return select("form").forms()
     }
 
@@ -144,7 +155,7 @@ class Document(private val namespace: String, private val location: String?) :
      * @throws IllegalArgumentException if no match is found
      * @since 1.15.4
      */
-    fun expectForm(cssQuery: String): FormElement? {
+    public fun expectForm(cssQuery: String): FormElement? {
         val els: Elements = select(cssQuery)
         for (el in els) {
             if (el is FormElement) return el
@@ -157,21 +168,10 @@ class Document(private val namespace: String, private val location: String?) :
      * Get the string contents of the document's `title` element.
      * @return Trimmed title, or empty string if none set.
      */
-    fun title(): String {
+    public fun title(): String {
         // title is a preserve whitespace tag (for document output), but normalised here
         val titleEl: Element? = head().selectFirst(titleEval)
         return if (titleEl != null) StringUtil.normaliseWhitespace(titleEl.text()).trim() else ""
-    }
-
-    /**
-     * Create a new, empty Document, in the specified namespace.
-     * @param namespace the namespace of this Document's root node.
-     * @param baseUri base URI of document
-     * @see com.fleeksoft.ksoup.Jsoup.parse
-     * @see .createShell
-     */
-    init {
-        parser = Parser.htmlParser() // default, but overridable
     }
 
     /**
@@ -179,7 +179,7 @@ class Document(private val namespace: String, private val location: String?) :
      * not present
      * @param title string to set as title
      */
-    fun title(title: String) {
+    public fun title(title: String) {
         var titleEl: Element? = head().selectFirst(titleEval)
         if (titleEl == null) {
             // add to head
@@ -193,7 +193,7 @@ class Document(private val namespace: String, private val location: String?) :
      * @param tagName element tag name (e.g. `a`)
      * @return new element
      */
-    fun createElement(tagName: String): Element {
+    public fun createElement(tagName: String): Element {
         return Element(
             Tag.valueOf(
                 tagName,
@@ -248,7 +248,7 @@ class Document(private val namespace: String, private val location: String?) :
      * @see .updateMetaCharsetElement
      * @see OutputSettings.charset
      */
-    fun charset(charset: Charset) {
+    public fun charset(charset: Charset) {
         updateMetaCharsetElement(true)
         outputSettings.charset(charset)
         ensureMetaCharsetElement()
@@ -262,7 +262,7 @@ class Document(private val namespace: String, private val location: String?) :
      *
      * @see OutputSettings.charset
      */
-    fun charset(): Charset {
+    public fun charset(): Charset {
         return outputSettings.charset()
     }
 
@@ -279,7 +279,7 @@ class Document(private val namespace: String, private val location: String?) :
      *
      * @see .charset
      */
-    fun updateMetaCharsetElement(update: Boolean) {
+    public fun updateMetaCharsetElement(update: Boolean) {
         updateMetaCharset = update
     }
 
@@ -290,7 +290,7 @@ class Document(private val namespace: String, private val location: String?) :
      * @return Returns <tt>true</tt> if the element is updated on charset
      * changes, <tt>false</tt> if not
      */
-    fun updateMetaCharsetElement(): Boolean {
+    public fun updateMetaCharsetElement(): Boolean {
         return updateMetaCharset
     }
 
@@ -368,7 +368,7 @@ class Document(private val namespace: String, private val location: String?) :
     /**
      * A Document's output settings control the form of the text() and html() methods.
      */
-    data class OutputSettings(
+    public data class OutputSettings(
         private var escapeMode: Entities.EscapeMode = Entities.EscapeMode.base,
         private var charset: Charset = DataUtil.UTF_8,
         var coreCharset: Entities.CoreCharset = Entities.CoreCharset.byName(charset.name), // fast encoders for ascii and utf8
@@ -383,7 +383,7 @@ class Document(private val namespace: String, private val location: String?) :
         /**
          * The output serialization syntax.
          */
-        enum class Syntax {
+        public enum class Syntax {
             html, xml
         }
 
@@ -396,7 +396,7 @@ class Document(private val namespace: String, private val location: String?) :
          * The default escape mode is `base`.
          * @return the document's current escape mode
          */
-        fun escapeMode(): Entities.EscapeMode {
+        public fun escapeMode(): Entities.EscapeMode {
             return escapeMode
         }
 
@@ -406,7 +406,7 @@ class Document(private val namespace: String, private val location: String?) :
          * @param escapeMode the new escape mode to use
          * @return the document's output settings, for chaining
          */
-        fun escapeMode(escapeMode: Entities.EscapeMode): OutputSettings {
+        public fun escapeMode(escapeMode: Entities.EscapeMode): OutputSettings {
             this.escapeMode = escapeMode
             return this
         }
@@ -420,7 +420,7 @@ class Document(private val namespace: String, private val location: String?) :
          * input charset. Otherwise, it defaults to UTF-8.
          * @return the document's current charset.
          */
-        fun charset(): Charset {
+        public fun charset(): Charset {
             return charset
         }
 
@@ -429,7 +429,7 @@ class Document(private val namespace: String, private val location: String?) :
          * @param charset the new charset to use.
          * @return the document's output settings, for chaining
          */
-        fun charset(charset: Charset): OutputSettings {
+        public fun charset(charset: Charset): OutputSettings {
             this.charset = charset
             coreCharset = Entities.CoreCharset.byName(charset.name)
             return this
@@ -440,18 +440,18 @@ class Document(private val namespace: String, private val location: String?) :
          * @param charset the new charset (by name) to use.
          * @return the document's output settings, for chaining
          */
-        fun charset(charset: String): OutputSettings {
+        public fun charset(charset: String): OutputSettings {
             charset(Charset.forName(charset))
             return this
         }
 
-        fun prepareEncoder(): CharsetEncoder {
+        public fun prepareEncoder(): CharsetEncoder {
             // created at start of OuterHtmlVisitor so each pass has own encoder, so OutputSettings can be shared among threads
             charsetEncoder = charset.newEncoder()
             return charsetEncoder!!
         }
 
-        fun encoder(): CharsetEncoder {
+        public fun encoder(): CharsetEncoder {
             return charsetEncoder ?: prepareEncoder()
         }
 
@@ -459,7 +459,7 @@ class Document(private val namespace: String, private val location: String?) :
          * Get the document's current output syntax.
          * @return current syntax
          */
-        fun syntax(): Syntax {
+        public fun syntax(): Syntax {
             return syntax
         }
 
@@ -472,7 +472,7 @@ class Document(private val namespace: String, private val location: String?) :
          * @param syntax serialization syntax
          * @return the document's output settings, for chaining
          */
-        fun syntax(syntax: Syntax): OutputSettings {
+        public fun syntax(syntax: Syntax): OutputSettings {
             this.syntax = syntax
             if (syntax == Syntax.xml) this.escapeMode(Entities.EscapeMode.xhtml)
             return this
@@ -483,7 +483,7 @@ class Document(private val namespace: String, private val location: String?) :
          * the output, and the output will generally look like the input.
          * @return if pretty printing is enabled.
          */
-        fun prettyPrint(): Boolean {
+        public fun prettyPrint(): Boolean {
             return prettyPrint
         }
 
@@ -492,7 +492,7 @@ class Document(private val namespace: String, private val location: String?) :
          * @param pretty new pretty print setting
          * @return this, for chaining
          */
-        fun prettyPrint(pretty: Boolean): OutputSettings {
+        public fun prettyPrint(pretty: Boolean): OutputSettings {
             prettyPrint = pretty
             return this
         }
@@ -502,7 +502,7 @@ class Document(private val namespace: String, private val location: String?) :
          * all tags as block.
          * @return if outline mode is enabled.
          */
-        fun outline(): Boolean {
+        public fun outline(): Boolean {
             return outline
         }
 
@@ -511,7 +511,7 @@ class Document(private val namespace: String, private val location: String?) :
          * @param outlineMode new outline setting
          * @return this, for chaining
          */
-        fun outline(outlineMode: Boolean): OutputSettings {
+        public fun outline(outlineMode: Boolean): OutputSettings {
             outline = outlineMode
             return this
         }
@@ -520,7 +520,7 @@ class Document(private val namespace: String, private val location: String?) :
          * Get the current tag indent amount, used when pretty printing.
          * @return the current indent amount
          */
-        fun indentAmount(): Int {
+        public fun indentAmount(): Int {
             return indentAmount
         }
 
@@ -529,7 +529,7 @@ class Document(private val namespace: String, private val location: String?) :
          * @param indentAmount number of spaces to use for indenting each level. Must be &gt;= 0.
          * @return this, for chaining
          */
-        fun indentAmount(indentAmount: Int): OutputSettings {
+        public fun indentAmount(indentAmount: Int): OutputSettings {
             Validate.isTrue(indentAmount >= 0)
             this.indentAmount = indentAmount
             return this
@@ -540,7 +540,7 @@ class Document(private val namespace: String, private val location: String?) :
          * so very deeply nested nodes don't get insane padding amounts.
          * @return the current indent amount
          */
-        fun maxPaddingWidth(): Int {
+        public fun maxPaddingWidth(): Int {
             return maxPaddingWidth
         }
 
@@ -550,7 +550,7 @@ class Document(private val namespace: String, private val location: String?) :
          * Default is 30 and -1 means unlimited.
          * @return this, for chaining
          */
-        fun maxPaddingWidth(maxPaddingWidth: Int): OutputSettings {
+        public fun maxPaddingWidth(maxPaddingWidth: Int): OutputSettings {
             Validate.isTrue(maxPaddingWidth >= -1)
             this.maxPaddingWidth = maxPaddingWidth
             return this
@@ -565,7 +565,7 @@ class Document(private val namespace: String, private val location: String?) :
      * Get the document's current output settings.
      * @return the document's current output settings.
      */
-    fun outputSettings(): OutputSettings {
+    public fun outputSettings(): OutputSettings {
         return outputSettings
     }
 
@@ -574,20 +574,20 @@ class Document(private val namespace: String, private val location: String?) :
      * @param outputSettings new output settings.
      * @return this document, for chaining.
      */
-    fun outputSettings(outputSettings: OutputSettings): Document {
+    public fun outputSettings(outputSettings: OutputSettings): Document {
         this.outputSettings = outputSettings
         return this
     }
 
-    enum class QuirksMode {
+    public enum class QuirksMode {
         noQuirks, quirks, limitedQuirks
     }
 
-    fun quirksMode(): QuirksMode {
+    public fun quirksMode(): QuirksMode {
         return quirksMode
     }
 
-    fun quirksMode(quirksMode: QuirksMode): Document {
+    public fun quirksMode(quirksMode: QuirksMode): Document {
         this.quirksMode = quirksMode
         return this
     }
@@ -596,7 +596,7 @@ class Document(private val namespace: String, private val location: String?) :
      * Get the parser that was used to parse this document.
      * @return the parser
      */
-    fun parser(): Parser? {
+    public fun parser(): Parser? {
         return parser
     }
 
@@ -606,7 +606,7 @@ class Document(private val namespace: String, private val location: String?) :
      * @param parser the configured parser to use when further parsing is required for this document.
      * @return this document, for chaining.
      */
-    fun parser(parser: Parser?): Document {
+    public fun parser(parser: Parser?): Document {
         this.parser = parser
         return this
     }
@@ -625,13 +625,13 @@ class Document(private val namespace: String, private val location: String?) :
         return this
     }*/
 
-    companion object {
+    public companion object {
         /**
          * Create a valid, empty shell of a document, suitable for adding more elements to.
          * @param baseUri baseUri of document
          * @return document with html, head, and body elements.
          */
-        fun createShell(baseUri: String): Document {
+        public fun createShell(baseUri: String): Document {
             val doc = Document(baseUri)
             doc.parser = doc.parser()
             val html: Element = doc.appendElement("html")

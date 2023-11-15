@@ -10,7 +10,7 @@ import kotlin.math.min
 /**
  * CharacterReader consumes tokens off a string. Used internally by com.fleeksoft.ksoup. API subject to changes.
  */
-class CharacterReader {
+internal class CharacterReader {
     private var charBuf: CharArray?
     private var source: CharArray?
     private var bufLength = 0

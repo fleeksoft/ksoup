@@ -9,16 +9,16 @@ import okio.FileSystem
 import okio.Path
 import okio.buffer
 
-actual fun readGzipFile(file: Path): BufferedSource {
+internal actual fun readGzipFile(file: Path): BufferedSource {
     return Buffer().apply {
         write(decompressGzip(FileSystem.SYSTEM.source(file).buffer().readByteArray()))
     }
 }
 
-actual fun readFile(file: okio.Path): BufferedSource {
+internal actual fun readFile(file: okio.Path): BufferedSource {
     return FileSystem.SYSTEM.source(file).buffer()
 }
 
-actual fun provideHttpClientEngine(): HttpClientEngine {
+internal actual fun provideHttpClientEngine(): HttpClientEngine {
     return Darwin.create()
 }

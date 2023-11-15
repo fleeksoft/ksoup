@@ -7,7 +7,7 @@ import okio.IOException
  *
  * @author Sabeeh, fleeksoft@gmail.com
  */
-class DataNode(data: String) : LeafNode() {
+public class DataNode(data: String) : LeafNode() {
     /**
      * Create a new DataNode.
      * @param data data contents
@@ -20,14 +20,14 @@ class DataNode(data: String) : LeafNode() {
         return "#data"
     }
 
-    fun getWholeData(): String = coreValue()
+    public fun getWholeData(): String = coreValue()
 
     /**
      * Set the data contents of this node.
      * @param data unencoded data
      * @return this node, for chaining
      */
-    fun setWholeData(data: String?): DataNode {
+    public fun setWholeData(data: String?): DataNode {
         coreValue(data)
         return this
     }

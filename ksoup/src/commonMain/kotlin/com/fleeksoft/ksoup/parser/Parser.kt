@@ -12,7 +12,7 @@ import com.fleeksoft.ksoup.ported.BufferReader
  *
  * Note that a Parser instance object is not threadsafe. To reuse a Parser configuration in a multi-threaded
  * environment, use [.newInstance] to make copies.  */
-class Parser {
+public class Parser {
     private var treeBuilder: TreeBuilder
     private var errors: ParseErrorList
     private var settings: ParseSettings?
@@ -22,14 +22,14 @@ class Parser {
      * source they were created from. By default, tracking is not enabled.
      * @return current track position setting
      */
-    var isTrackPosition = false
+    internal var isTrackPosition = false
         private set
 
     /**
      * Create a new Parser, using the specified TreeBuilder
      * @param treeBuilder TreeBuilder to use to parse input into Documents.
      */
-    constructor(treeBuilder: TreeBuilder) {
+    internal constructor(treeBuilder: TreeBuilder) {
         this.treeBuilder = treeBuilder
         settings = treeBuilder.defaultSettings()
         errors = ParseErrorList.noTracking()
@@ -39,7 +39,7 @@ class Parser {
      * Creates a new Parser as a deep copy of this; including initializing a new TreeBuilder. Allows independent (multi-threaded) use.
      * @return a copied parser
      */
-    fun newInstance(): Parser {
+    public fun newInstance(): Parser {
         return Parser(this)
     }
 
@@ -50,19 +50,19 @@ class Parser {
         isTrackPosition = copy.isTrackPosition
     }
 
-    fun parseInput(htmlBytes: ByteArray, baseUri: String): Document {
+    public fun parseInput(htmlBytes: ByteArray, baseUri: String): Document {
         return treeBuilder.parse(BufferReader(htmlBytes), baseUri, this)
     }
 
-    fun parseInput(html: String, baseUri: String): Document {
+    public fun parseInput(html: String, baseUri: String): Document {
         return treeBuilder.parse(BufferReader(html.toByteArray()), baseUri, this)
     }
 
-    fun parseInput(inputHtml: BufferReader, baseUri: String): Document {
+    public fun parseInput(inputHtml: BufferReader, baseUri: String): Document {
         return treeBuilder.parse(inputHtml, baseUri, this)
     }
 
-    fun parseFragmentInput(fragment: String, context: Element?, baseUri: String?): List<Node> {
+    public fun parseFragmentInput(fragment: String, context: Element?, baseUri: String?): List<Node> {
         return treeBuilder.parseFragment(fragment, context, baseUri, this)
     }
     // gets & sets
@@ -70,7 +70,7 @@ class Parser {
      * Get the TreeBuilder currently in use.
      * @return current TreeBuilder.
      */
-    fun getTreeBuilder(): TreeBuilder {
+    internal fun getTreeBuilder(): TreeBuilder {
         return treeBuilder
     }
 
@@ -79,20 +79,20 @@ class Parser {
      * @param treeBuilder new TreeBuilder
      * @return this, for chaining
      */
-    fun setTreeBuilder(treeBuilder: TreeBuilder): Parser {
+    internal fun setTreeBuilder(treeBuilder: TreeBuilder): Parser {
         this.treeBuilder = treeBuilder
         treeBuilder.parser = this
         return this
     }
 
-    fun isTrackErrors(): Boolean = errors.maxSize > 0
+    public fun isTrackErrors(): Boolean = errors.maxSize > 0
 
     /**
      * Enable or disable parse error tracking for the next parse.
      * @param maxErrors the maximum number of errors to track. Set to 0 to disable.
      * @return this, for chaining
      */
-    fun setTrackErrors(maxErrors: Int): Parser {
+    public fun setTrackErrors(maxErrors: Int): Parser {
         errors =
             if (maxErrors > 0) ParseErrorList.tracking(maxErrors) else ParseErrorList.noTracking()
         return this
@@ -103,7 +103,7 @@ class Parser {
      * @return list of parse errors, up to the size of the maximum errors tracked.
      * @see .setTrackErrors
      */
-    fun getErrors(): ParseErrorList {
+    public fun getErrors(): ParseErrorList {
         return errors
     }
 
@@ -113,7 +113,7 @@ class Parser {
      * @param trackPosition position tracking setting; `true` to enable
      * @return this Parser, for chaining
      */
-    fun setTrackPosition(trackPosition: Boolean): Parser {
+    public fun setTrackPosition(trackPosition: Boolean): Parser {
         isTrackPosition = trackPosition
         return this
     }
@@ -123,7 +123,7 @@ class Parser {
      * @param settings the new settings
      * @return this Parser
      */
-    fun settings(settings: ParseSettings?): Parser {
+    public fun settings(settings: ParseSettings?): Parser {
         this.settings = settings
         return this
     }
@@ -132,7 +132,7 @@ class Parser {
      * Gets the current ParseSettings for this Parser
      * @return current ParseSettings
      */
-    fun settings(): ParseSettings? {
+    public fun settings(): ParseSettings? {
         return settings
     }
 
@@ -140,19 +140,19 @@ class Parser {
      * (An internal method, visible for Element. For HTML parse, signals that script and style text should be treated as
      * Data Nodes).
      */
-    fun isContentForTagData(normalName: String): Boolean {
+    public fun isContentForTagData(normalName: String): Boolean {
         return getTreeBuilder().isContentForTagData(normalName)
     }
 
-    fun defaultNamespace(): String {
+    public fun defaultNamespace(): String {
         return getTreeBuilder().defaultNamespace()
     }
 
-    companion object {
-        const val NamespaceHtml = "http://www.w3.org/1999/xhtml"
-        const val NamespaceXml = "http://www.w3.org/XML/1998/namespace"
-        const val NamespaceMathml = "http://www.w3.org/1998/Math/MathML"
-        const val NamespaceSvg = "http://www.w3.org/2000/svg"
+    public companion object {
+        public const val NamespaceHtml: String = "http://www.w3.org/1999/xhtml"
+        public const val NamespaceXml: String = "http://www.w3.org/XML/1998/namespace"
+        public const val NamespaceMathml: String = "http://www.w3.org/1998/Math/MathML"
+        public const val NamespaceSvg: String = "http://www.w3.org/2000/svg"
         // static parse functions below
         /**
          * Parse HTML into a Document.
@@ -162,7 +162,7 @@ class Parser {
          *
          * @return parsed Document
          */
-        fun parse(html: String, baseUri: String): Document {
+        public fun parse(html: String, baseUri: String): Document {
             val treeBuilder: TreeBuilder = HtmlTreeBuilder()
             return treeBuilder.parse(
                 BufferReader(html.toByteArray()),
@@ -181,7 +181,7 @@ class Parser {
          *
          * @return list of nodes parsed from the input HTML. Note that the context element, if supplied, is not modified.
          */
-        fun parseFragment(fragmentHtml: String, context: Element?, baseUri: String?): List<Node> {
+        public fun parseFragment(fragmentHtml: String, context: Element?, baseUri: String?): List<Node> {
             val treeBuilder = HtmlTreeBuilder()
             return treeBuilder.parseFragment(fragmentHtml, context, baseUri, Parser(treeBuilder))
         }
@@ -197,7 +197,7 @@ class Parser {
          *
          * @return list of nodes parsed from the input HTML. Note that the context element, if supplied, is not modified.
          */
-        fun parseFragment(
+        public fun parseFragment(
             fragmentHtml: String,
             context: Element?,
             baseUri: String?,
@@ -216,7 +216,7 @@ class Parser {
          * @param baseUri base URI of document (i.e. original fetch location), for resolving relative URLs.
          * @return list of nodes parsed from the input XML.
          */
-        fun parseXmlFragment(fragmentXml: String, baseUri: String?): List<Node> {
+        public fun parseXmlFragment(fragmentXml: String, baseUri: String?): List<Node> {
             val treeBuilder = XmlTreeBuilder()
             return treeBuilder.parseFragment(fragmentXml, baseUri, Parser(treeBuilder))
         }
@@ -229,7 +229,7 @@ class Parser {
          *
          * @return Document, with empty head, and HTML parsed into body
          */
-        fun parseBodyFragment(bodyHtml: String, baseUri: String): Document {
+        public fun parseBodyFragment(bodyHtml: String, baseUri: String): Document {
             val doc: Document = Document.createShell(baseUri)
             val body: Element = doc.body()
             val nodeList: List<Node> = parseFragment(bodyHtml, body, baseUri)
@@ -250,7 +250,7 @@ class Parser {
          * @param inAttribute if the string is to be escaped in strict mode (as attributes are)
          * @return an unescaped string
          */
-        fun unescapeEntities(string: String, inAttribute: Boolean): String {
+        public fun unescapeEntities(string: String, inAttribute: Boolean): String {
             val tokeniser = Tokeniser(CharacterReader(string), ParseErrorList.noTracking())
             return tokeniser.unescapeEntities(inAttribute)
         }
@@ -260,7 +260,7 @@ class Parser {
          * based on a knowledge of the semantics of the incoming tags.
          * @return a new HTML parser.
          */
-        fun htmlParser(): Parser {
+        public fun htmlParser(): Parser {
             return Parser(HtmlTreeBuilder())
         }
 
@@ -269,7 +269,7 @@ class Parser {
          * rather creates a simple tree directly from the input.
          * @return a new simple XML parser.
          */
-        fun xmlParser(): Parser {
+        public fun xmlParser(): Parser {
             return Parser(XmlTreeBuilder())
         }
     }

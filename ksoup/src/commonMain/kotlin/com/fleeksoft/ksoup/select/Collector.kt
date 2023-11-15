@@ -10,7 +10,7 @@ import com.fleeksoft.ksoup.select.NodeFilter.FilterResult.STOP
  *
  * @author Sabeeh
  */
-object Collector {
+internal object Collector {
     /**
      * Build a list of elements, by visiting root and every descendant of root, and testing it against the evaluator.
      * @param eval Evaluator to test elements against

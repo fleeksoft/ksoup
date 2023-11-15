@@ -8,6 +8,8 @@ group = "com.fleeksoft"
 version = "0.0.1"
 
 kotlin {
+    explicitApi()
+
     jvm()
 
     androidTarget {

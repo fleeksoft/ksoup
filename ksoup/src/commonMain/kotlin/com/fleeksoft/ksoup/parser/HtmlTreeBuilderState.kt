@@ -21,7 +21,7 @@ import com.fleeksoft.ksoup.parser.HtmlTreeBuilderState.Constants.InTableToBody
 /**
  * The Tree Builder's current state. Each state embodies the processing for the state, and transitions to other states.
  */
-enum class HtmlTreeBuilderState {
+internal enum class HtmlTreeBuilderState {
     Initial {
         override fun process(t: Token, tb: HtmlTreeBuilder): Boolean {
             if (isWhitespace(t)) {

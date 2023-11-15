@@ -5,7 +5,7 @@ import kotlin.jvm.JvmOverloads
 /**
  * Validators to check that method arguments meet expectations.
  */
-object Validate {
+internal object Validate {
     /**
      * Validates that the object is not null
      * @param obj object to test

@@ -31,23 +31,23 @@ import kotlin.jvm.JvmOverloads
  * From an Element, you can extract data, traverse the node graph, and manipulate the HTML.
  */
 
-open class Element : Node {
+public open class Element : Node {
     private var tag: Tag
     private var _baseUri: String? = null // just for clone
 
     // points to child elements shadowed from node children
     private var shadowChildrenRef: List<Element>? = null
-    var childNodes: MutableList<Node> = EmptyNodes
+    internal var childNodes: MutableList<Node> = EmptyNodes
 
     // field is nullable but all methods for attributes are non-null
-    var attributes: Attributes? = null
+    internal var attributes: Attributes? = null
 
     /**
      * Create a new, standalone element, in the specified namespace.
      * @param tag tag name
      * @param namespace namespace for this element
      */
-    constructor(tag: String, namespace: String) : this(
+    public constructor(tag: String, namespace: String) : this(
         Tag.valueOf(
             tag,
             namespace,
@@ -61,7 +61,7 @@ open class Element : Node {
      * @param tag tag name
      * @see .Element
      */
-    constructor(tag: String) : this(
+    public constructor(tag: String) : this(
         Tag.valueOf(
             tag,
             Parser.NamespaceHtml,
@@ -80,7 +80,7 @@ open class Element : Node {
      * @see #appendChild(Node)
      * @see #appendElement(String)
      */
-    constructor(tag: Tag, baseUri: String?, attributes: Attributes?) {
+    public constructor(tag: Tag, baseUri: String?, attributes: Attributes?) {
         childNodes = EmptyNodes.toMutableList()
         this.attributes = attributes
         this.tag = tag
@@ -95,12 +95,12 @@ open class Element : Node {
      * @param baseUri the base URI of this element. Optional, and will inherit from its parent, if any.
      * @see Tag.valueOf
      */
-    constructor(tag: Tag, baseUri: String?) : this(tag, baseUri, null)
+    public constructor(tag: Tag, baseUri: String?) : this(tag, baseUri, null)
 
     /**
      * Internal test to check if a nodelist object has been created.
      */
-    fun hasChildNodes(): Boolean {
+    public fun hasChildNodes(): Boolean {
         return childNodes != EmptyNodes
     }
 
@@ -144,7 +144,7 @@ open class Element : Node {
      *
      * @return the tag name
      */
-    fun tagName(): String {
+    public fun tagName(): String {
         return tag.name
     }
 
@@ -177,7 +177,7 @@ open class Element : Node {
      * @see Elements.tagName
      */
     @JvmOverloads
-    fun tagName(tagName: String, namespace: String = tag.namespace()): Element {
+    public fun tagName(tagName: String, namespace: String = tag.namespace()): Element {
         Validate.notEmptyParam(tagName, "tagName")
         Validate.notEmptyParam(namespace, "namespace")
         tag = Tag.valueOf(
@@ -193,18 +193,18 @@ open class Element : Node {
      *
      * @return the tag object
      */
-    fun tag(): Tag {
+    public fun tag(): Tag {
         return tag
     }
 
-    fun isBlock(): Boolean = tag.isBlock
+    public fun isBlock(): Boolean = tag.isBlock
 
     /**
      * Get the `id` attribute of this element.
      *
      * @return The id attribute, if present, or an empty string if not.
      */
-    fun id(): String {
+    public fun id(): String {
         return if (attributes != null) attributes!!.getIgnoreCase("id") else ""
     }
 
@@ -213,7 +213,7 @@ open class Element : Node {
      * @param id the ID value to use
      * @return this Element, for chaining
      */
-    fun id(id: String): Element {
+    public fun id(id: String): Element {
         attr("id", id)
         return this
     }
@@ -239,7 +239,7 @@ open class Element : Node {
      *
      * @return this element
      */
-    fun attr(attributeKey: String, attributeValue: Boolean): Element {
+    public fun attr(attributeKey: String, attributeValue: Boolean): Element {
         attributes().put(attributeKey, attributeValue)
         return this
     }
@@ -260,7 +260,7 @@ open class Element : Node {
      * You can find elements that have data attributes using the `[^data-]` attribute key prefix selector.
      * @return a map of `key=value` custom data attributes.
      */
-    fun dataset(): Attributes.Dataset {
+    public fun dataset(): Attributes.Dataset {
         return attributes().dataset()
     }
 
@@ -272,7 +272,7 @@ open class Element : Node {
      * Get this element's parent and ancestors, up to the document root.
      * @return this element's stack of parents, starting with the closest first.
      */
-    fun parents(): Elements {
+    public fun parents(): Elements {
         val parents = Elements()
         var parent = parent()
         while (parent != null && !parent.isNode("#root")) {
@@ -294,7 +294,7 @@ open class Element : Node {
      * @return the child element, if it exists, otherwise throws an `IndexOutOfBoundsException`
      * @see .childNode
      */
-    fun child(index: Int): Element {
+    public fun child(index: Int): Element {
         return childElementsList()[index]
     }
 
@@ -309,7 +309,7 @@ open class Element : Node {
      * @see .children
      * @see .child
      */
-    fun childrenSize(): Int {
+    public fun childrenSize(): Int {
         return childElementsList().size
     }
 
@@ -322,7 +322,7 @@ open class Element : Node {
      * @return child elements. If this element has no children, returns an empty list.
      * @see .childNodes
      */
-    fun children(): Elements {
+    public fun children(): Elements {
         return Elements(childElementsList())
     }
 
@@ -331,7 +331,7 @@ open class Element : Node {
      * TODO - think about pulling this out as a helper as there are other shadow lists (like in Attributes) kept around.
      * @return a list of child elements
      */
-    fun childElementsList(): List<Element> {
+    public fun childElementsList(): List<Element> {
         if (childNodeSize() == 0) return EmptyChildren // short circuit creating empty
         var children: MutableList<Element>? = null
         if (shadowChildrenRef != null) {
@@ -339,7 +339,7 @@ open class Element : Node {
         }
         if (shadowChildrenRef == null || children == null) {
             val size = childNodes.size
-            children = ArrayList<Element>(size)
+            children = ArrayList(size)
             for (i in 0 until size) {
                 val node: Node = childNodes[i]
                 if (node is Element) children.add(node)
@@ -374,7 +374,7 @@ open class Element : Node {
      *  * `p.textNodes()` = `List<TextNode>["One ", " Three ", " Four"]`
      *
      */
-    fun textNodes(): List<TextNode> {
+    public fun textNodes(): List<TextNode> {
         val textNodes: MutableList<TextNode> = ArrayList()
         for (node in childNodes) {
             if (node is TextNode) textNodes.add(node)
@@ -392,10 +392,10 @@ open class Element : Node {
      * empty list.
      * @see .data
      */
-    fun dataNodes(): List<DataNode> {
-        val dataNodes: MutableList<DataNode> = ArrayList<DataNode>()
+    public fun dataNodes(): List<DataNode> {
+        val dataNodes: MutableList<DataNode> = ArrayList()
         for (node in childNodes) {
-            if (node is DataNode) dataNodes.add(node as DataNode)
+            if (node is DataNode) dataNodes.add(node)
         }
         return Collections.unmodifiableList(dataNodes)
     }
@@ -422,7 +422,7 @@ open class Element : Node {
      * @see QueryParser.parse
      * @throws Selector.SelectorParseException (unchecked) on an invalid CSS query.
      */
-    fun select(cssQuery: String): Elements {
+    public fun select(cssQuery: String): Elements {
         return Selector.select(cssQuery, this)
     }
 
@@ -433,7 +433,7 @@ open class Element : Node {
      * @param evaluator an element evaluator
      * @return an [Elements] list containing elements that match the query (empty if none match)
      */
-    fun select(evaluator: Evaluator): Elements {
+    internal fun select(evaluator: Evaluator): Elements {
         return Selector.select(evaluator, this)
     }
 
@@ -448,7 +448,7 @@ open class Element : Node {
      * @return the first matching element, or **`null`** if there is no match.
      * @see .expectFirst
      */
-    fun selectFirst(cssQuery: String): Element? {
+    public fun selectFirst(cssQuery: String): Element? {
         return Selector.selectFirst(cssQuery, this)
     }
 
@@ -460,7 +460,7 @@ open class Element : Node {
      * @return the first matching element (walking down the tree, starting from this element), or `null` if none
      * match.
      */
-    fun selectFirst(evaluator: Evaluator): Element? {
+    internal fun selectFirst(evaluator: Evaluator): Element? {
         return Collector.findFirst(evaluator, this)
     }
 
@@ -472,7 +472,7 @@ open class Element : Node {
      * @throws IllegalArgumentException if no match is found
      * @since 1.15.2
      */
-    fun expectFirst(cssQuery: String): Element {
+    public fun expectFirst(cssQuery: String): Element {
         return Validate.ensureNotNull(
             Selector.selectFirst(cssQuery, this),
             if (parent() != null) "No elements matched the query '$cssQuery' on element '${this.tagName()}'." else "No elements matched the query '$cssQuery' in the document.",
@@ -486,7 +486,7 @@ open class Element : Node {
      * @param cssQuery a [Selector] CSS query
      * @return if this element matches the query
      */
-    fun `is`(cssQuery: String): Boolean {
+    public fun `is`(cssQuery: String): Boolean {
         return `is`(QueryParser.parse(cssQuery))
     }
 
@@ -495,7 +495,7 @@ open class Element : Node {
      * @param evaluator an element evaluator
      * @return if this element matches
      */
-    fun `is`(evaluator: Evaluator?): Boolean {
+    internal fun `is`(evaluator: Evaluator?): Boolean {
         return evaluator!!.matches(root(), this)
     }
 
@@ -506,7 +506,7 @@ open class Element : Node {
      * @return the closest ancestor element (possibly itself) that matches the provided evaluator. `null` if not
      * found.
      */
-    fun closest(cssQuery: String): Element? {
+    public fun closest(cssQuery: String): Element? {
         return closest(QueryParser.parse(cssQuery))
     }
 
@@ -518,58 +518,15 @@ open class Element : Node {
      * found.
      */
 //    @Nullable
-    fun closest(evaluator: Evaluator): Element? {
+    internal fun closest(evaluator: Evaluator): Element? {
         var el: Element? = this
         val root = root()
         do {
-            if (evaluator!!.matches(root, el!!)) return el
+            if (evaluator.matches(root, el!!)) return el
             el = el.parent()
         } while (el != null)
         return null
     }
-
-    /**
-     * Find Elements that match the supplied XPath expression.
-     *
-     * Note that for convenience of writing the Xpath expression, namespaces are disabled, and queries can be
-     * expressed using the element's local name only.
-     *
-     * By default, XPath 1.0 expressions are supported. If you would to use XPath 2.0 or higher, you can provide an
-     * alternate XPathFactory implementation:
-     *
-     *  1. Add the implementation to your classpath. E.g. to use [Saxon-HE](https://www.saxonica.com/products/products.xml), add [net.sf.saxon:Saxon-HE](https://mvnrepository.com/artifact/net.sf.saxon/Saxon-HE) to your build.
-     *  1. Set the system property `javax.xml.xpath.XPathFactory:com.fleeksoft.ksoup` to the implementing classname. E.g.:<br></br>
-     * `System.setProperty(W3CDom.XPathFactoryProperty, "net.sf.saxon.xpath.XPathFactoryImpl");`
-     *
-     *
-     *
-     * @param xpath XPath expression
-     * @return matching elements, or an empty list if none match.
-     * @see .selectXpath
-     * @since 1.14.3
-     */
-    /*fun selectXpath(xpath: String?): Elements {
-        return Elements(NodeUtils.selectXpath(xpath, this, Element::class))
-    }*/
-
-    /**
-     * Find Nodes that match the supplied XPath expression.
-     *
-     * For example, to select TextNodes under `p` elements:
-     * <pre>List&lt;TextNode&gt; textNodes = doc.selectXpath("//body//p//text()", TextNode.class);</pre>
-     *
-     * Note that in the com.fleeksoft.ksoup DOM, Attribute objects are not Nodes. To directly select attribute values, do something
-     * like:
-     * <pre>List&lt;String&gt; hrefs = doc.selectXpath("//a").eachAttr("href");</pre>
-     * @param xpath XPath expression
-     * @param nodeType the com.fleeksoft.ksoup node type to return
-     * @see .selectXpath
-     * @return a list of matching nodes
-     * @since 1.14.3
-     */
-    /*fun <T : Node> selectXpath(xpath: String?, nodeType: KClass<T>): List<T> {
-        return NodeUtils.selectXpath(xpath, this, nodeType)
-    }*/
 
     /**
      * Insert a node to the end of this Element's children. The incoming node will be re-parented.
@@ -579,7 +536,7 @@ open class Element : Node {
      * @see .prependChild
      * @see .insertChildren
      */
-    fun appendChild(child: Node): Element {
+    public fun appendChild(child: Node): Element {
         // was - Node#addChildren(child). short-circuits an array create and a loop.
         reparentChild(child)
         ensureChildNodes()
@@ -595,7 +552,7 @@ open class Element : Node {
      * @return this Element, for chaining
      * @see .insertChildren
      */
-    fun appendChildren(children: Collection<Node>): Element {
+    public fun appendChildren(children: Collection<Node>): Element {
         insertChildren(-1, children)
         return this
     }
@@ -606,7 +563,7 @@ open class Element : Node {
      * @param parent element to which this element will be appended
      * @return this element, so that you can continue modifying the element
      */
-    fun appendTo(parent: Element): Element {
+    public fun appendTo(parent: Element): Element {
         parent.appendChild(this)
         return this
     }
@@ -617,7 +574,7 @@ open class Element : Node {
      * @param child node to add.
      * @return this element, so that you can add more child nodes or elements.
      */
-    fun prependChild(child: Node): Element {
+    public fun prependChild(child: Node): Element {
         addChildren(0, child)
         return this
     }
@@ -629,7 +586,7 @@ open class Element : Node {
      * @return this Element, for chaining
      * @see .insertChildren
      */
-    fun prependChildren(children: Collection<Node>): Element {
+    public fun prependChildren(children: Collection<Node>): Element {
         insertChildren(0, children)
         return this
     }
@@ -643,7 +600,7 @@ open class Element : Node {
      * @param children child nodes to insert
      * @return this element, for chaining.
      */
-    fun insertChildren(index: Int, children: Collection<Node>): Element {
+    public fun insertChildren(index: Int, children: Collection<Node>): Element {
         var index = index
         val currentSize = childNodeSize()
         if (index < 0) index += currentSize + 1 // roll around
@@ -662,7 +619,7 @@ open class Element : Node {
      * @param children child nodes to insert
      * @return this element, for chaining.
      */
-    fun insertChildren(index: Int, vararg children: Node): Element {
+    public fun insertChildren(index: Int, vararg children: Node): Element {
         var index = index
         val currentSize = childNodeSize()
         if (index < 0) index += currentSize + 1 // roll around
@@ -679,7 +636,7 @@ open class Element : Node {
      * `parent.appendElement("h1").attr("id", "header").text("Welcome");`
      */
     @JvmOverloads
-    fun appendElement(tagName: String, namespace: String = tag.namespace()): Element {
+    public fun appendElement(tagName: String, namespace: String = tag.namespace()): Element {
         val child = Element(
             Tag.valueOf(
                 tagName,
@@ -701,7 +658,7 @@ open class Element : Node {
      * `parent.prependElement("h1").attr("id", "header").text("Welcome");`
      */
     @JvmOverloads
-    fun prependElement(tagName: String, namespace: String = tag.namespace()): Element {
+    public fun prependElement(tagName: String, namespace: String = tag.namespace()): Element {
         val child = Element(
             Tag.valueOf(
                 tagName,
@@ -721,7 +678,7 @@ open class Element : Node {
      * @param text the (un-encoded) text to add
      * @return this element
      */
-    fun appendText(text: String): Element {
+    public fun appendText(text: String): Element {
         val node = TextNode(text)
         appendChild(node)
         return this
@@ -733,7 +690,7 @@ open class Element : Node {
      * @param text the decoded text to add
      * @return this element
      */
-    fun prependText(text: String): Element {
+    public fun prependText(text: String): Element {
         val node = TextNode(text)
         prependChild(node)
         return this
@@ -745,7 +702,7 @@ open class Element : Node {
      * @return this element
      * @see .html
      */
-    fun append(html: String): Element {
+    public fun append(html: String): Element {
         val nodes: List<Node> = NodeUtils.parser(this)!!.parseFragmentInput(html, this, baseUri())
         addChildren(*nodes.toTypedArray())
         return this
@@ -757,7 +714,7 @@ open class Element : Node {
      * @return this element
      * @see .html
      */
-    fun prepend(html: String): Element {
+    public fun prepend(html: String): Element {
         val nodes: List<Node> = NodeUtils.parser(this)!!.parseFragmentInput(html, this, baseUri())
         addChildren(0, *nodes.toTypedArray())
         return this
@@ -840,7 +797,7 @@ open class Element : Node {
      *
      * @return the CSS Path that can be used to retrieve the element in a selector.
      */
-    fun cssSelector(): String {
+    public fun cssSelector(): String {
         if (id().isNotEmpty()) {
             // prefer to return the ID - but check that it's actually unique first!
             val idSel = "#" + escapeCssIdentifier(id())
@@ -891,7 +848,7 @@ open class Element : Node {
      * of itself, so will not be included in the returned list.
      * @return sibling elements
      */
-    fun siblingElements(): Elements {
+    public fun siblingElements(): Elements {
         if (_parentNode == null) return Elements()
         val elements = (_parentNode as Element).childElementsList()
         val siblings = Elements()
@@ -910,7 +867,7 @@ open class Element : Node {
      * @see .previousElementSibling
      */
 //    @Nullable
-    fun nextElementSibling(): Element? {
+    public fun nextElementSibling(): Element? {
         var next: Node = this
         while (next.nextSibling()?.also { next = it } != null) {
             if (next is Element) return next as Element
@@ -923,7 +880,7 @@ open class Element : Node {
      *
      * @return each of the element siblings after this element, or an empty list if there are no next sibling elements
      */
-    fun nextElementSiblings(): Elements {
+    public fun nextElementSiblings(): Elements {
         return nextElementSiblings(true)
     }
 
@@ -933,7 +890,7 @@ open class Element : Node {
      * @see .nextElementSibling
      */
 //    @Nullable
-    fun previousElementSibling(): Element? {
+    public fun previousElementSibling(): Element? {
         var prev: Node = this
         while (prev.previousSibling()?.also { prev = it } != null) {
             if (prev is Element) return prev as Element
@@ -946,7 +903,7 @@ open class Element : Node {
      *
      * @return the previous element siblings, or an empty list if there are none.
      */
-    fun previousElementSiblings(): Elements {
+    public fun previousElementSiblings(): Elements {
         return nextElementSiblings(false)
     }
 
@@ -961,7 +918,7 @@ open class Element : Node {
      * Gets the first Element sibling of this element. That may be this element.
      * @return the first sibling that is an element (aka the parent's first element child)
      */
-    fun firstElementSibling(): Element? {
+    public fun firstElementSibling(): Element? {
         val parent: Element? = parent()
         return if (parent != null) {
             parent.firstElementChild()
@@ -975,7 +932,7 @@ open class Element : Node {
      * sibling, returns 0.
      * @return position in element sibling list
      */
-    fun elementSiblingIndex(): Int {
+    public fun elementSiblingIndex(): Int {
         val parent: Element? = parent()
         return if (parent == null) {
             0
@@ -991,7 +948,7 @@ open class Element : Node {
      * Gets the last element sibling of this element. That may be this element.
      * @return the last sibling that is an element (aka the parent's last element child)
      */
-    fun lastElementSibling(): Element? {
+    public fun lastElementSibling(): Element? {
         val parent: Element? = parent()
         return if (parent != null) {
             parent.lastElementChild()
@@ -1008,7 +965,7 @@ open class Element : Node {
      * @since 1.15.2
      */
 //    @Nullable
-    fun firstElementChild(): Element? {
+    public fun firstElementChild(): Element? {
         var child: Node? = firstChild()
         while (child != null) {
             if (child is Element) return child
@@ -1025,7 +982,7 @@ open class Element : Node {
      * @since 1.15.2
      */
 //    @Nullable
-    fun lastElementChild(): Element? {
+    public fun lastElementChild(): Element? {
         var child: Node? = lastChild()
         while (child != null) {
             if (child is Element) return child
@@ -1039,7 +996,7 @@ open class Element : Node {
      * @param tagName The tag name to search for (case insensitively).
      * @return a matching unmodifiable list of elements. Will be empty if this element and none of its children match.
      */
-    fun getElementsByTag(tagName: String?): Elements {
+    public fun getElementsByTag(tagName: String?): Elements {
         var tagName = tagName
         Validate.notEmpty(tagName)
         tagName = normalize(tagName)
@@ -1057,7 +1014,7 @@ open class Element : Node {
      * @return The first matching element by ID, starting with this element, or null if none found.
      */
 //    @Nullable
-    fun getElementById(id: String): Element? {
+    public fun getElementById(id: String): Element? {
         Validate.notEmpty(id)
         val elements: Elements = Collector.collect(Evaluator.Id(id), this)
         return if (elements.size > 0) elements[0] else null
@@ -1075,7 +1032,7 @@ open class Element : Node {
      * @see .hasClass
      * @see .classNames
      */
-    fun getElementsByClass(className: String): Elements {
+    public fun getElementsByClass(className: String): Elements {
         Validate.notEmpty(className)
         return Collector.collect(Evaluator.Class(className), this)
     }
@@ -1086,7 +1043,7 @@ open class Element : Node {
      * @param key name of the attribute, e.g. `href`
      * @return elements that have this attribute, empty if none
      */
-    fun getElementsByAttribute(key: String): Elements {
+    public fun getElementsByAttribute(key: String): Elements {
         var key = key
         Validate.notEmpty(key)
         key = key.trim { it <= ' ' }
@@ -1099,7 +1056,7 @@ open class Element : Node {
      * @param keyPrefix name prefix of the attribute e.g. `data-`
      * @return elements that have attribute names that start with the prefix, empty if none.
      */
-    fun getElementsByAttributeStarting(keyPrefix: String): Elements {
+    public fun getElementsByAttributeStarting(keyPrefix: String): Elements {
         var keyPrefix = keyPrefix
         Validate.notEmpty(keyPrefix)
         keyPrefix = keyPrefix.trim { it <= ' ' }
@@ -1113,7 +1070,7 @@ open class Element : Node {
      * @param value value of the attribute
      * @return elements that have this attribute with this value, empty if none
      */
-    fun getElementsByAttributeValue(key: String, value: String): Elements {
+    public fun getElementsByAttributeValue(key: String, value: String): Elements {
         return Collector.collect(Evaluator.AttributeWithValue(key, value), this)
     }
 
@@ -1124,7 +1081,7 @@ open class Element : Node {
      * @param value value of the attribute
      * @return elements that do not have a matching attribute
      */
-    fun getElementsByAttributeValueNot(key: String, value: String): Elements {
+    public fun getElementsByAttributeValueNot(key: String, value: String): Elements {
         return Collector.collect(Evaluator.AttributeWithValueNot(key, value), this)
     }
 
@@ -1135,7 +1092,7 @@ open class Element : Node {
      * @param valuePrefix start of attribute value
      * @return elements that have attributes that start with the value prefix
      */
-    fun getElementsByAttributeValueStarting(key: String, valuePrefix: String): Elements {
+    public fun getElementsByAttributeValueStarting(key: String, valuePrefix: String): Elements {
         return Collector.collect(Evaluator.AttributeWithValueStarting(key, valuePrefix), this)
     }
 
@@ -1146,7 +1103,7 @@ open class Element : Node {
      * @param valueSuffix end of the attribute value
      * @return elements that have attributes that end with the value suffix
      */
-    fun getElementsByAttributeValueEnding(key: String, valueSuffix: String): Elements {
+    public fun getElementsByAttributeValueEnding(key: String, valueSuffix: String): Elements {
         return Collector.collect(Evaluator.AttributeWithValueEnding(key, valueSuffix), this)
     }
 
@@ -1157,7 +1114,7 @@ open class Element : Node {
      * @param match substring of value to search for
      * @return elements that have attributes containing this text
      */
-    fun getElementsByAttributeValueContaining(key: String, match: String): Elements {
+    public fun getElementsByAttributeValueContaining(key: String, match: String): Elements {
         return Collector.collect(Evaluator.AttributeWithValueContaining(key, match), this)
     }
 
@@ -1167,7 +1124,7 @@ open class Element : Node {
      * @param pattern compiled regular expression to match against attribute values
      * @return elements that have attributes matching this regular expression
      */
-    fun getElementsByAttributeValueMatching(
+    public fun getElementsByAttributeValueMatching(
         key: String,
         regex: Regex,
     ): Elements {
@@ -1180,7 +1137,7 @@ open class Element : Node {
      * @param regex regular expression to match against attribute values. You can use [embedded flags](http://java.sun.com/docs/books/tutorial/essential/regex/pattern.html#embedded) (such as (?i) and (?m) to control regex options.
      * @return elements that have attributes matching this regular expression
      */
-    fun getElementsByAttributeValueMatching(key: String, regex: String): Elements {
+    public fun getElementsByAttributeValueMatching(key: String, regex: String): Elements {
         val pattern: Regex = try {
             Regex(regex)
         } catch (e: PatternSyntaxException) {
@@ -1194,7 +1151,7 @@ open class Element : Node {
      * @param index 0-based index
      * @return elements less than index
      */
-    fun getElementsByIndexLessThan(index: Int): Elements {
+    public fun getElementsByIndexLessThan(index: Int): Elements {
         return Collector.collect(Evaluator.IndexLessThan(index), this)
     }
 
@@ -1203,7 +1160,7 @@ open class Element : Node {
      * @param index 0-based index
      * @return elements greater than index
      */
-    fun getElementsByIndexGreaterThan(index: Int): Elements {
+    public fun getElementsByIndexGreaterThan(index: Int): Elements {
         return Collector.collect(Evaluator.IndexGreaterThan(index), this)
     }
 
@@ -1212,7 +1169,7 @@ open class Element : Node {
      * @param index 0-based index
      * @return elements equal to index
      */
-    fun getElementsByIndexEquals(index: Int): Elements {
+    public fun getElementsByIndexEquals(index: Int): Elements {
         return Collector.collect(Evaluator.IndexEquals(index), this)
     }
 
@@ -1223,7 +1180,7 @@ open class Element : Node {
      * @return elements that contain the string, case-insensitive.
      * @see Element.text
      */
-    fun getElementsContainingText(searchText: String): Elements {
+    public fun getElementsContainingText(searchText: String): Elements {
         return Collector.collect(Evaluator.ContainsText(searchText), this)
     }
 
@@ -1234,7 +1191,7 @@ open class Element : Node {
      * @return elements that contain the string, case-insensitive.
      * @see Element.ownText
      */
-    fun getElementsContainingOwnText(searchText: String): Elements {
+    public fun getElementsContainingOwnText(searchText: String): Elements {
         return Collector.collect(Evaluator.ContainsOwnText(searchText), this)
     }
 
@@ -1244,7 +1201,7 @@ open class Element : Node {
      * @return elements matching the supplied regular expression.
      * @see Element.text
      */
-    fun getElementsMatchingText(regex: Regex): Elements {
+    public fun getElementsMatchingText(regex: Regex): Elements {
         return Collector.collect(Evaluator.Matches(regex), this)
     }
 
@@ -1254,7 +1211,7 @@ open class Element : Node {
      * @return elements matching the supplied regular expression.
      * @see Element.text
      */
-    fun getElementsMatchingText(regex: String): Elements {
+    public fun getElementsMatchingText(regex: String): Elements {
         val pattern: Regex = try {
             Regex(regex)
         } catch (e: PatternSyntaxException) {
@@ -1269,7 +1226,7 @@ open class Element : Node {
      * @return elements matching the supplied regular expression.
      * @see Element.ownText
      */
-    fun getElementsMatchingOwnText(regex: Regex): Elements {
+    public fun getElementsMatchingOwnText(regex: Regex): Elements {
         return Collector.collect(Evaluator.MatchesOwn(regex), this)
     }
 
@@ -1279,7 +1236,7 @@ open class Element : Node {
      * @return elements matching the supplied regular expression.
      * @see Element.ownText
      */
-    fun getElementsMatchingOwnText(regex: String): Elements {
+    public fun getElementsMatchingOwnText(regex: String): Elements {
         val pattern: Regex = try {
             Regex(regex)
         } catch (e: PatternSyntaxException) {
@@ -1288,7 +1245,7 @@ open class Element : Node {
         return getElementsMatchingOwnText(pattern)
     }
 
-    fun getAllElements(): Elements =
+    public fun getAllElements(): Elements =
         Collector.collect(Evaluator.AllElements(), this)
 
     /**
@@ -1310,7 +1267,7 @@ open class Element : Node {
      * @see .ownText
      * @see .textNodes
      */
-    fun text(): String {
+    public fun text(): String {
         val accum: StringBuilder = StringUtil.borrowBuilder()
         NodeTraversor.traverse(TextAccumulator(accum), this)
         return StringUtil.releaseBuilder(accum).trim()
@@ -1357,7 +1314,7 @@ open class Element : Node {
      * @see .text
      * @see .wholeOwnText
      */
-    fun wholeText(): String {
+    public fun wholeText(): String {
         val accum: StringBuilder = StringUtil.borrowBuilder()
         NodeTraversor.traverse(
             { node, depth -> appendWholeText(node, accum) },
@@ -1375,7 +1332,7 @@ open class Element : Node {
      * @see .ownText
      * @since 1.15.1
      */
-    fun wholeOwnText(): String {
+    public fun wholeOwnText(): String {
         val accum: StringBuilder = StringUtil.borrowBuilder()
         val size = childNodeSize()
         for (i in 0 until size) {
@@ -1397,7 +1354,7 @@ open class Element : Node {
      * @see .text
      * @see .textNodes
      */
-    fun ownText(): String {
+    public fun ownText(): String {
         val sb: StringBuilder = StringUtil.borrowBuilder()
         ownText(sb)
         return StringUtil.releaseBuilder(sb).trim()
@@ -1408,7 +1365,7 @@ open class Element : Node {
             val child: Node = childNodes[i]
             if (child is TextNode) {
                 appendNormalisedText(accum, child)
-            } else if (child!!.isNode("br") && !lastCharIsWhitespace(accum)) {
+            } else if (child.isNode("br") && !lastCharIsWhitespace(accum)) {
                 accum.append(" ")
             }
         }
@@ -1422,7 +1379,7 @@ open class Element : Node {
      * @param text decoded text
      * @return this element
      */
-    open fun text(text: String): Element {
+    public open fun text(text: String): Element {
         empty()
         // special case for script/style in HTML: should be data node
         val owner: Document? = ownerDocument()
@@ -1441,7 +1398,7 @@ open class Element : Node {
      * Checks if the current element or any of its child elements contain non-whitespace text.
      * @return `true` if the element has non-blank text content, `false` otherwise.
      */
-    fun hasText(): Boolean {
+    public fun hasText(): Boolean {
         val hasText = AtomicBoolean(false)
         filter(
             object : NodeFilter {
@@ -1468,7 +1425,7 @@ open class Element : Node {
      *
      * @see .dataNodes
      */
-    fun data(): String {
+    public fun data(): String {
         val sb: StringBuilder = StringUtil.borrowBuilder()
         traverse(
             object : NodeVisitor {
@@ -1499,7 +1456,7 @@ open class Element : Node {
      * separated. (E.g. on `<div class="header gray">` returns, "`header gray`")
      * @return The literal class attribute, or **empty string** if no class attribute set.
      */
-    fun className(): String {
+    public fun className(): String {
         return attr("class").trim()
     }
 
@@ -1509,10 +1466,10 @@ open class Element : Node {
      * the backing `class` attribute; use the [.classNames] method to persist them.
      * @return set of classnames, empty if no class attribute
      */
-    fun classNames(): MutableSet<String> {
+    public fun classNames(): MutableSet<String> {
         val names: List<String> = ClassSplit.split(className())
         val classNames: MutableSet<String> =
-            LinkedHashSet<String>(names)
+            LinkedHashSet(names)
         classNames.remove("") // if classNames() was empty, would include an empty class
         return classNames
     }
@@ -1522,7 +1479,7 @@ open class Element : Node {
      * @param classNames set of classes
      * @return this element, for chaining
      */
-    fun classNames(classNames: Set<String>): Element {
+    public fun classNames(classNames: Set<String>): Element {
         if (classNames.isEmpty()) {
             attributes().remove("class")
         } else {
@@ -1537,7 +1494,7 @@ open class Element : Node {
      * @return true if it does, false if not
      */
     // performance sensitive
-    fun hasClass(className: String): Boolean {
+    public fun hasClass(className: String): Boolean {
         if (attributes == null) return false
         val classAttr: String = attributes!!.getIgnoreCase("class")
         val len = classAttr.length
@@ -1592,7 +1549,7 @@ open class Element : Node {
      * @param className class name to add
      * @return this element
      */
-    fun addClass(className: String): Element {
+    public fun addClass(className: String): Element {
         val classes = classNames()
         classes.add(className)
         classNames(classes)
@@ -1604,7 +1561,7 @@ open class Element : Node {
      * @param className class name to remove
      * @return this element
      */
-    fun removeClass(className: String): Element {
+    public fun removeClass(className: String): Element {
         val classes = classNames()
         classes.remove(className)
         classNames(classes)
@@ -1616,7 +1573,7 @@ open class Element : Node {
      * @param className class name to toggle
      * @return this element
      */
-    fun toggleClass(className: String): Element {
+    public fun toggleClass(className: String): Element {
         val classes = classNames()
         if (classes.contains(className)) classes.remove(className) else classes.add(className)
         classNames(classes)
@@ -1627,7 +1584,7 @@ open class Element : Node {
      * Get the value of a form element (input, textarea, etc).
      * @return the value of the form element, or empty string if not set.
      */
-    fun value(): String {
+    public fun value(): String {
         return if (normalName() == "textarea") text() else attr("value")
     }
 
@@ -1636,7 +1593,7 @@ open class Element : Node {
      * @param value value to set
      * @return this element (for chaining)
      */
-    fun value(value: String): Element {
+    public fun value(value: String): Element {
         if (normalName() == "textarea") text(value) else attr("value", value)
         return this
     }
@@ -1650,11 +1607,11 @@ open class Element : Node {
      * @see Node.sourceRange
      * @since 1.15.2
      */
-    fun endSourceRange(): Range {
+    internal fun endSourceRange(): Range {
         return Range.of(this, false)
     }
 
-    fun shouldIndent(out: Document.OutputSettings): Boolean {
+    public fun shouldIndent(out: Document.OutputSettings): Boolean {
         return out.prettyPrint() && isFormatAsBlock(out) && !isInlineable(out) && !preserveWhitespace(
             _parentNode,
         )
@@ -1708,7 +1665,7 @@ open class Element : Node {
      * @return String of HTML.
      * @see .outerHtml
      */
-    fun html(): String {
+    public fun html(): String {
         val accum: StringBuilder = StringUtil.borrowBuilder()
         html(accum)
         val html: String = StringUtil.releaseBuilder(accum)
@@ -1721,7 +1678,7 @@ open class Element : Node {
         return appendable
     }
 
-    fun copyToThis(element: Element): Element {
+    public fun copyToThis(element: Element): Element {
         element.tag = this.tag.clone()
         element._baseUri = this._baseUri
         element.shadowChildrenRef = this.shadowChildrenRef
@@ -1746,7 +1703,7 @@ open class Element : Node {
      * @return this element
      * @see .append
      */
-    fun html(html: String): Element {
+    public fun html(html: String): Element {
         empty()
         append(html)
         return this
@@ -1801,7 +1758,7 @@ open class Element : Node {
      * @return this Element, for chaining
      * @see Node.forEachNode
      */
-    fun forEach(action: Consumer<in Element?>): Element {
+    public fun forEach(action: Consumer<in Element?>): Element {
         NodeTraversor.traverse(
             { node, depth -> if (node is Element) action.accept(node) },
             this,
@@ -1822,7 +1779,7 @@ open class Element : Node {
     }
 
     private fun isFormatAsBlock(out: Document.OutputSettings): Boolean {
-        return tag.isBlock || parent() != null && parent()!!.tag()!!
+        return tag.isBlock || parent() != null && parent()!!.tag()
             .formatAsBlock() || out.outline()
     }
 
@@ -1839,7 +1796,7 @@ open class Element : Node {
         }
     }
 
-    companion object {
+    internal companion object {
         private val EmptyChildren: List<Element> = emptyList()
         private val ClassSplit: Regex = Regex("\\s+")
         private val BaseUriKey: String = Attributes.internalKey("baseUri")

@@ -12,13 +12,13 @@ import com.fleeksoft.ksoup.ported.assert
  * This implementation does not use recursion, so a deep DOM does not risk blowing the stack.
  *
  */
-object NodeTraversor {
+public object NodeTraversor {
     /**
      * Start a depth-first traverse of the root and all of its descendants.
      * @param visitor Node visitor.
      * @param root the root node point to traverse.
      */
-    fun traverse(visitor: NodeVisitor, root: Node) {
+    public fun traverse(visitor: NodeVisitor, root: Node) {
         var node: Node? = root
         var depth = 0
         while (node != null) {
@@ -65,7 +65,7 @@ object NodeTraversor {
      * @param visitor Node visitor.
      * @param elements Elements to filter.
      */
-    fun traverse(visitor: NodeVisitor, elements: Elements) {
+    public fun traverse(visitor: NodeVisitor, elements: Elements) {
         elements.forEach {
             traverse(visitor, it)
         }
@@ -77,7 +77,7 @@ object NodeTraversor {
      * @param root the root node point to traverse.
      * @return The filter result of the root node, or [FilterResult.STOP].
      */
-    fun filter(filter: NodeFilter, root: Node): FilterResult {
+    public fun filter(filter: NodeFilter, root: Node): FilterResult {
         var node: Node? = root
         var depth = 0
         while (node != null) {
@@ -123,7 +123,7 @@ object NodeTraversor {
      * @param filter Node filter.
      * @param elements Elements to filter.
      */
-    fun filter(filter: NodeFilter, elements: Elements) {
+    public fun filter(filter: NodeFilter, elements: Elements) {
         elements.forEach { el ->
             if (filter(filter, el) == FilterResult.STOP) return
         }

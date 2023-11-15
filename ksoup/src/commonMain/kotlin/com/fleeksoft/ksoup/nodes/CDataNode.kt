@@ -5,7 +5,7 @@ import okio.IOException
 /**
  * A Character Data node, to support CDATA sections.
  */
-class CDataNode(text: String?) : TextNode(text!!) {
+internal class CDataNode(text: String?) : TextNode(text!!) {
     override fun nodeName(): String {
         return "#cdata"
     }

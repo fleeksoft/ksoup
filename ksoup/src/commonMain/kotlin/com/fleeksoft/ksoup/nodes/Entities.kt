@@ -1,6 +1,6 @@
 @file:OptIn(
     ExperimentalStdlibApi::class, ExperimentalStdlibApi::class,
-    ExperimentalStdlibApi::class
+    ExperimentalStdlibApi::class, ExperimentalStdlibApi::class
 )
 
 package com.fleeksoft.ksoup.nodes
@@ -24,10 +24,10 @@ import okio.IOException
  * HTML entities, and escape routines. Source: [W3C
  * HTML named character references](http://www.w3.org/TR/html5/named-character-references.html#named-character-references).
  */
-object Entities {
+public object Entities {
     private const val empty = -1
     private const val emptyName = ""
-    const val codepointRadix = 36
+    private const val codepointRadix = 36
     private val codeDelims = charArrayOf(',', ';')
     private val multipoints: HashMap<String, String> =
         HashMap<String, String>() // name -> multiple character references
@@ -38,7 +38,7 @@ object Entities {
      * @param name the possible entity name (e.g. "lt" or "amp")
      * @return true if a known named entity
      */
-    fun isNamedEntity(name: String): Boolean {
+    public fun isNamedEntity(name: String): Boolean {
         return extended.codepointForName(name) !== empty
     }
 
@@ -49,7 +49,7 @@ object Entities {
      * @return true if a known named entity in the base set
      * @see .isNamedEntity
      */
-    fun isBaseNamedEntity(name: String): Boolean {
+    public fun isBaseNamedEntity(name: String): Boolean {
         return base.codepointForName(name) !== empty
     }
 
@@ -59,7 +59,7 @@ object Entities {
      * @param name entity (e.g. "lt" or "amp")
      * @return the string value of the character(s) represented by this entity, or "" if not defined
      */
-    fun getByName(name: String): String {
+    public fun getByName(name: String): String {
         val value: String? = multipoints[name]
         if (value != null) return value
         val codepoint = extended.codepointForName(name)
@@ -70,7 +70,7 @@ object Entities {
         }
     }
 
-    fun codepointsForName(name: String, codepoints: IntArray): Int {
+    public fun codepointsForName(name: String, codepoints: IntArray): Int {
         val value: String? = multipoints[name]
         if (value != null) {
             codepoints[0] = value.codePointAt(0).value
@@ -92,7 +92,7 @@ object Entities {
      * @param out the output settings to use
      * @return the escaped string
      */
-    fun escape(string: String?, out: OutputSettings?): String {
+    public fun escape(string: String?, out: OutputSettings?): String {
         if (string == null) return ""
         val accum: StringBuilder = StringUtil.borrowBuilder()
         try {
@@ -116,7 +116,7 @@ object Entities {
      * @param string the un-escaped string to escape
      * @return the escaped string
      */
-    fun escape(string: String?): String {
+    public fun escape(string: String?): String {
         if (DefaultOutput == null) DefaultOutput = OutputSettings()
         return escape(string, DefaultOutput)
     }
@@ -127,7 +127,7 @@ object Entities {
 
     // this method does a lot, but other breakups cause rescanning and stringbuilder generations
     @Throws(IOException::class)
-    fun escape(
+    public fun escape(
         accum: Appendable,
         string: String,
         out: OutputSettings?,
@@ -259,7 +259,7 @@ object Entities {
      * @param string the HTML string to un-escape
      * @return the unescaped string
      */
-    fun unescape(string: String): String {
+    public fun unescape(string: String): String {
         return unescape(string, false)
     }
 
@@ -270,7 +270,7 @@ object Entities {
      * @param strict if "strict" (that is, requires trailing ';' char, otherwise that's optional)
      * @return unescaped string
      */
-    fun unescape(string: String, strict: Boolean): String {
+    public fun unescape(string: String, strict: Boolean): String {
         return Parser.unescapeEntities(string, strict)
     }
 
@@ -340,7 +340,7 @@ object Entities {
         }
     }
 
-    enum class EscapeMode(file: String, size: Int) {
+    public enum class EscapeMode(file: String, size: Int) {
         /**
          * Restricted entities suitable for XHTML output: lt, gt, amp, and quot only.
          */
@@ -358,23 +358,23 @@ object Entities {
         ;
 
         // table of named references to their codepoints. sorted so we can binary search. built by BuildEntities.
-        lateinit var nameKeys: Array<String?>
-        lateinit var codeVals: IntArray
+        internal lateinit var nameKeys: Array<String?>
+        internal lateinit var codeVals: IntArray
 
         // table of codepoints to named entities.
-        lateinit var codeKeys: IntArray
-        lateinit var nameVals: Array<String?>
+        internal lateinit var codeKeys: IntArray
+        internal lateinit var nameVals: Array<String?>
 
         init {
             load(this, file, size)
         }
 
-        fun codepointForName(name: String): Int {
+        public fun codepointForName(name: String): Int {
             val index: Int = nameKeys.toList().binarySearch(name)
             return if (index >= 0) codeVals[index] else empty
         }
 
-        fun nameForCodepoint(codepoint: Int): String {
+        public fun nameForCodepoint(codepoint: Int): String {
             val index: Int = codeKeys.toList().binarySearch(codepoint)
             return if (index >= 0) {
                 // the results are ordered so lower case versions of same codepoint come after uppercase, and we prefer to emit lower
@@ -390,11 +390,11 @@ object Entities {
         }
     }
 
-    enum class CoreCharset {
+    public enum class CoreCharset {
         ascii, utf, fallback;
 
-        companion object {
-            fun byName(name: String): CoreCharset {
+        public companion object {
+            public fun byName(name: String): CoreCharset {
                 if (name == "US-ASCII") return ascii
                 return if (name.startsWith("UTF-")) utf else fallback
             }

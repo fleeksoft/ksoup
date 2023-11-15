@@ -1,6 +1,5 @@
 package com.fleeksoft.ksoup.safety
 
-import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.nodes.Attributes
 import com.fleeksoft.ksoup.nodes.DataNode
 import com.fleeksoft.ksoup.nodes.Document
@@ -31,17 +30,11 @@ import com.fleeksoft.ksoup.select.NodeVisitor
  *
  * Rather than interacting directly with a Cleaner object, generally see the `clean` methods in [com.fleeksoft.ksoup.Ksoup].
  *
+ * Create a new cleaner, that sanitizes documents using the supplied safelist.
+ * @param safelist safe-list to clean with
+ *
  */
-class Cleaner(safelist: Safelist) {
-    private val safelist: Safelist
-
-    /**
-     * Create a new cleaner, that sanitizes documents using the supplied safelist.
-     * @param safelist safe-list to clean with
-     */
-    init {
-        this.safelist = safelist
-    }
+public class Cleaner(private val safelist: Safelist) {
 
     /**
      * Creates a new, clean document, from the original dirty document, containing only elements allowed by the safelist.
@@ -50,7 +43,7 @@ class Cleaner(safelist: Safelist) {
      * @param dirtyDocument Untrusted base document to clean.
      * @return cleaned document.
      */
-    fun clean(dirtyDocument: Document): Document {
+    public fun clean(dirtyDocument: Document): Document {
         val clean: Document = Document.createShell(dirtyDocument.baseUri())
         copySafeNodes(dirtyDocument.body(), clean.body())
         clean.outputSettings(dirtyDocument.outputSettings().clone())
@@ -75,19 +68,19 @@ class Cleaner(safelist: Safelist) {
      * Cleaner cleaner = new Cleaner(Safelist.relaxed());
      * boolean isValid = cleaner.isValid(inputDoc);
      * Document normalizedDoc = cleaner.clean(inputDoc);
-     `</pre> *
+    `</pre> *
      *
      * @param dirtyDocument document to test
      * @return true if no tags or attributes need to be removed; false if they do
      */
-    fun isValid(dirtyDocument: Document): Boolean {
+    public fun isValid(dirtyDocument: Document): Boolean {
         val clean: Document = Document.createShell(dirtyDocument.baseUri())
         val numDiscarded = copySafeNodes(dirtyDocument.body(), clean.body())
         return (
-            numDiscarded == 0 &&
-                dirtyDocument.head().childNodes()
-                    .isEmpty() // because we only look at the body, but we start from a shell, make sure there's nothing in the head
-            )
+                numDiscarded == 0 &&
+                        dirtyDocument.head().childNodes()
+                            .isEmpty() // because we only look at the body, but we start from a shell, make sure there's nothing in the head
+                )
     }
 
     /**
@@ -107,12 +100,12 @@ class Cleaner(safelist: Safelist) {
      * Cleaner cleaner = new Cleaner(Safelist.relaxed());
      * boolean isValid = cleaner.isValidBodyHtml(inputHtml);
      * Document normalizedDoc = cleaner.clean(inputDoc);
-     `</pre> *
+    `</pre> *
      *
      * @param bodyHtml HTML fragment to test
      * @return true if no tags or attributes need to be removed; false if they do
      */
-    fun isValidBodyHtml(bodyHtml: String): Boolean {
+    public fun isValidBodyHtml(bodyHtml: String): Boolean {
         val clean: Document = Document.createShell("")
         val dirty: Document = Document.createShell("")
         val errorList: ParseErrorList = ParseErrorList.tracking(1)
@@ -125,9 +118,9 @@ class Cleaner(safelist: Safelist) {
     /**
      * Iterates the input and copies trusted nodes (tags, attributes, text) into the destination.
      */
-    inner class CleaningVisitor constructor(root: Element, destination: Element) :
+    public inner class CleaningVisitor constructor(root: Element, destination: Element) :
         NodeVisitor {
-        var numDiscarded = 0
+        internal var numDiscarded = 0
         private val root: Element
         private var destination: Element // current element to append nodes to
 
@@ -136,24 +129,24 @@ class Cleaner(safelist: Safelist) {
             this.destination = destination
         }
 
-        override fun head(source: Node, depth: Int) {
-            if (source is Element) {
-                val sourceEl: Element = source as Element
+        override fun head(node: Node, depth: Int) {
+            if (node is Element) {
+                val sourceEl: Element = node
                 if (safelist.isSafeTag(sourceEl.normalName())) { // safe, clone and copy safe attrs
                     val meta = createSafeElement(sourceEl)
                     val destChild: Element = meta.el
                     destination.appendChild(destChild)
                     numDiscarded += meta.numAttribsDiscarded
                     destination = destChild
-                } else if (source !== root) { // not a safe tag, so don't add. don't count root against discarded.
+                } else if (node !== root) { // not a safe tag, so don't add. don't count root against discarded.
                     numDiscarded++
                 }
-            } else if (source is TextNode) {
-                val sourceText: TextNode = source as TextNode
+            } else if (node is TextNode) {
+                val sourceText: TextNode = node
                 val destText = TextNode(sourceText.getWholeText())
                 destination.appendChild(destText)
-            } else if (source is DataNode && safelist.isSafeTag(source.parent()!!.nodeName())) {
-                val sourceData: DataNode = source as DataNode
+            } else if (node is DataNode && safelist.isSafeTag(node.parent()!!.nodeName())) {
+                val sourceData: DataNode = node
                 val destData = DataNode(sourceData.getWholeData())
                 destination.appendChild(destData)
             } else { // else, we don't care about comments, xml proc instructions, etc
@@ -161,8 +154,8 @@ class Cleaner(safelist: Safelist) {
             }
         }
 
-        override fun tail(source: Node, depth: Int) {
-            if (source is Element && safelist.isSafeTag(source.nodeName())) {
+        override fun tail(node: Node, depth: Int) {
+            if (node is Element && safelist.isSafeTag(node.nodeName())) {
                 destination =
                     destination.parent()!! // would have descended, so pop destination stack
             }
@@ -207,7 +200,7 @@ class Cleaner(safelist: Safelist) {
         return ElementMeta(dest, numDiscarded)
     }
 
-    private class ElementMeta internal constructor(el: Element, numAttribsDiscarded: Int) {
+    private class ElementMeta(el: Element, numAttribsDiscarded: Int) {
         var el: Element
         var numAttribsDiscarded: Int
 

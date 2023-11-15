@@ -11,7 +11,7 @@ import com.fleeksoft.ksoup.nodes.Document.OutputSettings.Syntax
 /*Validate.notNull(name)
         Validate.notNull(publicId)
         Validate.notNull(systemId)*/
-class DocumentType(private val name: String, private val publicId: String, private val systemId: String) : LeafNode() {
+public class DocumentType(private val name: String, private val publicId: String, private val systemId: String) : LeafNode() {
     // todo: quirk mode from publicId and systemId
     /**
      * Create a new doctype element.
@@ -26,7 +26,7 @@ class DocumentType(private val name: String, private val publicId: String, priva
         updatePubSyskey()
     }
 
-    fun setPubSysKey(value: String?) {
+    public fun setPubSysKey(value: String?) {
         if (value != null) attr(PUB_SYS_KEY, value)
     }
 
@@ -40,7 +40,7 @@ class DocumentType(private val name: String, private val publicId: String, priva
      * Get this doctype's name (when set, or empty string)
      * @return doctype name
      */
-    fun name(): String {
+    public fun name(): String {
         return attr(NAME)
     }
 
@@ -48,7 +48,7 @@ class DocumentType(private val name: String, private val publicId: String, priva
      * Get this doctype's Public ID (when set, or empty string)
      * @return doctype Public ID
      */
-    fun publicId(): String {
+    public fun publicId(): String {
         return attr(PUBLIC_ID)
     }
 
@@ -56,7 +56,7 @@ class DocumentType(private val name: String, private val publicId: String, priva
      * Get this doctype's System ID (when set, or empty string)
      * @return doctype System ID
      */
-    fun systemId(): String {
+    public fun systemId(): String {
         return attr(SYSTEM_ID)
     }
 
@@ -96,13 +96,13 @@ class DocumentType(private val name: String, private val publicId: String, priva
         return !StringUtil.isBlank(attr(attribute))
     }
 
-    companion object {
+    public companion object {
         // todo needs a bit of a chunky cleanup. this level of detail isn't needed
-        const val PUBLIC_KEY = "PUBLIC"
-        const val SYSTEM_KEY = "SYSTEM"
-        private const val NAME = "name"
-        private const val PUB_SYS_KEY = "pubSysKey" // PUBLIC or SYSTEM
-        private const val PUBLIC_ID = "publicId"
-        private const val SYSTEM_ID = "systemId"
+        public const val PUBLIC_KEY: String = "PUBLIC"
+        public const val SYSTEM_KEY: String = "SYSTEM"
+        private const val NAME: String = "name"
+        private const val PUB_SYS_KEY: String = "pubSysKey" // PUBLIC or SYSTEM
+        private const val PUBLIC_ID: String = "publicId"
+        private const val SYSTEM_ID: String = "systemId"
     }
 }

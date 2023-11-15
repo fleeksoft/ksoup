@@ -8,7 +8,7 @@ import de.cketti.codepoints.appendCodePoint
 /**
  * Parse tokens for the Tokeniser.
  */
-abstract class Token private constructor() {
+internal abstract class Token private constructor() {
     var type: TokenType? = null
     private var startPos = 0
     private var endPos = Unset // position in CharacterReader this token was read from

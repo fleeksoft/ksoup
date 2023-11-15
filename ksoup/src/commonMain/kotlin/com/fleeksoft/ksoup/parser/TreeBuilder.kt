@@ -11,7 +11,7 @@ import com.fleeksoft.ksoup.ported.BufferReader
 /**
  * @author Sabeeh
  */
-abstract class TreeBuilder {
+internal abstract class TreeBuilder {
     var parser: Parser? = null
     lateinit var reader: CharacterReader
     var tokeniser: Tokeniser? = null
@@ -37,8 +37,8 @@ abstract class TreeBuilder {
         reader.trackNewlines(parser.isTrackErrors() || trackSourceRange) // when tracking errors or source ranges, enable newline tracking for better legibility
         currentToken = null
         tokeniser = Tokeniser(reader, parser.getErrors())
-        stack = ArrayList<Element?>(32)
-        seenTags = HashMap<String, Tag>()
+        stack = ArrayList(32)
+        seenTags = HashMap()
         this.baseUri = baseUri
     }
 

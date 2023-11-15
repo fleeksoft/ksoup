@@ -2,7 +2,6 @@ package com.fleeksoft.ksoup.parser
 
 import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.internal.Normalizer
-import com.fleeksoft.ksoup.ported.CloneNotSupportedException
 import com.fleeksoft.ksoup.ported.Cloneable
 import com.fleeksoft.ksoup.ported.Consumer
 import kotlin.jvm.JvmOverloads
@@ -12,7 +11,7 @@ import kotlin.jvm.JvmOverloads
  *
  * @author Sabeeh, fleeksoft@gmail.com
  */
-data class Tag(
+public data class Tag(
     /**
      * Get this tag's name.
      *
@@ -28,7 +27,7 @@ data class Tag(
      *
      * @return if block tag
      */
-    var isBlock = true // block
+    var isBlock: Boolean = true // block
         private set
     private var formatAsBlock = true // should be formatted as a block
 
@@ -37,7 +36,7 @@ data class Tag(
      *
      * @return if this is an empty tag
      */
-    var isEmpty = false // can hold nothing; e.g. img
+    var isEmpty: Boolean = false // can hold nothing; e.g. img
         private set
     private var selfClosing =
         false // can self close (<foo />). used for unknown tags that self close, without forcing them as empty.
@@ -47,25 +46,25 @@ data class Tag(
      * Get if this tag represents a control associated with a form. E.g. input, textarea, output
      * @return if associated with a form
      */
-    var isFormListed = false // a control that appears in forms: input, textarea, output etc
+    var isFormListed: Boolean = false // a control that appears in forms: input, textarea, output etc
         private set
 
     /**
      * Get if this tag represents an element that should be submitted with a form. E.g. input, option
      * @return if submittable with a form
      */
-    var isFormSubmittable = false // a control that can be submitted in a form: input etc
+    var isFormSubmittable: Boolean = false // a control that can be submitted in a form: input etc
         private set
 
     /**
      * Get this tag's normalized (lowercased) name.
      * @return the tag's normal name.
      */
-    fun normalName(): String {
+    public fun normalName(): String {
         return normalName
     }
 
-    fun namespace(): String {
+    public fun namespace(): String {
         return namespace
     }
 
@@ -74,33 +73,33 @@ data class Tag(
      *
      * @return if should be formatted as block or inline
      */
-    fun formatAsBlock(): Boolean {
+    public fun formatAsBlock(): Boolean {
         return formatAsBlock
     }
 
-    fun isInline(): Boolean = !isBlock
+    public fun isInline(): Boolean = !isBlock
 
     /**
      * Get if this tag is self-closing.
      *
      * @return if this tag should be output as self-closing.
      */
-    fun isSelfClosing(): Boolean {
+    public fun isSelfClosing(): Boolean {
         return isEmpty || selfClosing
     }
 
-    fun isKnownTag(): Boolean = Tags.containsKey(name)
+    public fun isKnownTag(): Boolean = Tags.containsKey(name)
 
     /**
      * Get if this tag should preserve whitespace within child text nodes.
      *
      * @return if preserve whitespace
      */
-    fun preserveWhitespace(): Boolean {
+    public fun preserveWhitespace(): Boolean {
         return preserveWhitespace
     }
 
-    fun setSelfClosing(): Tag {
+    public fun setSelfClosing(): Tag {
         selfClosing = true
         return this
     }
@@ -121,8 +120,8 @@ data class Tag(
         return clone
     }
 
-    companion object {
-        private val Tags: MutableMap<String, Tag> = HashMap<String, Tag>() // map of known tags
+    public companion object {
+        private val Tags: MutableMap<String, Tag> = HashMap() // map of known tags
 
 
         /**
@@ -149,7 +148,7 @@ data class Tag(
          * @see .valueOf
          */
         @JvmOverloads
-        fun valueOf(
+        public fun valueOf(
             tagName: String,
             namespace: String = Parser.NamespaceHtml,
             settings: ParseSettings? = ParseSettings.preserveCase,
@@ -190,7 +189,7 @@ data class Tag(
          * @return The tag, either defined or new generic.
          * @see .valueOf
          */
-        fun valueOf(tagName: String, settings: ParseSettings?): Tag? {
+        public fun valueOf(tagName: String, settings: ParseSettings?): Tag? {
             return valueOf(tagName, Parser.NamespaceHtml, settings)
         }
 
@@ -200,7 +199,7 @@ data class Tag(
          * @param tagName name of tag
          * @return if known HTML tag
          */
-        fun isKnownTag(tagName: String): Boolean {
+        public fun isKnownTag(tagName: String): Boolean {
             return Tags.containsKey(tagName)
         }
 
@@ -452,43 +451,35 @@ data class Tag(
         init {
             setupTags(
                 blockTags,
-                Consumer<Tag> { tag: Tag ->
-                    tag.isBlock = true
-                    tag.formatAsBlock = true
-                },
-            )
+            ) { tag: Tag ->
+                tag.isBlock = true
+                tag.formatAsBlock = true
+            }
             setupTags(
                 inlineTags,
-                Consumer<Tag> { tag: Tag ->
-                    tag.isBlock = false
-                    tag.formatAsBlock = false
-                },
-            )
+            ) { tag: Tag ->
+                tag.isBlock = false
+                tag.formatAsBlock = false
+            }
             setupTags(
                 emptyTags,
-                Consumer<Tag> { tag: Tag -> tag.isEmpty = true },
-            )
+            ) { tag: Tag -> tag.isEmpty = true }
             setupTags(
                 formatAsInlineTags,
-                Consumer<Tag> { tag: Tag -> tag.formatAsBlock = false },
-            )
+            ) { tag: Tag -> tag.formatAsBlock = false }
             setupTags(
                 preserveWhitespaceTags,
-                Consumer<Tag> { tag: Tag -> tag.preserveWhitespace = true },
-            )
+            ) { tag: Tag -> tag.preserveWhitespace = true }
             setupTags(
                 formListedTags,
-                Consumer<Tag> { tag: Tag -> tag.isFormListed = true },
-            )
+            ) { tag: Tag -> tag.isFormListed = true }
             setupTags(
                 formSubmitTags,
-                Consumer<Tag> { tag: Tag -> tag.isFormSubmittable = true },
-            )
+            ) { tag: Tag -> tag.isFormSubmittable = true }
             for ((key, value) in namespaces) {
                 setupTags(
                     value,
-                    Consumer<Tag> { tag: Tag -> tag.namespace = key },
-                )
+                ) { tag: Tag -> tag.namespace = key }
             }
         }
     }

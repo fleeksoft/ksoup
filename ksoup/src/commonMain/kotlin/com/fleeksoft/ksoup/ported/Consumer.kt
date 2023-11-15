@@ -1,12 +1,12 @@
 package com.fleeksoft.ksoup.ported
 
-fun interface Consumer<T> {
+public fun interface Consumer<T> {
     /**
      * Performs this operation on the given argument.
      *
      * @param t the input argument
      */
-    fun accept(t: T)
+    public fun accept(t: T)
 
     /**
      * Returns a composed `Consumer` that performs, in sequence, this
@@ -20,7 +20,7 @@ fun interface Consumer<T> {
      * operation followed by the `after` operation
      * @throws NullPointerException if `after` is null
      */
-    fun andThen(after: Consumer<in T>): Consumer<T>? {
+    public fun andThen(after: Consumer<in T>): Consumer<T>? {
         return Consumer { t: T ->
             accept(t)
             after.accept(t)

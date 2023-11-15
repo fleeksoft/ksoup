@@ -13,7 +13,7 @@ import com.fleeksoft.ksoup.ported.BufferReader
  *
  * @author Sabeeh
  */
-open class XmlTreeBuilder : TreeBuilder() {
+internal open class XmlTreeBuilder : TreeBuilder() {
     override fun defaultSettings(): ParseSettings {
         return ParseSettings.preserveCase
     }

@@ -9,7 +9,7 @@ import com.fleeksoft.ksoup.helper.Validate
  * @see Node.sourceRange
  * @since 1.15.2
  */
-class Range
+internal class Range
 /**
  * Creates a new Range with start and end Positions. Called by TreeBuilder when position tracking is on.
  * @param start the start position

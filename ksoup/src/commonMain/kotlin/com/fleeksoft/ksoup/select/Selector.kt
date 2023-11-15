@@ -96,7 +96,7 @@ import com.fleeksoft.ksoup.ported.IdentityHashMap
  *
  * @see Element.select
  */
-object Selector {
+internal object Selector {
     /**
      * Find elements matching selector.
      *

@@ -2,11 +2,11 @@ package com.fleeksoft.ksoup
 
 import okio.IOException
 
-class UncheckedIOException : Exception {
-    constructor(cause: IOException?) : super(cause)
-    constructor(message: String?) : super(IOException(message))
+public class UncheckedIOException : Exception {
+    public constructor(cause: IOException?) : super(cause)
+    public constructor(message: String?) : super(IOException(message))
 
-    fun ioException(): Throwable? {
+    public fun ioException(): Throwable? {
         return cause
     }
 }

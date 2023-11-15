@@ -28,7 +28,7 @@ import kotlin.random.Random
  * Internal static utilities for handling data.
  *
  */
-object DataUtil {
+internal object DataUtil {
     private val charsetPattern: Regex =
         Regex("(?i)\\bcharset=\\s*(?:[\"'])?([^\\s,;\"']*)")
     val UTF_8: Charset =

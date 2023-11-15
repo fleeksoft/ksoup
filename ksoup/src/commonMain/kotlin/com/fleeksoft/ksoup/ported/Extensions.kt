@@ -17,7 +17,7 @@ import kotlinx.coroutines.runBlocking
     return this.append(codePoint)
 }*/
 
-fun String.isCharsetSupported(): Boolean {
+internal fun String.isCharsetSupported(): Boolean {
     val result = runCatching { Charset.forName(this) }.getOrNull()
     return result != null
     /*return try {
@@ -29,7 +29,7 @@ fun String.isCharsetSupported(): Boolean {
 }
 
 
-fun URLBuilder.appendRelativePath(relativePath: String): URLBuilder {
+internal fun URLBuilder.appendRelativePath(relativePath: String): URLBuilder {
     val segments = this.encodedPathSegments.toMutableList()
 
     val isLastSlash = segments.isNotEmpty() && segments.last() == ""
@@ -129,26 +129,26 @@ private fun handleQueryParams(relativePath: String, separator: String): MutableL
 }
 
 // TODO: handle it better
-fun Charset.canEncode() = true
+internal fun Charset.canEncode() = true
 
-fun CharsetEncoder.canEncode(c: Char): Boolean {
+internal fun CharsetEncoder.canEncode(c: Char): Boolean {
     // TODO: check this
     return kotlin.runCatching { this.encode("$c") }.isSuccess
 }
 
-fun CharsetEncoder.canEncode(s: String): Boolean {
+internal fun CharsetEncoder.canEncode(s: String): Boolean {
     // TODO: check this
     return kotlin.runCatching { this.encode(s) }.isSuccess
 }
 
 
-fun String.isValidResourceUrl() =
+internal fun String.isValidResourceUrl() =
     this.startsWith("http", ignoreCase = true) || this.startsWith("ftp://", ignoreCase = true) ||
             this.startsWith("ftps://", ignoreCase = true) ||
             this.startsWith("file:/", ignoreCase = true) ||
             this.startsWith("//")
 
-fun String.isAbsResource() =
+internal fun String.isAbsResource() =
     this.startsWith("mailto:", ignoreCase = true) || this.startsWith("tel:", ignoreCase = true) ||
             this.startsWith("geo:", ignoreCase = true)
             || this.startsWith("about:", ignoreCase = true)
@@ -162,7 +162,7 @@ fun String.isAbsResource() =
             || this.startsWith("javascript:", ignoreCase = true)
 
 
-fun IntArray.codePointsToString(): String {
+internal fun IntArray.codePointsToString(): String {
     return if (this.isNotEmpty()) {
         buildString {
             this@codePointsToString.forEach {

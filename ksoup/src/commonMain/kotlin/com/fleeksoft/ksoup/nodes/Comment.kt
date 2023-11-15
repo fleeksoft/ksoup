@@ -8,7 +8,7 @@ import com.fleeksoft.ksoup.parser.Parser
  *
  * @author Sabeeh, fleeksoft@gmail.com
  */
-class Comment(data: String) : LeafNode() {
+public class Comment(data: String) : LeafNode() {
     /**
      * Create a new comment node.
      * @param data The contents of the comment
@@ -21,9 +21,9 @@ class Comment(data: String) : LeafNode() {
         return "#comment"
     }
 
-    fun getData(): String = coreValue()
+    public fun getData(): String = coreValue()
 
-    fun setData(data: String?): Comment {
+    public fun setData(data: String?): Comment {
         coreValue(data)
         return this
     }
@@ -61,7 +61,7 @@ class Comment(data: String) : LeafNode() {
         return super.clone() as Comment
     }
 
-    fun isXmlDeclaration(): Boolean {
+    public fun isXmlDeclaration(): Boolean {
         val data = getData()
         return isXmlDeclarationData(data)
     }
@@ -71,7 +71,7 @@ class Comment(data: String) : LeafNode() {
      * @return an XML declaration if it could be parsed as one, null otherwise.
      */
     /*@Nullable*/
-    fun asXmlDeclaration(): XmlDeclaration? {
+    public fun asXmlDeclaration(): XmlDeclaration? {
         val data = getData()
         var decl: XmlDeclaration? = null
         val declContent = data.substring(1, data.length - 1)
@@ -92,7 +92,7 @@ class Comment(data: String) : LeafNode() {
         return decl
     }
 
-    companion object {
+    public companion object {
         private fun isXmlDeclarationData(data: String): Boolean {
             return data.length > 1 && (data.startsWith("!") || data.startsWith("?"))
         }

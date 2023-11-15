@@ -15,7 +15,7 @@ import kotlin.math.min
  * A minimal String utility class. Designed for **internal** com.fleeksoft.ksoup use only - the API and outcome may change without
  * notice.
  */
-object StringUtil {
+internal object StringUtil {
     // memoised padding up to 21 (blocks 0 to 20 spaces)
     val padding = arrayOf(
         "",
