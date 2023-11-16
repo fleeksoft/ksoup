@@ -10,7 +10,7 @@ jobs:
     strategy:
       matrix:
         config: [
-#          { target: android, os: ubuntu-latest, tasks: androidUnitTest, continueOnError: false },
+#          { target: android, os: ubuntu-latest, tasks: androidTest, continueOnError: false },
 #          { target: apple, os: macos-latest, tasks: iosX64Test iosSimulatorArm64Test macosX64Test macosArm64Test, continueOnError: true },
           # { target: windows, os: windows-latest, tasks: windowsTest, continueOnError: true }, # https://github.com/square/okio/issues/951
           # { target: linux, os: ubuntu-latest, tasks: linuxTest, continueOnError: false },

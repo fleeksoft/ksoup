@@ -3,6 +3,7 @@ import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidLibrary)
+    alias(libs.plugins.dokka)
     id("maven-publish")
     id("signing")
 }
@@ -86,8 +87,15 @@ publishing {
         }
     }
 
+    val javadocJar = tasks.register<Jar>("javadocJar") {
+        dependsOn(tasks.dokkaHtml)
+        archiveClassifier.set("javadoc")
+        from("${layout.buildDirectory}/dokka")
+    }
+
     publications {
         withType<MavenPublication> {
+            artifact(javadocJar)
             pom {
                 name.set("Ksoup")
                 description.set("Ksoup is a Kotlin Multiplatform library for working with HTML and XML, and offers an easy-to-use API for URL fetching, data parsing, extraction, and manipulation using DOM and CSS selectors.")
@@ -124,4 +132,9 @@ signing {
         gradleLocalProperties(rootDir).getProperty("gpgKeyPassword"),
     )
     sign(publishing.publications)
+}
+
+// TODO: remove after https://youtrack.jetbrains.com/issue/KT-46466 is fixed
+project.tasks.withType(AbstractPublishToMaven::class.java).configureEach {
+    dependsOn(project.tasks.withType(Sign::class.java))
 }
