@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "com.fleeksoft.ksoup"
-version = "0.0.1"
+version = "0.0.2"
 
 kotlin {
     explicitApi()
@@ -78,7 +78,6 @@ android {
 publishing {
     repositories {
         maven {
-            name = "oss"
             url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2")
             credentials {
                 username = gradleLocalProperties(rootDir).getProperty("sonatypeUsername")
@@ -120,8 +119,8 @@ publishing {
 
 signing {
     useInMemoryPgpKeys(
-//        File("gpg/private.key").readText(),
-        gradleLocalProperties(rootDir).getProperty("gpgKeySecret"),
+        File("gpg/private.key").readText(),
+//        gradleLocalProperties(rootDir).getProperty("gpgKeySecret"),
         gradleLocalProperties(rootDir).getProperty("gpgKeyPassword"),
     )
     sign(publishing.publications)
