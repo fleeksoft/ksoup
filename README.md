@@ -2,8 +2,14 @@
 
 **Ksoup** is a Kotlin Multiplatform library for working with real-world HTML and XML. It's a port of the renowned Java library, **jsoup**, and offers an easy-to-use API for URL fetching, data parsing, extraction, and manipulation using DOM and CSS selectors.
 
-[![Kotlin](https://img.shields.io/badge/kotlin-1.9.20-blue.svg?logo=kotlin)](http://kotlinlang.org)
+[![Kotlin](https://img.shields.io/badge/Kotlin-1.9.20-blue.svg?style=flat&logo=kotlin)](https://kotlinlang.org)
 [![Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-green.svg)](https://opensource.org/licenses/Apache-2.0)
+
+![badge-android](http://img.shields.io/badge/platform-android-6EDB8D.svg?style=flat)
+![badge-ios](http://img.shields.io/badge/platform-ios-CDCDCD.svg?style=flat)
+![badge-mac](http://img.shields.io/badge/platform-macos-111111.svg?style=flat)
+![badge-jvm](http://img.shields.io/badge/platform-jvm-DB413D.svg?style=flat)
+![badge-windows](http://img.shields.io/badge/platform-windows-4D76CD.svg?style=flat)
 
 Ksoup implements the [WHATWG HTML5](https://html.spec.whatwg.org/multipage/) specification, parsing HTML to the same DOM as modern browsers do, but with support for Android, JVM, and native platforms.
 
@@ -16,21 +22,18 @@ Ksoup implements the [WHATWG HTML5](https://html.spec.whatwg.org/multipage/) spe
 
 Ksoup is adept at handling all varieties of HTML found in the wild.
 
-## Current Limitations
-As of now, Ksoup does not implement the connection cookies and servlet-related features of jsoup. This is an area under consideration for future development.
-
-## Multiplatform Support
-- **Android**: Extensive support for Android development.
-- **JVM**: Compatible with Java Virtual Machine environments.
-- **Native**: Supports native platform development.
-
-## Open source
-Ksoup is an open source project, a Kotlin Multiplatform port of jsoup, distributed under the MIT license. The source code of Ksoup is available on [GitHub](https://github.com/fleeksoft/ksoup).
-
 ## Getting started
+### Ksoup is published on Maven Central
+```Kotlin
+commonMain.dependencies {
+    implementation("com.fleeksoft.ksoup:ksoup:0.0.2")
+}
+```
+
 ### Usage
 ```kotlin
-val doc: Document = Ksoup.connect("https://en.wikipedia.org/")
+val doc: Document = Ksoup.connect(url = "https://en.wikipedia.org/")
+// val doc: Document = Ksoup.parse(html = "HTML CODE")
 println("title: ${doc.title()}")
 val headlines: Elements = doc.select("#mp-itn b a")
 
@@ -42,6 +45,13 @@ headlines.forEach { headline: Element ->
 }
 ```
 
+## Current Limitations
+As of now, Ksoup does not implement the connection cookies and servlet-related features of jsoup. This is an area under consideration for future development.
+
+## Open source
+Ksoup is an open source project, a Kotlin Multiplatform port of jsoup, distributed under the MIT license. The source code of Ksoup is available on [GitHub](https://github.com/fleeksoft/ksoup).
+
+
 ## Development and Support
 For questions, ideas, or contributions regarding Ksoup, please contact us via [email](mailto:fleeksoft@gmail.com) or create new pull requests.
 
@@ -50,7 +60,18 @@ Report any issues on [our GitHub page](https://github.com/fleeksoft/ksoup/issues
 ## Status
 Ksoup is in a stable release phase, continually evolving from its jsoup origins.
 
+## Licence
 
+    Copyright 2023 Sabeeh Ul Hussnain
 
-## Status with Jsoup
-Updated with the main branch of Jsoup on GitHub [c46870c266b0c1112f4b1d423cf6dd9290d04d2f] as of 14 November 2023.
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
