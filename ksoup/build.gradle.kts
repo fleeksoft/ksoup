@@ -119,8 +119,8 @@ publishing {
 
 signing {
     useInMemoryPgpKeys(
-        File("gpg/private.key").readText(),
-//        gradleLocalProperties(rootDir).getProperty("gpgKeySecret"),
+//        File(rootDir, "gpg/private.key").readText(),
+        gradleLocalProperties(rootDir).getProperty("gpgKeySecret"),
         gradleLocalProperties(rootDir).getProperty("gpgKeyPassword"),
     )
     sign(publishing.publications)
