@@ -1,10 +1,13 @@
+import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
+
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidLibrary)
     id("maven-publish")
+    id("signing")
 }
 
-group = "com.fleeksoft"
+group = "com.fleeksoft.ksoup"
 version = "0.0.1"
 
 kotlin {
@@ -73,24 +76,53 @@ android {
 }
 
 publishing {
-
-    publications {
-
-    }
-
     repositories {
         maven {
+            name = "oss"
+            url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2")
+            credentials {
+                username = gradleLocalProperties(rootDir).getProperty("sonatypeUsername")
+                password = gradleLocalProperties(rootDir).getProperty("sonatypePassword")
+            }
+        }
+    }
 
+    publications {
+        withType<MavenPublication> {
+            pom {
+                name.set("Ksoup")
+                description.set("Ksoup is a Kotlin Multiplatform library for working with HTML and XML, and offers an easy-to-use API for URL fetching, data parsing, extraction, and manipulation using DOM and CSS selectors.")
+                licenses {
+                    license {
+                        name.set("Apache-2.0")
+                        url.set("https://opensource.org/licenses/Apache-2.0")
+                    }
+                }
+                url.set("https://github.com/fleeksoft/ksoup")
+                issueManagement {
+                    system.set("Github")
+                    url.set("https://github.com/fleeksoft/ksoup/issues")
+                }
+                scm {
+                    connection.set("https://github.com/fleeksoft/ksoup.git")
+                    url.set("https://github.com/fleeksoft/ksoup")
+                }
+                developers {
+                    developer {
+                        name.set("Sabeeh Ul Hussnain")
+                        email.set("fleeksoft@gmail.com")
+                    }
+                }
+            }
         }
     }
 }
 
-tasks.named("publish").configure {
-    dependsOn("jvmTest")
-//    testDebugUnitTest
-//    iosSimulatorArm64Test
-}
-
-tasks.named("publishToMavenLocal").configure {
-    dependsOn("jvmTest")
+signing {
+    useInMemoryPgpKeys(
+//        File("gpg/private.key").readText(),
+        gradleLocalProperties(rootDir).getProperty("gpgKeySecret"),
+        gradleLocalProperties(rootDir).getProperty("gpgKeyPassword"),
+    )
+    sign(publishing.publications)
 }
