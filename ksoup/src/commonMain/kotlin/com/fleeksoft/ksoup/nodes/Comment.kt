@@ -84,7 +84,7 @@ public class Comment(data: String) : LeafNode() {
         if (doc.body().childrenSize() > 0) {
             val el: Element = doc.body().child(0)
             decl = XmlDeclaration(
-                NodeUtils.parser(doc)!!.settings()!!.normalizeTag(el.tagName()),
+                NodeUtils.parser(doc).settings()!!.normalizeTag(el.tagName()),
                 data.startsWith("!"),
             )
             decl.attributes().addAll(el.attributes())

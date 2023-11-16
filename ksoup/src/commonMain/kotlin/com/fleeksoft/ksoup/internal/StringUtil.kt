@@ -1,6 +1,5 @@
 package com.fleeksoft.ksoup.internal
 
-import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.ported.Character
 import com.fleeksoft.ksoup.ported.appendRelativePath
 import com.fleeksoft.ksoup.ported.isAbsResource
@@ -86,14 +85,14 @@ internal object StringUtil {
      * @see .padding
      */
     fun padding(width: Int, maxPaddingWidth: Int = 30): String {
-        var width = width
-        Validate.isTrue(width >= 0, "width must be >= 0")
-        Validate.isTrue(maxPaddingWidth >= -1)
-        if (maxPaddingWidth != -1) width = min(width, maxPaddingWidth)
-        if (width < padding.size) return padding[width]
-        val out = CharArray(width)
-        for (i in 0 until width) out[i] = ' '
-        return out.concatToString()
+        require(width >= 0) { "width must be >= 0" }
+        require(maxPaddingWidth >= -1)
+        val effectiveWidth = if (maxPaddingWidth != -1) min(width, maxPaddingWidth) else width
+        return if (effectiveWidth < padding.size) {
+            padding[effectiveWidth]
+        } else {
+            " ".repeat(effectiveWidth)
+        }
     }
 
     /**
@@ -231,73 +230,27 @@ internal object StringUtil {
         return true
     }
 
-    private val extraDotSegmentsPattern: Regex = Regex("^/((\\.{1,2}/)+)")
-//    private val extraDotSegmentsPatternJava: Pattern = Pattern.compile("^/((\\.{1,2}/)+)");
-
-    /**
-     * Create a new absolute URL, from a provided existing absolute URL and a relative URL component.
-     * @param base the existing absolute base URL
-     * @param relUrl the relative URL to resolve. (If it's already absolute, it will be returned)
-     * @return the resolved absolute URL
-     * @throws MalformedURLException if an error occurred generating the URL
-     */
-
-    // TODO: resolve alt
-    /*@Throws(java.net.MalformedURLException::class)
-    fun resolve(base: java.net.URL, relUrl: String): java.net.URL {
-        var relUrl = relUrl
-        relUrl = stripControlChars(relUrl)
-        // workaround: java resolves '//path/file + ?foo' to '//path/?foo', not '//path/file?foo' as desired
-        if (relUrl.startsWith("?")) relUrl = base.getPath() + relUrl
-        // workaround: //example.com + ./foo = //example.com/./foo, not //example.com/foo
-        val url: java.net.URL = java.net.URL(base, relUrl)
-        var fixedFile: String = extraDotSegmentsPattern.matcher(url.getFile()).replaceFirst("/")
-        if (url.getRef() != null) {
-            fixedFile = fixedFile + "#" + url.getRef()
-        }
-        return java.net.URL(url.getProtocol(), url.getHost(), url.getPort(), fixedFile)
-    }*/
-
     fun resolve(base: Url, relUrl: String): Url {
-        var relUrl = relUrl
-        relUrl = stripControlChars(relUrl)
-        // workaround: java resolves '//path/file + ?foo' to '//path/?foo', not '//path/file?foo' as desired
-//        if (relUrl.startsWith("?")) relUrl = base.fullPath + relUrl
-        // workaround: //example.com + ./foo = //example.com/./foo, not //example.com/foo
-        val url = URLBuilder(base).build()
+        val cleanedRelUrl = stripControlChars(relUrl)
 
-        if (relUrl.isEmpty()) {
-            return url
+        if (cleanedRelUrl.isEmpty()) {
+            return base
         }
 
-        if (relUrl.isValidResourceUrl()) {
-            return URLBuilder(relUrl)
-                .apply {
-                    if (relUrl.startsWith("//")) {
-                        protocol = url.protocol
-                    }
+        if (cleanedRelUrl.isValidResourceUrl()) {
+            return URLBuilder(cleanedRelUrl).apply {
+                if (cleanedRelUrl.startsWith("//")) {
+                    protocol = base.protocol
                 }
-                .build()
+            }.build()
         }
 
         return URLBuilder(
-            protocol = url.protocol,
-            host = url.host,
-            port = url.port,
-            pathSegments = url.pathSegments
-        )
-            .appendRelativePath(relUrl)
-            .build()
-        var fixedFile: String = extraDotSegmentsPattern.replace(url.encodedPathAndQuery, "/")
-        /*if (url.ref != null) {
-            fixedFile = fixedFile + "#" + url.ref
-        }*/
-        return URLBuilder(
-            protocol = url.protocol,
-            host = url.host,
-            port = url.port,
-            pathSegments = listOf(fixedFile)
-        ).build()
+            protocol = base.protocol,
+            host = base.host,
+            port = base.port,
+            pathSegments = base.pathSegments
+        ).appendRelativePath(cleanedRelUrl).build()
     }
 
     /**
@@ -306,23 +259,21 @@ internal object StringUtil {
      * @param relUrl the relative URL to resolve. (If it's already absolute, it will be returned)
      * @return an absolute URL if one was able to be generated, or the empty string if not
      */
-    fun resolve(baseUrl: String?, relUrl: String?): String {
+    fun resolve(baseUrl: String, relUrl: String): String {
         // workaround: java will allow control chars in a path URL and may treat as relative, but Chrome / Firefox will strip and may see as a scheme. Normalize to browser's view.
-        var baseUrl = baseUrl
-        var relUrl = relUrl
-        baseUrl = stripControlChars(baseUrl!!)
-        relUrl = stripControlChars(relUrl!!)
+        val cleanedBaseUrl = stripControlChars(baseUrl)
+        val cleanedRelUrl = stripControlChars(relUrl)
 
 //        mailto, tel, geo, about etc..
-        if (relUrl.isAbsResource()) {
-            return relUrl
+        if (cleanedRelUrl.isAbsResource()) {
+            return cleanedRelUrl
         }
-        return if (baseUrl.isValidResourceUrl()) {
-            resolve(Url(baseUrl), relUrl).toString()
-        } else if (relUrl.isValidResourceUrl()) {
-            Url(relUrl).toString()
+        return if (cleanedBaseUrl.isValidResourceUrl()) {
+            resolve(Url(cleanedBaseUrl), cleanedRelUrl).toString()
+        } else if (cleanedRelUrl.isValidResourceUrl()) {
+            Url(cleanedRelUrl).toString()
         } else {
-            if (validUriScheme.matches(relUrl)) relUrl else ""
+            if (validUriScheme.matches(cleanedRelUrl)) cleanedRelUrl else ""
         }
     }
 
@@ -354,6 +305,8 @@ internal object StringUtil {
      * @param sb the StringBuilder to release.
      * @return the string value of the released String Builder (as an incentive to release it!).
      */
+
+    // TODO: replace this
     fun releaseBuilder(sb: StringBuilder): String {
         var sb: StringBuilder = sb
         val string: String = sb.toString()
@@ -383,7 +336,7 @@ internal object StringUtil {
      *
      * @param separator the token to insert between strings
      */(val separator: String?) {
-        
+
         // sets null on builder release so can't accidentally be reused
         var sb: StringBuilder? = borrowBuilder()
         var first = true

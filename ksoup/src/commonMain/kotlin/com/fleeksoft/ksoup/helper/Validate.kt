@@ -104,26 +104,6 @@ internal object Validate {
         if (value) throw ValidationException(msg)
     }
 
-
-    /**
-     * Validates that the array contains no null elements
-     * @param objects the array to test
-     * @param msg message to include in the Exception if validation fails
-     * @throws ValidationException if the array contains a null element
-     */
-    /**
-     * Validates that the array contains no null elements
-     * @param objects the array to test
-     * @throws ValidationException if the array contains a null element
-     */
-    @JvmOverloads
-    fun noNullElements(
-        objects: Array<Any>,
-        msg: String? = "Array must not contain any null objects",
-    ) {
-        for (obj in objects) if (obj == null) throw ValidationException(msg)
-    }
-
     /**
      * Validates that the string is not null and is not empty
      * @param string the string to test

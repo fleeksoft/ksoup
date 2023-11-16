@@ -97,9 +97,9 @@ public class Attributes : Iterable<Attribute>, Cloneable<Attributes> {
      */
 //    @Nullable
     public fun getUserData(key: String): Any? {
-        var key = key
-        if (!isInternalKey(key)) key = internalKey(key)
-        val i = indexOfKeyIgnoreCase(key)
+        var sKey = key
+        if (!isInternalKey(sKey)) sKey = internalKey(sKey)
+        val i = indexOfKeyIgnoreCase(sKey)
         return if (i == NotFound) null else vals[i]
     }
 
@@ -139,10 +139,13 @@ public class Attributes : Iterable<Attribute>, Cloneable<Attributes> {
      * @see .getUserData
      */
     public fun putUserData(key: String, value: Any): Attributes {
-        var key = key
-        if (!isInternalKey(key)) key = internalKey(key)
-        val i = indexOfKey(key)
-        if (i != NotFound) vals[i] = value else addObject(key, value)
+        val effectiveKey = if (!isInternalKey(key)) internalKey(key) else key
+        val index = indexOfKey(effectiveKey)
+        if (index != NotFound) {
+            vals[index] = value
+        } else {
+            addObject(effectiveKey, value)
+        }
         return this
     }
 
@@ -385,13 +388,13 @@ public class Attributes : Iterable<Attribute>, Cloneable<Attributes> {
     /**
      * Checks if these attributes are equal to another set of attributes, by comparing the two sets. Note that the order
      * of the attributes does not impact this equality (as per the Map interface equals()).
-     * @param o attributes to compare with
+     * @param other attributes to compare with
      * @return if both sets of attributes have the same content
      */
-    override fun equals(o: Any?): Boolean {
-        if (this === o) return true
-        if (o == null || this::class != o::class) return false
-        val that = o as Attributes
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+        val that = other as Attributes
         if (size != that.size) return false
         for (i in 0 until size) {
             val key = keys[i]!!

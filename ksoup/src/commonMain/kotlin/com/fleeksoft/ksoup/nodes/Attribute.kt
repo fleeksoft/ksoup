@@ -39,14 +39,14 @@ public open class Attribute : Map.Entry<String, String?>, Cloneable<Attribute> {
      * @param key the new key; must not be null
      */
     internal fun setKey(key: String) {
-        var key = key
-        key = key.trim { it <= ' ' }
-        Validate.notEmpty(key) // trimming could potentially make empty, so validate here
+        var sKey = key
+        sKey = sKey.trim { it <= ' ' }
+        Validate.notEmpty(sKey) // trimming could potentially make empty, so validate here
         if (parent != null) {
             val i: Int = parent!!.indexOfKey(this.attributeKey)
-            if (i != Attributes.NotFound) parent!!.keys[i] = key
+            if (i != Attributes.NotFound) parent!!.keys[i] = sKey
         }
-        this.attributeKey = key
+        this.attributeKey = sKey
     }
 
     override val value: String
@@ -113,10 +113,10 @@ public open class Attribute : Map.Entry<String, String?>, Cloneable<Attribute> {
         value: String?, 
         parent: Attributes?,
     ) {
-        var key = key
-        key = key.trim { it <= ' ' }
-        Validate.notEmpty(key) // trimming could potentially make empty, so validate here
-        this.attributeKey = key
+        var sKey = key
+        sKey = sKey.trim { it <= ' ' }
+        Validate.notEmpty(sKey) // trimming could potentially make empty, so validate here
+        this.attributeKey = sKey
         this.attributeValue = value
         this.parent = parent
     }
@@ -141,10 +141,10 @@ public open class Attribute : Map.Entry<String, String?>, Cloneable<Attribute> {
         return shouldCollapseAttribute(attributeKey, attributeValue, out)
     }
 
-    override fun equals(o: Any?): Boolean { // note parent not considered
-        if (this === o) return true
-        if (o == null || this::class != o::class) return false
-        val attribute: Attribute = o as Attribute
+    override fun equals(other: Any?): Boolean { // note parent not considered
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+        val attribute: Attribute = other as Attribute
         if (attributeKey != attribute.attributeKey) return false
         return if (attributeValue != null) attributeValue == attribute.attributeValue else attribute.attributeValue == null
     }

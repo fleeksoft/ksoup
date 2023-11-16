@@ -183,7 +183,7 @@ public open class Element : Node {
         tag = Tag.valueOf(
             tagName,
             namespace,
-            NodeUtils.parser(this)!!.settings(),
+            NodeUtils.parser(this).settings(),
         ) // maintains the case option of the original parse
         return this
     }
@@ -641,7 +641,7 @@ public open class Element : Node {
             Tag.valueOf(
                 tagName,
                 namespace,
-                NodeUtils.parser(this)!!
+                NodeUtils.parser(this)
                     .settings(),
             ),
             baseUri(),
@@ -663,7 +663,7 @@ public open class Element : Node {
             Tag.valueOf(
                 tagName,
                 namespace,
-                NodeUtils.parser(this)!!
+                NodeUtils.parser(this)
                     .settings(),
             ),
             baseUri(),
@@ -703,7 +703,7 @@ public open class Element : Node {
      * @see .html
      */
     public fun append(html: String): Element {
-        val nodes: List<Node> = NodeUtils.parser(this)!!.parseFragmentInput(html, this, baseUri())
+        val nodes: List<Node> = NodeUtils.parser(this).parseFragmentInput(html, this, baseUri())
         addChildren(*nodes.toTypedArray())
         return this
     }
@@ -715,7 +715,7 @@ public open class Element : Node {
      * @see .html
      */
     public fun prepend(html: String): Element {
-        val nodes: List<Node> = NodeUtils.parser(this)!!.parseFragmentInput(html, this, baseUri())
+        val nodes: List<Node> = NodeUtils.parser(this).parseFragmentInput(html, this, baseUri())
         addChildren(0, *nodes.toTypedArray())
         return this
     }

@@ -39,7 +39,7 @@ public object Entities {
      * @return true if a known named entity
      */
     public fun isNamedEntity(name: String): Boolean {
-        return extended.codepointForName(name) !== empty
+        return extended.codepointForName(name) != empty
     }
 
     /**
@@ -50,7 +50,7 @@ public object Entities {
      * @see .isNamedEntity
      */
     public fun isBaseNamedEntity(name: String): Boolean {
-        return base.codepointForName(name) !== empty
+        return base.codepointForName(name) != empty
     }
 
     /**

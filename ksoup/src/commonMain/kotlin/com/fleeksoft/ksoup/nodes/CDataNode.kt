@@ -39,6 +39,6 @@ internal class CDataNode(text: String?) : TextNode(text!!) {
     }
 
     override fun clone(): CDataNode {
-        return this.clone() as CDataNode
+        return this.clone()
     }
 }

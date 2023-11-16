@@ -331,7 +331,7 @@ internal object DataUtil {
      * @return "EUC-JP", or null if not found. Charset is trimmed and uppercased.
      */
 //    @Nullable
-    fun getCharsetFromContentType(/*@Nullable */contentType: String?): String? {
+    fun getCharsetFromContentType(contentType: String?): String? {
         if (contentType == null) return null
         val matchResult: MatchResult? = charsetPattern.find(contentType)
         matchResult?.let {
@@ -344,17 +344,18 @@ internal object DataUtil {
 
     //    @Nullable
     private fun validateCharset(cs: String?): String? {
-        var cs = cs
         if (cs.isNullOrEmpty()) return null
-        cs = cs.trim { it <= ' ' }.replace("[\"']".toRegex(), "")
-        try {
-            if (cs.isCharsetSupported()) return cs
-            cs = cs.uppercase()
-            if (cs.isCharsetSupported()) return cs
+        val cleanedStr = cs.trim { it <= ' ' }.replace("[\"']".toRegex(), "")
+        return try {
+            when {
+                cleanedStr.isCharsetSupported() -> cleanedStr
+                cleanedStr.uppercase().isCharsetSupported() -> cleanedStr.uppercase()
+                else -> null
+            }
         } catch (e: IllegalCharsetNameException) {
             // if our this charset matching fails.... we just take the default
+            null
         }
-        return null
     }
 
     /**
