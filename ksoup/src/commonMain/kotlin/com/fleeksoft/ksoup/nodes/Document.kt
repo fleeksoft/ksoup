@@ -28,7 +28,6 @@ import com.fleeksoft.ksoup.ported.Cloneable
  */
 public class Document(private val namespace: String, private val location: String?) :
     Element(Tag.valueOf("#root", namespace, ParseSettings.htmlDefault), location) {
-    //    private var connection: Connection? = null // the connection this doc was fetched from, if any
     private var outputSettings = OutputSettings()
     private var parser: Parser?
     private var quirksMode = QuirksMode.noQuirks
@@ -599,20 +598,6 @@ public class Document(private val namespace: String, private val location: Strin
         this.parser = parser
         return this
     }
-
-    /**
-     * Set the Connection used to fetch this document. This Connection is used as a session object when further requests are
-     * made (e.g. when a form is submitted).
-     *
-     * @param connection to set
-     * @return this document, for chaining
-     * @see Connection.newRequest
-     * @since 1.14.1
-     */
-    /*fun connection(connection: Connection): Document {
-        this.connection = connection
-        return this
-    }*/
 
     public companion object {
         /**

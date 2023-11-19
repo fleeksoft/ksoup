@@ -1,8 +1,5 @@
 package com.fleeksoft.ksoup
 
-import io.ktor.client.*
-import io.ktor.client.engine.*
-import io.ktor.client.engine.darwin.*
 import okio.Buffer
 import okio.BufferedSource
 import okio.FileSystem
@@ -15,10 +12,6 @@ internal actual fun readGzipFile(file: Path): BufferedSource {
     }
 }
 
-internal actual fun readFile(file: okio.Path): BufferedSource {
+internal actual fun readFile(file: Path): BufferedSource {
     return FileSystem.SYSTEM.source(file).buffer()
-}
-
-internal actual fun provideHttpClientEngine(): HttpClientEngine {
-    return Darwin.create()
 }

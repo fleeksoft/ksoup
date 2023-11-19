@@ -76,10 +76,10 @@ class XmlTreeBuilderTest {
         val xmlUrl = "http://direct.infohound.net/tools/jsoup-xml-test.xml"
 
         // parse with both xml and html parser, ensure different
-        val xmlDoc: Document = Ksoup.connect(xmlUrl, parser = Parser.xmlParser())
-        val htmlDoc: Document = Ksoup.connect(xmlUrl, parser = Parser.htmlParser())
+        val xmlDoc: Document = Ksoup.parseGetRequest(xmlUrl, parser = Parser.xmlParser())
+        val htmlDoc: Document = Ksoup.parseGetRequest(xmlUrl, parser = Parser.htmlParser())
         val autoXmlDoc: Document =
-            Ksoup.connect(xmlUrl) // check connection auto detects xml, uses xml parser
+            Ksoup.parseGetRequest(xmlUrl) // check connection auto detects xml, uses xml parser
         assertEquals(
             "<doc><val>One<val>Two</val>Three</val></doc>",
             TextUtil.stripNewlines(xmlDoc.html())

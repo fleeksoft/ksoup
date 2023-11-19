@@ -1,10 +1,8 @@
-package com.fleeksoft.ksoup.helper
+package com.fleeksoft.ksoup.network
 
-import com.fleeksoft.ksoup.provideHttpClientEngine
 import io.ktor.client.HttpClient
+import io.ktor.client.request.*
 import io.ktor.client.request.forms.submitForm
-import io.ktor.client.request.get
-import io.ktor.client.request.headers
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.parameters
 
@@ -16,32 +14,33 @@ internal class NetworkHelper(private val client: HttpClient) {
 
     suspend fun get(
         url: String,
-        headers: Map<String, String> = emptyMap(),
+        httpRequestBuilder: HttpRequestBuilder.() -> Unit = {}
     ): HttpResponse {
         return client.get(url) {
-            headers {
-                headers.forEach { (key, value) ->
-                    append(key, value)
-                }
-            }
+            httpRequestBuilder()
         }
     }
 
-    suspend fun <T : Any> post(
+    suspend fun submitForm(
         url: String,
         params: Map<String, String>,
-        headers: Map<String, String> = emptyMap(),
+        httpRequestBuilder: HttpRequestBuilder.() -> Unit = {}
     ): HttpResponse {
         return client.submitForm(url = url, formParameters = parameters {
             params.forEach { (key, value) ->
                 append(key, value)
             }
         }) {
-            headers {
-                headers.forEach { (key, value) ->
-                    append(key, value)
-                }
-            }
+            httpRequestBuilder()
+        }
+    }
+
+
+    suspend fun post(
+        url: String, httpRequestBuilder: HttpRequestBuilder.() -> Unit = {}
+    ): HttpResponse {
+        return client.post(url) {
+            httpRequestBuilder()
         }
     }
 }

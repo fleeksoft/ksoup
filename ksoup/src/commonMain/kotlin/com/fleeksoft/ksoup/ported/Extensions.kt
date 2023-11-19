@@ -1,31 +1,12 @@
 package com.fleeksoft.ksoup.ported
 
-import com.fleeksoft.ksoup.Ksoup
-import com.fleeksoft.ksoup.helper.NetworkHelper
-import com.fleeksoft.ksoup.nodes.Document
-import com.fleeksoft.ksoup.parser.Parser
 import de.cketti.codepoints.appendCodePoint
-import io.ktor.client.statement.bodyAsText
-import io.ktor.http.URLBuilder
-import io.ktor.http.URLProtocol
-import io.ktor.utils.io.charsets.Charset
-import io.ktor.utils.io.charsets.CharsetEncoder
-import io.ktor.utils.io.charsets.encode
-import kotlinx.coroutines.runBlocking
-
-/*fun StringBuilder.appendCodePoint(codePoint: Int): StringBuilder {
-    return this.append(codePoint)
-}*/
+import io.ktor.http.*
+import io.ktor.utils.io.charsets.*
 
 internal fun String.isCharsetSupported(): Boolean {
     val result = runCatching { Charset.forName(this) }.getOrNull()
     return result != null
-    /*return try {
-        Charset.forName(this)
-        true
-    } catch (e: UnsupportedOperationException) {
-        false
-    }*/
 }
 
 

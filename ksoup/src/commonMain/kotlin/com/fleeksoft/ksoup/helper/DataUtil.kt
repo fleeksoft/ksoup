@@ -33,7 +33,7 @@ internal object DataUtil {
         Regex("(?i)\\bcharset=\\s*(?:[\"'])?([^\\s,;\"']*)")
     val UTF_8: Charset =
         Charsets.UTF_8 // Don't use StandardCharsets, as those only appear in Android API 19, and we target 10.
-    val defaultCharsetName: String = UTF_8.name // used if not found in header or meta charset
+    private val defaultCharsetName: String = UTF_8.name // used if not found in header or meta charset
     private const val firstReadBufferSize = 1024 * 5
     private const val bufferSize: Long = (1024 * 32).toLong()
     private val mimeBoundaryChars =
@@ -78,7 +78,6 @@ internal object DataUtil {
         parser: Parser,
     ): Document {
         val name: String = Normalizer.lowerCase(filePath.name)
-//        todo:// handle gzip source
 
         val source = readFile(filePath)
         return source.use { bufferedSource ->

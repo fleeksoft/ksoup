@@ -35,7 +35,7 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            implementation(libs.ktor.core)
+            implementation(libs.ktor.client.core)
 
             implementation(libs.kotlinx.datetime)
             implementation(libs.codepoints)
@@ -47,7 +47,6 @@ kotlin {
         }
 
         jvmMain.dependencies {
-            implementation(libs.ktor.client.okhttp)
         }
 
         jvmTest.dependencies {
@@ -55,20 +54,18 @@ kotlin {
         }
 
         androidMain.dependencies {
-            implementation(libs.ktor.client.okhttp)
         }
 
         iosMain.dependencies {
-            implementation(libs.ktor.client.darwin)
         }
     }
 }
 
 android {
     namespace = "com.fleeksoft.ksoup"
-    compileSdk = 34
+    compileSdk = libs.versions.compileSdk.get().toInt()
     defaultConfig {
-        minSdk = 21
+        minSdk = libs.versions.minSdk.get().toInt()
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17

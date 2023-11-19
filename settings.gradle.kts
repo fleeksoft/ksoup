@@ -16,3 +16,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "ksoup-kmp"
 include(":ksoup")
+include(":ksoup-network")

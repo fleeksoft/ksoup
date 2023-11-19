@@ -1,15 +1,12 @@
 package com.fleeksoft.ksoup
 
 import com.fleeksoft.ksoup.helper.DataUtil
-import com.fleeksoft.ksoup.helper.NetworkHelper
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.nodes.Element
 import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.ported.BufferReader
 import com.fleeksoft.ksoup.safety.Cleaner
 import com.fleeksoft.ksoup.safety.Safelist
-import io.ktor.client.statement.*
-import kotlinx.coroutines.runBlocking
 import okio.IOException
 import okio.Path.Companion.toPath
 
@@ -69,28 +66,6 @@ public object Ksoup {
      */
     public fun parse(html: String): Document {
         return Parser.parse(html, "")
-    }
-
-    /**
-     * Creates a new connection, with the defined request URL. Use to fetch and parse a HTML page.
-     *
-     *
-     * Use examples:
-     *
-     *  * `Document doc = Ksoup.connect("http://example.com");`
-     *
-     * @param url URL to connect to. The protocol must be `http` or `https`.
-     * @return the connection. You can add headers.
-     *
-     */
-    public fun connect(
-        url: String,
-        headers: Map<String, String> = mapOf(),
-        parser: Parser = Parser.htmlParser(),
-    ): Document {
-        val result: String =
-            runBlocking { NetworkHelper.instance.get(url, headers = headers).bodyAsText() }
-        return parse(html = result, parser = parser, baseUri = url)
     }
 
     /**
