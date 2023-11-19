@@ -3,6 +3,7 @@ package com.fleeksoft.ksoup.parser
 import com.fleeksoft.ksoup.Ksoup
 import com.fleeksoft.ksoup.TextUtil
 import com.fleeksoft.ksoup.integration.ParseTest
+import com.fleeksoft.ksoup.network.parseGetRequest
 import com.fleeksoft.ksoup.nodes.CDataNode
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.nodes.Element
@@ -123,11 +124,11 @@ class XmlTreeBuilderTest {
     @Test
     fun xmlFragment() {
         val xml = "<one src='/foo/' />Two<three><four /></three>"
-        val nodes = Parser.parseXmlFragment(xml, "http://example.com/")
+        val nodes = Parser.parseXmlFragment(xml, baseUri = "http://example.com/")
         assertEquals(3, nodes.size)
-        assertEquals("http://example.com/foo/", nodes[0].absUrl("src"))
-        assertEquals("one", nodes[0].nodeName())
-        assertEquals("Two", (nodes[1] as TextNode).text())
+        assertEquals(expected = "http://example.com/foo/", actual = nodes[0].absUrl("src"))
+        assertEquals(expected = "one", actual = nodes[0].nodeName())
+        assertEquals(expected = "Two", actual = (nodes[1] as TextNode).text())
     }
 
     @Test

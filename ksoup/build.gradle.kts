@@ -44,6 +44,7 @@ kotlin {
         commonTest.dependencies {
             implementation(libs.kotlin.test)
             implementation(libs.gson)
+            implementation(projects.ksoupNetwork)
         }
 
         jvmMain.dependencies {
