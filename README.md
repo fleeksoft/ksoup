@@ -26,14 +26,28 @@ Ksoup is adept at handling all varieties of HTML found in the wild.
 ### Ksoup is published on Maven Central
 ```Kotlin
 commonMain.dependencies {
-    implementation("com.fleeksoft.ksoup:ksoup:0.0.2")
+    implementation("com.fleeksoft.ksoup:ksoup:0.0.3")
+
+// Optional: Include only if you need to use network request functions such as
+// Ksoup.parseGetRequest, Ksoup.parseSubmitRequest, and Ksoup.parsePostRequest
+    implementation("com.fleeksoft.ksoup:ksoup-network:0.0.3")
 }
 ```
 
-### Usage
+### Parsing HTML from a String with Ksoup
 ```kotlin
-val doc: Document = Ksoup.connect(url = "https://en.wikipedia.org/")
-// val doc: Document = Ksoup.parse(html = "HTML CODE")
+val html = "<html><head><title>One</title></head><body>Two</body></html>"
+val doc: Document = Ksoup.parse(html = html)
+
+println("title => ${doc.title()}") // One
+println("bodyText => ${doc.body().text()}") // Two
+```
+This snippet demonstrates how to use `Ksoup.parse` for parsing an HTML string and extracting the title and body text.
+
+### Fetching and Parsing HTML from a URL using Ksoup
+```kotlin
+//Please note that the com.fleeksoft.ksoup:ksoup-network library is required for Ksoup.parseGetRequest.
+val doc: Document = Ksoup.parseGetRequest(url = "https://en.wikipedia.org/")
 println("title: ${doc.title()}")
 val headlines: Elements = doc.select("#mp-itn b a")
 
@@ -44,9 +58,7 @@ headlines.forEach { headline: Element ->
     println("$headlineTitle => $headlineLink")
 }
 ```
-
-## Current Limitations
-As of now, Ksoup does not implement the connection cookies and servlet-related features of jsoup. This is an area under consideration for future development.
+In this example, `Ksoup.parseGetRequest` fetches and parses HTML content from Wikipedia, extracting and printing news headlines and their corresponding links.
 
 ## Open source
 Ksoup is an open source project, a Kotlin Multiplatform port of jsoup, distributed under the MIT license. The source code of Ksoup is available on [GitHub](https://github.com/fleeksoft/ksoup).
