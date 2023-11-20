@@ -79,8 +79,8 @@ publishing {
         maven {
             url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2")
             credentials {
-                username = gradleLocalProperties(rootDir).getProperty("sonatypeUsername")
-                password = gradleLocalProperties(rootDir).getProperty("sonatypePassword")
+                username = gradleLocalProperties(rootDir).getProperty("mavenCentralUsername")
+                password = gradleLocalProperties(rootDir).getProperty("mavenCentralPassword")
             }
         }
     }
