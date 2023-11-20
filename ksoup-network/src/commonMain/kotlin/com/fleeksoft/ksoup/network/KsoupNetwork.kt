@@ -4,7 +4,7 @@ import com.fleeksoft.ksoup.Ksoup
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parser.Parser
 import io.ktor.client.request.HttpRequestBuilder
-import io.ktor.client.statement.bodyAsText
+import io.ktor.client.statement.*
 import kotlinx.coroutines.runBlocking
 
 /**
@@ -12,10 +12,10 @@ import kotlinx.coroutines.runBlocking
  *
  * Use examples:
  *
- *  * `Document doc = Ksoup.parseUrlContent("http://example.com");`
+ *  * `Document doc = Ksoup.parseGetRequest("http://example.com");`
  *
  * @param url URL to connect to. The protocol must be `http` or `https`.
- * @return the connection. You can add headers.
+ * @return sane HTML
  *
  */
 public fun Ksoup.parseGetRequest(
@@ -23,10 +23,9 @@ public fun Ksoup.parseGetRequest(
     httpRequestBuilder: HttpRequestBuilder.() -> Unit = {},
     parser: Parser = Parser.htmlParser(),
 ): Document {
-    val result: String =
-        runBlocking {
-            NetworkHelper.instance.get(url, httpRequestBuilder = httpRequestBuilder).bodyAsText()
-        }
+    val result: String = runBlocking {
+        NetworkHelper.instance.get(url, httpRequestBuilder = httpRequestBuilder).bodyAsText()
+    }
     return parse(html = result, parser = parser, baseUri = url)
 }
 
@@ -35,15 +34,15 @@ public fun Ksoup.parseGetRequest(
  *
  * Use examples:
  *
- *  * `Document doc = Ksoup.parseUrlContent("http://example.com");`
+ *  * `Document doc = Ksoup.parseSubmitRequest("http://example.com", params = mapOf("param1Key" to "param1Value"))
  *
  * @param url URL to connect to. The protocol must be `http` or `https`.
- * @return the connection. You can add headers.
+ * @return sane HTML
  *
  */
 public fun Ksoup.parseSubmitRequest(
     url: String,
-    params: Map<String, String>,
+    params: Map<String, String> = emptyMap(),
     httpRequestBuilder: HttpRequestBuilder.() -> Unit = {},
     parser: Parser = Parser.htmlParser(),
 ): Document {
@@ -64,10 +63,10 @@ public fun Ksoup.parseSubmitRequest(
  *
  * Use examples:
  *
- *  * `Document doc = Ksoup.parseUrlContent("http://example.com");`
+ *  * `Document doc = Ksoup.parsePostRequest("http://example.com");`
  *
  * @param url URL to connect to. The protocol must be `http` or `https`.
- * @return the connection. You can add headers.
+ * @return sane HTML
  *
  */
 public fun Ksoup.parsePostRequest(

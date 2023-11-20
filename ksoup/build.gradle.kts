@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "com.fleeksoft.ksoup"
-version = "0.0.2"
+version = libs.versions.libraryVersion.get()
 
 kotlin {
     explicitApi()
@@ -125,8 +125,8 @@ publishing {
 
 signing {
     useInMemoryPgpKeys(
-//        File(rootDir, "gpg/private.key").readText(),
-        gradleLocalProperties(rootDir).getProperty("gpgKeySecret"),
+        File(rootDir, "gpg/private.key").readText(),
+//        gradleLocalProperties(rootDir).getProperty("gpgKeySecret"),
         gradleLocalProperties(rootDir).getProperty("gpgKeyPassword"),
     )
     sign(publishing.publications)
