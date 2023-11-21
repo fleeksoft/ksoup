@@ -1,4 +1,4 @@
-# Ksoup: Kotlin Multiplatform HTML Parser
+# Ksoup: Kotlin Multiplatform HTML & XML Parser
 
 **Ksoup** is a Kotlin Multiplatform library for working with real-world HTML and XML. It's a port of the renowned Java library, **jsoup**, and offers an easy-to-use API for URL fetching, data parsing, extraction, and manipulation using DOM and CSS selectors.
 
