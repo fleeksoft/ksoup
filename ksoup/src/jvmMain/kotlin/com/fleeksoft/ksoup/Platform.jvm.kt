@@ -7,7 +7,7 @@ import okio.Path
 import okio.buffer
 
 internal actual fun readGzipFile(file: Path): BufferedSource {
-    val fileSource = FileSystem.SYSTEM.source(file)
+    val fileSource = readFile(file)
     return GzipSource(source = fileSource).buffer()
 }
 

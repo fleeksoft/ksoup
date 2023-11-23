@@ -8,7 +8,7 @@ import okio.buffer
 
 internal actual fun readGzipFile(file: Path): BufferedSource {
     return Buffer().apply {
-        write(decompressGzip(FileSystem.SYSTEM.source(file).buffer().readByteArray()))
+        write(decompressGzip(readFile(file).buffer().readByteArray()))
     }
 }
 
