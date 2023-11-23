@@ -26,11 +26,11 @@ Ksoup is adept at handling all varieties of HTML found in the wild.
 ### Ksoup is published on Maven Central
 ```Kotlin
 commonMain.dependencies {
-    implementation("com.fleeksoft.ksoup:ksoup:0.0.3")
+    implementation("com.fleeksoft.ksoup:ksoup:0.0.4")
 
 // Optional: Include only if you need to use network request functions such as
 // Ksoup.parseGetRequest, Ksoup.parseSubmitRequest, and Ksoup.parsePostRequest
-    implementation("com.fleeksoft.ksoup:ksoup-network:0.0.3")
+    implementation("com.fleeksoft.ksoup:ksoup-network:0.0.4")
 }
 ```
 
