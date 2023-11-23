@@ -69,7 +69,7 @@ internal class QueryParser private constructor(query: String) {
             '>' -> {
                 val run: ImmediateParentRun =
                     if (currentEval is ImmediateParentRun) {
-                        currentEval as ImmediateParentRun
+                        currentEval
                     } else {
                         ImmediateParentRun(
                             currentEval!!,
@@ -98,7 +98,7 @@ internal class QueryParser private constructor(query: String) {
             ',' -> {
                 val or: CombiningEvaluator.Or
                 if (currentEval is CombiningEvaluator.Or) {
-                    or = currentEval as CombiningEvaluator.Or
+                    or = currentEval
                 } else {
                     or = CombiningEvaluator.Or()
                     or.add(currentEval!!)
@@ -284,11 +284,10 @@ internal class QueryParser private constructor(query: String) {
      * @param query CSS query
      */
     init {
-        var query = query
         Validate.notEmpty(query)
-        query = query.trim { it <= ' ' }
-        this.query = query
-        tq = TokenQueue(query)
+        val trimmedQuery = query.trim { it <= ' ' }
+        this.query = trimmedQuery
+        tq = TokenQueue(trimmedQuery)
     }
 
     private fun cssNthChild(backwards: Boolean, ofType: Boolean): Evaluator {

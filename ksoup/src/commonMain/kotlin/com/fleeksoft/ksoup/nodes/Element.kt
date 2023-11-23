@@ -1614,7 +1614,7 @@ public open class Element : Node {
     override fun outerHtmlHead(accum: Appendable, depth: Int, out: Document.OutputSettings) {
         if (shouldIndent(out)) {
             if (accum is StringBuilder) {
-                if ((accum as StringBuilder).isNotEmpty()) indent(accum, depth, out)
+                if (accum.isNotEmpty()) indent(accum, depth, out)
             } else {
                 indent(accum, depth, out)
             }
