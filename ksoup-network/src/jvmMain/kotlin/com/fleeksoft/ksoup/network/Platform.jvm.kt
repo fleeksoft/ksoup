@@ -5,8 +5,5 @@ import io.ktor.client.engine.okhttp.OkHttp
 
 internal actual fun provideHttpClientEngine(): HttpClientEngine {
     return OkHttp.create {
-        config {
-            followRedirects(true)
-        }
     }
 }

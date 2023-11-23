@@ -109,9 +109,8 @@ public abstract class Node protected constructor() : Cloneable<Node> {
      * @return this (for chaining)
      */
     public open fun attr(attributeKey: String, attributeValue: String?): Node {
-        var attributeKey = attributeKey
-        attributeKey = NodeUtils.parser(this)!!.settings()!!.normalizeAttribute(attributeKey)
-        attributes().putIgnoreCase(attributeKey, attributeValue)
+        val normalizedAttributeKey = NodeUtils.parser(this).settings()!!.normalizeAttribute(attributeKey)
+        attributes().putIgnoreCase(normalizedAttributeKey, attributeValue)
         return this
     }
 
@@ -365,7 +364,7 @@ public abstract class Node protected constructor() : Cloneable<Node> {
     private fun addSiblingHtml(index: Int, html: String) {
         Validate.notNull(_parentNode)
         val context: Element? = if (parent() is Element) parent() as Element? else null
-        val nodes: List<Node> = NodeUtils.parser(this)!!
+        val nodes: List<Node> = NodeUtils.parser(this)
             .parseFragmentInput(html, context, baseUri())
         _parentNode!!.addChildren(index, *nodes.toTypedArray())
     }
@@ -383,7 +382,7 @@ public abstract class Node protected constructor() : Cloneable<Node> {
         // Parse context - parent (because wrapping), this, or null
         val context: Element =
             if (_parentNode != null && _parentNode is Element) _parentNode as Element else (if (this is Element) this else null)!!
-        val wrapChildren: List<Node> = NodeUtils.parser(this)!!
+        val wrapChildren: List<Node> = NodeUtils.parser(this)
             .parseFragmentInput(html, context, baseUri())
         val wrapNode = wrapChildren[0] as? Element // nothing to wrap with; noop
             ?: return this
@@ -432,13 +431,13 @@ public abstract class Node protected constructor() : Cloneable<Node> {
     }
 
     private fun getDeepChild(el: Element): Element {
-        var el: Element = el
-        var child: Element? = el.firstElementChild()
+        var resultEl: Element = el
+        var child: Element? = resultEl.firstElementChild()
         while (child != null) {
-            el = child
+            resultEl = child
             child = child.firstElementChild()
         }
-        return el
+        return resultEl
     }
 
     internal open fun nodelistChanged() {

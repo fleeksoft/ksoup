@@ -41,6 +41,7 @@ kotlin {
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
+            implementation(projects.ksoup)
         }
 
         jvmMain.dependencies {

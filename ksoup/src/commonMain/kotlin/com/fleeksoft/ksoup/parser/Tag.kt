@@ -153,26 +153,25 @@ public data class Tag(
             namespace: String = Parser.NamespaceHtml,
             settings: ParseSettings? = ParseSettings.preserveCase,
         ): Tag {
-            var tagName = tagName
             Validate.notEmpty(tagName)
             var tag = Tags[tagName]
             if (tag != null && tag.namespace == namespace) return tag
-            tagName = settings!!.normalizeTag(tagName) // the name we'll use
-            Validate.notEmpty(tagName)
+            val normalizedTagName = settings!!.normalizeTag(tagName) // the name we'll use
+            Validate.notEmpty(normalizedTagName)
             val normalName: String =
-                Normalizer.lowerCase(tagName) // the lower-case name to get tag settings off
+                Normalizer.lowerCase(normalizedTagName) // the lower-case name to get tag settings off
             tag = Tags[normalName]
             if (tag != null && tag.namespace == namespace) {
-                if (settings!!.preserveTagCase() && tagName != normalName) {
+                if (settings.preserveTagCase() && normalizedTagName != normalName) {
                     tag =
                         tag.clone() // get a new version vs the static one, so name update doesn't reset all
-                    tag.name = tagName
+                    tag.name = normalizedTagName
                 }
                 return tag
             }
 
             // not defined: create default; go anywhere, do anything! (incl be inside a <p>)
-            tag = Tag(tagName, namespace)
+            tag = Tag(normalizedTagName, namespace)
             tag.isBlock = false
             return tag
         }
@@ -189,7 +188,7 @@ public data class Tag(
          * @return The tag, either defined or new generic.
          * @see .valueOf
          */
-        public fun valueOf(tagName: String, settings: ParseSettings?): Tag? {
+        public fun valueOf(tagName: String, settings: ParseSettings?): Tag {
             return valueOf(tagName, Parser.NamespaceHtml, settings)
         }
 

@@ -12,7 +12,7 @@ import kotlinx.coroutines.runBlocking
  *
  * Use examples:
  *
- *  * `Document doc = Ksoup.parseGetRequest("http://example.com");`
+ *  * `Document doc = Ksoup.parseGetRequest("http://example.com")`
  *
  * @param url URL to connect to. The protocol must be `http` or `https`.
  * @return sane HTML
@@ -23,10 +23,14 @@ public fun Ksoup.parseGetRequest(
     httpRequestBuilder: HttpRequestBuilder.() -> Unit = {},
     parser: Parser = Parser.htmlParser(),
 ): Document {
-    val result: String = runBlocking {
-        NetworkHelper.instance.get(url, httpRequestBuilder = httpRequestBuilder).bodyAsText()
+    var finalUrl: String = url
+    val response: String = runBlocking {
+        val httpResponse = NetworkHelper.instance.get(finalUrl, httpRequestBuilder = httpRequestBuilder)
+//        url can be changed after redirection
+        finalUrl = httpResponse.request.url.toString()
+        httpResponse.bodyAsText()
     }
-    return parse(html = result, parser = parser, baseUri = url)
+    return parse(html = response, parser = parser, baseUri = finalUrl)
 }
 
 /**
@@ -34,7 +38,7 @@ public fun Ksoup.parseGetRequest(
  *
  * Use examples:
  *
- *  * `Document doc = Ksoup.parseSubmitRequest("http://example.com", params = mapOf("param1Key" to "param1Value"))
+ *  * `Document doc = Ksoup.parseSubmitRequest("http://example.com", params = mapOf("param1Key" to "param1Value"))`
  *
  * @param url URL to connect to. The protocol must be `http` or `https`.
  * @return sane HTML
@@ -46,15 +50,19 @@ public fun Ksoup.parseSubmitRequest(
     httpRequestBuilder: HttpRequestBuilder.() -> Unit = {},
     parser: Parser = Parser.htmlParser(),
 ): Document {
+    var finalUrl: String = url
     val result: String =
         runBlocking {
-            NetworkHelper.instance.submitForm(
+            val httpResponse = NetworkHelper.instance.submitForm(
                 url = url,
                 params = params,
                 httpRequestBuilder = httpRequestBuilder
-            ).bodyAsText()
+            )
+//            url can be changed after redirection
+            finalUrl = httpResponse.request.url.toString()
+            httpResponse.bodyAsText()
         }
-    return parse(html = result, parser = parser, baseUri = url)
+    return parse(html = result, parser = parser, baseUri = finalUrl)
 }
 
 
@@ -63,7 +71,7 @@ public fun Ksoup.parseSubmitRequest(
  *
  * Use examples:
  *
- *  * `Document doc = Ksoup.parsePostRequest("http://example.com");`
+ *  * `Document doc = Ksoup.parsePostRequest("http://example.com")`
  *
  * @param url URL to connect to. The protocol must be `http` or `https`.
  * @return sane HTML
@@ -74,12 +82,16 @@ public fun Ksoup.parsePostRequest(
     httpRequestBuilder: HttpRequestBuilder.() -> Unit = {},
     parser: Parser = Parser.htmlParser(),
 ): Document {
+    var finalUrl: String = url
     val result: String =
         runBlocking {
-            NetworkHelper.instance.post(
+            val httpResponse = NetworkHelper.instance.post(
                 url = url,
                 httpRequestBuilder = httpRequestBuilder
-            ).bodyAsText()
+            )
+//            url can be changed after redirection
+            finalUrl = httpResponse.request.url.toString()
+            httpResponse.bodyAsText()
         }
-    return parse(html = result, parser = parser, baseUri = url)
+    return parse(html = result, parser = parser, baseUri = finalUrl)
 }

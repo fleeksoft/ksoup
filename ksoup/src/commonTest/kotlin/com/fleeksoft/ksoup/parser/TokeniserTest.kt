@@ -185,7 +185,7 @@ class TokeniserTest {
         val doc = parser.parseInput(testMarkup, "")
         val commentNode = doc.body().childNode(0)
         assertTrue(commentNode is Comment, "Expected comment node")
-        assertEquals(expectedCommentData, (commentNode as Comment).getData())
+        assertEquals(expectedCommentData, commentNode.getData())
     }
 
     @Test
@@ -202,6 +202,6 @@ class TokeniserTest {
         val doc = parser.parseInput(testMarkup, "")
         val cdataNode = doc.body().childNode(0)
         assertTrue(cdataNode is CDataNode, "Expected CDATA node")
-        assertEquals(cdataContents, (cdataNode as CDataNode).text())
+        assertEquals(cdataContents, cdataNode.text())
     }
 }

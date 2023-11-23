@@ -273,7 +273,7 @@ class DataUtilTest {
     fun handlesUnlimitedRead() {
         val inputFile: String = ParseTest.getResourceAbsolutePath("htmltests/large.html")
         val input: String = ParseTest.getFileAsString(inputFile.toPath())
-        val byteBuffer: ByteArray = DataUtil.readToByteBuffer(input.toBuffer())
+        val byteBuffer: ByteArray = DataUtil.readToByteBuffer(input.toBuffer(), 0)
         val read = byteBuffer.decodeToString()
         assertEquals(input, read)
     }

@@ -48,14 +48,12 @@ class QueryParserTest {
         // top level or, three child ands
         val eval = QueryParser.parse("a b, c d, e f")
         assertTrue(eval is CombiningEvaluator.Or)
-        val or = eval as CombiningEvaluator.Or
-        assertEquals(3, or.evaluators.size)
-        for (innerEval in or.evaluators) {
+        assertEquals(3, eval.evaluators.size)
+        for (innerEval in eval.evaluators) {
             assertTrue(innerEval is CombiningEvaluator.And)
-            val and = innerEval as CombiningEvaluator.And
-            assertEquals(2, and.evaluators.size)
-            assertTrue(and.evaluators[0] is StructuralEvaluator.Parent)
-            assertTrue(and.evaluators[1] is Evaluator.Tag)
+            assertEquals(2, innerEval.evaluators.size)
+            assertTrue(innerEval.evaluators[0] is StructuralEvaluator.Parent)
+            assertTrue(innerEval.evaluators[1] is Evaluator.Tag)
         }
     }
 
@@ -64,10 +62,9 @@ class QueryParserTest {
         val query = ".foo.qux > ol.bar, ol > li + li"
         val eval = QueryParser.parse(query)
         assertTrue(eval is CombiningEvaluator.Or)
-        val or = eval as CombiningEvaluator.Or
-        assertEquals(2, or.evaluators.size)
-        val run = or.evaluators[0] as ImmediateParentRun
-        val andRight = or.evaluators[1] as CombiningEvaluator.And
+        assertEquals(2, eval.evaluators.size)
+        val run = eval.evaluators[0] as ImmediateParentRun
+        val andRight = eval.evaluators[1] as CombiningEvaluator.And
         assertEquals(".foo.qux > ol.bar", run.toString())
         assertEquals(2, run.evaluators.size)
         val runAnd = run.evaluators[0]

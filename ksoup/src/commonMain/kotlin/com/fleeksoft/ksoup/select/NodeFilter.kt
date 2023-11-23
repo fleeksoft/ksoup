@@ -53,7 +53,7 @@ public interface NodeFilter {
      * @param depth the depth of the node, relative to the root node. E.g., the root node has depth 0, and a child node of that will have depth 1.
      * @return Filter decision
      */
-    public open fun head(node: Node, depth: Int): FilterResult
+    public fun head(node: Node, depth: Int): FilterResult
 
     /**
      * Callback for when a node is last visited, after all of its descendants have been visited.

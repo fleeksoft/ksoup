@@ -769,11 +769,11 @@ internal class CharacterReader {
          * Check if the value of the provided range equals the string.
          */
         fun rangeEquals(charBuf: CharArray?, start: Int, count: Int, cached: String): Boolean {
-            var count = count
-            if (count == cached.length) {
+            var loopCount = count
+            if (loopCount == cached.length) {
                 var i = start
                 var j = 0
-                while (count-- != 0) {
+                while (loopCount-- != 0) {
                     if (charBuf!![i++] != cached[j++]) return false
                 }
                 return true

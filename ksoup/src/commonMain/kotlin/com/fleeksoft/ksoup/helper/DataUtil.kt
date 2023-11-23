@@ -1,6 +1,7 @@
 package com.fleeksoft.ksoup.helper
 
 import com.fleeksoft.ksoup.UncheckedIOException
+import com.fleeksoft.ksoup.internal.ConstrainableSource
 import com.fleeksoft.ksoup.internal.Normalizer
 import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.nodes.Comment
@@ -30,7 +31,7 @@ internal object DataUtil {
     val UTF_8: Charset =
         Charsets.UTF_8 // Don't use StandardCharsets, as those only appear in Android API 19, and we target 10.
     private val defaultCharsetName: String = UTF_8.name // used if not found in header or meta charset
-    private const val firstReadBufferSize = 1024 * 5
+    private const val firstReadBufferSize: Long = (1024 * 5).toLong()
     private const val bufferSize: Long = (1024 * 32).toLong()
     private val mimeBoundaryChars =
         "-_1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray()
@@ -155,7 +156,7 @@ internal object DataUtil {
      * @throws IOException on IO error
      */
     @Throws(IOException::class)
-    fun crossStreams(source: ByteArray, outSource: okio.Buffer) {
+    fun crossStreams(source: ByteArray, outSource: Buffer) {
         outSource.write(source)
     }
 
@@ -179,7 +180,7 @@ internal object DataUtil {
 
         val peekedBuffer = bufferReader.getPeek()
         // -1 because we read one more to see if completed. First read is < buffer size, so can't be invalid.
-        val firstBytes: ByteArray = readToByteBuffer(peekedBuffer)
+        val firstBytes: ByteArray = readToByteBuffer(peekedBuffer, firstReadBufferSize - 1)
         val fullyRead = peekedBuffer.exhausted()
         peekedBuffer.close()
 
@@ -303,8 +304,15 @@ internal object DataUtil {
      * @throws IOException if an exception occurs whilst reading from the input stream.
      */
     @Throws(IOException::class)
-    fun readToByteBuffer(bufferReader: BufferedSource): ByteArray {
-        return bufferReader.readByteArray()
+    fun readToByteBuffer(bufferReader: BufferedSource, maxSize: Long): ByteArray {
+        require(maxSize >= 0) {
+            "maxSize must be 0 (unlimited) or larger"
+        }
+        return if (maxSize == 0L) {
+            bufferReader.readByteArray()
+        } else {
+            ConstrainableSource.wrap(BufferReader(bufferReader), maxSize.toInt()).readToByteBuffer(maxSize.toInt()).readByteArray()
+        }
         /*Validate.isTrue(maxSize >= 0, "maxSize must be 0 (unlimited) or larger")
         val calculatedMaxSize: Int =
             if (bufferReader.size() > 0) bufferReader.size().toInt() else maxSize

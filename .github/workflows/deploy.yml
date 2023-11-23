@@ -1,33 +1,32 @@
 name: Build
 
-on:
-  push:
+on: 
+  push: 
     branches: [ "main" ]
-  pull_request:
+  pull_request: 
     branches: [ "main" ]
 
-permissions:
+permissions: 
   contents: read
   pages: write
 
-jobs:
-  build:
-    strategy:
-      matrix:
+jobs: 
+  build: 
+    strategy: 
+      matrix: 
         config: [
           { target: android, os: ubuntu-latest, tasks: testDebugUnitTest, continueOnError: false },
-#          { target: apple, os: macos-latest, tasks: iosX64Test iosSimulatorArm64Test macosX64Test macosArm64Test, continueOnError: true },
-          # { target: windows, os: windows-latest, tasks: windowsTest, continueOnError: true }, # https://github.com/square/okio/issues/951
-          # { target: linux, os: ubuntu-latest, tasks: linuxTest, continueOnError: false },
+#          { target: apple, os: macos-latest, tasks: iosX64Test iosSimulatorArm64Test, continueOnError: true },
+#           { target: linux, os: ubuntu-latest, tasks: linuxTest, continueOnError: false },
           { target: desktop, os: ubuntu-latest, tasks: jvmTest, continueOnError: false },
         ]
     runs-on: ${{ matrix.config.os }}
     name: Build ${{ matrix.config.target }}
-    steps:
+    steps: 
       - uses: actions/checkout@v3
       - name: Setup JDK 17
         uses: actions/setup-java@v3
-        with:
+        with: 
           java-version: '17'
           distribution: 'temurin'
 
@@ -38,21 +37,21 @@ jobs:
         continue-on-error: ${{ matrix.config.continueOnError }}
         run: ./gradlew ${{ matrix.config.tasks }}
 
-  release:
+  release: 
     if: ${{ github.event_name != 'pull_request' }}
     runs-on: macos-latest
-    needs:
+    needs: 
       - build
-    environment:
+    environment: 
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
 
-    steps:
+    steps: 
       - uses: actions/checkout@v3
 
       - name: Setup JDK 17
         uses: actions/setup-java@v3
-        with:
+        with: 
           java-version: '17'
           distribution: 'temurin'
 
@@ -83,7 +82,7 @@ jobs:
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
-        with:
+        with: 
           path: ${{ github.workspace }}/build/dokka/htmlMultiModule
 
       - name: Release to GitHub Pages

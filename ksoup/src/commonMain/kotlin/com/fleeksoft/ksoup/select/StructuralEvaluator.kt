@@ -67,7 +67,7 @@ internal abstract class StructuralEvaluator(evaluator: Evaluator) : Evaluator() 
             for (i in 0 until element.childNodeSize()) {
                 val node: Node = element.childNode(i)
                 if (node is Element) {
-                    val match: Element? = finder.find(element, node as Element)
+                    val match: Element? = finder.find(element, node)
                     if (match != null) return true
                 }
             }

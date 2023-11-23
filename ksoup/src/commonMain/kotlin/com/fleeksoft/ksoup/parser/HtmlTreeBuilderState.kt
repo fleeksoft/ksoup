@@ -7,16 +7,6 @@ import com.fleeksoft.ksoup.nodes.Attributes
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.nodes.DocumentType
 import com.fleeksoft.ksoup.nodes.Element
-import com.fleeksoft.ksoup.parser.HtmlTreeBuilderState.Constants.AfterHeadBody
-import com.fleeksoft.ksoup.parser.HtmlTreeBuilderState.Constants.BeforeHtmlToHead
-import com.fleeksoft.ksoup.parser.HtmlTreeBuilderState.Constants.InBodyEndOtherErrors
-import com.fleeksoft.ksoup.parser.HtmlTreeBuilderState.Constants.InBodyStartToHead
-import com.fleeksoft.ksoup.parser.HtmlTreeBuilderState.Constants.InHeadEmpty
-import com.fleeksoft.ksoup.parser.HtmlTreeBuilderState.Constants.InHeadNoScriptHead
-import com.fleeksoft.ksoup.parser.HtmlTreeBuilderState.Constants.InHeadNoscriptIgnore
-import com.fleeksoft.ksoup.parser.HtmlTreeBuilderState.Constants.InHeadRaw
-import com.fleeksoft.ksoup.parser.HtmlTreeBuilderState.Constants.InTableFoster
-import com.fleeksoft.ksoup.parser.HtmlTreeBuilderState.Constants.InTableToBody
 
 /**
  * The Tree Builder's current state. Each state embodies the processing for the state, and transitions to other states.
@@ -62,7 +52,7 @@ internal enum class HtmlTreeBuilderState {
             } else if (t.isStartTag() && t.asStartTag().normalName().equals("html")) {
                 tb.insert(t.asStartTag())
                 tb.transition(BeforeHead)
-            } else if (t.isEndTag() && inSorted(t.asEndTag().normalName(), BeforeHtmlToHead)) {
+            } else if (t.isEndTag() && inSorted(t.asEndTag().normalName(), Constants.BeforeHtmlToHead)) {
                 return anythingElse(t, tb)
             } else if (t.isEndTag()) {
                 tb.error(this)
@@ -94,7 +84,7 @@ internal enum class HtmlTreeBuilderState {
                 val head: Element = tb.insert(t.asStartTag())
                 tb.setHeadElement(head)
                 tb.transition(InHead)
-            } else if (t.isEndTag() && inSorted(t.asEndTag().normalName(), BeforeHtmlToHead)) {
+            } else if (t.isEndTag() && inSorted(t.asEndTag().normalName(), Constants.BeforeHtmlToHead)) {
                 tb.processStartTag("head")
                 return tb.process(t)
             } else if (t.isEndTag()) {
@@ -125,7 +115,7 @@ internal enum class HtmlTreeBuilderState {
                     var name: String = start.normalName()
                     if (name == "html") {
                         return InBody.process(t, tb)
-                    } else if (inSorted(name, InHeadEmpty)) {
+                    } else if (inSorted(name, Constants.InHeadEmpty)) {
                         val el: Element = tb.insertEmpty(start)
                         // com.fleeksoft.ksoup special: update base the first time it is seen
                         if (name == "base" && el.hasAttr("href")) tb.maybeSetBaseUri(el)
@@ -134,7 +124,7 @@ internal enum class HtmlTreeBuilderState {
                         // todo: charset switches
                     } else if (name == "title") {
                         handleRcData(start, tb)
-                    } else if (inSorted(name, InHeadRaw)) {
+                    } else if (inSorted(name, Constants.InHeadRaw)) {
                         handleRawtext(start, tb)
                     } else if (name == "noscript") {
                         // else if noscript && scripting flag = true: rawtext (com.fleeksoft.ksoup doesn't run script, to handle as noscript)
@@ -206,7 +196,7 @@ internal enum class HtmlTreeBuilderState {
                 tb.transition(InHead)
             } else if (isWhitespace(t) || t.isComment() || t.isStartTag() && inSorted(
                     t.asStartTag().normalName(),
-                    InHeadNoScriptHead,
+                    Constants.InHeadNoScriptHead,
                 )
             ) {
                 return tb.process(t, InHead)
@@ -214,7 +204,7 @@ internal enum class HtmlTreeBuilderState {
                 return anythingElse(t, tb)
             } else if (t.isStartTag() && inSorted(
                     t.asStartTag().normalName(),
-                    InHeadNoscriptIgnore,
+                    Constants.InHeadNoscriptIgnore,
                 ) || t.isEndTag()
             ) {
                 tb.error(this)
@@ -254,7 +244,7 @@ internal enum class HtmlTreeBuilderState {
                 } else if (name == "frameset") {
                     tb.insert(startTag)
                     tb.transition(InFrameset)
-                } else if (inSorted(name, InBodyStartToHead)) {
+                } else if (inSorted(name, Constants.InBodyStartToHead)) {
                     tb.error(this)
                     val head: Element = tb.getHeadElement()!!
                     tb.push(head)
@@ -268,7 +258,7 @@ internal enum class HtmlTreeBuilderState {
                 }
             } else if (t.isEndTag()) {
                 val name: String = t.asEndTag().normalName()
-                if (inSorted(name, AfterHeadBody)) {
+                if (inSorted(name, Constants.AfterHeadBody)) {
                     anythingElse(t, tb)
                 } else if (name == "template") {
                     tb.process(t, InHead)
@@ -320,7 +310,7 @@ internal enum class HtmlTreeBuilderState {
                 Token.TokenType.EndTag -> return inBodyEndTag(t, tb)
                 Token.TokenType.EOF -> {
                     if (tb.templateModeSize() > 0) return tb.process(t, InTemplate)
-                    if (tb.onStackNot(InBodyEndOtherErrors)) tb.error(this)
+                    if (tb.onStackNot(Constants.InBodyEndOtherErrors)) tb.error(this)
                 }
             }
             return true
@@ -389,7 +379,7 @@ internal enum class HtmlTreeBuilderState {
                         val html: Element = tb.stack[0]!!
                         if (startTag.hasAttributes()) {
                             for (attribute in (startTag.attributes ?: emptyList())) {
-                                if (!html.hasAttr(attribute!!.key)) {
+                                if (!html.hasAttr(attribute.key)) {
                                     html.attributes()
                                         .put(attribute)
                                 }
@@ -433,7 +423,7 @@ internal enum class HtmlTreeBuilderState {
                         return false // ignore frameset
                     } else {
                         val second: Element? = stack[1]
-                        if (second?.parent() != null) second?.remove()
+                        if (second?.parent() != null) second.remove()
                         // pop up to html element
                         while (stack.size > 1) stack.removeAt(stack.size - 1)
                         tb.insert(startTag)
@@ -745,7 +735,7 @@ internal enum class HtmlTreeBuilderState {
                     tb.error(this)
                     return false
                 } else {
-                    if (tb.onStackNot(InBodyEndOtherErrors)) tb.error(this)
+                    if (tb.onStackNot(Constants.InBodyEndOtherErrors)) tb.error(this)
                     tb.transition(AfterBody)
                 }
 
@@ -753,7 +743,7 @@ internal enum class HtmlTreeBuilderState {
                     tb.error(this)
                     false // ignore
                 } else {
-                    if (tb.onStackNot(InBodyEndOtherErrors)) tb.error(this)
+                    if (tb.onStackNot(Constants.InBodyEndOtherErrors)) tb.error(this)
                     tb.transition(AfterBody)
                     tb.process(t) // re-process
                 }
@@ -989,7 +979,7 @@ internal enum class HtmlTreeBuilderState {
     },
     InTable {
         override fun process(t: Token, tb: HtmlTreeBuilder): Boolean {
-            if (t.isCharacter() && inSorted(tb.currentElement().normalName(), InTableFoster)) {
+            if (t.isCharacter() && inSorted(tb.currentElement().normalName(), Constants.InTableFoster)) {
                 tb.resetPendingTableCharacters()
                 tb.markInsertionMode()
                 tb.transition(InTableText)
@@ -1118,7 +1108,7 @@ internal enum class HtmlTreeBuilderState {
                         if (!isWhitespace(c)) {
                             // InTable anything else section:
                             tb.error(this)
-                            if (inSorted(tb.currentElement().normalName(), InTableFoster)) {
+                            if (inSorted(tb.currentElement().normalName(), Constants.InTableFoster)) {
                                 tb.isFosterInserts = true
                                 tb.process(c, InBody)
                                 tb.isFosterInserts = false
@@ -1343,7 +1333,7 @@ internal enum class HtmlTreeBuilderState {
                     tb.pop() // tr
                     tb.transition(InTableBody)
                     return tb.process(t)
-                } else if (inSorted(name, InTableToBody)) { // "tbody", "tfoot", "thead"
+                } else if (inSorted(name, Constants.InTableToBody)) { // "tbody", "tfoot", "thead"
                     if (!tb.inTableScope(name)) {
                         tb.error(this)
                         return false
