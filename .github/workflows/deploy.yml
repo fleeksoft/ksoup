@@ -65,8 +65,8 @@ jobs:
       - name: Write secrets to local.properties
         if: ${{ github.event_name != 'pull_request' }}
         run: |
-          echo sonatypeUsername="${SONATYPE_USERNAME}" >> "local.properties"
-          echo sonatypePassword="${SONATYPE_PASSWORD}" >> "local.properties"
+          echo mavenCentralUsername="${SONATYPE_USERNAME}" >> "local.properties"
+          echo mavenCentralUsername="${SONATYPE_PASSWORD}" >> "local.properties"
           echo gpgKeyPassword="${GPG_KEY_PASSWORD}" >> "local.properties"
           echo gpgKeySecret="${GPG_KEY_SECRET}" >> "local.properties"
         env:
