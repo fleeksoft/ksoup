@@ -187,9 +187,8 @@ internal abstract class Token private constructor() {
         // these appenders are rarely hit in not null state-- caused by null chars.
         fun appendTagName(append: String) {
             // might have null chars - need to replace with null replacement character
-            var append = append
-            append = append.replace(TokeniserState.nullChar, Tokeniser.replacementChar)
-            tagName = if (tagName == null) append else tagName + append
+            val replacedAppend = append.replace(TokeniserState.nullChar, Tokeniser.replacementChar)
+            tagName = if (tagName == null) replacedAppend else tagName + replacedAppend
             normalName = ParseSettings.normalName(tagName)
         }
 
@@ -199,13 +198,12 @@ internal abstract class Token private constructor() {
 
         fun appendAttributeName(append: String) {
             // might have null chars because we eat in one pass - need to replace with null replacement character
-            var append = append
-            append = append.replace(TokeniserState.nullChar, Tokeniser.replacementChar)
+            val replacedAppend = append.replace(TokeniserState.nullChar, Tokeniser.replacementChar)
             ensureAttrName()
             if (attrName.isEmpty()) {
-                attrNameS = append
+                attrNameS = replacedAppend
             } else {
-                attrName.append(append)
+                attrName.append(replacedAppend)
             }
         }
 

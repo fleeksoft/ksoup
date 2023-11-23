@@ -1016,7 +1016,7 @@ class SelectorTest {
         assertNotNull(div)
 
         // want to select One and Three only - the first level children
-        val spans = div!!.select(":root > span")
+        val spans = div.select(":root > span")
         assertEquals(2, spans.size)
         assertEquals("One Two", spans[0].text())
         assertEquals("Three Four", spans[1].text())

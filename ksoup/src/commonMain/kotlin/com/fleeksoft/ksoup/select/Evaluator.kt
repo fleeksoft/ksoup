@@ -276,18 +276,18 @@ internal abstract class Evaluator protected constructor() {
         var value: String
 
         init {
-            var value = value
+            var resultValue = value
             Validate.notEmpty(key)
-            Validate.notEmpty(value)
+            Validate.notEmpty(resultValue)
             this.key = normalize(key)
             val isStringLiteral = (
-                value.startsWith("'") && value.endsWith("'") ||
-                    value.startsWith("\"") && value.endsWith("\"")
+                resultValue.startsWith("'") && resultValue.endsWith("'") ||
+                    resultValue.startsWith("\"") && resultValue.endsWith("\"")
                 )
             if (isStringLiteral) {
-                value = value.substring(1, value.length - 1)
+                resultValue = resultValue.substring(1, resultValue.length - 1)
             }
-            this.value = if (trimValue) normalize(value) else normalize(value, isStringLiteral)
+            this.value = if (trimValue) normalize(resultValue) else normalize(resultValue, isStringLiteral)
         }
     }
 
@@ -339,7 +339,7 @@ internal abstract class Evaluator protected constructor() {
      */
     class IndexEquals(index: Int) : IndexEvaluator(index) {
         override fun matches(root: Element, element: Element): Boolean {
-            return element.elementSiblingIndex() === index
+            return element.elementSiblingIndex() == index
         }
 
         override fun toString(): String {
@@ -450,7 +450,7 @@ internal abstract class Evaluator protected constructor() {
 
     open class IsNthLastOfType(a: Int, b: Int) : CssNthEvaluator(a, b) {
         override fun calculatePosition(root: Element, element: Element): Int {
-            val parent: Element = element.parent() ?: return 0
+            element.parent() ?: return 0
             var pos = 0
             var next: Element? = element
             while (next != null) {
@@ -530,7 +530,7 @@ internal abstract class Evaluator protected constructor() {
         override fun matches(root: Element, element: Element): Boolean {
             val family: List<Node> = element.childNodes()
             for (n in family) {
-                if (n is TextNode) return (n as TextNode).isBlank()
+                if (n is TextNode) return n.isBlank()
                 if (!(n is Comment || n is XmlDeclaration || n is DocumentType)) return false
             }
             return true

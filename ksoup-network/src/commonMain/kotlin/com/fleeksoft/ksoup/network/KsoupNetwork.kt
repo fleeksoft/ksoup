@@ -50,7 +50,7 @@ public fun Ksoup.parseSubmitRequest(
     httpRequestBuilder: HttpRequestBuilder.() -> Unit = {},
     parser: Parser = Parser.htmlParser(),
 ): Document {
-    var finalUrl = url
+    var finalUrl: String = url
     val result: String =
         runBlocking {
             val httpResponse = NetworkHelper.instance.submitForm(
@@ -82,7 +82,7 @@ public fun Ksoup.parsePostRequest(
     httpRequestBuilder: HttpRequestBuilder.() -> Unit = {},
     parser: Parser = Parser.htmlParser(),
 ): Document {
-    var finalUrl = url
+    var finalUrl: String = url
     val result: String =
         runBlocking {
             val httpResponse = NetworkHelper.instance.post(

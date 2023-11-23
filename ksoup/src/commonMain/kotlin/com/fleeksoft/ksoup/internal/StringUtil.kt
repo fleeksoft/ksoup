@@ -308,14 +308,14 @@ internal object StringUtil {
 
     // TODO: replace this
     fun releaseBuilder(sb: StringBuilder): String {
-        var sb: StringBuilder = sb
-        val string: String = sb.toString()
-        if (sb.length > MaxCachedBuilderSize) {
-            sb = StringBuilder(MaxCachedBuilderSize) // make sure it hasn't grown too big
+        var stringBuilder: StringBuilder = sb
+        val string: String = stringBuilder.toString()
+        if (stringBuilder.length > MaxCachedBuilderSize) {
+            stringBuilder = StringBuilder(MaxCachedBuilderSize) // make sure it hasn't grown too big
         } else {
-            sb.clear() // make sure it's emptied on release
+            stringBuilder.clear() // make sure it's emptied on release
         }
-        stringLocalBuilders.addLast(sb)
+        stringLocalBuilders.addLast(stringBuilder)
         while (stringLocalBuilders.size > MaxIdleBuilders) {
             stringLocalBuilders.removeLast()
         }

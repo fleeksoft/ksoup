@@ -601,12 +601,12 @@ public open class Element : Node {
      * @return this element, for chaining.
      */
     public fun insertChildren(index: Int, children: Collection<Node>): Element {
-        var index = index
+        var calculatedIndex = index
         val currentSize = childNodeSize()
-        if (index < 0) index += currentSize + 1 // roll around
-        Validate.isTrue(index in 0..currentSize, "Insert position out of bounds.")
+        if (calculatedIndex < 0) calculatedIndex += currentSize + 1 // roll around
+        Validate.isTrue(calculatedIndex in 0..currentSize, "Insert position out of bounds.")
         val nodeArray: Array<Node> = children.toTypedArray()
-        addChildren(index, *nodeArray)
+        addChildren(calculatedIndex, *nodeArray)
         return this
     }
 
@@ -620,11 +620,11 @@ public open class Element : Node {
      * @return this element, for chaining.
      */
     public fun insertChildren(index: Int, vararg children: Node): Element {
-        var index = index
+        var calculatedIndex = index
         val currentSize = childNodeSize()
-        if (index < 0) index += currentSize + 1 // roll around
-        Validate.isTrue(index in 0..currentSize, "Insert position out of bounds.")
-        addChildren(index, *children)
+        if (calculatedIndex < 0) calculatedIndex += currentSize + 1 // roll around
+        Validate.isTrue(calculatedIndex in 0..currentSize, "Insert position out of bounds.")
+        addChildren(calculatedIndex, *children)
         return this
     }
 
@@ -804,7 +804,7 @@ public open class Element : Node {
             val doc: Document? = ownerDocument()
             if (doc != null) {
                 val els: Elements = doc.select(idSel)
-                if (els.size === 1 && els[0] === this) {
+                if (els.size == 1 && els[0] === this) {
                     // otherwise, continue to the nth-child impl
                     return idSel
                 }
@@ -997,10 +997,9 @@ public open class Element : Node {
      * @return a matching unmodifiable list of elements. Will be empty if this element and none of its children match.
      */
     public fun getElementsByTag(tagName: String?): Elements {
-        var tagName = tagName
         Validate.notEmpty(tagName)
-        tagName = normalize(tagName)
-        return Collector.collect(Evaluator.Tag(tagName), this)
+        val normalizedTagName = normalize(tagName)
+        return Collector.collect(Evaluator.Tag(normalizedTagName), this)
     }
 
     /**
@@ -1044,10 +1043,9 @@ public open class Element : Node {
      * @return elements that have this attribute, empty if none
      */
     public fun getElementsByAttribute(key: String): Elements {
-        var key = key
         Validate.notEmpty(key)
-        key = key.trim { it <= ' ' }
-        return Collector.collect(Evaluator.Attribute(key), this)
+        val trimmedKey = key.trim { it <= ' ' }
+        return Collector.collect(Evaluator.Attribute(trimmedKey), this)
     }
 
     /**
@@ -1057,10 +1055,9 @@ public open class Element : Node {
      * @return elements that have attribute names that start with the prefix, empty if none.
      */
     public fun getElementsByAttributeStarting(keyPrefix: String): Elements {
-        var keyPrefix = keyPrefix
         Validate.notEmpty(keyPrefix)
-        keyPrefix = keyPrefix.trim { it <= ' ' }
-        return Collector.collect(Evaluator.AttributeStarting(keyPrefix), this)
+        val trimmedKeyPrefix = keyPrefix.trim { it <= ' ' }
+        return Collector.collect(Evaluator.AttributeStarting(trimmedKeyPrefix), this)
     }
 
     /**
@@ -1427,27 +1424,23 @@ public open class Element : Node {
      */
     public fun data(): String {
         val sb: StringBuilder = StringUtil.borrowBuilder()
-        traverse(
-            object : NodeVisitor {
-                override fun head(childNode: Node, depth: Int) {
-                    when (childNode) {
-                        is DataNode -> {
-                            sb.append(childNode.getWholeData())
-                        }
-
-                        is Comment -> {
-                            sb.append(childNode.getData())
-                        }
-
-                        is CDataNode -> {
-                            // this shouldn't really happen because the html parser won't see the cdata as anything special when parsing script.
-                            // but in case another type gets through.
-                            sb.append(childNode.getWholeText())
-                        }
-                    }
+        traverse { childNode, depth ->
+            when (childNode) {
+                is DataNode -> {
+                    sb.append(childNode.getWholeData())
                 }
-            },
-        )
+
+                is Comment -> {
+                    sb.append(childNode.getData())
+                }
+
+                is CDataNode -> {
+                    // this shouldn't really happen because the html parser won't see the cdata as anything special when parsing script.
+                    // but in case another type gets through.
+                    sb.append(childNode.getWholeText())
+                }
+            }
+        }
         return StringUtil.releaseBuilder(sb)
     }
 

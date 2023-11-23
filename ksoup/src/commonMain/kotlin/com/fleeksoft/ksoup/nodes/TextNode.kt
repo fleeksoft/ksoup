@@ -137,9 +137,7 @@ public open class TextNode(text: String) : LeafNode() {
         }
 
         internal fun normaliseWhitespace(text: String): String {
-            var text = text
-            text = StringUtil.normaliseWhitespace(text)
-            return text
+            return StringUtil.normaliseWhitespace(text)
         }
 
         internal fun stripLeadingWhitespace(text: String): String {

@@ -1793,7 +1793,7 @@ class HtmlParserTest {
         val doc = Ksoup.parse(html)
         val div = doc.selectFirst("div")
         assertNotNull(div)
-        assertEquals("\nOne\nTwo Three\nFour", div!!.wholeText())
+        assertEquals("\nOne\nTwo Three\nFour", div.wholeText())
         assertEquals("\nOne\nTwo ", div.wholeOwnText())
     }
 
@@ -1917,7 +1917,7 @@ class HtmlParserTest {
         val tmplRow = doc.selectFirst("template#2")
         assertNotNull(tmplRow)
         assertNotNull(tmplTbl)
-        tmplRow!!.appendChild(tmplRow.clone())
+        tmplRow.appendChild(tmplRow.clone())
         doc.select("template").unwrap()
         want =
             "<html><head></head><body><table><tbody><tr><td>One</td><td>Two</td><td>One</td><td>Two</td></tr></tbody></table></body></html>"

@@ -42,10 +42,10 @@ internal class Range
         node.attributes().putUserData(if (start) RangeKey else EndRangeKey, this)
     }
 
-    override fun equals(o: Any?): Boolean {
-        if (this === o) return true
-        if (o == null || this::class != o::class) return false
-        val range = o as Range
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+        val range = other as Range
         return if (start != range.start) false else end == range.end
     }
 
@@ -117,10 +117,10 @@ internal class Range
             return "$lineNumber,$columnNumber:$pos"
         }
 
-        override fun equals(o: Any?): Boolean {
-            if (this === o) return true
-            if (o == null || this::class != o::class) return false
-            val position = o as Position
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other == null || this::class != other::class) return false
+            val position = other as Position
             if (pos != position.pos) return false
             return if (lineNumber != position.lineNumber) false else columnNumber == position.columnNumber
         }

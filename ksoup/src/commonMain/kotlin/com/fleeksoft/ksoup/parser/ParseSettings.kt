@@ -35,20 +35,18 @@ public class ParseSettings
      * Normalizes a tag name according to the case preservation setting.
      */
     public fun normalizeTag(name: String): String {
-        var name = name
-        name = name.trim { it <= ' ' }
-        if (!preserveTagCase) name = lowerCase(name)
-        return name
+        var trimmedName = name.trim { it <= ' ' }
+        if (!preserveTagCase) trimmedName = lowerCase(trimmedName)
+        return trimmedName
     }
 
     /**
      * Normalizes an attribute according to the case preservation setting.
      */
     public fun normalizeAttribute(name: String): String {
-        var name = name
-        name = name.trim { it <= ' ' }
-        if (!preserveAttributeCase) name = lowerCase(name)
-        return name
+        var trimmedName = name.trim { it <= ' ' }
+        if (!preserveAttributeCase) trimmedName = lowerCase(trimmedName)
+        return trimmedName
     }
 
     

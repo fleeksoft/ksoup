@@ -29,7 +29,7 @@ internal abstract class CombiningEvaluator internal constructor() : Evaluator() 
         return cost
     }
 
-    
+
     fun rightMostEvaluator(): Evaluator? {
         return if (num > 0) evaluators[num - 1] else null
     }
@@ -94,10 +94,10 @@ internal abstract class CombiningEvaluator internal constructor() : Evaluator() 
             updateEvaluators()
         }
 
-        override fun matches(root: Element, node: Element): Boolean {
+        override fun matches(root: Element, element: Element): Boolean {
             for (i in 0 until num) {
                 val s: Evaluator = sortedEvaluators[i]
-                if (s.matches(root, node)) return true
+                if (s.matches(root, element)) return true
             }
             return false
         }
