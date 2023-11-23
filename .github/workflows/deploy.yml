@@ -61,21 +61,21 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v3
 
-      - name: Write secrets to local.properties
-        if: ${{ github.event_name != 'pull_request' }}
-        run: |
-          echo mavenCentralUsername="${SONATYPE_USERNAME}" >> "local.properties"
-          echo mavenCentralUsername="${SONATYPE_PASSWORD}" >> "local.properties"
-          echo gpgKeyPassword="${GPG_KEY_PASSWORD}" >> "local.properties"
-          echo gpgKeySecret="${GPG_KEY_SECRET}" >> "local.properties"
-        env: 
-          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
-          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
-          GPG_KEY_PASSWORD: ${{ secrets.GPG_KEY_PASSWORD }}
-          GPG_KEY_SECRET: ${{ secrets.GPG_KEY_SECRET }}
+#      - name: Write secrets to local.properties
+#        if: ${{ github.event_name != 'pull_request' }}
+#        run: |
+#          echo mavenCentralUsername="${SONATYPE_USERNAME}" >> "local.properties"
+#          echo mavenCentralUsername="${SONATYPE_PASSWORD}" >> "local.properties"
+#          echo gpgKeyPassword="${GPG_KEY_PASSWORD}" >> "local.properties"
+#          echo gpgKeySecret="${GPG_KEY_SECRET}" >> "local.properties"
+#        env:
+#          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+#          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+#          GPG_KEY_PASSWORD: ${{ secrets.GPG_KEY_PASSWORD }}
+#          GPG_KEY_SECRET: ${{ secrets.GPG_KEY_SECRET }}
 
-      - name: Release to sonatype
-        run: ./gradlew publishAllPublicationsToMavenRepository
+#      - name: Release to sonatype
+#        run: ./gradlew publishAllPublicationsToMavenRepository
 
       - name: Generate docs with dokka
         run: ./gradlew dokkaHtmlMultiModule
