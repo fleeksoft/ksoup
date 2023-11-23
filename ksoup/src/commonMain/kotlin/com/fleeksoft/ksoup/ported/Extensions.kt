@@ -3,6 +3,7 @@ package com.fleeksoft.ksoup.ported
 import de.cketti.codepoints.appendCodePoint
 import io.ktor.http.*
 import io.ktor.utils.io.charsets.*
+import okio.Buffer
 
 internal fun String.isCharsetSupported(): Boolean {
     val result = runCatching { Charset.forName(this) }.getOrNull()
@@ -153,4 +154,8 @@ internal fun IntArray.codePointsToString(): String {
     } else {
         ""
     }
+}
+
+internal fun String.toBuffer(): Buffer {
+    return Buffer().apply { writeUtf8(this@toBuffer) }
 }

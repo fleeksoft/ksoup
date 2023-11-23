@@ -63,6 +63,10 @@ android {
     defaultConfig {
         minSdk = libs.versions.minSdk.get().toInt()
     }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
 }
 
 publishing {
@@ -116,8 +120,8 @@ publishing {
 
 signing {
     useInMemoryPgpKeys(
-        File(rootDir, "gpg/private.key").readText(),
-//        gradleLocalProperties(rootDir).getProperty("gpgKeySecret"),
+//        File(rootDir, "gpg/private.key").readText(),
+        gradleLocalProperties(rootDir).getProperty("gpgKeySecret"),
         gradleLocalProperties(rootDir).getProperty("gpgKeyPassword"),
     )
     sign(publishing.publications)

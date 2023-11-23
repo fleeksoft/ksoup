@@ -4,15 +4,14 @@ package com.fleeksoft.ksoup.internal
  * A com.fleeksoft.ksoup internal class (so don't use it as there is no contract API) that enables constraints on an Input Stream,
  * namely a maximum read size, and the ability to Thread.interrupt() the read.
  */
-import okio.Buffer
 import com.fleeksoft.ksoup.ported.BufferReader
 import com.fleeksoft.ksoup.ported.System
-import kotlin.math.min
+import okio.Buffer
 
 internal class ConstrainableSource(
     bufferReader: BufferReader,
     maxSize: Int
-) : BufferReader(bufferReader, maxSize) {
+) : BufferReader(bufferReader) {
 
     companion object {
         private const val DEFAULT_SIZE = 1024 * 32
@@ -49,10 +48,11 @@ internal class ConstrainableSource(
         val toRead = if (capped && byteCount > remaining) remaining else byteCount
 
         return try {
-            val read = getActiveBuffer().read(
+            val calculatedByteCount: Int = if (this.size() > 0) this.size().toInt() else toRead
+            val read = getActiveSource().read(
                 sink = sink,
                 offset = 0,
-                byteCount = min(toRead, getActiveBuffer().size.toInt())
+                byteCount = calculatedByteCount
             )
             if (!this.exhausted()) {
                 remaining -= read
@@ -74,7 +74,7 @@ internal class ConstrainableSource(
         val buffer = Buffer()
 
         while (true) {
-            val size: Int = min(bufferSize, this.getActiveBuffer().size.toInt())
+            val size: Int = if (this.size() > 0) this.size().toInt() else bufferSize
             val readBuffer = ByteArray(size)
             read = this.read(readBuffer, 0, size)
             if (read > 0) {

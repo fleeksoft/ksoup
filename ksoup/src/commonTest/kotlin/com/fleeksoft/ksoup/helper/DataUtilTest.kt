@@ -5,6 +5,7 @@ import com.fleeksoft.ksoup.integration.ParseTest
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.ported.BufferReader
+import com.fleeksoft.ksoup.ported.toBuffer
 import io.ktor.utils.io.charsets.Charset
 import io.ktor.utils.io.charsets.Charsets
 import io.ktor.utils.io.charsets.name
@@ -272,10 +273,8 @@ class DataUtilTest {
     fun handlesUnlimitedRead() {
         val inputFile: String = ParseTest.getResourceAbsolutePath("htmltests/large.html")
         val input: String = ParseTest.getFileAsString(inputFile.toPath())
-//        val stream = VaryingBufferReader(BufferReader(input))
-//        val byteBuffer: BufferReader = DataUtil.readToByteBuffer(stream, 0)
-        val byteBuffer: BufferReader = DataUtil.readToByteBuffer(BufferReader(input), 0)
-        val read = byteBuffer.readByteArray().decodeToString()
+        val byteBuffer: ByteArray = DataUtil.readToByteBuffer(input.toBuffer())
+        val read = byteBuffer.decodeToString()
         assertEquals(input, read)
     }
 }

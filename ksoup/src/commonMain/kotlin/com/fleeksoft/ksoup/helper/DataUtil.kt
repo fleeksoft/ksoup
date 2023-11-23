@@ -1,7 +1,6 @@
 package com.fleeksoft.ksoup.helper
 
 import com.fleeksoft.ksoup.UncheckedIOException
-import com.fleeksoft.ksoup.internal.ConstrainableSource
 import com.fleeksoft.ksoup.internal.Normalizer
 import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.nodes.Comment
@@ -9,8 +8,7 @@ import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.nodes.Node
 import com.fleeksoft.ksoup.nodes.XmlDeclaration
 import com.fleeksoft.ksoup.parser.Parser
-import com.fleeksoft.ksoup.ported.BufferReader
-import com.fleeksoft.ksoup.ported.IllegalCharsetNameException
+import com.fleeksoft.ksoup.ported.*
 import com.fleeksoft.ksoup.ported.canEncode
 import com.fleeksoft.ksoup.ported.isCharsetSupported
 import com.fleeksoft.ksoup.readFile
@@ -18,10 +16,8 @@ import com.fleeksoft.ksoup.readGzipFile
 import com.fleeksoft.ksoup.select.Elements
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
-import okio.IOException
-import okio.Path
-import okio.use
-import kotlin.math.min
+import okio.*
+import okio.Buffer
 import kotlin.random.Random
 
 /**
@@ -30,7 +26,7 @@ import kotlin.random.Random
  */
 internal object DataUtil {
     private val charsetPattern: Regex =
-        Regex("(?i)\\bcharset=\\s*(?:[\"'])?([^\\s,;\"']*)")
+        Regex("(?i)\\bcharset=\\s*[\"']?([^\\s,;\"']*)")
     val UTF_8: Charset =
         Charsets.UTF_8 // Don't use StandardCharsets, as those only appear in Android API 19, and we target 10.
     private val defaultCharsetName: String = UTF_8.name // used if not found in header or meta charset
@@ -98,11 +94,11 @@ internal object DataUtil {
                             .readByteArray()
                     )*/
                 } else {
-                    BufferReader(bufferedSource.readByteArray())
+                    BufferReader(bufferedSource)
                 }
 
             } else {
-                BufferReader(bufferedSource.readByteArray())
+                BufferReader(bufferedSource)
             }
 
 //            val charset = charsetName?.let { Charset.forName(it) } ?: Charsets.UTF_8
@@ -176,21 +172,19 @@ internal object DataUtil {
         }
         var charsetName: String? = charsetNameIn
 
-        val inputReader = ConstrainableSource.wrap(bufferReader, 0)
-
         /*@Nullable */
         var doc: Document? = null
 
         // read the start of the stream and look for a BOM or meta charset
 
-        inputReader.mark(bufferSize.toInt())
+        val peekedBuffer = bufferReader.getPeek()
         // -1 because we read one more to see if completed. First read is < buffer size, so can't be invalid.
-        val firstBytes: BufferReader = readToByteBuffer(inputReader, firstReadBufferSize - 1)
-        val fullyRead = inputReader.fullyRead()
-        inputReader.reset()
+        val firstBytes: ByteArray = readToByteBuffer(peekedBuffer)
+        val fullyRead = peekedBuffer.exhausted()
+        peekedBuffer.close()
 
         // look for BOM - overrides any other header or input
-        val bomCharset = detectCharsetFromBom(firstBytes)
+        val bomCharset: BomCharset? = detectCharsetFromBom(firstBytes)
         if (bomCharset != null) charsetName = bomCharset.charset
         if (charsetName == null) { // determine from meta. safe first parse as UTF-8
             doc = try {
@@ -268,7 +262,7 @@ internal object DataUtil {
             // TODO: bufferSize not used here because not supported yet
             val reader = BufferReader(
                 String(
-                    inputReader.readByteArray(),
+                    bufferReader.readByteArray(),
                     charset = Charset.forName(charsetName)
                 )
             )
@@ -303,20 +297,23 @@ internal object DataUtil {
     /**
      * Read the input stream into a byte buffer. To deal with slow input streams, you may interrupt the thread this
      * method is executing on. The data read until being interrupted will be available.
-     * @param source the input stream to read from
+     * @param bufferReader the input stream to read from
      * @param maxSize the maximum size in bytes to read from the stream. Set to 0 to be unlimited.
      * @return the filled byte buffer
      * @throws IOException if an exception occurs whilst reading from the input stream.
      */
     @Throws(IOException::class)
-    fun readToByteBuffer(bufferReader: BufferReader, maxSize: Int): BufferReader {
-        Validate.isTrue(maxSize >= 0, "maxSize must be 0 (unlimited) or larger")
+    fun readToByteBuffer(bufferReader: BufferedSource): ByteArray {
+        return bufferReader.readByteArray()
+        /*Validate.isTrue(maxSize >= 0, "maxSize must be 0 (unlimited) or larger")
+        val calculatedMaxSize: Int =
+            if (bufferReader.size() > 0) bufferReader.size().toInt() else maxSize
         val input: ConstrainableSource =
             ConstrainableSource.wrap(
                 bufferReader = bufferReader,
-                maxSize = min(maxSize.toLong(), bufferReader.getActiveBuffer().size).toInt()
+                maxSize = calculatedMaxSize
             )
-        return input.readToByteBuffer(maxSize)
+        return input.readToByteBuffer(maxSize)*/
     }
 
     fun emptyByteBuffer(): BufferReader {
@@ -388,13 +385,12 @@ internal object DataUtil {
         return null
     }*/
 
-    private fun detectCharsetFromBom(buffer: BufferReader): BomCharset? {
+    private fun detectCharsetFromBom(firstByteArray: ByteArray): BomCharset? {
         // .mark and rewind used to return Buffer, now ByteBuffer, so cast for backward compat
-        buffer.mark()
-        val bom = ByteArray(4)
-        if (buffer.remaining() >= bom.size) {
-            buffer[bom]
-            buffer.rewind()
+        val bom = if (firstByteArray.size >= 4) {
+            firstByteArray.copyOf(4)
+        } else {
+            ByteArray(4)
         }
         if (bom[0].toInt() == 0x00 && bom[1].toInt() == 0x00 && bom[2] == 0xFE.toByte() && bom[3] == 0xFF.toByte() ||  // BE
             bom[0] == 0xFF.toByte() && bom[1] == 0xFE.toByte() && bom[2].toInt() == 0x00 && bom[3].toInt() == 0x00

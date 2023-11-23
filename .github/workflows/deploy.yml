@@ -5,12 +5,17 @@ on:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
+
+permissions:
+  contents: read
+  pages: write
+
 jobs:
   build:
     strategy:
       matrix:
         config: [
-#          { target: android, os: ubuntu-latest, tasks: androidTest, continueOnError: false },
+          { target: android, os: ubuntu-latest, tasks: testDebugUnitTest, continueOnError: false },
 #          { target: apple, os: macos-latest, tasks: iosX64Test iosSimulatorArm64Test macosX64Test macosArm64Test, continueOnError: true },
           # { target: windows, os: windows-latest, tasks: windowsTest, continueOnError: true }, # https://github.com/square/okio/issues/951
           # { target: linux, os: ubuntu-latest, tasks: linuxTest, continueOnError: false },
@@ -54,12 +59,14 @@ jobs:
       - name: Setup gradle
         uses: gradle/gradle-build-action@v2
 
+      - name: Setup Pages
+        uses: actions/configure-pages@v3
 
       - name: Write secrets to local.properties
         if: ${{ github.event_name != 'pull_request' }}
         run: |
-          echo sonatypeUsername="${SONATYPE_USERNAME}" >> "local.properties"
-          echo sonatypePassword="${SONATYPE_PASSWORD}" >> "local.properties"
+          echo mavenCentralUsername="${SONATYPE_USERNAME}" >> "local.properties"
+          echo mavenCentralUsername="${SONATYPE_PASSWORD}" >> "local.properties"
           echo gpgKeyPassword="${GPG_KEY_PASSWORD}" >> "local.properties"
           echo gpgKeySecret="${GPG_KEY_SECRET}" >> "local.properties"
         env:
@@ -70,3 +77,15 @@ jobs:
 
       - name: Release to sonatype
         run: ./gradlew publishAllPublicationsToMavenRepository
+
+      - name: Generate docs with dokka
+        run: ./gradlew dokkaHtmlMultiModule
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: ${{ github.workspace }}/build/dokka/htmlMultiModule
+
+      - name: Release to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v1
