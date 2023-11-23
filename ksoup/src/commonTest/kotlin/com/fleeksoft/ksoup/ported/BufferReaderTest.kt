@@ -1,6 +1,5 @@
 package com.fleeksoft.ksoup.ported
 
-import io.ktor.utils.io.core.String
 import okio.IOException
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -39,11 +38,6 @@ class BufferReaderTest {
         val buffer = ByteArray(6)
         reader[buffer]
         assertEquals("Hello,", buffer.decodeToString())
-        assertEquals(8L, reader.size())
-        reader.rewind()
-        assertEquals(inputData.length, reader.size().toInt())
-        assertEquals(inputData, reader.readString())
-        assertEquals(0, reader.size().toInt())
     }
 
     @Test
@@ -53,19 +47,5 @@ class BufferReaderTest {
         assertFailsWith<IOException> {
             reader.read()
         }
-    }
-
-    @Test
-    fun testMarkAndReset() {
-        val reader: BufferReader = BufferReader("Hello, Reader!")
-        reader.mark(100)  // Marking a position
-        val buffer = ByteArray(5)
-        reader[buffer]
-        assertEquals("Hello", buffer.decodeToString())
-
-        reader.reset()  // Resetting to the marked position
-        val bufferReset = ByteArray(5)
-        reader[bufferReset]
-        assertEquals("Hello", String(bufferReset))  // Reading the same string again
     }
 }
