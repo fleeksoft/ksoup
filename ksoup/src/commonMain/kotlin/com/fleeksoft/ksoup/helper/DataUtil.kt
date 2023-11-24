@@ -185,19 +185,6 @@ internal object DataUtil {
         if (bomCharset != null) charsetName = bomCharset.charset
         if (charsetName == null) { // determine from meta. safe first parse as UTF-8
             doc = try {
-                /*val defaultDecoded: java.nio.CharBuffer = UTF_8.decode(firstBytes)
-                    if (defaultDecoded.hasArray()) {
-                        parser.parseInput(
-                            java.io.CharArrayReader(
-                                defaultDecoded.array(),
-                                defaultDecoded.arrayOffset(),
-                                defaultDecoded.limit(),
-                            ),
-                            baseUri,
-                        )
-                    } else {
-                        parser.parseInput(defaultDecoded.toString(), baseUri)
-                    }*/
                 parser.parseInput(firstBytes, baseUri)
             } catch (e: UncheckedIOException) {
                 throw e
@@ -257,18 +244,19 @@ internal object DataUtil {
         if (doc == null) {
             if (charsetName == null) charsetName = defaultCharsetName
             // TODO: bufferSize not used here because not supported yet
-            val reader = BufferReader(
+            bufferReader.setCharSet(charsetName)
+            /*val bufferReader = BufferReader(
                 String(
                     bufferReader.readByteArray(),
                     charset = Charset.forName(charsetName)
                 )
-            )
+            )*/
             if (bomCharset != null && bomCharset.offset) { // creating the buffered inputReader ignores the input pos, so must skip here
 //                skip first char which can be 2-4
-                reader.skipFirstUnicodeChar(1)
+                bufferReader.skipFirstUnicodeChar(1)
             }
             doc = try {
-                parser.parseInput(reader, baseUri)
+                parser.parseInput(bufferReader, baseUri)
             } catch (e: UncheckedIOException) {
                 // io exception when parsing (not seen before because reading the stream as we go)
                 throw e
@@ -300,7 +288,7 @@ internal object DataUtil {
      * @throws IOException if an exception occurs whilst reading from the input stream.
      */
     @Throws(IOException::class)
-    fun readToByteBuffer(bufferReader: BufferedSource, maxSize: Long): ByteArray {
+    fun readToByteBuffer(bufferReader: BufferReader, maxSize: Long): ByteArray {
         require(maxSize >= 0) {
             "maxSize must be 0 (unlimited) or larger"
         }
