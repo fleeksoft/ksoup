@@ -49,7 +49,7 @@ internal class ConstrainableSource(
 
         return try {
             val calculatedByteCount: Int = if (this.size() > 0) this.size().toInt() else toRead
-            val read = getActiveSource().read(
+            val read = getBuffer().read(
                 sink = sink,
                 offset = 0,
                 byteCount = calculatedByteCount
