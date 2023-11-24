@@ -7,6 +7,7 @@ import okio.Path
 import okio.buffer
 
 internal actual fun readGzipFile(file: Path): BufferedSource {
+    // TODO: optimize for BufferedSource without reading all bytes
     return Buffer().apply {
         write(decompressGzip(readFile(file).buffer().readByteArray()))
     }
