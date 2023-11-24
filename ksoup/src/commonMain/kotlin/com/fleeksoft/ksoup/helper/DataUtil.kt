@@ -89,11 +89,7 @@ internal object DataUtil {
                 }.getOrNull() ?: false
 
                 if (zipped) {
-                    BufferReader(readGzipFile(filePath).readByteArray())
-                    /*BufferReader(
-                        GzipSource(Buffer().apply { write(bufferedSource.readByteArray()) }).buffer()
-                            .readByteArray()
-                    )*/
+                    BufferReader(readGzipFile(filePath))
                 } else {
                     BufferReader(bufferedSource)
                 }
