@@ -55,7 +55,7 @@ public class Parser {
     }
 
     public fun parseInput(html: String, baseUri: String): Document {
-        return treeBuilder.parse(BufferReader(html.toByteArray()), baseUri, this)
+        return treeBuilder.parse(BufferReader(html), baseUri, this)
     }
 
     public fun parseInput(inputHtml: BufferReader, baseUri: String): Document {

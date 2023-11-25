@@ -39,11 +39,11 @@ class DataUtilTest {
         assertEquals("UTF-8", DataUtil.getCharsetFromContentType("text/html; charset='UTF-8'"))
     }
 
-    private fun stream(data: String): BufferReader {
+    private fun bufferByteArrayCharset(data: String): BufferReader {
         return BufferReader(data.toByteArray())
     }
 
-    private fun stream(data: String, charset: String): BufferReader {
+    private fun bufferByteArrayCharset(data: String, charset: String): BufferReader {
         return BufferReader(data.toByteArray(Charset.forName(charset)))
     }
 
@@ -52,7 +52,7 @@ class DataUtilTest {
         val html = "\uFEFF<html><head><title>One</title></head><body>Two</body></html>"
         val doc: Document =
             DataUtil.parseInputSource(
-                this.stream(html),
+                this.bufferByteArrayCharset(html),
                 "UTF-8",
                 "http://foo.com/",
                 Parser.htmlParser()
@@ -65,7 +65,7 @@ class DataUtilTest {
         val html = "\uFEFF<html><head><title>One</title></head><body>Two</body></html>"
         val doc: Document =
             DataUtil.parseInputSource(
-                this.stream(html),
+                this.bufferByteArrayCharset(html),
                 null,
                 "http://foo.com/",
                 Parser.htmlParser()
@@ -115,7 +115,7 @@ class DataUtilTest {
         val html = "<html><head><meta charset=iso-8></head><body></body></html>"
         val doc: Document =
             DataUtil.parseInputSource(
-                this.stream(html),
+                this.bufferByteArrayCharset(html),
                 null,
                 "http://example.com",
                 Parser.htmlParser()
@@ -138,7 +138,7 @@ class DataUtilTest {
                 "</head><body>한국어</body></html>"
         val doc: Document =
             DataUtil.parseInputSource(
-                stream(html, "euc-kr"),
+                bufferByteArrayCharset(html, "euc-kr"),
                 null,
                 "http://example.com",
                 Parser.htmlParser()
@@ -153,14 +153,15 @@ class DataUtilTest {
                 "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=iso-8859-1\">" +
                 "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=koi8-u\">" +
                 "</head><body>Übergrößenträger</body></html>"
-        val doc: Document =
+        val docByteArrayCharset: Document =
             DataUtil.parseInputSource(
-                stream(html, "iso-8859-1"),
+                bufferByteArrayCharset(html, "iso-8859-1"),
                 null,
                 "http://example.com",
                 Parser.htmlParser()
             )
-        assertEquals("Übergrößenträger", doc.body().text())
+
+        assertEquals("Übergrößenträger", docByteArrayCharset.body().text())
     }
 
     @Test
@@ -273,7 +274,7 @@ class DataUtilTest {
     fun handlesUnlimitedRead() {
         val inputFile: String = ParseTest.getResourceAbsolutePath("htmltests/large.html")
         val input: String = ParseTest.getFileAsString(inputFile.toPath())
-        val byteBuffer: ByteArray = DataUtil.readToByteBuffer(input.toBuffer(), 0)
+        val byteBuffer: ByteArray = DataUtil.readToByteBuffer(BufferReader(input.toBuffer()), 0)
         val read = byteBuffer.decodeToString()
         assertEquals(input, read)
     }

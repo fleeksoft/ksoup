@@ -4,6 +4,7 @@ import okio.IOException
 import com.fleeksoft.ksoup.UncheckedIOException
 import com.fleeksoft.ksoup.ported.BufferReader
 import com.fleeksoft.ksoup.ported.buildString
+import io.ktor.utils.io.core.*
 import kotlin.math.abs
 import kotlin.math.min
 
@@ -12,7 +13,7 @@ import kotlin.math.min
  */
 internal class CharacterReader {
     private var charBuf: CharArray?
-    private var source: CharArray?
+    private var source: BufferReader?
     private var bufLength = 0
     private var bufSplitPoint = 0
     private var bufPos = 0
@@ -26,11 +27,9 @@ internal class CharacterReader {
     private var newlinePositions: ArrayList<Int>? = null
     private var lineNumberOffset = 1 // line numbers start at 1; += newlinePosition[indexof(pos)]
 
-    constructor(input: BufferReader) : this(input.readCharArray(), maxBufferLen)
+    constructor(input: String) : this(BufferReader(input), input.toByteArray().size)
 
-    constructor(input: String) : this(input.toCharArray(), input.length)
-
-    constructor(input: CharArray, sz: Int = maxBufferLen) {
+    constructor(input: BufferReader, sz: Int = maxBufferLen) {
         source = input
         charBuf = CharArray(min(sz, maxBufferLen))
         bufferUp()
@@ -52,7 +51,6 @@ internal class CharacterReader {
     private var readFully =
         false // if the underlying stream has been completely read, no value in further buffering
 
-    private var skipPos: Int = 0
     private fun bufferUp() {
 //        println("pre => bufSize: ${charBuf?.size} bufLength: $bufLength, readerPos: $readerPos, bufPos: $bufPos, bufSplitPoint: $bufSplitPoint")
         if (readFully || bufPos < bufSplitPoint) return
@@ -62,112 +60,49 @@ internal class CharacterReader {
         } else {
             Pair(bufPos.toLong(), 0)
         }
-//        val markSource = SourceMarker(source, minReadAheadLen.toLong())
 
-        try {
-            skipPos += pos.toInt()
-            var read: Int = 0
-            while (read <= minReadAheadLen && !readFully) {
-                var thisRead = 0
-//                val readData: ByteArray = ByteArray(charBuf!!.size)
-                val toIndex = min(source!!.size, skipPos + charBuf!!.size) - read
-                val toReadDataSize = toIndex - skipPos
-                if (toReadDataSize > 0 && toIndex > skipPos) {
-                    source!!.copyInto(charBuf!!, startIndex = skipPos, endIndex = toIndex)
-//                    val readData: CharArray = source!!.copyOfRange(skipPos, toIndex)
-                    thisRead = toReadDataSize
-                    if (toIndex >= source!!.size) readFully = true
-                }
-
-//                thisRead = peekSource.read(readData, read, charBuf!!.size - pos.toInt()) // always reading 8126 bytes only
-                /*charBuf = peekSource.readByteArray(charBuf!!.size - read).also { thisRead = it.size }.decodeToString()
-                    .toCharArray()*/
-//                if (thisRead == -1) readFully = true
-                if (thisRead <= 0) break
-                read += thisRead
+        source!!.skip(pos)
+        val reader: BufferReader = source!!.peek()
+        var read: Int = 0
+        while (read <= minReadAheadLen) {
+            val toReadSize = charBuf!!.size - read
+            val str = if (toReadSize > 0) {
+                reader.readString(toReadSize.toLong())
+            } else {
+                ""
             }
 
-            if (read > 0) {
-                bufLength = read
-                readerPos += pos.toInt()
-                bufPos = offset
-                if (bufMark != -1) bufMark = 0
-                bufSplitPoint = minOf(bufLength, readAheadLimit)
+            val thisRead = if (str.isEmpty() && reader.exhausted()) -1 else str.length
+
+            if (thisRead > 0) {
+                str.toCharArray().copyInto(charBuf!!, destinationOffset = read)
             }
+
+            /*val readData = ByteArray(toReadSize)
+            val thisRead = reader.read(readData, 0, toReadSize) //read max 8192
+            if (thisRead > 0) {
+                readData.copyOfRange(0, thisRead).decodeToString()
+                    .toCharArray().copyInto(charBuf!!, destinationOffset = read)
+            }*/
+
+            if (thisRead == -1) readFully = true
+            if (thisRead <= 0) break
+            read += thisRead
+        }
+
+        if (read > 0) {
+            bufLength = read
+            readerPos += pos.toInt()
+            bufPos = offset
+            if (bufMark != -1) bufMark = 0
+            bufSplitPoint = minOf(bufLength, readAheadLimit)
+        }
 
 //            println("post => bufSize: ${charBuf?.size} bufLength: $bufLength, readerPos: $readerPos, bufPos: $bufPos, bufSplitPoint: $bufSplitPoint")
 
-            /*if (source.buffer.size > 0) {
-                markSource.source().skip(pos)
-                val userOffset = markSource.mark(maxBufferLen.toLong())
-                var read = 0
-                val byteArray = ByteArray(charBuf!!.size)
-                while (read <= minReadAheadLen) {
-                    val length = charBuf!!.size - read
-                    val endIndex = read + length
-                    if (endIndex == -1) readFully = true
-                    if (endIndex <= 0) break
-                    val thisRead = source.buffer.readAtMostTo(byteArray, read, endIndex)
-                    if (thisRead == -1) readFully = true
-                    if (thisRead <= 0) break
-                    read += thisRead
-                }
-                charBuf = byteArray.decodeToString().toCharArray()
-                markSource.reset(userOffset)
-                if (read > 0) {
-                    bufLength = read
-                    readerPos += pos.toInt()
-                    bufPos = offset
-                    if (bufMark != -1) bufMark = 0
-                    bufSplitPoint = minOf(bufLength, readAheadLimit)
-                }
-            } else {
-                readFully = true
-            }*/
-
-        } catch (e: IOException) {
-            throw UncheckedIOException(e)
-        }
         scanBufferForNewlines() // if enabled, we index newline positions for line number tracking
         lastIcSeq = null // cache for last containsIgnoreCase(seq)
     }
-
-    /*private fun bufferUp() {
-        if (readFully || bufPos < bufSplitPoint) return
-        val pos: Int
-        val offset: Int
-        if (bufMark != -1) {
-            pos = bufMark
-            offset = bufPos - bufMark
-        } else {
-            pos = bufPos
-            offset = 0
-        }
-        try {
-            val skipped: Long = reader.skip(pos.toLong())
-            reader.mark(maxBufferLen)
-            var read = 0
-            while (read <= minReadAheadLen) {
-                val thisRead: Int = reader.read(charBuf, read, charBuf!!.size - read)
-                if (thisRead == -1) readFully = true
-                if (thisRead <= 0) break
-                read += thisRead
-            }
-            reader.reset()
-            if (read > 0) {
-                Validate.isTrue(skipped == pos.toLong()) // Previously asserted that there is room in buf to skip, so this will be a WTF
-                bufLength = read
-                readerPos += pos
-                bufPos = offset
-                if (bufMark != -1) bufMark = 0
-                bufSplitPoint = min(bufLength, readAheadLimit)
-            }
-        } catch (e: IOException) {
-            throw UncheckedIOException(e)
-        }
-        scanBufferForNewlines() // if enabled, we index newline positions for line number tracking
-        lastIcSeq = null // cache for last containsIgnoreCase(seq)
-    }*/
 
     /**
      * Gets the position currently read to in the content. Starts at 0.
@@ -676,7 +611,7 @@ internal class CharacterReader {
     // we maintain a cache of the previously scanned sequence, and return that if applicable on repeated scans.
     // that improves the situation where there is a sequence of <p<p<p<p<p<p<p...</title> and we're bashing on the <p
     // looking for the </title>. Resets in bufferUp()
-    
+
     private var lastIcSeq: String? = null // scan cache
     private var lastIcIndex = 0 // nearest found indexOf
 
@@ -723,8 +658,9 @@ internal class CharacterReader {
         private const val maxStringCacheLen = 12
         const val maxBufferLen = 1024 * 32 // visible for testing
         const val readAheadLimit = (maxBufferLen * 0.75).toInt() // visible for testing
-        private const val minReadAheadLen =
-            1024 // the minimum mark length supported. No HTML entities can be larger than this.
+
+        // the minimum mark length supported. No HTML entities can be larger than this.
+        private const val minReadAheadLen = 1024
         private const val stringCacheSize = 512
 
         /**
