@@ -16,7 +16,7 @@ class DataUtilTestJvm {
 
     @Test
     @Throws(IOException::class)
-    fun parseSequenceInputStream() {
+    fun parseSequenceBufferReader() {
         // https://github.com/jhy/jsoup/pull/1671
         val bufferReader: BufferReader = ParseTest.resourceFilePathToBufferReader("htmltests/medium.html")
         val fileContent = String(bufferReader.readByteArray())
