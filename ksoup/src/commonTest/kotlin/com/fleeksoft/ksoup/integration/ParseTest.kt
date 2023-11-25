@@ -175,9 +175,9 @@ class ParseTest {
 
         fun pathToBufferReader(file: Path): BufferReader {
             return if (file.name.endsWith(".gz")) {
-                BufferReader(readGzipFile(file).readByteArray())
+                BufferReader(readGzipFile(file))
             } else {
-                BufferReader(readFile(file).readByteArray())
+                BufferReader(readFile(file))
             }
         }
     }
