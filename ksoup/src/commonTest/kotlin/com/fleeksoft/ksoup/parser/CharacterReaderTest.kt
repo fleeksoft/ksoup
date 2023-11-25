@@ -2,6 +2,7 @@ package com.fleeksoft.ksoup.parser
 
 import com.fleeksoft.ksoup.UncheckedIOException
 import com.fleeksoft.ksoup.integration.ParseTest
+import com.fleeksoft.ksoup.ported.BufferReader
 import okio.IOException
 import okio.Path.Companion.toPath
 import kotlin.test.*
@@ -12,6 +13,29 @@ import kotlin.test.*
  * @author Sabeeh, fleeksoft@gmail.com
  */
 class CharacterReaderTest {
+    @Test
+    fun testSpecialCharacterReader() {
+        val specialText1 = "Hello &amp;&lt;&gt; Å å π 新 there ¾ © »"
+        val specialText2 = "Übergrößenträger"
+
+        assertEquals(specialText1, CharacterReader(specialText1).toString())
+        assertEquals(specialText2, CharacterReader(specialText2).toString())
+    }
+
+    @Test
+    fun testUtf8Reader() {
+        val test71540chars = "\ud869\udeb2\u304b\u309a  1"
+        val extractedText = CharacterReader(test71540chars).toString()
+        assertEquals(test71540chars, extractedText)
+    }
+
+    @Test
+    fun testStrReader() {
+        val test71540chars = "Abccdddd  1"
+        val extractedText = CharacterReader(test71540chars).toString()
+        assertEquals(test71540chars, extractedText)
+    }
+
     @Test
     fun consume() {
         val r = CharacterReader("one")
@@ -351,7 +375,7 @@ class CharacterReaderTest {
 
     @Test
     fun notEmptyAtBufferSplitPoint() {
-        val r = CharacterReader("How about now".toCharArray(), 3)
+        val r = CharacterReader(BufferReader("How about now"), 3)
         assertEquals("How", r.consumeTo(' '))
         assertFalse(r.isEmpty(), "Should not be empty")
         assertEquals(' ', r.consume())
@@ -498,7 +522,7 @@ class CharacterReaderTest {
 
     companion object {
         const val maxBufferLen = CharacterReader.maxBufferLen
-        fun BufferBuster(content: String?): String {
+        fun BufferBuster(content: String): String {
             val builder = StringBuilder()
             while (builder.length < maxBufferLen) builder.append(content)
             return builder.toString()

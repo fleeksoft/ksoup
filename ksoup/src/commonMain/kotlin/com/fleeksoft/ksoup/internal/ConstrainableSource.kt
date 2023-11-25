@@ -59,7 +59,7 @@ internal class ConstrainableSource(
             }
             read
         } catch (e: Exception) {
-            0
+            throw e
         }
     }
 

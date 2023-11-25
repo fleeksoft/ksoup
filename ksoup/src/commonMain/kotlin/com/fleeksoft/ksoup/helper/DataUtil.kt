@@ -16,7 +16,6 @@ import com.fleeksoft.ksoup.readFile
 import com.fleeksoft.ksoup.readGzipFile
 import com.fleeksoft.ksoup.select.Elements
 import io.ktor.utils.io.charsets.*
-import io.ktor.utils.io.core.*
 import okio.*
 import okio.Buffer
 import kotlin.random.Random
@@ -174,7 +173,7 @@ internal object DataUtil {
 
         // read the start of the stream and look for a BOM or meta charset
 
-        val peekedBuffer = bufferReader.getPeek()
+        val peekedBuffer = bufferReader.peek()
         // -1 because we read one more to see if completed. First read is < buffer size, so can't be invalid.
         val firstBytes: ByteArray = readToByteBuffer(peekedBuffer, firstReadBufferSize - 1)
         val fullyRead = peekedBuffer.exhausted()
@@ -245,12 +244,7 @@ internal object DataUtil {
             if (charsetName == null) charsetName = defaultCharsetName
             // TODO: bufferSize not used here because not supported yet
             bufferReader.setCharSet(charsetName)
-            /*val bufferReader = BufferReader(
-                String(
-                    bufferReader.readByteArray(),
-                    charset = Charset.forName(charsetName)
-                )
-            )*/
+
             if (bomCharset != null && bomCharset.offset) { // creating the buffered inputReader ignores the input pos, so must skip here
 //                skip first char which can be 2-4
                 bufferReader.skipFirstUnicodeChar(1)
