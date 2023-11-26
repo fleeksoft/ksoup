@@ -2,11 +2,10 @@ package com.fleeksoft.ksoup.ported
 
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
+import okio.*
 import okio.Buffer
-import okio.BufferedSource
 import okio.Closeable
 import okio.EOFException
-import okio.IOException
 
 public open class BufferReader : Closeable {
     // TODO: optimize it may be using single bytearray
@@ -22,6 +21,10 @@ public open class BufferReader : Closeable {
 
     public constructor(buffer: BufferedSource) {
         this._source = buffer
+    }
+
+    public constructor(source: Source) {
+        this._source = source.buffer()
     }
 
     // TODO: not sure if copy it or direct assign it
@@ -66,7 +69,7 @@ public open class BufferReader : Closeable {
         if (byteCount == 0 && getSource().exhausted()) return -1
         while (read < byteCount) {
             val readData = ByteArray(byteCount)
-            val thisRead: Int = readInternal(readData, offset, byteCount) //okio limit max 8192
+            val thisRead: Int = readInternal(readData, offset, byteCount - read) //okio limit max 8192
             if (thisRead > 0) {
                 readData.copyOfRange(0, thisRead).copyInto(sink, destinationOffset = read)
             }
