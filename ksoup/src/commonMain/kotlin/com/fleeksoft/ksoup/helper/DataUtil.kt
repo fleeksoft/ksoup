@@ -291,15 +291,6 @@ internal object DataUtil {
         } else {
             ConstrainableSource.wrap(BufferReader(bufferReader), maxSize.toInt()).readToByteBuffer(maxSize.toInt()).readByteArray()
         }
-        /*Validate.isTrue(maxSize >= 0, "maxSize must be 0 (unlimited) or larger")
-        val calculatedMaxSize: Int =
-            if (bufferReader.size() > 0) bufferReader.size().toInt() else maxSize
-        val input: ConstrainableSource =
-            ConstrainableSource.wrap(
-                bufferReader = bufferReader,
-                maxSize = calculatedMaxSize
-            )
-        return input.readToByteBuffer(maxSize)*/
     }
 
     fun emptyByteBuffer(): BufferReader {

@@ -155,7 +155,7 @@ public open class BufferReader : Closeable {
                         bytes.addAll(byteArray.copyOfRange(0, readBytes).toList())
                     }
                     if (getSource().exhausted()) {
-                        break;
+                        break
                     }
 
                     if (_charset != null) {
