@@ -26,7 +26,7 @@ public fun Ksoup.parse(
     parser: Parser = Parser.htmlParser()
 ): Document {
     return this.parse(
-        bufferReader = BufferReader(buffer = inputStream.source().buffer()),
+        bufferReader = BufferReader(source = inputStream.source()),
         charsetName = charsetName,
         baseUri = baseUri,
         parser = parser

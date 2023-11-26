@@ -7,7 +7,11 @@ import com.fleeksoft.ksoup.parse
 import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.ported.BufferReader
 import io.ktor.utils.io.charsets.*
+import okio.source
 import java.io.*
+import java.nio.charset.StandardCharsets
+import java.nio.file.Files
+import java.util.zip.GZIPInputStream
 import kotlin.test.*
 
 class DataUtilTestJvm {
@@ -18,7 +22,6 @@ class DataUtilTestJvm {
 
 
     @Test
-    @Throws(IOException::class)
     fun parseSequenceBufferReader() {
         // https://github.com/jhy/jsoup/pull/1671
         val bufferReader: BufferReader = ParseTest.resourceFilePathToBufferReader("htmltests/medium.html")
@@ -32,7 +35,7 @@ class DataUtilTestJvm {
         )
         val doc: Document =
             DataUtil.parseInputSource(
-                BufferReader(sequenceStream.readAllBytes()),
+                BufferReader(sequenceStream.source()),
                 null,
                 "",
                 Parser.htmlParser()
@@ -48,5 +51,64 @@ class DataUtilTestJvm {
         val form = doc.select("#form").first()
         assertEquals(2, form!!.children().size)
         assertEquals("UTF-8", doc.outputSettings().charset().name.uppercase())
+    }
+
+
+    @Test
+    fun handlesChunkedInputStream() {
+        val file = File(ParseTest.getResourceAbsolutePath("htmltests/large.html"))
+        val input = getFileAsString(file)
+        val expected = Ksoup.parse(
+            html = input,
+            baseUri = "https://example.com"
+        )
+        val doc: Document = Ksoup.parse(
+            bufferReader = BufferReader(FileInputStream(file).source()),
+            charsetName = null,
+            baseUri = "https://example.com"
+        )
+
+        val doc2: Document = Ksoup.parse(
+            inputStream = FileInputStream(file),
+            charsetName = null,
+            baseUri = "https://example.com"
+        )
+
+        println("""docSize: ${doc.toString().length}, expectedSize: ${expected.toString().length}""")
+        assertTrue(doc.hasSameValue(expected))
+        assertTrue(doc2.hasSameValue(expected))
+    }
+
+    @Test
+    fun handlesUnlimitedRead() {
+        val file = File(ParseTest.getResourceAbsolutePath("htmltests/large.html"))
+        val input: String = getFileAsString(file)
+
+        //        VaryingReadInputStream stream = new VaryingReadInputStream(ParseTest.inputStreamFrom(input));
+        val expected: Document = Ksoup.parse(html = input, baseUri = "https://example.com")
+        val doc: Document = Ksoup.parse(inputStream = inputStreamFrom(input), charsetName = null, baseUri = "https://example.com")
+        val doc2: Document = Ksoup.parse(inputStream = FileInputStream(file), charsetName = null, baseUri = "https://example.com")
+        val docThree: Document = Ksoup.parse(bufferReader = BufferReader(FileInputStream(file).source()), charsetName = null, baseUri = "https://example.com")
+
+        assertTrue(doc.hasSameValue(expected))
+        assertTrue(doc.hasSameValue(doc2))
+        assertTrue(doc.hasSameValue(docThree))
+    }
+
+    companion object {
+        fun getFileAsString(file: File): String {
+            val bytes: ByteArray = if (file.getName().endsWith(".gz")) {
+                val stream: InputStream = GZIPInputStream(FileInputStream(file))
+                val byteBuffer: ByteArray = DataUtil.readToByteBuffer(BufferReader(stream.source()), 0)
+                byteBuffer
+            } else {
+                Files.readAllBytes(file.toPath())
+            }
+            return String(bytes)
+        }
+
+        fun inputStreamFrom(s: String): InputStream {
+            return ByteArrayInputStream(s.toByteArray(StandardCharsets.UTF_8))
+        }
     }
 }
