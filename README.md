@@ -3,7 +3,7 @@
 **Ksoup** is a Kotlin Multiplatform library for working with real-world HTML and XML. It's a port of the renowned Java library, **jsoup**, and offers an easy-to-use API for URL fetching, data parsing, extraction, and manipulation using DOM and CSS selectors.
 
 [![Kotlin](https://img.shields.io/badge/Kotlin-1.9.20-blue.svg?style=flat&logo=kotlin)](https://kotlinlang.org)
-[![Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-green.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Maven Central](https://img.shields.io/maven-central/v/com.fleeksoft.ksoup/ksoup.svg)](https://mvnrepository.com/artifact/com.fleeksoft.ksoup)
 
 ![badge-android](http://img.shields.io/badge/platform-android-6EDB8D.svg?style=flat)
 ![badge-ios](http://img.shields.io/badge/platform-ios-CDCDCD.svg?style=flat)
@@ -24,13 +24,14 @@ Ksoup is adept at handling all varieties of HTML found in the wild.
 
 ## Getting started
 ### Ksoup is published on Maven Central
+Include the dependency in `commonMain`. Latest version [![Maven Central](https://img.shields.io/maven-central/v/com.fleeksoft.ksoup/ksoup.svg)](https://mvnrepository.com/artifact/com.fleeksoft.ksoup)
 ```Kotlin
 commonMain.dependencies {
-    implementation("com.fleeksoft.ksoup:ksoup:0.0.6")
+    implementation("com.fleeksoft.ksoup:ksoup:<version>")
 
 // Optional: Include only if you need to use network request functions such as
 // Ksoup.parseGetRequest, Ksoup.parseSubmitRequest, and Ksoup.parsePostRequest
-    implementation("com.fleeksoft.ksoup:ksoup-network:0.0.6")
+    implementation("com.fleeksoft.ksoup:ksoup-network:<version>")
 }
 ```
 
