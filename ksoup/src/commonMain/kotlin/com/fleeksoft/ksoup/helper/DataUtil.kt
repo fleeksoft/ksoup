@@ -158,7 +158,7 @@ internal object DataUtil {
     @Throws(IOException::class)
     fun parseInputSource(
         bufferReader: BufferReader?,
-        charsetNameIn: String?,
+        charsetName: String?,
         baseUri: String,
         parser: Parser,
     ): Document {
@@ -166,7 +166,7 @@ internal object DataUtil {
             // empty body
             return Document(baseUri)
         }
-        var charsetName: String? = charsetNameIn
+        var effectiveCharsetName: String? = charsetName
 
         /*@Nullable */
         var doc: Document? = null
@@ -181,8 +181,8 @@ internal object DataUtil {
 
         // look for BOM - overrides any other header or input
         val bomCharset: BomCharset? = detectCharsetFromBom(firstBytes)
-        if (bomCharset != null) charsetName = bomCharset.charset
-        if (charsetName == null) { // determine from meta. safe first parse as UTF-8
+        if (bomCharset != null) effectiveCharsetName = bomCharset.charset
+        if (effectiveCharsetName == null) { // determine from meta. safe first parse as UTF-8
             doc = try {
                 parser.parseInput(firstBytes, baseUri)
             } catch (e: UncheckedIOException) {
@@ -229,21 +229,21 @@ internal object DataUtil {
                 )
             ) { // need to re-decode. (case insensitive check here to match how validate works)
                 foundCharset = foundCharset.trim { it <= ' ' }.replace("[\"']".toRegex(), "")
-                charsetName = foundCharset
+                effectiveCharsetName = foundCharset
                 doc = null
             } else if (!fullyRead) {
                 doc = null
             }
         } else { // specified by content type header (or by user on file load)
             Validate.notEmpty(
-                charsetName,
+                effectiveCharsetName,
                 "Must set charset arg to character set of file to parse. Set to null to attempt to detect from HTML",
             )
         }
         if (doc == null) {
-            if (charsetName == null) charsetName = defaultCharsetName
+            if (effectiveCharsetName == null) effectiveCharsetName = defaultCharsetName
             // TODO: bufferSize not used here because not supported yet
-            bufferReader.setCharSet(charsetName)
+            bufferReader.setCharSet(effectiveCharsetName)
 
             if (bomCharset != null && bomCharset.offset) { // creating the buffered inputReader ignores the input pos, so must skip here
 //                skip first char which can be 2-4
@@ -256,11 +256,11 @@ internal object DataUtil {
                 throw e
             }
             val charset: Charset =
-                if (charsetName == defaultCharsetName) {
+                if (effectiveCharsetName == defaultCharsetName) {
                     UTF_8
                 } else {
                     Charset.forName(
-                        charsetName,
+                        effectiveCharsetName,
                     )
                 }
             doc!!.outputSettings().charset(charset)
@@ -291,15 +291,6 @@ internal object DataUtil {
         } else {
             ConstrainableSource.wrap(BufferReader(bufferReader), maxSize.toInt()).readToByteBuffer(maxSize.toInt()).readByteArray()
         }
-        /*Validate.isTrue(maxSize >= 0, "maxSize must be 0 (unlimited) or larger")
-        val calculatedMaxSize: Int =
-            if (bufferReader.size() > 0) bufferReader.size().toInt() else maxSize
-        val input: ConstrainableSource =
-            ConstrainableSource.wrap(
-                bufferReader = bufferReader,
-                maxSize = calculatedMaxSize
-            )
-        return input.readToByteBuffer(maxSize)*/
     }
 
     fun emptyByteBuffer(): BufferReader {

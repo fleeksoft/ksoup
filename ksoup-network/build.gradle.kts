@@ -15,6 +15,10 @@ kotlin {
     explicitApi()
 
     jvm()
+
+    linuxX64()
+    linuxArm64()
+
     androidTarget {
         compilations.all {
             kotlinOptions {
@@ -54,6 +58,10 @@ kotlin {
 
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
+        }
+
+        linuxMain.dependencies {
+            implementation(libs.ktor.client.cio)
         }
     }
 }

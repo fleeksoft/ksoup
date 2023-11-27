@@ -16,6 +16,9 @@ kotlin {
 
     jvm()
 
+    linuxX64()
+    linuxArm64()
+
     androidTarget {
         compilations.all {
             kotlinOptions {
@@ -39,7 +42,7 @@ kotlin {
 
             implementation(libs.kotlinx.datetime)
             implementation(libs.codepoints)
-            implementation(libs.okio)
+            api(libs.okio)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -51,13 +54,15 @@ kotlin {
         }
 
         jvmTest.dependencies {
-            implementation(libs.kotlin.test)
         }
 
         androidMain.dependencies {
         }
 
         iosMain.dependencies {
+        }
+
+        linuxTest {
         }
     }
 }

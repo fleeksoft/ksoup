@@ -154,8 +154,8 @@ class ParseTest {
     companion object {
 
         fun getResourceAbsolutePath(resourceName: String): String {
-//            /Users/sabeeh/AndroidStudioProjects/ksoup/ksoup/src/commonTest/resources/
-//            return "src/commonTest/resources/$resourceName".toPath()
+
+//            return "/Users/sabeeh/AndroidStudioProjects/ksoup/ksoup/src/commonTest/resources/$resourceName"
             return "../ksoup/src/commonTest/resources/$resourceName"
         }
 
@@ -175,9 +175,9 @@ class ParseTest {
 
         fun pathToBufferReader(file: Path): BufferReader {
             return if (file.name.endsWith(".gz")) {
-                BufferReader(readGzipFile(file).readByteArray())
+                BufferReader(readGzipFile(file))
             } else {
-                BufferReader(readFile(file).readByteArray())
+                BufferReader(readFile(file))
             }
         }
     }
