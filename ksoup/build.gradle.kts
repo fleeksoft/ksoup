@@ -64,6 +64,24 @@ kotlin {
 
         linuxTest {
         }
+
+        val jvmAndroidCommonMain by creating {
+            dependsOn(commonMain.get())
+            kotlin.srcDir("src/jvmAndroidCommonMain/kotlin")
+        }
+
+        // Make JVM and Android source sets depend on the new shared source set
+        jvmMain.get().dependsOn(jvmAndroidCommonMain)
+        androidMain.get().dependsOn(jvmAndroidCommonMain)
+
+        // Define a new source set for shared JVM and Android tests
+        val jvmAndroidCommonTest by creating {
+            dependsOn(commonTest.get())
+            kotlin.srcDir("src/jvmAndroidCommonTest/kotlin")
+        }
+        // Make JVM and Android test source sets depend on the new shared test source set
+        jvmTest.get().dependsOn(jvmAndroidCommonTest)
+        androidNativeTest.get().dependsOn(jvmAndroidCommonTest)
     }
 }
 

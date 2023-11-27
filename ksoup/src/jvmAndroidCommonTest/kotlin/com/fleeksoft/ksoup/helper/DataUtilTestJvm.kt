@@ -12,7 +12,9 @@ import java.io.*
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.util.zip.GZIPInputStream
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class DataUtilTestJvm {
 
@@ -88,7 +90,11 @@ class DataUtilTestJvm {
         val expected: Document = Ksoup.parse(html = input, baseUri = "https://example.com")
         val doc: Document = Ksoup.parse(inputStream = inputStreamFrom(input), charsetName = null, baseUri = "https://example.com")
         val doc2: Document = Ksoup.parse(inputStream = FileInputStream(file), charsetName = null, baseUri = "https://example.com")
-        val docThree: Document = Ksoup.parse(bufferReader = BufferReader(FileInputStream(file).source()), charsetName = null, baseUri = "https://example.com")
+        val docThree: Document = Ksoup.parse(
+            bufferReader = BufferReader(FileInputStream(file).source()),
+            charsetName = null,
+            baseUri = "https://example.com"
+        )
 
         assertTrue(doc.hasSameValue(expected))
         assertTrue(doc.hasSameValue(doc2))
