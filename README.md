@@ -7,9 +7,7 @@
 
 ![badge-android](http://img.shields.io/badge/platform-android-6EDB8D.svg?style=flat)
 ![badge-ios](http://img.shields.io/badge/platform-ios-CDCDCD.svg?style=flat)
-![badge-mac](http://img.shields.io/badge/platform-macos-111111.svg?style=flat)
 ![badge-jvm](http://img.shields.io/badge/platform-jvm-DB413D.svg?style=flat)
-![badge-windows](http://img.shields.io/badge/platform-windows-4D76CD.svg?style=flat)
 
 Ksoup implements the [WHATWG HTML5](https://html.spec.whatwg.org/multipage/) specification, parsing HTML to the same DOM as modern browsers do, but with support for Android, JVM, and native platforms.
 
@@ -70,8 +68,17 @@ For questions, ideas, or contributions regarding Ksoup, please contact us via [e
 
 Report any issues on [our GitHub page](https://github.com/fleeksoft/ksoup/issues), ensuring to check for duplicates beforehand.
 
-## Status
-Ksoup is in a alpha release phase, continually evolving from its jsoup origins.
+## Library Status
+
+| Platform         | Status        |
+|------------------|---------------|
+| Android          | Beta          |
+| JVM              | Beta          |
+| iOS              | Alpha         |
+| Linux            | Experimental  |
+| Native MacOS     | Coming Soon   |
+| Native Windows   | Coming Soon   |
+
 
 ## Licence
 
