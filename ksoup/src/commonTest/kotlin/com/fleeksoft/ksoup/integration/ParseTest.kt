@@ -154,8 +154,8 @@ class ParseTest {
     companion object {
 
         fun getResourceAbsolutePath(resourceName: String): String {
-//            /Users/sabeeh/AndroidStudioProjects/ksoup/ksoup/src/commonTest/resources/
-//            return "src/commonTest/resources/$resourceName".toPath()
+
+//            return "/Users/sabeeh/AndroidStudioProjects/ksoup/ksoup/src/commonTest/resources/$resourceName"
             return "../ksoup/src/commonTest/resources/$resourceName"
         }
 

@@ -6,7 +6,7 @@ import okio.Path
 import okio.buffer
 
 internal actual fun readGzipFile(file: Path): BufferedSource {
-    TODO("Not yet supported")
+    TODO("gzip Not yet supported")
 }
 
 internal actual fun readFile(file: Path): BufferedSource {
