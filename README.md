@@ -71,7 +71,7 @@ For questions, ideas, or contributions regarding Ksoup, please contact us via [e
 Report any issues on [our GitHub page](https://github.com/fleeksoft/ksoup/issues), ensuring to check for duplicates beforehand.
 
 ## Status
-Ksoup is in a stable release phase, continually evolving from its jsoup origins.
+Ksoup is in a alpha release phase, continually evolving from its jsoup origins.
 
 ## Licence
 
