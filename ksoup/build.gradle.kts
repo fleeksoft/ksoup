@@ -16,6 +16,8 @@ kotlin {
 
     jvm()
 
+    linuxX64()
+
     androidTarget {
         compilations.all {
             kotlinOptions {
@@ -51,13 +53,15 @@ kotlin {
         }
 
         jvmTest.dependencies {
-            implementation(libs.kotlin.test)
         }
 
         androidMain.dependencies {
         }
 
         iosMain.dependencies {
+        }
+
+        linuxTest {
         }
     }
 }
