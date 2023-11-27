@@ -1,16 +1,28 @@
 package com.fleeksoft.ksoup.select
 
-import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.nodes.Node
-import com.fleeksoft.ksoup.select.NodeFilter.FilterResult
 import com.fleeksoft.ksoup.ported.assert
+import com.fleeksoft.ksoup.select.NodeFilter.FilterResult
 
 /**
- * Depth-first node traversor. Use to iterate through all nodes under and including the specified root node.
- *
- *
- * This implementation does not use recursion, so a deep DOM does not risk blowing the stack.
- *
+Node visitor interface. Provide an implementing class to {@link NodeTraversor} or to {@link Node#traverse(NodeVisitor)}
+to iterate through nodes.
+<p>
+This interface provides two methods, {@link #head} and {@link #tail}. The head method is called when the node is first
+seen, and the tail method when all of the node's children have been visited. As an example, {@code head} can be used to
+emit a start tag for a node, and {@code tail} to create the end tag. The {@code tail} method defaults to a no-op, so
+the {@code head} method is the {@link FunctionalInterface}.
+</p>
+<p><b>Example:</b></p>
+<pre><code>
+doc.body().traverse { node, depth ->
+    when (node) {
+        is Element -> print("${node.tag()}: ${node.ownText()}");
+        is DataNode -> print("Data: ${node.getWholeData()}");
+        else -> print("${node.nodeName()} at depth $depth");
+    }
+}
+</code></pre>
  */
 public object NodeTraversor {
     /**
