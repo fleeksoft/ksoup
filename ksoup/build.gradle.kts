@@ -42,7 +42,7 @@ kotlin {
 
             implementation(libs.kotlinx.datetime)
             implementation(libs.codepoints)
-            implementation(libs.okio)
+            api(libs.okio)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
