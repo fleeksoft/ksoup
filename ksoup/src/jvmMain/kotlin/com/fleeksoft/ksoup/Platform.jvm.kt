@@ -1,14 +1,9 @@
 package com.fleeksoft.ksoup
 
-import okio.BufferedSource
-import okio.FileSystem
-import okio.GzipSource
-import okio.Path
-import okio.buffer
+import okio.*
 
 internal actual fun readGzipFile(file: Path): BufferedSource {
-    val fileSource = readFile(file)
-    return GzipSource(source = fileSource).buffer()
+    return readFile(file).gzip().buffer()
 }
 
 
