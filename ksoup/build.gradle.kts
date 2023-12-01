@@ -65,7 +65,7 @@ kotlin {
         linuxTest {
         }
 
-        val jvmAndroidCommonMain by creating {
+        /*val jvmAndroidCommonMain by creating {
             dependsOn(commonMain.get())
             kotlin.srcDir("src/jvmAndroidCommonMain/kotlin")
         }
@@ -81,7 +81,7 @@ kotlin {
         }
         // Make JVM and Android test source sets depend on the new shared test source set
         jvmTest.get().dependsOn(jvmAndroidCommonTest)
-        androidNativeTest.get().dependsOn(jvmAndroidCommonTest)
+        androidNativeTest.get().dependsOn(jvmAndroidCommonTest)*/
     }
 }
 
