@@ -24,17 +24,15 @@ import kotlin.random.Random
  * Internal static utilities for handling data.
  *
  */
-internal object DataUtil {
+public object DataUtil {
     private val charsetPattern: Regex =
         Regex("charset=\\s*['\"]?([^\\s,;'\"]*)", RegexOption.IGNORE_CASE)
-    val UTF_8: Charset =
-        Charsets.UTF_8 // Don't use StandardCharsets, as those only appear in Android API 19, and we target 10.
-    private val defaultCharsetName: String = UTF_8.name // used if not found in header or meta charset
+    private val defaultCharsetName: String = Charsets.UTF_8.name // used if not found in header or meta charset
     private const val firstReadBufferSize: Long = (1024 * 5).toLong()
     private const val bufferSize: Long = (1024 * 32).toLong()
     private val mimeBoundaryChars =
         "-_1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray()
-    const val boundaryLength = 32
+    public const val boundaryLength: Int = 32
 
     /**
      * Loads and parses a file to a Document, with the HtmlParser. Files that are compressed with gzip (and end in `.gz` or `.z`)
@@ -48,7 +46,7 @@ internal object DataUtil {
      * @throws IOException on IO error
      */
     @Throws(IOException::class)
-    fun load(path: Path, charsetName: String?, baseUri: String): Document {
+    public fun load(path: Path, charsetName: String?, baseUri: String): Document {
         return load(path, charsetName, baseUri, Parser.htmlParser())
     }
 
@@ -67,7 +65,7 @@ internal object DataUtil {
      * @since 1.14.2
      */
     @Throws(IOException::class)
-    fun load(
+    public fun load(
         filePath: Path,
         charsetName: String?,
         baseUri: String,
@@ -110,14 +108,14 @@ internal object DataUtil {
 
     /**
      * Parses a Document from an input steam.
-     * @param `in` input stream to parse. The stream will be closed after reading.
+     * @param bufferReader buffer reader to parse. The stream will be closed after reading.
      * @param charsetName character set of input (optional)
      * @param baseUri base URI of document, to resolve relative links against
      * @return Document
      * @throws IOException on IO error
      */
     @Throws(IOException::class)
-    fun load(
+    public fun load(
         bufferReader: BufferReader,
         charsetName: String?,
         baseUri: String,
@@ -127,7 +125,7 @@ internal object DataUtil {
 
     /**
      * Parses a Document from an input steam, using the provided Parser.
-     * @param `in` input stream to parse. The stream will be closed after reading.
+     * @param bufferReader buffer reader to parse. The stream will be closed after reading.
      * @param charsetName character set of input (optional)
      * @param baseUri base URI of document, to resolve relative links against
      * @param parser alternate [parser][Parser.xmlParser] to use.
@@ -135,7 +133,7 @@ internal object DataUtil {
      * @throws IOException on IO error
      */
     @Throws(IOException::class)
-    fun load(
+    public fun load(
         bufferReader: BufferReader,
         charsetName: String?,
         baseUri: String,
@@ -146,17 +144,17 @@ internal object DataUtil {
 
     /**
      * Writes the input stream to the output stream. Doesn't close them.
-     * @param `in` input stream to read from
+     * @param bufferReader buffer reader to read from
      * @param outSource output stream to write to
      * @throws IOException on IO error
      */
     @Throws(IOException::class)
-    fun crossStreams(source: ByteArray, outSource: Buffer) {
+    public fun crossStreams(source: ByteArray, outSource: Buffer) {
         outSource.write(source)
     }
 
     @Throws(IOException::class)
-    fun parseInputSource(
+    public fun parseInputSource(
         bufferReader: BufferReader?,
         charsetName: String?,
         baseUri: String,
@@ -257,7 +255,7 @@ internal object DataUtil {
             }
             val charset: Charset =
                 if (effectiveCharsetName == defaultCharsetName) {
-                    UTF_8
+                    Charsets.UTF_8
                 } else {
                     Charset.forName(
                         effectiveCharsetName,
@@ -266,7 +264,7 @@ internal object DataUtil {
             doc!!.outputSettings().charset(charset)
             if (!charset.canEncode()) {
                 // some charsets can read but not encode; switch to an encodable charset and update the meta el
-                doc.charset(UTF_8)
+                doc.charset(Charsets.UTF_8)
             }
         }
 
@@ -282,19 +280,16 @@ internal object DataUtil {
      * @throws IOException if an exception occurs whilst reading from the input stream.
      */
     @Throws(IOException::class)
-    fun readToByteBuffer(bufferReader: BufferReader, maxSize: Long): ByteArray {
+    public fun readToByteBuffer(bufferReader: BufferReader, maxSize: Long): ByteArray {
         require(maxSize >= 0) {
             "maxSize must be 0 (unlimited) or larger"
         }
         return if (maxSize == 0L) {
             bufferReader.readByteArray()
         } else {
-            ConstrainableSource.wrap(BufferReader(bufferReader), maxSize.toInt()).readToByteBuffer(maxSize.toInt()).readByteArray()
+            ConstrainableSource.wrap(BufferReader(bufferReader), maxSize.toInt()).readToByteBuffer(maxSize.toInt())
+                .readByteArray()
         }
-    }
-
-    fun emptyByteBuffer(): BufferReader {
-        return BufferReader()
     }
 
     /**
@@ -304,7 +299,7 @@ internal object DataUtil {
      * @return "EUC-JP", or null if not found. Charset is trimmed and uppercased.
      */
 //    @Nullable
-    fun getCharsetFromContentType(contentType: String?): String? {
+    internal fun getCharsetFromContentType(contentType: String?): String? {
         if (contentType == null) return null
         val matchResult: MatchResult? = charsetPattern.find(contentType)
         matchResult?.let {
@@ -334,7 +329,7 @@ internal object DataUtil {
     /**
      * Creates a random string, suitable for use as a mime boundary
      */
-    fun mimeBoundary(): String {
+    internal fun mimeBoundary(): String {
         val mime: StringBuilder = StringUtil.borrowBuilder()
         for (i in 0 until boundaryLength) {
             mime.append(mimeBoundaryChars[Random.nextInt(mimeBoundaryChars.size)])
