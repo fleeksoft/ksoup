@@ -10,6 +10,7 @@ import com.fleeksoft.ksoup.nodes.Element
 import com.fleeksoft.ksoup.nodes.Entities
 import com.fleeksoft.ksoup.nodes.TextNode
 import com.fleeksoft.ksoup.nodes.XmlDeclaration
+import com.fleeksoft.ksoup.runTest
 import io.ktor.utils.io.charsets.Charsets
 import io.ktor.utils.io.charsets.name
 import kotlin.test.Ignore
@@ -74,22 +75,24 @@ class XmlTreeBuilderTest {
     @Ignore
     @Test
     fun testSupplyParserToConnection() {
-        val xmlUrl = "http://direct.infohound.net/tools/jsoup-xml-test.xml"
+        runTest {
+            val xmlUrl = "http://direct.infohound.net/tools/jsoup-xml-test.xml"
 
-        // parse with both xml and html parser, ensure different
-        val xmlDoc: Document = Ksoup.parseGetRequest(xmlUrl, parser = Parser.xmlParser())
-        val htmlDoc: Document = Ksoup.parseGetRequest(xmlUrl, parser = Parser.htmlParser())
-        val autoXmlDoc: Document =
-            Ksoup.parseGetRequest(xmlUrl) // check connection auto detects xml, uses xml parser
-        assertEquals(
-            "<doc><val>One<val>Two</val>Three</val></doc>",
-            TextUtil.stripNewlines(xmlDoc.html())
-        )
-        assertNotEquals(htmlDoc, xmlDoc)
-        assertEquals(xmlDoc, autoXmlDoc)
-        assertEquals(1, htmlDoc.select("head").size) // html parser normalises
-        assertEquals(0, xmlDoc.select("head").size) // xml parser does not
-        assertEquals(0, autoXmlDoc.select("head").size) // xml parser does not
+            // parse with both xml and html parser, ensure different
+            val xmlDoc: Document = Ksoup.parseGetRequest(xmlUrl, parser = Parser.xmlParser())
+            val htmlDoc: Document = Ksoup.parseGetRequest(xmlUrl, parser = Parser.htmlParser())
+            val autoXmlDoc: Document =
+                Ksoup.parseGetRequest(xmlUrl) // check connection auto detects xml, uses xml parser
+            assertEquals(
+                "<doc><val>One<val>Two</val>Three</val></doc>",
+                TextUtil.stripNewlines(xmlDoc.html())
+            )
+            assertNotEquals(htmlDoc, xmlDoc)
+            assertEquals(xmlDoc, autoXmlDoc)
+            assertEquals(1, htmlDoc.select("head").size) // html parser normalises
+            assertEquals(0, xmlDoc.select("head").size) // xml parser does not
+            assertEquals(0, autoXmlDoc.select("head").size) // xml parser does not
+        }
     }
 
     @Test
