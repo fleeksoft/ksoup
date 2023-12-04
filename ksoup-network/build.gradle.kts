@@ -16,6 +16,10 @@ kotlin {
 
     jvm()
 
+    js(IR) {
+        nodejs()
+    }
+
     linuxX64()
     linuxArm64()
 
@@ -62,6 +66,10 @@ kotlin {
 
         linuxMain.dependencies {
             implementation(libs.ktor.client.cio)
+        }
+
+        jsMain.dependencies {
+            implementation(libs.ktor.client.js)
         }
     }
 }

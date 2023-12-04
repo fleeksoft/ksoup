@@ -16,6 +16,10 @@ kotlin {
 
     jvm()
 
+    js(IR) {
+        nodejs()
+    }
+
     linuxX64()
     linuxArm64()
 
@@ -63,6 +67,10 @@ kotlin {
         }
 
         linuxTest {
+        }
+
+        jsMain.dependencies {
+            implementation(libs.okio.nodefilesystem)
         }
 
         /*val jvmAndroidCommonMain by creating {
