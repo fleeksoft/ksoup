@@ -32,7 +32,9 @@ kotlin {
     }
 
     listOf(
-        iosX64(), iosArm64(), iosSimulatorArm64()
+        iosX64(),
+        iosArm64(),
+        iosSimulatorArm64(),
     ).forEach {
         it.binaries.framework {
             baseName = "ksoup"
@@ -40,10 +42,11 @@ kotlin {
         }
     }
 
+    applyDefaultHierarchyTemplate()
+
     sourceSets {
         commonMain.dependencies {
             implementation(libs.ktor.client.core)
-
             implementation(libs.kotlinx.datetime)
             implementation(libs.codepoints)
             api(libs.okio)
@@ -66,14 +69,12 @@ kotlin {
         iosMain.dependencies {
         }
 
-        linuxTest {
-        }
-
         jsMain.dependencies {
             implementation(libs.okio.nodefilesystem)
         }
 
-        /*val jvmAndroidCommonMain by creating {
+
+        val jvmAndroidCommonMain by creating {
             dependsOn(commonMain.get())
             kotlin.srcDir("src/jvmAndroidCommonMain/kotlin")
         }
@@ -89,7 +90,7 @@ kotlin {
         }
         // Make JVM and Android test source sets depend on the new shared test source set
         jvmTest.get().dependsOn(jvmAndroidCommonTest)
-        androidNativeTest.get().dependsOn(jvmAndroidCommonTest)*/
+        androidNativeTest.get().dependsOn(jvmAndroidCommonTest)
     }
 }
 

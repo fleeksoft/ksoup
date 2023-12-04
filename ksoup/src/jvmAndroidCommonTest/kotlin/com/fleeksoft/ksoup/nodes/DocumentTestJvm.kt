@@ -11,6 +11,7 @@ import kotlin.test.*
  *
  * @author Sabeeh, fleeksoft@gmail.com
  */
+
 class DocumentTestJvm {
 
     @Test
@@ -34,7 +35,7 @@ class DocumentTestJvm {
         assertEquals(html, p.outerHtml())
         val thread = Thread {
             out[0] = p.outerHtml()
-            doc.outputSettings().charset(StandardCharsets.US_ASCII)
+            doc.outputSettings().charset(StandardCharsets.US_ASCII.name())
         }
         thread.start()
         thread.join()
@@ -46,25 +47,27 @@ class DocumentTestJvm {
     @Test
     @Throws(Exception::class)
     fun testShiftJisRoundtrip() {
-        val input = ("<html>"
-                + "<head>"
-                + "<meta http-equiv=\"content-type\" content=\"text/html; charset=Shift_JIS\" />"
-                + "</head>"
-                + "<body>"
-                + "before&nbsp;after"
-                + "</body>"
-                + "</html>")
-        val `is`: BufferReader = BufferReader(input.toByteArray(StandardCharsets.US_ASCII))
-        val doc: Document = Ksoup.parse(`is`, null, "http://example.com")
+        val input = (
+            "<html>" +
+                "<head>" +
+                "<meta http-equiv=\"content-type\" content=\"text/html; charset=Shift_JIS\" />" +
+                "</head>" +
+                "<body>" +
+                "before&nbsp;after" +
+                "</body>" +
+                "</html>"
+            )
+        val buffer: BufferReader = BufferReader(input.toByteArray(StandardCharsets.US_ASCII))
+        val doc: Document = Ksoup.parse(bufferReader = buffer, baseUri = "http://example.com", charsetName = null)
         doc.outputSettings().escapeMode(Entities.EscapeMode.xhtml)
         val output = String(
             doc.html().toByteArray(doc.outputSettings().charset()),
-            doc.outputSettings().charset()
+            doc.outputSettings().charset(),
         )
         assertFalse(output.contains("?"), "Should not have contained a '?'.")
         assertTrue(
             output.contains("&#xa0;") || output.contains("&nbsp;"),
-            "Should have contained a '&#xa0;' or a '&nbsp;'."
+            "Should have contained a '&#xa0;' or a '&nbsp;'.",
         )
     }
 }
