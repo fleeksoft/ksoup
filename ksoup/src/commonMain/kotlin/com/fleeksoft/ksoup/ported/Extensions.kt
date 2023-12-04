@@ -71,6 +71,10 @@ internal fun URLBuilder.appendRelativePath(relativePath: String): URLBuilder {
             }
 
             ".." -> {
+                // Clean up last path if exist
+                if (index == 0 && !isLastSlash) {
+                    segments.removeLastOrNull()
+                }
                 if (segments.isNotEmpty()) {
                     segments.removeLast()
                 }
