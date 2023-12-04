@@ -4,12 +4,13 @@ kotlin = "1.9.21"
 compileSdk = "34"
 minSdk = "21"
 libraryVersion = "0.0.7"
-junitJupiter = "5.9.3"
+junitJupiter = "5.10.0"
 compose = "1.5.4"
 compose-compiler = "1.5.4"
 compose-material3 = "1.1.2"
 androidx-activityCompose = "1.8.1"
 ktor = "2.3.6"
+coroutines = "1.7.3"
 okio = "3.6.0"
 kotlinxDatetime = "0.4.1"
 kotlinx-io = "0.3.0"
@@ -28,6 +29,7 @@ compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref = 
 compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "compose" }
 compose-foundation = { module = "androidx.compose.foundation:foundation", version.ref = "compose" }
 compose-material3 = { module = "androidx.compose.material3:material3", version.ref = "compose-material3" }
+kotlinx-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
 ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
