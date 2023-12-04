@@ -1,10 +1,8 @@
 package com.fleeksoft.ksoup
 
-import com.fleeksoft.ksoup.helper.DataUtil
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.ported.BufferReader
-import okio.buffer
 import okio.source
 import java.io.InputStream
 
@@ -19,16 +17,16 @@ import java.io.InputStream
  */
 
 // TODO: create common module for android and jvm
-public fun Ksoup.parse(
+public fun Ksoup.parseInputStream(
     inputStream: InputStream,
     baseUri: String,
     charsetName: String? = null,
-    parser: Parser = Parser.htmlParser()
+    parser: Parser = Parser.htmlParser(),
 ): Document {
-    return this.parse(
+    return parse(
         bufferReader = BufferReader(source = inputStream.source()),
         charsetName = charsetName,
         baseUri = baseUri,
-        parser = parser
+        parser = parser,
     )
 }
