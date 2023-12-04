@@ -11,7 +11,7 @@ internal abstract class CombiningEvaluator internal constructor() : Evaluator() 
     val evaluators: ArrayList<Evaluator> = ArrayList<Evaluator>()
     val sortedEvaluators: ArrayList<Evaluator> = ArrayList<Evaluator>()
     var num = 0
-    var cost = 0
+    private var _cost = 0
 
     internal constructor(evaluators: Collection<Evaluator>) : this() {
         this.evaluators.addAll(evaluators)
@@ -26,7 +26,7 @@ internal abstract class CombiningEvaluator internal constructor() : Evaluator() 
     }
 
     override fun cost(): Int {
-        return cost
+        return _cost
     }
 
 
@@ -44,9 +44,9 @@ internal abstract class CombiningEvaluator internal constructor() : Evaluator() 
         num = evaluators.size
 
         // sort the evaluators by lowest cost first, to optimize the evaluation order
-        cost = 0
+        _cost = 0
         for (evaluator in evaluators) {
-            cost += evaluator.cost()
+            _cost += evaluator.cost()
         }
         sortedEvaluators.clear()
         sortedEvaluators.addAll(evaluators)
