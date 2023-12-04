@@ -26,7 +26,7 @@ import kotlin.random.Random
  */
 internal object DataUtil {
     private val charsetPattern: Regex =
-        Regex("(?i)\\bcharset=\\s*[\"']?([^\\s,;\"']*)")
+        Regex("charset=\\s*['\"]?([^\\s,;'\"]*)", RegexOption.IGNORE_CASE)
     val UTF_8: Charset =
         Charsets.UTF_8 // Don't use StandardCharsets, as those only appear in Android API 19, and we target 10.
     private val defaultCharsetName: String = UTF_8.name // used if not found in header or meta charset
