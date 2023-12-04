@@ -1,7 +1,7 @@
 package com.fleeksoft.ksoup.nodes
 
 import com.fleeksoft.ksoup.Ksoup
-import com.fleeksoft.ksoup.integration.ParseTest
+import com.fleeksoft.ksoup.TestHelper
 import com.fleeksoft.ksoup.parser.ParseSettings
 import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.ported.BufferReader
@@ -68,7 +68,7 @@ class DocumentTest {
             Ksoup.parse("<html><head><script>one</script><noscript><p>two</p></noscript></head><body><p>three</p></body><p>four</p></html>")
         assertEquals(
             "<html><head><script>one</script><noscript>&lt;p&gt;two</noscript></head><body><p>three</p><p>four</p></body></html>",
-            com.fleeksoft.ksoup.TextUtil.stripNewlines(doc.html())
+            com.fleeksoft.ksoup.TextUtil.stripNewlines(doc.html()),
         )
     }
 
@@ -82,7 +82,7 @@ class DocumentTest {
         assertEquals("head", head.tagName())
         assertEquals(
             "<html><head></head><body></body></html>",
-            com.fleeksoft.ksoup.TextUtil.stripNewlines(doc.html())
+            com.fleeksoft.ksoup.TextUtil.stripNewlines(doc.html()),
         )
     }
 
@@ -92,7 +92,7 @@ class DocumentTest {
         val doc =
             parser.parseInput(
                 "<!DOCTYPE html><HTML><HEAD><TITLE>SHOUTY</TITLE></HEAD><BODY>HELLO</BODY></HTML>",
-                ""
+                "",
             )
         val body = doc.body()
         assertEquals("BODY", body.tagName())
@@ -112,17 +112,17 @@ class DocumentTest {
         val clone = doc.clone()
         assertEquals(
             "<html><head><title>Hello</title></head><body><p>One</p><p>Two</p></body></html>",
-            com.fleeksoft.ksoup.TextUtil.stripNewlines(clone.html())
+            com.fleeksoft.ksoup.TextUtil.stripNewlines(clone.html()),
         )
         clone.title("Hello there")
         clone.expectFirst("p").text("One more").attr("id", "1")
         assertEquals(
             "<html><head><title>Hello there</title></head><body><p id=\"1\">One more</p><p>Two</p></body></html>",
-            com.fleeksoft.ksoup.TextUtil.stripNewlines(clone.html())
+            com.fleeksoft.ksoup.TextUtil.stripNewlines(clone.html()),
         )
         assertEquals(
             "<html><head><title>Hello</title></head><body><p>One</p><p>Two</p></body></html>",
-            com.fleeksoft.ksoup.TextUtil.stripNewlines(doc.html())
+            com.fleeksoft.ksoup.TextUtil.stripNewlines(doc.html()),
         )
     }
 
@@ -141,7 +141,7 @@ class DocumentTest {
         assertEquals(doc.html(), clone.html())
         assertEquals(
             "<!doctype html><html><head><title>Doctype test</title></head><body></body></html>",
-            com.fleeksoft.ksoup.TextUtil.stripNewlines(clone.html())
+            com.fleeksoft.ksoup.TextUtil.stripNewlines(clone.html()),
         )
     }
 
@@ -149,10 +149,11 @@ class DocumentTest {
     @Throws(IOException::class)
     fun testLocation() {
         // tests location vs base href
-        val `in`: String = ParseTest.getResourceAbsolutePath("htmltests/basehref.html")
+        val `in`: String = TestHelper.getResourceAbsolutePath("htmltests/basehref.html")
         val doc: Document = Ksoup.parseFile(
-            file = `in`, baseUri = "http://example.com/",
-            charsetName = "UTF-8"
+            file = `in`,
+            baseUri = "http://example.com/",
+            charsetName = "UTF-8",
         )
         val location = doc.location()
         val baseUri = doc.baseUri()
@@ -161,7 +162,7 @@ class DocumentTest {
         assertEquals("./anotherfile.html", doc.expectFirst("a").attr("href"))
         assertEquals(
             "https://example.com/path/anotherfile.html",
-            doc.expectFirst("a").attr("abs:href")
+            doc.expectFirst("a").attr("abs:href"),
         )
     }
 
@@ -184,7 +185,8 @@ class DocumentTest {
  <body>
   <img async checked src="&amp;<>&quot;">&lt;&gt;&amp;"<foo />bar
  </body>
-</html>""", doc.html()
+</html>""",
+            doc.html(),
         )
         doc.outputSettings().syntax(Document.OutputSettings.Syntax.xml)
         assertEquals(
@@ -194,7 +196,8 @@ class DocumentTest {
  <body>
   <img async="" checked="checked" src="&amp;&lt;>&quot;" />&lt;&gt;&amp;"<foo />bar
  </body>
-</html>""", doc.html()
+</html>""",
+            doc.html(),
         )
     }
 
@@ -293,8 +296,9 @@ class DocumentTest {
         docNoCharset.updateMetaCharsetElement(true)
         docNoCharset.charset(Charset.forName(charsetUtf8))
         assertEquals(
-            charsetUtf8, docNoCharset.select("meta[charset]").first()!!
-                .attr("charset")
+            charsetUtf8,
+            docNoCharset.select("meta[charset]").first()!!
+                .attr("charset"),
         )
         val htmlCharsetUTF8 = """<html>
  <head>
@@ -455,22 +459,24 @@ class DocumentTest {
     @Test
     @Throws(Exception::class)
     fun testShiftJisRoundtrip() {
-        val input = ("<html>"
-                + "<head>"
-                + "<meta http-equiv=\"content-type\" content=\"text/html; charset=Shift_JIS\" />"
-                + "</head>"
-                + "<body>"
-                + "before&nbsp;after"
-                + "</body>"
-                + "</html>")
+        val input = (
+            "<html>" +
+                "<head>" +
+                "<meta http-equiv=\"content-type\" content=\"text/html; charset=Shift_JIS\" />" +
+                "</head>" +
+                "<body>" +
+                "before&nbsp;after" +
+                "</body>" +
+                "</html>"
+            )
         val `is`: BufferReader = BufferReader(input.toByteArray())
-        val doc: Document = Ksoup.parse(`is`, null, "http://example.com")
+        val doc: Document = Ksoup.parse(bufferReader = `is`, baseUri = "http://example.com", charsetName = null)
         doc.outputSettings().escapeMode(Entities.EscapeMode.xhtml)
         val output = doc.html().toByteArray(doc.outputSettings().charset()).decodeToString()
         assertFalse(output.contains("?"), "Should not have contained a '?'.")
         assertTrue(
             output.contains("&#xa0;") || output.contains("&nbsp;"),
-            "Should have contained a '&#xa0;' or a '&nbsp;'."
+            "Should have contained a '&#xa0;' or a '&nbsp;'.",
         )
     }
 

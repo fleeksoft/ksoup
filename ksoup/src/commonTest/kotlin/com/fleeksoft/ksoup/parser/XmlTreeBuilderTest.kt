@@ -1,8 +1,8 @@
 package com.fleeksoft.ksoup.parser
 
 import com.fleeksoft.ksoup.Ksoup
+import com.fleeksoft.ksoup.TestHelper
 import com.fleeksoft.ksoup.TextUtil
-import com.fleeksoft.ksoup.integration.ParseTest
 import com.fleeksoft.ksoup.network.parseGetRequest
 import com.fleeksoft.ksoup.nodes.CDataNode
 import com.fleeksoft.ksoup.nodes.Document
@@ -34,7 +34,7 @@ class XmlTreeBuilderTest {
         val doc = tb.parse(xml, "http://foo.com/")
         assertEquals(
             "<doc id=\"2\" href=\"/bar\">Foo <br /><link>One</link><link>Two</link></doc>",
-            TextUtil.stripNewlines(doc.html())
+            TextUtil.stripNewlines(doc.html()),
         )
         assertEquals(doc.getElementById("2")!!.absUrl("href"), "http://foo.com/bar")
     }
@@ -47,7 +47,7 @@ class XmlTreeBuilderTest {
         val doc = tb.parse(xml, "http://foo.com/")
         assertEquals(
             "<doc><val>One<val>Two</val>Three</val></doc>",
-            TextUtil.stripNewlines(doc.html())
+            TextUtil.stripNewlines(doc.html()),
         )
     }
 
@@ -58,7 +58,7 @@ class XmlTreeBuilderTest {
         val doc = tb.parse(xml, "http://foo.com/")
         assertEquals(
             "<!DOCTYPE HTML><!-- a comment -->One <qux />Two",
-            TextUtil.stripNewlines(doc.html())
+            TextUtil.stripNewlines(doc.html()),
         )
     }
 
@@ -68,7 +68,7 @@ class XmlTreeBuilderTest {
         val doc = Ksoup.parse(xml, "http://foo.com/", Parser.xmlParser())
         assertEquals(
             "<doc><val>One<val>Two</val>Three</val></doc>",
-            TextUtil.stripNewlines(doc.html())
+            TextUtil.stripNewlines(doc.html()),
         )
     }
 
@@ -85,7 +85,7 @@ class XmlTreeBuilderTest {
                 Ksoup.parseGetRequest(xmlUrl) // check connection auto detects xml, uses xml parser
             assertEquals(
                 "<doc><val>One<val>Two</val>Three</val></doc>",
-                TextUtil.stripNewlines(xmlDoc.html())
+                TextUtil.stripNewlines(xmlDoc.html()),
             )
             assertNotEquals(htmlDoc, xmlDoc)
             assertEquals(xmlDoc, autoXmlDoc)
@@ -98,11 +98,16 @@ class XmlTreeBuilderTest {
     @Test
     fun testSupplyParserToDataStream() {
 //
-        val inStream = ParseTest.resourceFilePathToBufferReader("htmltests/xml-test.xml")
-        val doc = Ksoup.parse(inStream, null, "http://foo.com", Parser.xmlParser())
+        val inStream = TestHelper.resourceFilePathToBufferReader("htmltests/xml-test.xml")
+        val doc = Ksoup.parse(
+            bufferReader = inStream,
+            baseUri = "http://foo.com",
+            charsetName = null,
+            parser = Parser.xmlParser(),
+        )
         assertEquals(
             "<doc><val>One<val>Two</val>Three</val></doc>",
-            TextUtil.stripNewlines(doc.html())
+            TextUtil.stripNewlines(doc.html()),
         )
     }
 
@@ -111,14 +116,14 @@ class XmlTreeBuilderTest {
         // html will force "<br>one</br>" to logically "<br />One<br />". XML should be stay "<br>one</br> -- don't recognise tag.
         val htmlDoc = Ksoup.parse("<br>one</br>")
         assertEquals("<br>\none\n<br>", htmlDoc.body().html())
-        val xmlDoc = Ksoup.parse("<br>one</br>", "", Parser.xmlParser())
+        val xmlDoc = Ksoup.parse(html = "<br>one</br>", baseUri = "", parser = Parser.xmlParser())
         assertEquals("<br>one</br>", xmlDoc.html())
     }
 
     @Test
     fun handlesXmlDeclarationAsDeclaration() {
         val html = "<?xml encoding='UTF-8' ?><body>One</body><!-- comment -->"
-        val doc = Ksoup.parse(html, "", Parser.xmlParser())
+        val doc = Ksoup.parse(html = html, baseUri = "", parser = Parser.xmlParser())
         assertEquals("<?xml encoding=\"UTF-8\"?><body>One</body><!-- comment -->", doc.outerHtml())
         assertEquals("#declaration", doc.childNode(0).nodeName())
         assertEquals("#comment", doc.childNode(2).nodeName())
@@ -149,12 +154,17 @@ class XmlTreeBuilderTest {
 
     @Test
     fun testDetectCharsetEncodingDeclaration() {
-        val inStream = ParseTest.resourceFilePathToBufferReader("htmltests/xml-charset.xml")
-        val doc = Ksoup.parse(inStream, null, "http://example.com/", Parser.xmlParser())
+        val inStream = TestHelper.resourceFilePathToBufferReader("htmltests/xml-charset.xml")
+        val doc = Ksoup.parse(
+            bufferReader = inStream,
+            baseUri = "http://example.com/",
+            charsetName = null,
+            parser = Parser.xmlParser(),
+        )
         assertEquals("ISO-8859-1", doc.charset().name.uppercase())
         assertEquals(
             "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><data>äöåéü</data>",
-            TextUtil.stripNewlines(doc.html())
+            TextUtil.stripNewlines(doc.html()),
         )
     }
 
@@ -169,7 +179,7 @@ class XmlTreeBuilderTest {
         assertEquals("version=\"1\" encoding=\"UTF-8\" something=\"else\"", decl.getWholeDeclaration())
         assertEquals(
             "<?xml version=\"1\" encoding=\"UTF-8\" something=\"else\"?>",
-            decl.outerHtml()
+            decl.outerHtml(),
         )
     }
 
@@ -201,7 +211,8 @@ class XmlTreeBuilderTest {
 <html>
  <head></head>
  <body></body>
-</html>""", document.outerHtml()
+</html>""",
+            document.outerHtml(),
         )
     }
 
@@ -211,7 +222,7 @@ class XmlTreeBuilderTest {
         val doc = Ksoup.parse(xml, "", Parser.xmlParser())
         assertEquals(
             "<CHECK>One</CHECK><TEST ID=\"1\">Check</TEST>",
-            TextUtil.stripNewlines(doc.html())
+            TextUtil.stripNewlines(doc.html()),
         )
     }
 
@@ -281,7 +292,7 @@ class XmlTreeBuilderTest {
         val doc = Ksoup.parse(html, "", Parser.xmlParser())
         assertEquals(
             "<script> var a=\"<!--?\"; var b=\"?-->\"; </script>",
-            doc.html()
+            doc.html(),
         ) // converted from pseudo xmldecl to comment
     }
 
@@ -295,7 +306,7 @@ class XmlTreeBuilderTest {
         assertEquals(
             "<p One=\"One\" ONE=\"Two\" one=\"Three\" two=\"Six\" Two=\"Eight\">Text</p>",
             doc.selectFirst("p")!!
-                .outerHtml()
+                .outerHtml(),
         )
     }
 
@@ -381,7 +392,7 @@ class XmlTreeBuilderTest {
             assertEquals(
                 Parser.NamespaceXml,
                 el.tag().namespace(),
-                "Element ${el.tagName()} not in XML namespace"
+                "Element ${el.tagName()} not in XML namespace",
             )
         }
     }
