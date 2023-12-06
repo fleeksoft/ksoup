@@ -90,7 +90,6 @@ public object DataUtil {
                 } else {
                     BufferReader(bufferedSource)
                 }
-
             } else {
                 BufferReader(bufferedSource)
             }
@@ -202,7 +201,6 @@ public object DataUtil {
                 }
                 if (foundCharset != null) break
             }
-
             // look for <?xml encoding='ISO-8859-1'?>
             if (foundCharset == null && doc.childNodeSize() > 0) {
                 val first: Node = doc.childNode(0)
@@ -364,11 +362,11 @@ public object DataUtil {
         } else {
             ByteArray(4)
         }
-        if (bom[0].toInt() == 0x00 && bom[1].toInt() == 0x00 && bom[2] == 0xFE.toByte() && bom[3] == 0xFF.toByte() ||  // BE
+        if (bom[0].toInt() == 0x00 && bom[1].toInt() == 0x00 && bom[2] == 0xFE.toByte() && bom[3] == 0xFF.toByte() || // BE
             bom[0] == 0xFF.toByte() && bom[1] == 0xFE.toByte() && bom[2].toInt() == 0x00 && bom[3].toInt() == 0x00
         ) { // LE
             return BomCharset("UTF-32", false) // and I hope it's on your system
-        } else if (bom[0] == 0xFE.toByte() && bom[1] == 0xFF.toByte() ||  // BE
+        } else if (bom[0] == 0xFE.toByte() && bom[1] == 0xFF.toByte() || // BE
             bom[0] == 0xFF.toByte() && bom[1] == 0xFE.toByte()
         ) {
             return BomCharset("UTF-16", false) // in all Javas
