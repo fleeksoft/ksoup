@@ -12,3 +12,8 @@ internal actual fun readGzipFile(file: Path): BufferedSource {
 internal actual fun readFile(file: Path): BufferedSource {
     return NodeJsFileSystem.source(file).buffer()
 }
+
+public actual object Platform {
+    public actual val current: PlatformType
+        get() = PlatformType.JS
+}

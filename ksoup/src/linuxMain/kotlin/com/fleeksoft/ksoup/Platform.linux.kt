@@ -13,3 +13,8 @@ internal actual fun readFile(file: Path): BufferedSource {
     FileSystem.SYSTEM.source(file).buffer()
     return FileSystem.SYSTEM.source(file).buffer()
 }
+
+public actual object Platform {
+    public actual val current: PlatformType
+        get() = PlatformType.LINUX
+}
