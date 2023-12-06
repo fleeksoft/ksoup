@@ -6,8 +6,8 @@ import okio.Path.Companion.toPath
 
 object TestHelper {
     fun getResourceAbsolutePath(resourceName: String): String {
-        return "/Users/sabeeh/IdeaProjects/ksoup/ksoup/src/commonTest/resources/$resourceName"
-//            return "../ksoup/src/commonTest/resources/$resourceName"
+//        return "/Users/sabeeh/AndroidStudioProjects/ksoup/ksoup/src/commonTest/resources/$resourceName"
+            return "../ksoup/src/commonTest/resources/$resourceName"
     }
 
     fun getFileAsString(file: Path): String {
