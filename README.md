@@ -75,15 +75,15 @@ Report any issues on [our GitHub page](https://github.com/fleeksoft/ksoup/issues
 
 ## Library Status
 
-| Platform       | Status       | Notes                         |
-|----------------|--------------|-------------------------------|
-| Android        | Beta         |                               |
-| JVM            | Beta         |                               |
-| iOS            | Alpha        |                               |
-| Linux          | Experimental | Does not support gzip files.  |
-| Js             | Experimental | Does not support gzip files.  |
-| Native MacOS   | Coming Soon  |                               |
-| Native Windows | Coming Soon  |                               |
+| Platform       | Status       | Notes                                         |
+|----------------|--------------|-----------------------------------------------|
+| Android        | Beta         |                                               |
+| JVM            | Beta         |                                               |
+| iOS            | Alpha        | Does not support few charsets.                |
+| Linux          | Experimental | Does not support gzip files and few charsets. |
+| JS             | Alpha        | Does not support gzip files and few charsets. |
+| Native MacOS   | Coming Soon  |                                               |
+| Native Windows | Coming Soon  |                                               |
 
 
 
