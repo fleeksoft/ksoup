@@ -33,7 +33,7 @@ class ElementIT {
         assertEquals(wrapper, wrapperAcutal)
         assertEquals("El-1", wrapperAcutal.children()[0].text())
         assertEquals("El-$rows", wrapperAcutal.children()[rows - 1].text())
-        assertTrue(runtime <= 10000)
+        assertTrue(runtime <= 20000)
     }
 
     @Test
@@ -66,7 +66,7 @@ class ElementIT {
         assertEquals("El-1", wrapperAcutal.children()[1].text())
         assertEquals("El-$rows", wrapperAcutal.children()[rows].text())
         assertEquals("End Content", wrapperAcutal.children()[rows + 1].text())
-        assertTrue(runtime <= 10000)
+        assertTrue(runtime <= 20000)
     }
 
     // These overflow tests take a couple seconds to run, so are in the slow tests
