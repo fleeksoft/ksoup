@@ -23,8 +23,8 @@ import kotlin.test.assertTrue
 class ParseTest {
     @Test
     fun testHtml5Charset() {
-        if (Platform.current == PlatformType.JS) {
-            // FIXME: gb2312 charset not supported for js
+        if (Platform.current == PlatformType.JS || Platform.current == PlatformType.IOS) {
+            // FIXME: gb2312 charset not supported
             return
         }
         // test that <meta charset="gb2312"> works

@@ -12,8 +12,8 @@ import kotlin.test.assertFailsWith
 class BufferReaderTest {
     @Test
     fun testSpecialCharsBufferReader() {
-        if (Platform.current == PlatformType.JS) {
-            // FIXME: euc-kr charset not supported for js
+        if (Platform.current == PlatformType.JS || Platform.current == PlatformType.IOS) {
+            // FIXME: euc-kr charset not supported
             return
         }
 

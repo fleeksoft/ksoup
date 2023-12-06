@@ -2722,7 +2722,11 @@ Three
                     "\\x",
                 )
             }
-        assertEquals("Illegal hexadecimal escape sequence near index 2\n\\x", ex.message)
+        if (Platform.current == PlatformType.IOS) {
+            assertEquals("Invalid hexadecimal escape sequence near index: 0\n\\x", ex.message)
+        } else {
+            assertEquals("Illegal hexadecimal escape sequence near index 2\n\\x\n^", ex.message)
+        }
     }
 
     @Test
@@ -2761,7 +2765,12 @@ Three
         val doc = Ksoup.parse(reference)
         val ex: Throwable =
             assertFailsWith<IllegalArgumentException> { doc.getElementsMatchingText("\\x") }
-        assertEquals("Illegal hexadecimal escape sequence near index 2\n\\x", ex.message)
+
+        if (Platform.current == PlatformType.IOS) {
+            assertEquals("Invalid hexadecimal escape sequence near index: 0\n\\x", ex.message)
+        } else {
+            assertEquals("Illegal hexadecimal escape sequence near index 2\n\\x\n^", ex.message)
+        }
     }
 
     @Test
@@ -2791,7 +2800,12 @@ Three
         val doc = Ksoup.parse(reference)
         val ex: Throwable =
             assertFailsWith<IllegalArgumentException> { doc.getElementsMatchingOwnText("\\x") }
-        assertEquals("Illegal hexadecimal escape sequence near index 2\n\\x", ex.message)
+
+        if (Platform.current == PlatformType.IOS) {
+            assertEquals("Invalid hexadecimal escape sequence near index: 0\n\\x", ex.message)
+        } else {
+            assertEquals("Illegal hexadecimal escape sequence near index 2\n\\x\n^", ex.message)
+        }
     }
 
     @Test

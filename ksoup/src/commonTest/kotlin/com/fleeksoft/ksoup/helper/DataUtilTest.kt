@@ -132,14 +132,14 @@ class DataUtilTest {
     @Test
     @Throws(Exception::class)
     fun secondMetaElementWithContentTypeContainsCharsetParameter() {
-        if (Platform.current == PlatformType.JS) {
-            // FIXME: euc-kr charset not supported for js
+        if (Platform.current == PlatformType.JS || Platform.current == PlatformType.IOS) {
+            // FIXME: euc-kr charset not supported
             return
         }
         val html = "<html><head>" +
-            "<meta http-equiv=\"Content-Type\" content=\"text/html\">" +
-            "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=euc-kr\">" +
-            "</head><body>한국어</body></html>"
+                "<meta http-equiv=\"Content-Type\" content=\"text/html\">" +
+                "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=euc-kr\">" +
+                "</head><body>한국어</body></html>"
         val doc: Document =
             DataUtil.parseInputSource(
                 bufferByteArrayCharset(html, "euc-kr"),
@@ -154,9 +154,9 @@ class DataUtilTest {
     @Throws(Exception::class)
     fun firstMetaElementWithCharsetShouldBeUsedForDecoding() {
         val html = "<html><head>" +
-            "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=iso-8859-1\">" +
-            "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=koi8-u\">" +
-            "</head><body>Übergrößenträger</body></html>"
+                "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=iso-8859-1\">" +
+                "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=koi8-u\">" +
+                "</head><body>Übergrößenträger</body></html>"
         val docByteArrayCharset: Document =
             DataUtil.parseInputSource(
                 bufferByteArrayCharset(html, "iso-8859-1"),
@@ -170,8 +170,8 @@ class DataUtilTest {
 
     @Test
     fun supportsBOMinFiles() {
-        if (Platform.current == PlatformType.JS) {
-            // FIXME: utf-16 charset not supported for js
+        if (Platform.current == PlatformType.JS || Platform.current == PlatformType.IOS) {
+            // FIXME: utf-16 charset not supported
             return
         }
         // test files from http://www.i18nl10n.com/korean/utftest/
@@ -235,12 +235,12 @@ class DataUtilTest {
         val encoding = "iso-8859-1"
         val soup = BufferReader(
             (
-                "<?xml version=\"1.0\" encoding=\"iso-8859-1\"?>" +
-                    "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">" +
-                    "<html xmlns=\"http://www.w3.org/1999/xhtml\" lang=\"en\" xml:lang=\"en\">Hellö Wörld!</html>"
-                ).toByteArray(
-                Charset.forName(encoding),
-            ),
+                    "<?xml version=\"1.0\" encoding=\"iso-8859-1\"?>" +
+                            "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">" +
+                            "<html xmlns=\"http://www.w3.org/1999/xhtml\" lang=\"en\" xml:lang=\"en\">Hellö Wörld!</html>"
+                    ).toByteArray(
+                    Charset.forName(encoding),
+                ),
         )
         val doc: Document = Ksoup.parse(soup, baseUri = "", charsetName = null)
         assertEquals("Hellö Wörld!", doc.body().text())
