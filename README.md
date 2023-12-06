@@ -64,6 +64,8 @@ headlines.forEach { headline: Element ->
 ```
 In this example, `Ksoup.parseGetRequest` fetches and parses HTML content from Wikipedia, extracting and printing news headlines and their corresponding links.
 
+#### For further documentation, please check here: [Ksoup](https://fleeksoft.github.io/ksoup/)
+
 ## Open source
 Ksoup is an open source project, a Kotlin Multiplatform port of jsoup, distributed under the Apache License, Version 2.0. The source code of Ksoup is available on [GitHub](https://github.com/fleeksoft/ksoup).
 
