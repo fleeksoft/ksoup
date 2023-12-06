@@ -42,6 +42,8 @@ kotlin {
         }
     }
 
+    applyDefaultHierarchyTemplate()
+
     sourceSets {
         commonMain.dependencies {
             compileOnly(projects.ksoup)
@@ -52,25 +54,42 @@ kotlin {
             implementation(projects.ksoup)
         }
 
-        jvmMain.dependencies {
-            implementation(libs.ktor.client.okhttp)
+        val nonJsMain by creating {
+            dependsOn(commonMain.get())
         }
 
-        androidMain.dependencies {
-            implementation(libs.ktor.client.okhttp)
+        jvmMain {
+            dependsOn(nonJsMain)
+            dependencies {
+                implementation(libs.ktor.client.okhttp)
+            }
         }
 
-        iosMain.dependencies {
-            implementation(libs.ktor.client.darwin)
+        androidMain {
+            dependsOn(nonJsMain)
+            dependencies {
+                implementation(libs.ktor.client.okhttp)
+            }
         }
 
-        linuxMain.dependencies {
-            implementation(libs.ktor.client.cio)
+        iosMain {
+            dependsOn(nonJsMain)
+            dependencies {
+                implementation(libs.ktor.client.darwin)
+            }
+        }
+
+        linuxMain {
+            dependsOn(nonJsMain)
+            dependencies {
+                implementation(libs.ktor.client.cio)
+            }
         }
 
         jsMain.dependencies {
             implementation(libs.ktor.client.js)
         }
+
     }
 }
 
