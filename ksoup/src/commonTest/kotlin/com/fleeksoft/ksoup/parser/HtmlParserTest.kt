@@ -1,15 +1,12 @@
 package com.fleeksoft.ksoup.parser
 
-import com.fleeksoft.ksoup.Ksoup
-import com.fleeksoft.ksoup.TestHelper
-import com.fleeksoft.ksoup.TextUtil
+import com.fleeksoft.ksoup.*
 import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.nodes.*
-import com.fleeksoft.ksoup.parameterizedTest
 import com.fleeksoft.ksoup.ported.BufferReader
 import com.fleeksoft.ksoup.ported.System
 import com.fleeksoft.ksoup.safety.Safelist
-import io.ktor.utils.io.charsets.name
+import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.toByteArray
 import okio.IOException
 import kotlin.test.Test
@@ -1228,6 +1225,11 @@ class HtmlParserTest {
 
     @Test
     fun relaxedBaseEntityMatchAndStrictExtendedMatch() {
+        if (Platform.current == PlatformType.JS) {
+            // FIXME: ascii charset not supported for js
+            return
+        }
+
         // extended entities need a ; at the end to match, base does not
         val html = "&amp &quot &reg &icy &hopf &icy; &hopf;"
         val doc = Ksoup.parse(html)
@@ -1622,6 +1624,11 @@ class HtmlParserTest {
     @Test
     @Throws(IOException::class)
     fun characterReaderBuffer() {
+        if (Platform.current == PlatformType.JS) {
+            // FIXME: gzip not supported yet on js
+            return
+        }
+
         val input: String = TestHelper.getResourceAbsolutePath("htmltests/character-reader-buffer.html.gz")
         val doc: Document = Ksoup.parseFile(input, "UTF-8")
         val expectedHref = "http://www.domain.com/path?param_one=value&param_two=value"
