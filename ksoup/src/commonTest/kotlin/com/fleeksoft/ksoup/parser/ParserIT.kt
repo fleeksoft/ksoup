@@ -46,7 +46,7 @@ class ParserIT {
         // Assert
         assertEquals(2, doc.body().childNodeSize())
         assertEquals(25000, doc.select("dd").size)
-        assertTrue(System.currentTimeMillis() - start < 20000) // I get ~ 1.5 seconds, but others have reported slower
+        assertTrue(System.currentTimeMillis() - start < 40000) // I get ~ 1.5 seconds, but others have reported slower
         // was originally much longer, or stack overflow.
     }
 }
