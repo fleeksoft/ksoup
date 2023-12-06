@@ -14,7 +14,6 @@ public open class BufferReader : Closeable {
     private var closed: Boolean = false
     private var _charset: Charset? = null
 
-
     public constructor() {
         this._source = Buffer()
     }
@@ -38,7 +37,6 @@ public open class BufferReader : Closeable {
             _charset = Charset.forName(charset)
         }
     }
-
 
     public constructor(data: String, charset: String? = null) : this(data.toByteArray(), charset)
 
@@ -69,7 +67,7 @@ public open class BufferReader : Closeable {
         if (byteCount == 0 && getSource().exhausted()) return -1
         while (read < byteCount) {
             val readData = ByteArray(byteCount)
-            val thisRead: Int = readInternal(readData, offset, byteCount - read) //okio limit max 8192
+            val thisRead: Int = readInternal(readData, offset, byteCount - read) // okio limit max 8192
             if (thisRead > 0) {
                 readData.copyOfRange(0, thisRead).copyInto(sink, destinationOffset = read)
             }
@@ -104,7 +102,7 @@ public open class BufferReader : Closeable {
         if (_charset != null && byteArray.isNotEmpty()) {
             byteArray = String(
                 bytes = byteArray,
-                charset = _charset!!
+                charset = _charset!!,
             ).toByteArray()
         }
         return byteArray
@@ -138,10 +136,8 @@ public open class BufferReader : Closeable {
     }
 
     public operator fun get(byteArray: ByteArray): Int {
-
         return getSource().read(byteArray)
     }
-
 
     // TODO: need some improvements for unicode
     public fun readString(charCount: Long? = null): String {
@@ -162,7 +158,7 @@ public open class BufferReader : Closeable {
                         // TODO: need some improvements here:  _charset != null then counting by byte may be not correct if its unicode, in that case decode and then count it
                         if (io.ktor.utils.io.core.String(
                                 bytes = bytes.toByteArray(),
-                                charset = _charset!!
+                                charset = _charset!!,
                             ).length >= charCount
                         ) {
                             break

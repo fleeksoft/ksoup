@@ -73,10 +73,12 @@ kotlin {
             implementation(libs.okio.nodefilesystem)
         }
 
-
         val jvmAndroidCommonMain by creating {
             dependsOn(commonMain.get())
             kotlin.srcDir("src/jvmAndroidCommonMain/kotlin")
+        }
+
+        jsTest {
         }
 
         // Make JVM and Android source sets depend on the new shared source set

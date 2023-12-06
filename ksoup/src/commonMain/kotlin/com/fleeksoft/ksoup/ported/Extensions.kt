@@ -10,7 +10,6 @@ internal fun String.isCharsetSupported(): Boolean {
     return result != null
 }
 
-
 internal fun URLBuilder.appendRelativePath(relativePath: String): URLBuilder {
     val segments = this.encodedPathSegments.toMutableList()
 
@@ -77,7 +76,6 @@ internal fun URLBuilder.appendRelativePath(relativePath: String): URLBuilder {
             }
 
             else -> {
-
 //                remove last trailing path if not query or fragment  g.com/a/b to g.com/a
                 if (index == 0 && segments.isNotEmpty() &&
                     !isLastSlash && !path.startsWith("?") && !path.startsWith("#")
@@ -100,18 +98,14 @@ private fun handleQueryParams(relativePath: String, separator: String): MutableL
     val relativePathParts = firstQueryPath.split("/").toMutableList()
     if (querySplit.isNotEmpty()) {
         relativePathParts.add(
-            "${relativePathParts.removeLastOrNull() ?: ""}$separator${
-                querySplit.joinToString(
-                    separator
-                )
-            }"
+            "${relativePathParts.removeLastOrNull() ?: ""}$separator${querySplit.joinToString(separator)}",
         )
     }
     return relativePathParts
 }
 
 // TODO: handle it better
-internal fun Charset.canEncode() = true
+internal fun Charset.canEncode(): Boolean = runCatching { this.newEncoder() }.getOrNull() != null
 
 internal fun CharsetEncoder.canEncode(c: Char): Boolean {
     // TODO: check this
@@ -123,26 +117,24 @@ internal fun CharsetEncoder.canEncode(s: String): Boolean {
     return kotlin.runCatching { this.encode(s) }.isSuccess
 }
 
-
 internal fun String.isValidResourceUrl() =
     this.startsWith("http", ignoreCase = true) || this.startsWith("ftp://", ignoreCase = true) ||
-            this.startsWith("ftps://", ignoreCase = true) ||
-            this.startsWith("file:/", ignoreCase = true) ||
-            this.startsWith("//")
+        this.startsWith("ftps://", ignoreCase = true) ||
+        this.startsWith("file:/", ignoreCase = true) ||
+        this.startsWith("//")
 
 internal fun String.isAbsResource() =
     this.startsWith("mailto:", ignoreCase = true) || this.startsWith("tel:", ignoreCase = true) ||
-            this.startsWith("geo:", ignoreCase = true)
-            || this.startsWith("about:", ignoreCase = true)
-            || this.startsWith("sms:", ignoreCase = true)
-            || this.startsWith("smsto:", ignoreCase = true)
-            || this.startsWith("data:", ignoreCase = true)
-            || this.startsWith("market:", ignoreCase = true)
-            || this.startsWith("magnet:", ignoreCase = true)
-            || this.startsWith("sip:", ignoreCase = true)
-            || this.startsWith("sips:", ignoreCase = true)
-            || this.startsWith("javascript:", ignoreCase = true)
-
+        this.startsWith("geo:", ignoreCase = true) ||
+        this.startsWith("about:", ignoreCase = true) ||
+        this.startsWith("sms:", ignoreCase = true) ||
+        this.startsWith("smsto:", ignoreCase = true) ||
+        this.startsWith("data:", ignoreCase = true) ||
+        this.startsWith("market:", ignoreCase = true) ||
+        this.startsWith("magnet:", ignoreCase = true) ||
+        this.startsWith("sip:", ignoreCase = true) ||
+        this.startsWith("sips:", ignoreCase = true) ||
+        this.startsWith("javascript:", ignoreCase = true)
 
 internal fun IntArray.codePointsToString(): String {
     return if (this.isNotEmpty()) {
