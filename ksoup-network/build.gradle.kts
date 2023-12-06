@@ -16,6 +16,10 @@ kotlin {
 
     jvm()
 
+    js(IR) {
+        nodejs()
+    }
+
     linuxX64()
     linuxArm64()
 
@@ -30,13 +34,15 @@ kotlin {
     listOf(
         iosX64(),
         iosArm64(),
-        iosSimulatorArm64()
+        iosSimulatorArm64(),
     ).forEach {
         it.binaries.framework {
             baseName = "ksoup-network"
             isStatic = true
         }
     }
+
+    applyDefaultHierarchyTemplate()
 
     sourceSets {
         commonMain.dependencies {
@@ -48,21 +54,42 @@ kotlin {
             implementation(projects.ksoup)
         }
 
-        jvmMain.dependencies {
-            implementation(libs.ktor.client.okhttp)
+        val nonJsMain by creating {
+            dependsOn(commonMain.get())
         }
 
-        androidMain.dependencies {
-            implementation(libs.ktor.client.okhttp)
+        jvmMain {
+            dependsOn(nonJsMain)
+            dependencies {
+                implementation(libs.ktor.client.okhttp)
+            }
         }
 
-        iosMain.dependencies {
-            implementation(libs.ktor.client.darwin)
+        androidMain {
+            dependsOn(nonJsMain)
+            dependencies {
+                implementation(libs.ktor.client.okhttp)
+            }
         }
 
-        linuxMain.dependencies {
-            implementation(libs.ktor.client.cio)
+        iosMain {
+            dependsOn(nonJsMain)
+            dependencies {
+                implementation(libs.ktor.client.darwin)
+            }
         }
+
+        linuxMain {
+            dependsOn(nonJsMain)
+            dependencies {
+                implementation(libs.ktor.client.cio)
+            }
+        }
+
+        jsMain.dependencies {
+            implementation(libs.ktor.client.js)
+        }
+
     }
 }
 

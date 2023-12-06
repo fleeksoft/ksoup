@@ -3,9 +3,8 @@ package com.fleeksoft.ksoup.network
 import com.fleeksoft.ksoup.Ksoup
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parser.Parser
-import io.ktor.client.request.HttpRequestBuilder
+import io.ktor.client.request.*
 import io.ktor.client.statement.*
-import kotlinx.coroutines.runBlocking
 
 /**
  * Use to fetch and parse a HTML page.
@@ -18,18 +17,15 @@ import kotlinx.coroutines.runBlocking
  * @return sane HTML
  *
  */
-public fun Ksoup.parseGetRequest(
+public suspend fun Ksoup.parseGetRequest(
     url: String,
     httpRequestBuilder: HttpRequestBuilder.() -> Unit = {},
     parser: Parser = Parser.htmlParser(),
 ): Document {
-    var finalUrl: String = url
-    val response: String = runBlocking {
-        val httpResponse = NetworkHelper.instance.get(finalUrl, httpRequestBuilder = httpRequestBuilder)
+    val httpResponse = NetworkHelper.instance.get(url, httpRequestBuilder = httpRequestBuilder)
 //        url can be changed after redirection
-        finalUrl = httpResponse.request.url.toString()
-        httpResponse.bodyAsText()
-    }
+    val finalUrl = httpResponse.request.url.toString()
+    val response = httpResponse.bodyAsText()
     return parse(html = response, parser = parser, baseUri = finalUrl)
 }
 
@@ -44,27 +40,22 @@ public fun Ksoup.parseGetRequest(
  * @return sane HTML
  *
  */
-public fun Ksoup.parseSubmitRequest(
+public suspend fun Ksoup.parseSubmitRequest(
     url: String,
     params: Map<String, String> = emptyMap(),
     httpRequestBuilder: HttpRequestBuilder.() -> Unit = {},
     parser: Parser = Parser.htmlParser(),
 ): Document {
-    var finalUrl: String = url
-    val result: String =
-        runBlocking {
-            val httpResponse = NetworkHelper.instance.submitForm(
-                url = url,
-                params = params,
-                httpRequestBuilder = httpRequestBuilder
-            )
+    val httpResponse = NetworkHelper.instance.submitForm(
+        url = url,
+        params = params,
+        httpRequestBuilder = httpRequestBuilder,
+    )
 //            url can be changed after redirection
-            finalUrl = httpResponse.request.url.toString()
-            httpResponse.bodyAsText()
-        }
+    val finalUrl = httpResponse.request.url.toString()
+    val result: String = httpResponse.bodyAsText()
     return parse(html = result, parser = parser, baseUri = finalUrl)
 }
-
 
 /**
  * Use to fetch and parse a HTML page.
@@ -77,21 +68,17 @@ public fun Ksoup.parseSubmitRequest(
  * @return sane HTML
  *
  */
-public fun Ksoup.parsePostRequest(
+public suspend fun Ksoup.parsePostRequest(
     url: String,
     httpRequestBuilder: HttpRequestBuilder.() -> Unit = {},
     parser: Parser = Parser.htmlParser(),
 ): Document {
-    var finalUrl: String = url
-    val result: String =
-        runBlocking {
-            val httpResponse = NetworkHelper.instance.post(
-                url = url,
-                httpRequestBuilder = httpRequestBuilder
-            )
+    val httpResponse = NetworkHelper.instance.post(
+        url = url,
+        httpRequestBuilder = httpRequestBuilder,
+    )
 //            url can be changed after redirection
-            finalUrl = httpResponse.request.url.toString()
-            httpResponse.bodyAsText()
-        }
+    val finalUrl = httpResponse.request.url.toString()
+    val result: String = httpResponse.bodyAsText()
     return parse(html = result, parser = parser, baseUri = finalUrl)
 }

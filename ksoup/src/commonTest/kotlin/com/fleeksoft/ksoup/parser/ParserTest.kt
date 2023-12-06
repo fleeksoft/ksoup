@@ -29,7 +29,11 @@ class ParserTest {
     fun testUtf8() {
         // testcase for https://github.com/jhy/jsoup/issues/1557. no repro.
         val parsed: Document =
-            parse(BufferReader("<p>H\u00E9llo, w\u00F6rld!".toByteArray(Charsets.UTF_8)), null, "")
+            parse(
+                bufferReader = BufferReader(byteArray = "<p>H\u00E9llo, w\u00F6rld!".toByteArray(Charsets.UTF_8)),
+                baseUri = "",
+                charsetName = null,
+            )
         val text = parsed.selectFirst("p")?.wholeText()
         assertEquals("H\u00E9llo, w\u00F6rld!", text)
     }

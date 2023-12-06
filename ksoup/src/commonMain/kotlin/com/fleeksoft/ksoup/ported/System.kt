@@ -1,8 +1,6 @@
 package com.fleeksoft.ksoup.ported
 
 import kotlinx.datetime.Clock
-import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.nanoseconds
 import kotlin.time.Duration.Companion.seconds
 
 internal class System {

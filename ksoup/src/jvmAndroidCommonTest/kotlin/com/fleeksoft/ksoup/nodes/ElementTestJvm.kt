@@ -6,7 +6,7 @@ import kotlin.test.assertEquals
 
 class ElementTestJvm {
 
-//    StringBuffer adding \n in start but not when using StringBuilder
+    //    StringBuffer adding \n in start but not when using StringBuilder
     @Test
     fun outerHtmlAppendable() {
         // tests not string builder flow

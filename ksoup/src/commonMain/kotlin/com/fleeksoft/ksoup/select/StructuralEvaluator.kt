@@ -156,16 +156,16 @@ internal abstract class StructuralEvaluator(evaluator: Evaluator) : Evaluator() 
      */
     class ImmediateParentRun(evaluator: Evaluator) : Evaluator() {
         val evaluators: ArrayList<Evaluator> = ArrayList<Evaluator>()
-        var cost = 2
+        private var _cost = 2
 
         init {
             evaluators.add(evaluator)
-            cost += evaluator.cost()
+            _cost += evaluator.cost()
         }
 
         fun add(evaluator: Evaluator) {
             evaluators.add(evaluator)
-            cost += evaluator.cost()
+            _cost += evaluator.cost()
         }
 
         override fun matches(root: Element, element: Element): Boolean {
@@ -181,7 +181,7 @@ internal abstract class StructuralEvaluator(evaluator: Evaluator) : Evaluator() 
         }
 
         override fun cost(): Int {
-            return cost
+            return _cost
         }
 
         override fun toString(): String {

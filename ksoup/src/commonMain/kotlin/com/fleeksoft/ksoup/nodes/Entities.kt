@@ -1,7 +1,4 @@
-@file:OptIn(
-    ExperimentalStdlibApi::class, ExperimentalStdlibApi::class,
-    ExperimentalStdlibApi::class, ExperimentalStdlibApi::class
-)
+@file:OptIn(ExperimentalStdlibApi::class)
 
 package com.fleeksoft.ksoup.nodes
 
@@ -97,11 +94,13 @@ public object Entities {
         val accum: StringBuilder = StringUtil.borrowBuilder()
         try {
             escape(
-                accum, string, out,
+                accum,
+                string,
+                out,
                 inAttribute = false,
                 normaliseWhite = false,
                 stripLeadingWhite = false,
-                trimTrailing = false
+                trimTrailing = false,
             )
         } catch (e: IOException) {
             throw SerializationException(e) // doesn't happen
@@ -121,7 +120,6 @@ public object Entities {
         return escape(string, DefaultOutput)
     }
 
-    
     private var DefaultOutput: OutputSettings? =
         null // lazy-init, to break circular dependency with OutputSettings
 
@@ -192,13 +190,13 @@ public object Entities {
                     }
 
                     c == '<' -> // escape when in character data or when in a xml attribute val or XML syntax; not needed in html attr val
-                    {
-                        if (!inAttribute || escapeMode == EscapeMode.xhtml || out.syntax() === OutputSettings.Syntax.xml) {
-                            accum.append("&lt;")
-                        } else {
-                            accum.append(c)
+                        {
+                            if (!inAttribute || escapeMode == EscapeMode.xhtml || out.syntax() === OutputSettings.Syntax.xml) {
+                                accum.append("&lt;")
+                            } else {
+                                accum.append(c)
+                            }
                         }
-                    }
 
                     c == '>' -> {
                         if (!inAttribute) accum.append("&gt;") else accum.append(c)
@@ -245,11 +243,15 @@ public object Entities {
             accum.append('&').append(name).append(';')
         } else {
             accum.append("&#x")
-                .append(codePoint.toHexString(HexFormat {
-                    number {
-                        removeLeadingZeros = true
-                    }
-                })).append(';')
+                .append(
+                    codePoint.toHexString(
+                        HexFormat {
+                            number {
+                                removeLeadingZeros = true
+                            }
+                        },
+                    ),
+                ).append(';')
         }
     }
 

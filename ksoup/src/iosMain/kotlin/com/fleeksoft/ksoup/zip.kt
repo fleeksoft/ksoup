@@ -22,7 +22,6 @@ import platform.zlib.inflateInit2
 import platform.zlib.z_stream
 
 internal fun decompressGzip(input: ByteArray): ByteArray {
-    val outputBuffer = ByteArray(1024 * 10) // Adjust size as needed, ensuring it's large enough
     val inputSize = input.size.toULong()
 
     memScoped {
@@ -39,6 +38,7 @@ internal fun decompressGzip(input: ByteArray): ByteArray {
             throw RuntimeException("Failed to initialize zlib inflater")
         }
 
+        var outputBuffer = ByteArray(1024 * 10) // Initial size
         val outputChunk = ByteArray(1024) // Adjust size as needed
         var totalOutputSize = 0
 
@@ -54,6 +54,10 @@ internal fun decompressGzip(input: ByteArray): ByteArray {
                     }
 
                     val have = outputChunk.size - strm.avail_out.toInt()
+                    if (totalOutputSize + have > outputBuffer.size) {
+                        // Resize the buffer if necessary
+                        outputBuffer = outputBuffer.copyOf(totalOutputSize + have)
+                    }
                     for (i in 0 until have) {
                         outputBuffer[totalOutputSize + i] = outputChunk[i]
                     }

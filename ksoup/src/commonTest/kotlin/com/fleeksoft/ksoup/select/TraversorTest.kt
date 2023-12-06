@@ -170,4 +170,20 @@ class TraversorTest {
         )
         assertEquals("<div><p id=\"2\">Two</p><p></p></div>", TextUtil.stripNewlines(doc.body().html()))
     }
+
+    @Test
+    fun elementFunctionalTraverse() {
+        val doc = Ksoup.parse("<div><p>1<p>2<p>3")
+        val body = doc.body()
+
+        var seenCount = 0
+        var deepest = 0
+        body.traverse { node, depth ->
+            ++seenCount
+            if (depth > deepest) deepest = depth
+        }
+
+        assertEquals(8, seenCount) // body and contents
+        assertEquals(3, deepest)
+    }
 }

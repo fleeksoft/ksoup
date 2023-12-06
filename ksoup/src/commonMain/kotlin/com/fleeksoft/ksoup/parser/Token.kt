@@ -10,8 +10,8 @@ import de.cketti.codepoints.appendCodePoint
  */
 internal abstract class Token private constructor() {
     var type: TokenType? = null
-    private var startPos = 0
-    private var endPos = Unset // position in CharacterReader this token was read from
+    private var _startPos = 0
+    private var _endPos = Unset // position in CharacterReader this token was read from
     fun tokenType(): String {
         return this::class.simpleName ?: "Token"
     }
@@ -21,25 +21,25 @@ internal abstract class Token private constructor() {
      * piece of data, which immediately get GCed.
      */
     open fun reset(): Token {
-        startPos = Unset
-        endPos = Unset
+        _startPos = Unset
+        _endPos = Unset
         return this
     }
 
     fun startPos(): Int {
-        return startPos
+        return _startPos
     }
 
     fun startPos(pos: Int) {
-        startPos = pos
+        _startPos = pos
     }
 
     fun endPos(): Int {
-        return endPos
+        return _endPos
     }
 
     fun endPos(pos: Int) {
-        endPos = pos
+        _endPos = pos
     }
 
     class Doctype : Token() {
@@ -170,7 +170,7 @@ internal abstract class Token private constructor() {
         }
 
         /** Lower case  */
-        fun normalName(): String { // lower case, used in tree building for working out where in tree it should go
+        fun retrieveNormalName(): String { // lower case, used in tree building for working out where in tree it should go
             return normalName ?: ""
         }
 
@@ -449,8 +449,8 @@ internal abstract class Token private constructor() {
 
     fun cloneCopy(token: Token): Token {
         token.type = this.type
-        token.startPos = this.startPos
-        token.endPos = this.endPos
+        token._startPos = this._startPos
+        token._endPos = this._endPos
         return token
     }
 

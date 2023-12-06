@@ -1,15 +1,19 @@
 package com.fleeksoft.ksoup.nodes
 
-import okio.IOException
 import com.fleeksoft.ksoup.helper.ChangeNotifyingArrayList
 import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.internal.Normalizer.normalize
 import com.fleeksoft.ksoup.internal.StringUtil
+import com.fleeksoft.ksoup.jsSupportedRegex
 import com.fleeksoft.ksoup.nodes.TextNode.Companion.lastCharIsWhitespace
 import com.fleeksoft.ksoup.parser.ParseSettings
 import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.parser.Tag
 import com.fleeksoft.ksoup.parser.TokenQueue.Companion.escapeCssIdentifier
+import com.fleeksoft.ksoup.ported.AtomicBoolean
+import com.fleeksoft.ksoup.ported.Collections
+import com.fleeksoft.ksoup.ported.Consumer
+import com.fleeksoft.ksoup.ported.PatternSyntaxException
 import com.fleeksoft.ksoup.select.Collector
 import com.fleeksoft.ksoup.select.Elements
 import com.fleeksoft.ksoup.select.Evaluator
@@ -18,10 +22,7 @@ import com.fleeksoft.ksoup.select.NodeTraversor
 import com.fleeksoft.ksoup.select.NodeVisitor
 import com.fleeksoft.ksoup.select.QueryParser
 import com.fleeksoft.ksoup.select.Selector
-import com.fleeksoft.ksoup.ported.AtomicBoolean
-import com.fleeksoft.ksoup.ported.Collections
-import com.fleeksoft.ksoup.ported.Consumer
-import com.fleeksoft.ksoup.ported.PatternSyntaxException
+import okio.IOException
 import kotlin.jvm.JvmOverloads
 
 /**
@@ -1136,7 +1137,7 @@ public open class Element : Node {
      */
     public fun getElementsByAttributeValueMatching(key: String, regex: String): Elements {
         val pattern: Regex = try {
-            Regex(regex)
+            jsSupportedRegex(regex)
         } catch (e: PatternSyntaxException) {
             throw IllegalArgumentException("Pattern syntax error: $regex", e)
         }
@@ -1210,7 +1211,7 @@ public open class Element : Node {
      */
     public fun getElementsMatchingText(regex: String): Elements {
         val pattern: Regex = try {
-            Regex(regex)
+            jsSupportedRegex(regex)
         } catch (e: PatternSyntaxException) {
             throw IllegalArgumentException("Pattern syntax error: $regex", e)
         }
@@ -1235,7 +1236,7 @@ public open class Element : Node {
      */
     public fun getElementsMatchingOwnText(regex: String): Elements {
         val pattern: Regex = try {
-            Regex(regex)
+            jsSupportedRegex(regex)
         } catch (e: PatternSyntaxException) {
             throw IllegalArgumentException("Pattern syntax error: $regex", e)
         }
@@ -1640,10 +1641,9 @@ public open class Element : Node {
     override fun outerHtmlTail(accum: Appendable, depth: Int, out: Document.OutputSettings) {
         if (!(childNodes.isEmpty() && tag.isSelfClosing())) {
             if (out.prettyPrint() && childNodes.isNotEmpty() && (
-                        tag.formatAsBlock() && !preserveWhitespace(
-                            _parentNode,
-                        ) || out.outline() && (childNodes.size > 1 || childNodes.size == 1 && childNodes[0] is Element)
-                        )
+                    tag.formatAsBlock() && !preserveWhitespace(_parentNode) || out.outline() &&
+                        (childNodes.size > 1 || childNodes.size == 1 && childNodes[0] is Element)
+                    )
             ) {
                 indent(accum, depth, out)
             }
@@ -1781,11 +1781,11 @@ public open class Element : Node {
             false
         } else {
             (
-                    (parent() == null || parent()!!.isBlock()) &&
-                            !isEffectivelyFirst() &&
-                            !out.outline() &&
-                            !isNode("br")
-                    )
+                (parent() == null || parent()!!.isBlock()) &&
+                    !isEffectivelyFirst() &&
+                    !out.outline() &&
+                    !isNode("br")
+                )
         }
     }
 

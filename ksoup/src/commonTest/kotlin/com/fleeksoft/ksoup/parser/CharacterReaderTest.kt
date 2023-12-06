@@ -1,7 +1,7 @@
 package com.fleeksoft.ksoup.parser
 
+import com.fleeksoft.ksoup.TestHelper
 import com.fleeksoft.ksoup.UncheckedIOException
-import com.fleeksoft.ksoup.integration.ParseTest
 import com.fleeksoft.ksoup.ported.BufferReader
 import okio.IOException
 import okio.Path.Companion.toPath
@@ -505,8 +505,8 @@ class CharacterReaderTest {
     @Test
     @Throws(IOException::class)
     fun linenumbersAgreeWithEditor() {
-        val content: String = ParseTest.getFileAsString(
-            ParseTest.getResourceAbsolutePath("htmltests/large.html").toPath()
+        val content: String = TestHelper.getFileAsString(
+            TestHelper.getResourceAbsolutePath("htmltests/large.html").toPath(),
         )
         val reader = CharacterReader(content)
         reader.trackNewlines(true)

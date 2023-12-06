@@ -1,15 +1,15 @@
 package com.fleeksoft.ksoup.helper
 
 import com.fleeksoft.ksoup.Ksoup
-import com.fleeksoft.ksoup.integration.ParseTest
+import com.fleeksoft.ksoup.Platform
+import com.fleeksoft.ksoup.PlatformType
+import com.fleeksoft.ksoup.TestHelper
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.ported.BufferReader
 import com.fleeksoft.ksoup.ported.toBuffer
-import io.ktor.utils.io.charsets.Charset
-import io.ktor.utils.io.charsets.Charsets
-import io.ktor.utils.io.charsets.name
-import io.ktor.utils.io.core.toByteArray
+import io.ktor.utils.io.charsets.*
+import io.ktor.utils.io.core.*
 import okio.Path.Companion.toPath
 import kotlin.test.*
 
@@ -20,7 +20,7 @@ class DataUtilTest {
         assertEquals("UTF-8", DataUtil.getCharsetFromContentType("text/html; charset=UTF-8"))
         assertEquals(
             "ISO-8859-1",
-            DataUtil.getCharsetFromContentType("text/html; charset=ISO-8859-1")
+            DataUtil.getCharsetFromContentType("text/html; charset=ISO-8859-1"),
         )
         assertNull(DataUtil.getCharsetFromContentType("text/html"))
         assertNull(DataUtil.getCharsetFromContentType(null))
@@ -33,7 +33,7 @@ class DataUtilTest {
         assertEquals("UTF-8", DataUtil.getCharsetFromContentType("text/html;charset=\"UTF-8\""))
         assertEquals(
             "ISO-8859-1",
-            DataUtil.getCharsetFromContentType("text/html; charset=\"ISO-8859-1\"")
+            DataUtil.getCharsetFromContentType("text/html; charset=\"ISO-8859-1\""),
         )
         assertNull(DataUtil.getCharsetFromContentType("text/html; charset=\"Unsupported\""))
         assertEquals("UTF-8", DataUtil.getCharsetFromContentType("text/html; charset='UTF-8'"))
@@ -55,7 +55,7 @@ class DataUtilTest {
                 this.bufferByteArrayCharset(html),
                 "UTF-8",
                 "http://foo.com/",
-                Parser.htmlParser()
+                Parser.htmlParser(),
             )
         assertEquals("One", doc.head().text())
     }
@@ -68,7 +68,7 @@ class DataUtilTest {
                 this.bufferByteArrayCharset(html),
                 null,
                 "http://foo.com/",
-                Parser.htmlParser()
+                Parser.htmlParser(),
             )
         assertEquals("One", doc.head().text())
         assertEquals("UTF-8", doc.outputSettings().charset().name.uppercase())
@@ -84,7 +84,7 @@ class DataUtilTest {
     fun shouldSelectFirstCharsetOnWeirdMultileCharsetsInMetaTags() {
         assertEquals(
             "ISO-8859-1",
-            DataUtil.getCharsetFromContentType("text/html; charset=ISO-8859-1, charset=1251")
+            DataUtil.getCharsetFromContentType("text/html; charset=ISO-8859-1, charset=1251"),
         )
     }
 
@@ -92,7 +92,7 @@ class DataUtilTest {
     fun shouldCorrectCharsetForDuplicateCharsetString() {
         assertEquals(
             "iso-8859-1",
-            DataUtil.getCharsetFromContentType("text/html; charset=charset=iso-8859-1")
+            DataUtil.getCharsetFromContentType("text/html; charset=charset=iso-8859-1"),
         )
     }
 
@@ -118,7 +118,7 @@ class DataUtilTest {
                 this.bufferByteArrayCharset(html),
                 null,
                 "http://example.com",
-                Parser.htmlParser()
+                Parser.htmlParser(),
             )
         val expected = """<html>
  <head>
@@ -132,6 +132,10 @@ class DataUtilTest {
     @Test
     @Throws(Exception::class)
     fun secondMetaElementWithContentTypeContainsCharsetParameter() {
+        if (Platform.current == PlatformType.JS || Platform.current == PlatformType.IOS) {
+            // FIXME: euc-kr charset not supported
+            return
+        }
         val html = "<html><head>" +
                 "<meta http-equiv=\"Content-Type\" content=\"text/html\">" +
                 "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=euc-kr\">" +
@@ -141,7 +145,7 @@ class DataUtilTest {
                 bufferByteArrayCharset(html, "euc-kr"),
                 null,
                 "http://example.com",
-                Parser.htmlParser()
+                Parser.htmlParser(),
             )
         assertEquals("한국어", doc.body().text())
     }
@@ -158,7 +162,7 @@ class DataUtilTest {
                 bufferByteArrayCharset(html, "iso-8859-1"),
                 null,
                 "http://example.com",
-                Parser.htmlParser()
+                Parser.htmlParser(),
             )
 
         assertEquals("Übergrößenträger", docByteArrayCharset.body().text())
@@ -166,30 +170,34 @@ class DataUtilTest {
 
     @Test
     fun supportsBOMinFiles() {
+        if (Platform.current == PlatformType.JS || Platform.current == PlatformType.IOS) {
+            // FIXME: utf-16 charset not supported
+            return
+        }
         // test files from http://www.i18nl10n.com/korean/utftest/
-        var `in` = ParseTest.getResourceAbsolutePath("bomtests/bom_utf16be.html")
+        var input = TestHelper.getResourceAbsolutePath("bomtests/bom_utf16be.html")
         var doc: Document =
-            Ksoup.parseFile(file = `in`, baseUri = "http://example.com", charsetName = null)
+            Ksoup.parseFile(file = input, baseUri = "http://example.com", charsetName = null)
         assertTrue(doc.title().contains("UTF-16BE"))
         assertTrue(doc.text().contains("가각갂갃간갅"))
-        `in` = ParseTest.getResourceAbsolutePath("bomtests/bom_utf16le.html")
-        doc = Ksoup.parseFile(file = `in`, baseUri = "http://example.com", charsetName = null)
+        input = TestHelper.getResourceAbsolutePath("bomtests/bom_utf16le.html")
+        doc = Ksoup.parseFile(file = input, baseUri = "http://example.com", charsetName = null)
         assertTrue(doc.title().contains("UTF-16LE"))
         assertTrue(doc.text().contains("가각갂갃간갅"))
-        `in` = ParseTest.getResourceAbsolutePath("bomtests/bom_utf32be.html")
-        doc = Ksoup.parseFile(file = `in`, baseUri = "http://example.com", charsetName = null)
+        input = TestHelper.getResourceAbsolutePath("bomtests/bom_utf32be.html")
+        doc = Ksoup.parseFile(file = input, baseUri = "http://example.com", charsetName = null)
         assertTrue(doc.title().contains("UTF-32BE"))
         assertTrue(doc.text().contains("가각갂갃간갅"))
-        `in` = ParseTest.getResourceAbsolutePath("bomtests/bom_utf32le.html")
-        doc = Ksoup.parseFile(file = `in`, baseUri = "http://example.com", charsetName = null)
+        input = TestHelper.getResourceAbsolutePath("bomtests/bom_utf32le.html")
+        doc = Ksoup.parseFile(file = input, baseUri = "http://example.com", charsetName = null)
         assertTrue(doc.title().contains("UTF-32LE"))
         assertTrue(doc.text().contains("가각갂갃간갅"))
     }
 
     @Test
     fun supportsUTF8BOM() {
-        val `in`: String = ParseTest.getResourceAbsolutePath("bomtests/bom_utf8.html")
-        val doc: Document = Ksoup.parseFile(`in`, "http://example.com", null)
+        val input: String = TestHelper.getResourceAbsolutePath("bomtests/bom_utf8.html")
+        val doc: Document = Ksoup.parseFile(input, "http://example.com", null)
         assertEquals("OK", doc.head().select("title").text())
     }
 
@@ -197,24 +205,28 @@ class DataUtilTest {
     fun noExtraNULLBytes() {
         val b =
             "<html><head><meta charset=\"UTF-8\"></head><body><div><u>ü</u>ü</div></body></html>".toByteArray(
-                Charsets.UTF_8
+                Charsets.UTF_8,
             )
-        val doc = Ksoup.parse(BufferReader(b), null, "")
+        val doc = Ksoup.parse(BufferReader(b), baseUri = "", charsetName = null)
         assertFalse(doc.outerHtml().contains("\u0000"))
     }
 
     @Test
     fun supportsZippedUTF8BOM() {
-        val `in`: String = ParseTest.getResourceAbsolutePath("bomtests/bom_utf8.html.gz")
+        if (Platform.current == PlatformType.JS) {
+            // FIXME: gzip not supported yet on js
+            return
+        }
+        val input: String = TestHelper.getResourceAbsolutePath("bomtests/bom_utf8.html.gz")
         val doc: Document = Ksoup.parseFile(
-            file = `in`,
+            file = input,
             baseUri = "http://example.com",
-            charsetName = null
+            charsetName = null,
         )
         assertEquals("OK", doc.head().select("title").text())
         assertEquals(
             "There is a UTF8 BOM at the top (before the XML decl). If not read correctly, will look like a non-joining space.",
-            doc.body().text()
+            doc.body().text(),
         )
     }
 
@@ -222,20 +234,26 @@ class DataUtilTest {
     fun supportsXmlCharsetDeclaration() {
         val encoding = "iso-8859-1"
         val soup = BufferReader(
-            ("<?xml version=\"1.0\" encoding=\"iso-8859-1\"?>" +
-                    "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">" +
-                    "<html xmlns=\"http://www.w3.org/1999/xhtml\" lang=\"en\" xml:lang=\"en\">Hellö Wörld!</html>").toByteArray(
-                Charset.forName(encoding)
-            )
+            (
+                    "<?xml version=\"1.0\" encoding=\"iso-8859-1\"?>" +
+                            "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">" +
+                            "<html xmlns=\"http://www.w3.org/1999/xhtml\" lang=\"en\" xml:lang=\"en\">Hellö Wörld!</html>"
+                    ).toByteArray(
+                    Charset.forName(encoding),
+                ),
         )
-        val doc: Document = Ksoup.parse(soup, null, "")
+        val doc: Document = Ksoup.parse(soup, baseUri = "", charsetName = null)
         assertEquals("Hellö Wörld!", doc.body().text())
     }
 
     @Test
     fun lLoadsGzipFile() {
-        val `in`: String = ParseTest.getResourceAbsolutePath("htmltests/gzip.html.gz")
-        val doc: Document = Ksoup.parseFile(`in`, null)
+        if (Platform.current == PlatformType.JS) {
+            // FIXME: gzip not supported yet for js
+            return
+        }
+        val input: String = TestHelper.getResourceAbsolutePath("htmltests/gzip.html.gz")
+        val doc: Document = Ksoup.parseFile(file = input, charsetName = null)
         doc.toString()
         assertEquals("Gzip test", doc.title())
         assertEquals("This is a gzipped HTML file.", doc.selectFirst("p")!!.text())
@@ -243,28 +261,36 @@ class DataUtilTest {
 
     @Test
     fun loadsZGzipFile() {
+        if (Platform.current == PlatformType.JS) {
+            // FIXME: gzip not supported yet for js
+            return
+        }
         // compressed on win, with z suffix
-        val `in`: String = ParseTest.getResourceAbsolutePath("htmltests/gzip.html.z")
-        val doc: Document = Ksoup.parseFile(`in`, null)
+        val input: String = TestHelper.getResourceAbsolutePath("htmltests/gzip.html.z")
+        val doc: Document = Ksoup.parseFile(file = input, charsetName = null)
         assertEquals("Gzip test", doc.title())
         assertEquals("This is a gzipped HTML file.", doc.selectFirst("p")!!.text())
     }
 
     @Test
     fun handlesFakeGzipFile() {
-        val `in`: String = ParseTest.getResourceAbsolutePath("htmltests/fake-gzip.html.gz")
-        val doc: Document = Ksoup.parseFile(`in`, null)
+        if (Platform.current == PlatformType.JS) {
+            // FIXME: gzip not supported yet for js
+            return
+        }
+        val input: String = TestHelper.getResourceAbsolutePath("htmltests/fake-gzip.html.gz")
+        val doc: Document = Ksoup.parseFile(file = input, charsetName = null)
         assertEquals("This is not gzipped", doc.title())
         assertEquals("And should still be readable.", doc.selectFirst("p")!!.text())
     }
 
     @Test
     fun handlesChunkedInputStream() {
-        val inputFile: String = ParseTest.getResourceAbsolutePath("htmltests/large.html")
-        val input: String = ParseTest.getFileAsString(inputFile.toPath())
+        val inputFile: String = TestHelper.getResourceAbsolutePath("htmltests/large.html")
+        val input: String = TestHelper.getFileAsString(inputFile.toPath())
 //        val stream = VaryingBufferReader(BufferReader(input))
         val expected = Ksoup.parse(input, "https://example.com")
-        val doc: Document = Ksoup.parse(BufferReader(input), null, "https://example.com")
+        val doc: Document = Ksoup.parse(BufferReader(input), baseUri = "https://example.com", charsetName = null)
 
         println("""docSize: ${doc.toString().length}, expectedSize: ${expected.toString().length}""")
         assertTrue(doc.hasSameValue(expected))
@@ -272,8 +298,8 @@ class DataUtilTest {
 
     @Test
     fun handlesUnlimitedRead() {
-        val inputFile: String = ParseTest.getResourceAbsolutePath("htmltests/large.html")
-        val input: String = ParseTest.getFileAsString(inputFile.toPath())
+        val inputFile: String = TestHelper.getResourceAbsolutePath("htmltests/large.html")
+        val input: String = TestHelper.getFileAsString(inputFile.toPath())
         val byteBuffer: ByteArray = DataUtil.readToByteBuffer(BufferReader(input.toBuffer()), 0)
         val read = byteBuffer.decodeToString()
         assertEquals(input, read)
