@@ -1,7 +1,7 @@
 package com.fleeksoft.ksoup.ported
 
-import com.fleeksoft.ksoup.parser.CharacterReader
-import de.cketti.codepoints.deluxe.toCodePoint
+import com.fleeksoft.ksoup.Platform
+import com.fleeksoft.ksoup.PlatformType
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import okio.IOException
@@ -12,6 +12,11 @@ import kotlin.test.assertFailsWith
 class BufferReaderTest {
     @Test
     fun testSpecialCharsBufferReader() {
+        if (Platform.current == PlatformType.JS) {
+            // FIXME: euc-kr charset not supported for js
+            return
+        }
+
         val specialText1 = "Hello &amp;&lt;&gt; Å å π 新 there ¾ © »"
         val specialText2 = "Übergrößenträger"
         val specialText3 = "한국어"
@@ -20,13 +25,19 @@ class BufferReaderTest {
 
         assertEquals(
             specialText3,
-            BufferReader(byteArray = specialText3.toByteArray(Charset.forName("euc-kr")), charset = "euc-kr").readString(specialText3.length.toLong())
+            BufferReader(
+                byteArray = specialText3.toByteArray(Charset.forName("euc-kr")),
+                charset = "euc-kr",
+            ).readString(specialText3.length.toLong()),
         )
 
         assertEquals(specialText2, BufferReader(specialText2).readString())
         assertEquals(
             specialText2,
-            BufferReader(byteArray = specialText2.toByteArray(Charset.forName("iso-8859-1")), charset = "iso-8859-1").readString(specialText2.length.toLong())
+            BufferReader(
+                byteArray = specialText2.toByteArray(Charset.forName("iso-8859-1")),
+                charset = "iso-8859-1",
+            ).readString(specialText2.length.toLong()),
         )
     }
 

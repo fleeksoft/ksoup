@@ -3,6 +3,7 @@ package com.fleeksoft.ksoup.select
 import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.internal.Normalizer.normalize
 import com.fleeksoft.ksoup.internal.StringUtil
+import com.fleeksoft.ksoup.jsSupportedRegex
 import com.fleeksoft.ksoup.parser.TokenQueue
 import com.fleeksoft.ksoup.select.StructuralEvaluator.ImmediateParentRun
 import com.fleeksoft.ksoup.ported.assert
@@ -266,10 +267,7 @@ internal class QueryParser private constructor(query: String) {
                     cq.remainder(),
                 )
             } else if (cq.matchChomp("~=")) {
-                eval = Evaluator.AttributeWithValueMatching(
-                    key,
-                    Regex(cq.remainder()),
-                )
+                eval = Evaluator.AttributeWithValueMatching(key, jsSupportedRegex(cq.remainder()))
             } else {
                 throw Selector.SelectorParseException(
                     "Could not parse attribute query '$query': unexpected token at '${cq.remainder()}'",
@@ -431,13 +429,9 @@ internal class QueryParser private constructor(query: String) {
         val regex = consumeParens() // don't unescape, as regex bits will be escaped
         Validate.notEmpty(regex, "$query(regex) query must not be empty")
         return if (own) {
-            Evaluator.MatchesOwn(Regex(regex))
+            Evaluator.MatchesOwn(jsSupportedRegex(regex))
         } else {
-            Evaluator.Matches(
-                Regex(
-                    regex,
-                ),
-            )
+            Evaluator.Matches(jsSupportedRegex(regex))
         }
     }
 
@@ -447,11 +441,9 @@ internal class QueryParser private constructor(query: String) {
         val regex = consumeParens() // don't unescape, as regex bits will be escaped
         Validate.notEmpty(regex, "$query(regex) query must not be empty")
         return if (own) {
-            Evaluator.MatchesWholeOwnText(Regex(regex))
+            Evaluator.MatchesWholeOwnText(jsSupportedRegex(regex))
         } else {
-            Evaluator.MatchesWholeText(
-                Regex(regex),
-            )
+            Evaluator.MatchesWholeText(jsSupportedRegex(regex))
         }
     }
 

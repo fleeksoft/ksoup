@@ -16,6 +16,10 @@ kotlin {
 
     jvm()
 
+    js(IR) {
+        nodejs()
+    }
+
     linuxX64()
     linuxArm64()
 
@@ -30,7 +34,7 @@ kotlin {
     listOf(
         iosX64(),
         iosArm64(),
-        iosSimulatorArm64()
+        iosSimulatorArm64(),
     ).forEach {
         it.binaries.framework {
             baseName = "ksoup-network"
@@ -62,6 +66,10 @@ kotlin {
 
         linuxMain.dependencies {
             implementation(libs.ktor.client.cio)
+        }
+
+        jsMain.dependencies {
+            implementation(libs.ktor.client.js)
         }
     }
 }

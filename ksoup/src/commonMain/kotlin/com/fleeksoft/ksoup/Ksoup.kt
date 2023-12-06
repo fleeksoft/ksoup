@@ -124,9 +124,9 @@ public object Ksoup {
      * Parse the contents of a file as HTML.
      *
      * @param file          file to load HTML from. Supports gzipped files (ending in .z or .gz).
+     * @param baseUri     The URL where the HTML was retrieved from, to resolve relative links against.
      * @param charsetName (optional) character set of file contents. Set to `null` to determine from `http-equiv` meta tag, if
      * present, or fall back to `UTF-8` (which is often safe to do).
-     * @param baseUri     The URL where the HTML was retrieved from, to resolve relative links against.
      * @param parser alternate [parser][Parser.xmlParser] to use.
      * @return sane HTML
      * @throws IOException if the file could not be found, or read, or if the charsetName is invalid.
@@ -135,40 +135,40 @@ public object Ksoup {
     @Throws(IOException::class)
     public fun parseFile(
         file: String,
-        charsetName: String?,
         baseUri: String,
+        charsetName: String?,
         parser: Parser,
     ): Document {
         return DataUtil.load(file.toPath(), charsetName, baseUri, parser)
     }
 
     /**
-     * Read an input stream, and parse it to a Document.
+     * Read an buffer reader, and parse it to a Document.
      *
-     * @param `in`          input stream to read. The stream will be closed after reading.
+     * @param bufferReader buffer reader to read. The stream will be closed after reading.
+     * @param baseUri     The URL where the HTML was retrieved from, to resolve relative links against.
      * @param charsetName (optional) character set of file contents. Set to `null` to determine from `http-equiv` meta tag, if
      * present, or fall back to `UTF-8` (which is often safe to do).
-     * @param baseUri     The URL where the HTML was retrieved from, to resolve relative links against.
      * @return sane HTML
      * @throws IOException if the file could not be found, or read, or if the charsetName is invalid.
      */
     @Throws(IOException::class)
     public fun parse(
         bufferReader: BufferReader,
-        charsetName: String?,
         baseUri: String,
+        charsetName: String?,
     ): Document {
         return DataUtil.load(bufferReader, charsetName, baseUri)
     }
 
     /**
-     * Read an input stream, and parse it to a Document. You can provide an alternate parser, such as a simple XML
+     * Read an buffer reader, and parse it to a Document. You can provide an alternate parser, such as a simple XML
      * (non-HTML) parser.
      *
-     * @param `in`          input stream to read. Make sure to close it after parsing.
+     * @param bufferReader buffer reader to read. Make sure to close it after parsing.
+     * @param baseUri     The URL where the HTML was retrieved from, to resolve relative links against.
      * @param charsetName (optional) character set of file contents. Set to `null` to determine from `http-equiv` meta tag, if
      * present, or fall back to `UTF-8` (which is often safe to do).
-     * @param baseUri     The URL where the HTML was retrieved from, to resolve relative links against.
      * @param parser alternate [parser][Parser.xmlParser] to use.
      * @return sane HTML
      * @throws IOException if the file could not be found, or read, or if the charsetName is invalid.
@@ -176,8 +176,8 @@ public object Ksoup {
     @Throws(IOException::class)
     public fun parse(
         bufferReader: BufferReader,
-        charsetName: String?,
         baseUri: String,
+        charsetName: String?,
         parser: Parser,
     ): Document {
         return DataUtil.load(bufferReader, charsetName, baseUri, parser)

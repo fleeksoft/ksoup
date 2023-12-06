@@ -1,20 +1,14 @@
 package com.fleeksoft.ksoup
 
-import com.fleeksoft.ksoup.network.parseGetRequest
-import kotlin.test.Ignore
-import kotlin.test.Test
-import kotlin.test.assertNotEquals
-import kotlin.test.assertTrue
-
 class KsoupNetworkTest {
 
     private val rootUri = "https://aip.dfs.de/BasicVFR/"
 
+    // TODO: create common module for common code in modules like runTest
     // issue #3 fix
-    @Ignore
+    /*@Ignore
     @Test
     fun issue3RedirectLocationTest() {
-//        val doc = Jsoup.connect(rootUri).get()
         val doc = Ksoup.parseGetRequest(rootUri)
 
         println("doc: ${doc.title()}")
@@ -25,6 +19,5 @@ class KsoupNetworkTest {
         assertNotEquals(rootUri, location, "resolveCurrentLink-1")
         assertTrue(location.startsWith("https://aip.dfs.de/BasicVFR/20"), "resolveCurrentLink-2")
         assertTrue(location.contains("/chapter/"), "resolveCurrentLink-3")
-    }
-
+    }*/
 }

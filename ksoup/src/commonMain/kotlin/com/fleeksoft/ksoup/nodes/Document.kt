@@ -1,18 +1,15 @@
 package com.fleeksoft.ksoup.nodes
 
-import io.ktor.utils.io.charsets.Charset
-import io.ktor.utils.io.charsets.CharsetEncoder
-import io.ktor.utils.io.charsets.name
-import com.fleeksoft.ksoup.helper.DataUtil
 import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.parser.ParseSettings
 import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.parser.Tag
+import com.fleeksoft.ksoup.ported.Cloneable
 import com.fleeksoft.ksoup.select.Elements
 import com.fleeksoft.ksoup.select.Evaluator
 import com.fleeksoft.ksoup.select.Selector
-import com.fleeksoft.ksoup.ported.Cloneable
+import io.ktor.utils.io.charsets.*
 
 /**
  * A HTML Document.
@@ -358,7 +355,7 @@ public class Document(private val namespace: String, private val location: Strin
      */
     public data class OutputSettings(
         private var escapeMode: Entities.EscapeMode = Entities.EscapeMode.base,
-        private var charset: Charset = DataUtil.UTF_8,
+        private var charset: Charset = Charsets.UTF_8,
         var coreCharset: Entities.CoreCharset = Entities.CoreCharset.byName(charset.name), // fast encoders for ascii and utf8
         private var prettyPrint: Boolean = true,
         private var outline: Boolean = false,

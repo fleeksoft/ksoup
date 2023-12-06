@@ -8,6 +8,8 @@
 ![badge-android](http://img.shields.io/badge/platform-android-6EDB8D.svg?style=flat)
 ![badge-ios](http://img.shields.io/badge/platform-ios-CDCDCD.svg?style=flat)
 ![badge-jvm](http://img.shields.io/badge/platform-jvm-DB413D.svg?style=flat)
+![badge-linux](http://img.shields.io/badge/platform-linux-2D3F6C.svg?style=flat)
+![badge-nodejs](https://img.shields.io/badge/platform-jsNode-F8DB5D.svg?style=flat)
 
 Ksoup implements the [WHATWG HTML5](https://html.spec.whatwg.org/multipage/) specification, parsing HTML to the same DOM as modern browsers do, but with support for Android, JVM, and native platforms.
 
@@ -46,7 +48,10 @@ This snippet demonstrates how to use `Ksoup.parse` for parsing an HTML string an
 ### Fetching and Parsing HTML from a URL using Ksoup
 ```kotlin
 //Please note that the com.fleeksoft.ksoup:ksoup-network library is required for Ksoup.parseGetRequest.
-val doc: Document = Ksoup.parseGetRequest(url = "https://en.wikipedia.org/")
+val doc: Document = Ksoup.parseGetRequest(url = "https://en.wikipedia.org/") // suspend function
+// or
+val doc: Document = Ksoup.parseGetRequestBlocking(url = "https://en.wikipedia.org/")
+
 println("title: ${doc.title()}")
 val headlines: Elements = doc.select("#mp-itn b a")
 
@@ -70,14 +75,15 @@ Report any issues on [our GitHub page](https://github.com/fleeksoft/ksoup/issues
 
 ## Library Status
 
-| Platform         | Status        | Notes                         |
-|------------------|---------------|-------------------------------|
-| Android          | Beta          |                               |
-| JVM              | Beta          |                               |
-| iOS              | Alpha         |                               |
-| Linux            | Experimental  | Does not support gzip files.  |
-| Native MacOS     | Coming Soon   |                               |
-| Native Windows   | Coming Soon   |                               |
+| Platform       | Status       | Notes                         |
+|----------------|--------------|-------------------------------|
+| Android        | Beta         |                               |
+| JVM            | Beta         |                               |
+| iOS            | Alpha        |                               |
+| Linux          | Experimental | Does not support gzip files.  |
+| Js             | Experimental | Does not support gzip files.  |
+| Native MacOS   | Coming Soon  |                               |
+| Native Windows | Coming Soon  |                               |
 
 
 

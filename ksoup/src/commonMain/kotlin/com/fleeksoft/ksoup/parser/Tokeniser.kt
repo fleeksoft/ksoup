@@ -73,7 +73,7 @@ internal class Tokeniser(private val reader: CharacterReader, private val errors
             Token.TokenType.EndTag -> {
                 val endTag = token as Token.EndTag
                 if (endTag.hasAttributes())
-                    error("Attributes incorrectly present on end tag [/${endTag.normalName()}]")
+                    error("Attributes incorrectly present on end tag [/${endTag.retrieveNormalName()}]")
             }
 
             else -> {}
