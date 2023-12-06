@@ -2723,9 +2723,9 @@ Three
                 )
             }
         if (Platform.current == PlatformType.IOS) {
-            assertEquals("Invalid hexadecimal escape sequence near index: 0\n\\x", ex.message)
+            assertEquals("Invalid hexadecimal escape sequence near index: 0\n\\x\n^", ex.message)
         } else {
-            assertEquals("Illegal hexadecimal escape sequence near index 2\n\\x\n^", ex.message)
+            assertEquals("Illegal hexadecimal escape sequence near index 2\n\\x", ex.message)
         }
     }
 
@@ -2767,9 +2767,9 @@ Three
             assertFailsWith<IllegalArgumentException> { doc.getElementsMatchingText("\\x") }
 
         if (Platform.current == PlatformType.IOS) {
-            assertEquals("Invalid hexadecimal escape sequence near index: 0\n\\x", ex.message)
+            assertEquals("Invalid hexadecimal escape sequence near index: 0\n\\x\n^", ex.message)
         } else {
-            assertEquals("Illegal hexadecimal escape sequence near index 2\n\\x\n^", ex.message)
+            assertEquals("Illegal hexadecimal escape sequence near index 2\n\\x", ex.message)
         }
     }
 
@@ -2802,9 +2802,9 @@ Three
             assertFailsWith<IllegalArgumentException> { doc.getElementsMatchingOwnText("\\x") }
 
         if (Platform.current == PlatformType.IOS) {
-            assertEquals("Invalid hexadecimal escape sequence near index: 0\n\\x", ex.message)
+            assertEquals("Invalid hexadecimal escape sequence near index: 0\n\\x\n^", ex.message)
         } else {
-            assertEquals("Illegal hexadecimal escape sequence near index 2\n\\x\n^", ex.message)
+            assertEquals("Illegal hexadecimal escape sequence near index 2\n\\x", ex.message)
         }
     }
 
