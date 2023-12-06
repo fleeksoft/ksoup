@@ -46,7 +46,10 @@ This snippet demonstrates how to use `Ksoup.parse` for parsing an HTML string an
 ### Fetching and Parsing HTML from a URL using Ksoup
 ```kotlin
 //Please note that the com.fleeksoft.ksoup:ksoup-network library is required for Ksoup.parseGetRequest.
-val doc: Document = Ksoup.parseGetRequest(url = "https://en.wikipedia.org/")
+val doc: Document = Ksoup.parseGetRequest(url = "https://en.wikipedia.org/") // suspend function
+// or
+val doc: Document = Ksoup.parseGetRequestBlocking(url = "https://en.wikipedia.org/")
+
 println("title: ${doc.title()}")
 val headlines: Elements = doc.select("#mp-itn b a")
 
@@ -70,14 +73,15 @@ Report any issues on [our GitHub page](https://github.com/fleeksoft/ksoup/issues
 
 ## Library Status
 
-| Platform         | Status        | Notes                         |
-|------------------|---------------|-------------------------------|
-| Android          | Beta          |                               |
-| JVM              | Beta          |                               |
-| iOS              | Alpha         |                               |
-| Linux            | Experimental  | Does not support gzip files.  |
-| Native MacOS     | Coming Soon   |                               |
-| Native Windows   | Coming Soon   |                               |
+| Platform       | Status       | Notes                         |
+|----------------|--------------|-------------------------------|
+| Android        | Beta         |                               |
+| JVM            | Beta         |                               |
+| iOS            | Alpha        |                               |
+| Linux          | Experimental | Does not support gzip files.  |
+| Js             | Experimental | Does not support gzip files.  |
+| Native MacOS   | Coming Soon  |                               |
+| Native Windows | Coming Soon  |                               |
 
 
 
