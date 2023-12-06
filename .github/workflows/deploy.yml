@@ -37,6 +37,7 @@ jobs:
       - name: Test ${{ matrix.config.target }} targets
         continue-on-error: ${{ matrix.config.continueOnError }}
         run: ./gradlew ${{ matrix.config.tasks }}
+        working-directory: ${{ github.workspace }}
 
   release:
     if: ${{ github.event_name != 'pull_request' }}
