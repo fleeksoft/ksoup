@@ -1,12 +1,14 @@
 package com.fleeksoft.ksoup
 
-import okio.BufferedSource
-import okio.NodeJsFileSystem
-import okio.Path
-import okio.buffer
+import com.fleeksoft.ksoup.zlib.initializeZlib
+import com.fleeksoft.ksoup.zlib.zlib
+import okio.*
 
 internal actual fun readGzipFile(file: Path): BufferedSource {
-    TODO("not implemented")
+    initializeZlib()
+    return Buffer().apply {
+        write(zlib.gunzipSync(readFile(file).readByteArray()))
+    }
 }
 
 internal actual fun readFile(file: Path): BufferedSource {

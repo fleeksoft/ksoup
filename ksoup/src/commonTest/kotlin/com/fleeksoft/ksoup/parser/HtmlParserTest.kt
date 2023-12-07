@@ -1643,11 +1643,6 @@ class HtmlParserTest {
     @Test
     @Throws(IOException::class)
     fun characterReaderBuffer() {
-        if (Platform.current == PlatformType.JS) {
-            // FIXME: gzip not supported yet on js
-            return
-        }
-
         val input: String = TestHelper.getResourceAbsolutePath("htmltests/character-reader-buffer.html.gz")
         val doc: Document = Ksoup.parseFile(input, "UTF-8")
         val expectedHref = "http://www.domain.com/path?param_one=value&param_two=value"

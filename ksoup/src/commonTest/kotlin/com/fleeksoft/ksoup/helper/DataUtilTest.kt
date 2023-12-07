@@ -218,10 +218,6 @@ class DataUtilTest {
 
     @Test
     fun supportsZippedUTF8BOM() {
-        if (Platform.current == PlatformType.JS) {
-            // FIXME: gzip not supported yet on js
-            return
-        }
         val input: String = TestHelper.getResourceAbsolutePath("bomtests/bom_utf8.html.gz")
         val doc: Document =
             Ksoup.parseFile(
@@ -255,10 +251,6 @@ class DataUtilTest {
 
     @Test
     fun lLoadsGzipFile() {
-        if (Platform.current == PlatformType.JS) {
-            // FIXME: gzip not supported yet for js
-            return
-        }
         val input: String = TestHelper.getResourceAbsolutePath("htmltests/gzip.html.gz")
         val doc: Document = Ksoup.parseFile(file = input, charsetName = null)
         doc.toString()
@@ -268,10 +260,6 @@ class DataUtilTest {
 
     @Test
     fun loadsZGzipFile() {
-        if (Platform.current == PlatformType.JS) {
-            // FIXME: gzip not supported yet for js
-            return
-        }
         // compressed on win, with z suffix
         val input: String = TestHelper.getResourceAbsolutePath("htmltests/gzip.html.z")
         val doc: Document = Ksoup.parseFile(file = input, charsetName = null)
@@ -281,10 +269,6 @@ class DataUtilTest {
 
     @Test
     fun handlesFakeGzipFile() {
-        if (Platform.current == PlatformType.JS) {
-            // FIXME: gzip not supported yet for js
-            return
-        }
         val input: String = TestHelper.getResourceAbsolutePath("htmltests/fake-gzip.html.gz")
         val doc: Document = Ksoup.parseFile(file = input, charsetName = null)
         assertEquals("This is not gzipped", doc.title())
