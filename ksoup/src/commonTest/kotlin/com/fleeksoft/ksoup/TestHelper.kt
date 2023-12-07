@@ -6,7 +6,7 @@ import okio.Path.Companion.toPath
 
 object TestHelper {
     fun getResourceAbsolutePath(resourceName: String): String {
-        return "/Users/sabeeh/AndroidStudioProjects/ksoup/ksoup/src/commonTest/resources/$resourceName"
+//        return "/Users/sabeeh/AndroidStudioProjects/ksoup/ksoup/src/commonTest/resources/$resourceName"
         val rootPath =
             if (Platform.current == PlatformType.IOS) {
                 "/Users/runner/work/ksoup/ksoup/ksoup"
