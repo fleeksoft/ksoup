@@ -1,6 +1,6 @@
-package com.fleeksoft.ksoup
+package com.fleeksoft.ksoup.network
 
-import com.fleeksoft.ksoup.network.NetworkHelper
+import com.fleeksoft.ksoup.Ksoup
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parser.Parser
 import io.ktor.client.request.*
