@@ -7,7 +7,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class AndroidGreetingTest {
-
     @Test
     fun testLowercaseUtf8CharsetWithInputStream() {
         val inputStream = FileInputStream(TestHelper.getResourceAbsolutePath("htmltests/lowercase-charset-test.html"))

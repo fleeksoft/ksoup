@@ -18,7 +18,11 @@ internal fun jsSupportedRegex(regex: String): Regex {
 }
 
 public enum class PlatformType {
-    ANDROID, JVM, IOS, LINUX, JS
+    ANDROID,
+    JVM,
+    IOS,
+    LINUX,
+    JS,
 }
 
 public expect object Platform {

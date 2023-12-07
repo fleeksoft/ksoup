@@ -11,6 +11,7 @@ object TextUtil {
     var spaceCollapse = Regex("\\s{2,}")
     var tagSpaceCollapse = Regex(">\\s+<")
     var stripCRs = Regex("\\r*")
+
     fun stripNewlines(text: String): String {
         return stripper.replace(text, "")
     }

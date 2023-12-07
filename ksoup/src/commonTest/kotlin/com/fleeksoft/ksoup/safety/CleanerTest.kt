@@ -126,10 +126,11 @@ class CleanerTest {
     fun safeListedProtocolShouldBeRetained() {
         // TODO: multilocale test may move to jvm
 //        Locale.setDefault(locale)
-        val safelist = Safelist.none()
-            .addTags("a")
-            .addAttributes("a", "href")
-            .addProtocols("a", "href", "something")
+        val safelist =
+            Safelist.none()
+                .addTags("a")
+                .addAttributes("a", "href")
+                .addProtocols("a", "href", "something")
         val cleanHtml = Ksoup.clean("<a href=\"SOMETHING://x\"></a>", safelist)
         assertEquals("<a href=\"SOMETHING://x\"></a>", TextUtil.stripNewlines(cleanHtml))
     }
@@ -295,10 +296,11 @@ class CleanerTest {
     @Test
     fun handlesAllPseudoTag() {
         val html = "<p class='foo' src='bar'><a class='qux'>link</a></p>"
-        val safelist = Safelist()
-            .addAttributes(":all", "class")
-            .addAttributes("p", "style")
-            .addTags("p", "a")
+        val safelist =
+            Safelist()
+                .addAttributes(":all", "class")
+                .addAttributes("p", "style")
+                .addTags("p", "a")
         val clean = Ksoup.clean(html, safelist)
         assertEquals("<p class=\"foo\"><a class=\"qux\">link</a></p>", clean)
     }
@@ -306,8 +308,9 @@ class CleanerTest {
     @Test
     fun addsTagOnAttributesIfNotSet() {
         val html = "<p class='foo' src='bar'>One</p>"
-        val safelist = Safelist()
-            .addAttributes("p", "class")
+        val safelist =
+            Safelist()
+                .addAttributes("p", "class")
         // ^^ safelist does not have explicit tag add for p, inferred from add attributes.
         val clean = Ksoup.clean(html, safelist)
         assertEquals("<p class=\"foo\">One</p>", clean)
@@ -404,8 +407,9 @@ class CleanerTest {
     fun handlesNestedQuotesInAttribute() {
         // https://github.com/jhy/jsoup/issues/1243 - no repro
         val orig = "<div style=\"font-family: 'Calibri'\">Will (not) fail</div>"
-        val allow = Safelist.relaxed()
-            .addAttributes("div", "style")
+        val allow =
+            Safelist.relaxed()
+                .addAttributes("div", "style")
         val clean = Ksoup.clean(orig, allow)
         val isValid = Ksoup.isValid(orig, allow)
         assertEquals(orig, TextUtil.stripNewlines(clean)) // only difference is pretty print wrap & indent

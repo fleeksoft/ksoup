@@ -3,8 +3,8 @@ package com.fleeksoft.ksoup.nodes
 import com.fleeksoft.ksoup.Ksoup
 import com.fleeksoft.ksoup.parser.Tag
 import com.fleeksoft.ksoup.select.NodeVisitor
-import kotlin.test.Test
 import kotlin.test.*
+import kotlin.test.Test
 
 /**
  * Tests Nodes
@@ -21,7 +21,7 @@ class NodeTest {
         val noBase = Element(tag, "", attribs)
         assertEquals(
             "",
-            noBase.absUrl("relHref")
+            noBase.absUrl("relHref"),
         ) // with no base, should NOT fallback to href attrib, whatever it is
         assertEquals("http://bar/qux", noBase.absUrl("absHref")) // no base but valid attrib, return attrib
         val withBase = Element(tag, "http://foo/", attribs)
@@ -262,7 +262,7 @@ class NodeTest {
         val node = span.unwrap()
         assertEquals(
             "<div>One Two <b>Three</b> Four</div>",
-            com.fleeksoft.ksoup.TextUtil.stripNewlines(doc.body().html())
+            com.fleeksoft.ksoup.TextUtil.stripNewlines(doc.body().html()),
         )
         assertTrue(node is TextNode)
         assertEquals("Two ", (node as TextNode?)!!.text())
@@ -283,15 +283,23 @@ class NodeTest {
     fun traverse() {
         val doc = Ksoup.parse("<div><p>Hello</p></div><div>There</div>")
         val accum = StringBuilder()
-        doc.select("div").first()!!.traverse(object : NodeVisitor {
-            override fun head(node: Node, depth: Int) {
-                accum.append("<").append(node.nodeName()).append(">")
-            }
+        doc.select("div").first()!!.traverse(
+            object : NodeVisitor {
+                override fun head(
+                    node: Node,
+                    depth: Int,
+                ) {
+                    accum.append("<").append(node.nodeName()).append(">")
+                }
 
-            override fun tail(node: Node, depth: Int) {
-                accum.append("</").append(node.nodeName()).append(">")
-            }
-        })
+                override fun tail(
+                    node: Node,
+                    depth: Int,
+                ) {
+                    accum.append("</").append(node.nodeName()).append(">")
+                }
+            },
+        )
         assertEquals("<div><p><#text></#text></p></div>", accum.toString())
     }
 
@@ -305,11 +313,13 @@ class NodeTest {
                     textNode.text("There Now")
                     textNode.after("<p>Another")
                 }
-            } else if (node.attr("id") == "1") node.remove()
+            } else if (node.attr("id") == "1") {
+                node.remove()
+            }
         }
         assertEquals(
             "<div><p>Hello</p></div><div>There Now<p>Another</p></div>",
-            com.fleeksoft.ksoup.TextUtil.stripNewlines(doc.body().html())
+            com.fleeksoft.ksoup.TextUtil.stripNewlines(doc.body().html()),
         )
     }
 
@@ -350,9 +360,9 @@ class NodeTest {
         assertEquals("Text 1 ", tn1.text())
         div2!!.insertChildren(-1, divChildren)
         assertEquals(
-            "<div id=\"1\">Text 1 <p>One</p> Text 2 <p>Two</p><p>Three</p></div><div id=\"2\">Text 1 updated"
-                    + "<p>One</p> Text 2 <p>Two</p><p>Three</p></div>",
-            com.fleeksoft.ksoup.TextUtil.stripNewlines(doc.body().html())
+            "<div id=\"1\">Text 1 <p>One</p> Text 2 <p>Two</p><p>Three</p></div><div id=\"2\">Text 1 updated" +
+                "<p>One</p> Text 2 <p>Two</p><p>Three</p></div>",
+            com.fleeksoft.ksoup.TextUtil.stripNewlines(doc.body().html()),
         )
     }
 
@@ -415,7 +425,7 @@ class NodeTest {
         assertFalse(docClone.outputSettings().prettyPrint())
         assertEquals(
             1,
-            docClone.childNodes().size
+            docClone.childNodes().size,
         ) // check did not get the second div as the owner's children
         assertEquals(textClone, docClone.childNode(0)) // note not the head or the body -- not normalized
     }

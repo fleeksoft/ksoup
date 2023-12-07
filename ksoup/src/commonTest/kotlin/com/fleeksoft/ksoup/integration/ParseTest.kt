@@ -40,35 +40,38 @@ class ParseTest {
 
         // double check, no charset, falls back to utf8 which is incorrect
         input = TestHelper.getResourceAbsolutePath("htmltests/meta-charset-2.html") //
-        doc = parseFile(
-            file = input,
-            baseUri = "http://example.com",
-            charsetName = null,
-        ) // gb2312, no charset
+        doc =
+            parseFile(
+                file = input,
+                baseUri = "http://example.com",
+                charsetName = null,
+            ) // gb2312, no charset
         assertEquals("UTF-8", doc.outputSettings().charset().name.uppercase())
         assertNotEquals("新", doc.text())
 
         // confirm fallback to utf8
         input = TestHelper.getResourceAbsolutePath("htmltests/meta-charset-3.html")
-        doc = parseFile(
-            file = input,
-            baseUri = "http://example.com/",
-            charsetName = null,
-        ) // utf8, no charset
+        doc =
+            parseFile(
+                file = input,
+                baseUri = "http://example.com/",
+                charsetName = null,
+            ) // utf8, no charset
         assertEquals("UTF-8", doc.outputSettings().charset().name.uppercase())
         assertEquals("新", doc.text())
     }
 
     @Test
     fun testBrokenHtml5CharsetWithASingleDoubleQuote() {
-        val input = BufferReader(
-            """
-    <html>
-    <head><meta charset=UTF-8"></head>
-    <body></body>
-    </html>
-            """.trimIndent(),
-        )
+        val input =
+            BufferReader(
+                """
+                <html>
+                <head><meta charset=UTF-8"></head>
+                <body></body>
+                </html>
+                """.trimIndent(),
+            )
 
         val doc: Document = parse(bufferReader = input, baseUri = "http://example.com/", charsetName = null)
         assertEquals("UTF-8", doc.outputSettings().charset().name.uppercase())
@@ -92,11 +95,12 @@ class ParseTest {
         // https://github.com/jhy/jsoup/issues/1324
         // this tests that when in CharacterReader we hit a buffer while marked, we preserve the mark when buffered up and can rewind
         val input = TestHelper.getResourceAbsolutePath("htmltests/xwiki-1324.html.gz")
-        val doc: Document = parseFile(
-            file = input,
-            baseUri = "https://localhost/",
-            charsetName = null,
-        )
+        val doc: Document =
+            parseFile(
+                file = input,
+                baseUri = "https://localhost/",
+                charsetName = null,
+            )
         assertEquals("XWiki Jetty HSQLDB 12.1-SNAPSHOT", doc.select("#xwikiplatformversion").text())
 
         // was getting busted at =userdirectory, because it hit the bufferup point but the mark was then lost. so
@@ -117,12 +121,13 @@ class ParseTest {
         // and the parse tree is correct.
 
         val parser = Parser.htmlParser()
-        val doc = parse(
-            bufferReader = TestHelper.resourceFilePathToBufferReader("htmltests/xwiki-edit.html.gz"),
-            baseUri = "https://localhost/",
-            charsetName = "UTF-8",
-            parser = parser.setTrackErrors(100),
-        )
+        val doc =
+            parse(
+                bufferReader = TestHelper.resourceFilePathToBufferReader("htmltests/xwiki-edit.html.gz"),
+                baseUri = "https://localhost/",
+                charsetName = "UTF-8",
+                parser = parser.setTrackErrors(100),
+            )
         val errors = parser.getErrors()
         assertEquals("XWiki Jetty HSQLDB 12.1-SNAPSHOT", doc.select("#xwikiplatformversion").text())
         assertEquals(0, errors.size) // not an invalid reference because did not look legit

@@ -11,6 +11,7 @@ import com.fleeksoft.ksoup.internal.StringUtil
 internal class TokenQueue(data: String) {
     private var queue: String
     private var pos = 0
+
     fun isEmpty(): Boolean = remainingLength() == 0
 
     private fun remainingLength(): Int {
@@ -203,7 +204,10 @@ internal class TokenQueue(data: String) {
      * @param close closer
      * @return data matched from the queue
      */
-    fun chompBalanced(open: Char, close: Char): String {
+    fun chompBalanced(
+        open: Char,
+        close: Char,
+    ): String {
         var start = -1
         var end = -1
         var depth = 0
@@ -229,7 +233,9 @@ internal class TokenQueue(data: String) {
                 if (c == open) {
                     depth++
                     if (start == -1) start = pos
-                } else if (c == close) depth--
+                } else if (c == close) {
+                    depth--
+                }
             } else if (c == 'Q') {
                 inRegexQE = true
             } else if (c == 'E') {
@@ -377,7 +383,7 @@ internal class TokenQueue(data: String) {
         /*
     Given a CSS identifier (such as a tag, ID, or class), escape any CSS special characters that would otherwise not be
     valid in a selector.
-     */
+         */
         fun escapeCssIdentifier(`in`: String): String {
             val out: StringBuilder = StringUtil.borrowBuilder()
             val q = TokenQueue(`in`)

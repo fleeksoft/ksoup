@@ -8,8 +8,8 @@ import com.fleeksoft.ksoup.internal.StringUtil.isWhitespace
 import com.fleeksoft.ksoup.internal.StringUtil.join
 import com.fleeksoft.ksoup.internal.StringUtil.normaliseWhitespace
 import com.fleeksoft.ksoup.internal.StringUtil.padding
-import kotlin.test.assertEquals
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
@@ -121,16 +121,16 @@ class StringUtilTest {
         assertEquals("http://example.com/one/two?three", StringUtil.resolve("http://example.com", "./one/two?three"))
         assertEquals(
             "http://example.com/one/two?three",
-            StringUtil.resolve("http://example.com?one", "./one/two?three")
+            StringUtil.resolve("http://example.com?one", "./one/two?three"),
         )
         assertEquals(
             "http://example.com/one/two?three#four",
-            StringUtil.resolve("http://example.com", "./one/two?three#four")
+            StringUtil.resolve("http://example.com", "./one/two?three#four"),
         )
         assertEquals("https://example.com/one", StringUtil.resolve("http://example.com/", "https://example.com/one"))
         assertEquals(
             "http://example.com/one/two.html",
-            StringUtil.resolve("http://example.com/two/", "../one/two.html")
+            StringUtil.resolve("http://example.com/two/", "../one/two.html"),
         )
         assertEquals("https://example2.com/one", StringUtil.resolve("https://example.com/", "//example2.com/one"))
         assertEquals("https://example.com:8080/one", StringUtil.resolve("https://example.com:8080", "./one"))

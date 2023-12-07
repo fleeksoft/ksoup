@@ -18,13 +18,14 @@ internal fun URLBuilder.appendRelativePath(relativePath: String): URLBuilder {
     //    clear / its already joining with /
     segments.removeAll { it.isEmpty() }
 
-    val relativePathParts: MutableList<String> = if (relativePath.contains("?")) {
-        handleQueryParams(relativePath, "?")
-    } else if (relativePath.contains("#")) {
-        handleQueryParams(relativePath, "#")
-    } else {
-        relativePath.split("/").toMutableList()
-    }
+    val relativePathParts: MutableList<String> =
+        if (relativePath.contains("?")) {
+            handleQueryParams(relativePath, "?")
+        } else if (relativePath.contains("#")) {
+            handleQueryParams(relativePath, "#")
+        } else {
+            relativePath.split("/").toMutableList()
+        }
 
     if (relativePathParts.size > 1 && relativePathParts.last() == "/") {
         relativePathParts.removeLast()
@@ -92,7 +93,10 @@ internal fun URLBuilder.appendRelativePath(relativePath: String): URLBuilder {
     return this
 }
 
-private fun handleQueryParams(relativePath: String, separator: String): MutableList<String> {
+private fun handleQueryParams(
+    relativePath: String,
+    separator: String,
+): MutableList<String> {
     val querySplit = relativePath.split(separator).toMutableList()
     val firstQueryPath = querySplit.removeFirst()
     val relativePathParts = firstQueryPath.split("/").toMutableList()

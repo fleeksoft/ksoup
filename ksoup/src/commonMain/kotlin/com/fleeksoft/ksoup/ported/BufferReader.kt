@@ -62,7 +62,11 @@ public open class BufferReader : Closeable {
 
     public fun size(): Long = _source.buffer.size
 
-    public open fun read(sink: ByteArray, offset: Int, byteCount: Int): Int {
+    public open fun read(
+        sink: ByteArray,
+        offset: Int,
+        byteCount: Int,
+    ): Int {
         var read = 0
         if (byteCount == 0 && getSource().exhausted()) return -1
         while (read < byteCount) {
@@ -81,7 +85,11 @@ public open class BufferReader : Closeable {
         return read
     }
 
-    private fun readInternal(sink: ByteArray, offset: Int, byteCount: Int): Int {
+    private fun readInternal(
+        sink: ByteArray,
+        offset: Int,
+        byteCount: Int,
+    ): Int {
         if (_charset != null) {
             val byteArray = ByteArray(sink.size)
             val result = getSource().read(sink = byteArray, offset = offset, byteCount = byteCount)
@@ -100,10 +108,11 @@ public open class BufferReader : Closeable {
     public open fun readByteArray(byteCount: Long? = null): ByteArray {
         var byteArray = if (byteCount != null) getSource().readByteArray(byteCount) else getSource().readByteArray()
         if (_charset != null && byteArray.isNotEmpty()) {
-            byteArray = String(
-                bytes = byteArray,
-                charset = _charset!!,
-            ).toByteArray()
+            byteArray =
+                String(
+                    bytes = byteArray,
+                    charset = _charset!!,
+                ).toByteArray()
         }
         return byteArray
     }
@@ -201,13 +210,14 @@ public open class BufferReader : Closeable {
 
     public companion object {
         public fun determineCharSize(byte: Int): Int {
-            val firstCharLength = when {
-                byte and 0x80 == 0 -> 1 // 0xxxxxxx, 1 byte
-                byte and 0xE0 == 0xC0 -> 2 // 110xxxxx, 2 bytes
-                byte and 0xF0 == 0xE0 -> 3 // 1110xxxx, 3 bytes
-                byte and 0xF8 == 0xF0 -> 4 // 11110xxx, 4 bytes
-                else -> 1
-            }
+            val firstCharLength =
+                when {
+                    byte and 0x80 == 0 -> 1 // 0xxxxxxx, 1 byte
+                    byte and 0xE0 == 0xC0 -> 2 // 110xxxxx, 2 bytes
+                    byte and 0xF0 == 0xE0 -> 3 // 1110xxxx, 3 bytes
+                    byte and 0xF8 == 0xF0 -> 4 // 11110xxx, 4 bytes
+                    else -> 1
+                }
             return firstCharLength
         }
     }

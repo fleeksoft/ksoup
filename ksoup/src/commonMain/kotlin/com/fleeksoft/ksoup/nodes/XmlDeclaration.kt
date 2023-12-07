@@ -1,9 +1,8 @@
 package com.fleeksoft.ksoup.nodes
 
-import okio.IOException
 import com.fleeksoft.ksoup.SerializationException
-import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.internal.StringUtil
+import okio.IOException
 
 /**
  * An XML Declaration.
@@ -45,7 +44,10 @@ public class XmlDeclaration(name: String, isProcessingInstruction: Boolean) : Le
     }
 
     @Throws(IOException::class)
-    private fun getWholeDeclaration(accum: Appendable, out: Document.OutputSettings) {
+    private fun getWholeDeclaration(
+        accum: Appendable,
+        out: Document.OutputSettings,
+    ) {
         for (attribute in attributes()) {
             val key: String = attribute.key
             val value: String = attribute.value
@@ -63,7 +65,11 @@ public class XmlDeclaration(name: String, isProcessingInstruction: Boolean) : Le
     }
 
     @Throws(IOException::class)
-    override fun outerHtmlHead(accum: Appendable, depth: Int, out: Document.OutputSettings) {
+    override fun outerHtmlHead(
+        accum: Appendable,
+        depth: Int,
+        out: Document.OutputSettings,
+    ) {
         accum
             .append("<")
             .append(if (isProcessingInstruction) "!" else "?")

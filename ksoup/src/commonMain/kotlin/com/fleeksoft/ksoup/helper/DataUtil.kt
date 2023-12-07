@@ -46,7 +46,11 @@ public object DataUtil {
      * @throws IOException on IO error
      */
     @Throws(IOException::class)
-    public fun load(path: Path, charsetName: String?, baseUri: String): Document {
+    public fun load(
+        path: Path,
+        charsetName: String?,
+        baseUri: String,
+    ): Document {
         return load(path, charsetName, baseUri, Parser.htmlParser())
     }
 
@@ -75,24 +79,26 @@ public object DataUtil {
 
         val source = readFile(filePath)
         return source.use { bufferedSource ->
-            val bufferReader: BufferReader = if (name.endsWith(".gz") || name.endsWith(".z")) {
-                val zipped: Boolean = runCatching {
-                    bufferedSource.peek().use { peekSource ->
+            val bufferReader: BufferReader =
+                if (name.endsWith(".gz") || name.endsWith(".z")) {
+                    val zipped: Boolean =
+                        runCatching {
+                            bufferedSource.peek().use { peekSource ->
 //                    In Kotlin, a Byte is signed and ranges from -128 to 127. In contrast, in Java, a byte is an unsigned type and ranges from 0 to 255.
 //                    in kotlin use readUByte to get unsigned byte
-                        peekSource.readByte().toUByte().toInt() == 0x1f && peekSource.readByte()
-                            .toUByte().toInt() == 0x8b // gzip magic bytes  0x1f == 31 & 0x8b = 139
-                    }
-                }.getOrNull() ?: false
+                                peekSource.readByte().toUByte().toInt() == 0x1f && peekSource.readByte()
+                                    .toUByte().toInt() == 0x8b // gzip magic bytes  0x1f == 31 & 0x8b = 139
+                            }
+                        }.getOrNull() ?: false
 
-                if (zipped) {
-                    BufferReader(readGzipFile(filePath))
+                    if (zipped) {
+                        BufferReader(readGzipFile(filePath))
+                    } else {
+                        BufferReader(bufferedSource)
+                    }
                 } else {
                     BufferReader(bufferedSource)
                 }
-            } else {
-                BufferReader(bufferedSource)
-            }
 
 //            val charset = charsetName?.let { Charset.forName(it) } ?: Charsets.UTF_8
 //            val inputData = bufferedSource.readString()
@@ -148,7 +154,10 @@ public object DataUtil {
      * @throws IOException on IO error
      */
     @Throws(IOException::class)
-    public fun crossStreams(source: ByteArray, outSource: Buffer) {
+    public fun crossStreams(
+        source: ByteArray,
+        outSource: Buffer,
+    ) {
         outSource.write(source)
     }
 
@@ -165,7 +174,7 @@ public object DataUtil {
         }
         var effectiveCharsetName: String? = charsetName
 
-        /*@Nullable */
+        // @Nullable
         var doc: Document? = null
 
         // read the start of the stream and look for a BOM or meta charset
@@ -180,11 +189,12 @@ public object DataUtil {
         val bomCharset: BomCharset? = detectCharsetFromBom(firstBytes)
         if (bomCharset != null) effectiveCharsetName = bomCharset.charset
         if (effectiveCharsetName == null) { // determine from meta. safe first parse as UTF-8
-            doc = try {
-                parser.parseInput(firstBytes, baseUri)
-            } catch (e: UncheckedIOException) {
-                throw e
-            }
+            doc =
+                try {
+                    parser.parseInput(firstBytes, baseUri)
+                } catch (e: UncheckedIOException) {
+                    throw e
+                }
 
             // look for <meta http-equiv="Content-Type" content="text/html;charset=gb2312"> or HTML5 <meta charset="gb2312">
             val metaElements: Elements =
@@ -219,7 +229,8 @@ public object DataUtil {
                 }
             }
             foundCharset = validateCharset(foundCharset)
-            if (foundCharset != null && !foundCharset.equals(
+            if (foundCharset != null &&
+                !foundCharset.equals(
                     defaultCharsetName,
                     ignoreCase = true,
                 )
@@ -245,12 +256,13 @@ public object DataUtil {
 //                skip first char which can be 2-4
                 bufferReader.skipFirstUnicodeChar(1)
             }
-            doc = try {
-                parser.parseInput(bufferReader, baseUri)
-            } catch (e: UncheckedIOException) {
-                // io exception when parsing (not seen before because reading the stream as we go)
-                throw e
-            }
+            doc =
+                try {
+                    parser.parseInput(bufferReader, baseUri)
+                } catch (e: UncheckedIOException) {
+                    // io exception when parsing (not seen before because reading the stream as we go)
+                    throw e
+                }
             val charset: Charset =
                 if (effectiveCharsetName == defaultCharsetName) {
                     Charsets.UTF_8
@@ -278,7 +290,10 @@ public object DataUtil {
      * @throws IOException if an exception occurs whilst reading from the input stream.
      */
     @Throws(IOException::class)
-    public fun readToByteBuffer(bufferReader: BufferReader, maxSize: Long): ByteArray {
+    public fun readToByteBuffer(
+        bufferReader: BufferReader,
+        maxSize: Long,
+    ): ByteArray {
         require(maxSize >= 0) {
             "maxSize must be 0 (unlimited) or larger"
         }
@@ -357,11 +372,12 @@ public object DataUtil {
 
     private fun detectCharsetFromBom(firstByteArray: ByteArray): BomCharset? {
         // .mark and rewind used to return Buffer, now ByteBuffer, so cast for backward compat
-        val bom = if (firstByteArray.size >= 4) {
-            firstByteArray.copyOf(4)
-        } else {
-            ByteArray(4)
-        }
+        val bom =
+            if (firstByteArray.size >= 4) {
+                firstByteArray.copyOf(4)
+            } else {
+                ByteArray(4)
+            }
         if (bom[0].toInt() == 0x00 && bom[1].toInt() == 0x00 && bom[2] == 0xFE.toByte() && bom[3] == 0xFF.toByte() || // BE
             bom[0] == 0xFF.toByte() && bom[1] == 0xFE.toByte() && bom[2].toInt() == 0x00 && bom[3].toInt() == 0x00
         ) { // LE

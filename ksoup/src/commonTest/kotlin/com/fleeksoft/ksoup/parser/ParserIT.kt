@@ -1,8 +1,8 @@
 package com.fleeksoft.ksoup.parser
 
 import com.fleeksoft.ksoup.ported.System
-import kotlin.test.Test
 import kotlin.test.Ignore
+import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 

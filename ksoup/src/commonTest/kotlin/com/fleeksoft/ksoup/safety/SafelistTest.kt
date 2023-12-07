@@ -33,9 +33,10 @@ class SafelistTest {
     @Test
     fun testCopyConstructor_noSideEffectOnProtocols() {
         val invalidScheme = "invalid-scheme"
-        val safelist1 = Safelist.none()
-            .addAttributes(TEST_TAG, TEST_ATTRIBUTE)
-            .addProtocols(TEST_TAG, TEST_ATTRIBUTE, TEST_SCHEME)
+        val safelist1 =
+            Safelist.none()
+                .addAttributes(TEST_TAG, TEST_ATTRIBUTE)
+                .addProtocols(TEST_TAG, TEST_ATTRIBUTE, TEST_SCHEME)
         val safelist2 = Safelist(safelist1)
         safelist1.addProtocols(TEST_TAG, TEST_ATTRIBUTE, invalidScheme)
         val attributes = Attributes()

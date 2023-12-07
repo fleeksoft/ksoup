@@ -33,7 +33,11 @@ public class DataNode(data: String) : LeafNode() {
     }
 
     @Throws(IOException::class)
-    override fun outerHtmlHead(accum: Appendable, depth: Int, out: Document.OutputSettings) {
+    override fun outerHtmlHead(
+        accum: Appendable,
+        depth: Int,
+        out: Document.OutputSettings,
+    ) {
         if (out.syntax() == Document.OutputSettings.Syntax.xml) {
             // In XML mode, output data nodes as CDATA, so can parse as XML
             accum

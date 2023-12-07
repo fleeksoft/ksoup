@@ -12,6 +12,7 @@ internal abstract class Token private constructor() {
     var type: TokenType? = null
     private var _startPos = 0
     private var _endPos = Unset // position in CharacterReader this token was read from
+
     fun tokenType(): String {
         return this::class.simpleName ?: "Token"
     }
@@ -81,27 +82,22 @@ internal abstract class Token private constructor() {
     }
 
     abstract class Tag : Token() {
-        
         var tagName: String? = null
 
-        
         var normalName: String? = null // lc version of tag name, for case insensitive tree build
         private val attrName: StringBuilder =
             StringBuilder() // try to get attr names and vals in one shot, vs Builder
 
-        
         private var attrNameS: String? = null
         private var hasAttrName = false
         private val attrValue: StringBuilder = StringBuilder()
 
-        
         private var attrValueS: String? = null
         private var hasAttrValue = false
         private var hasEmptyAttrValue =
             false // distinguish boolean attribute from empty string value
         var isSelfClosing = false
 
-        
         var attributes: Attributes? =
             null // start tags get attributes on construction. End tags get attributes on first new attribute (but only for parser convenience, not used).
 
@@ -129,7 +125,17 @@ internal abstract class Token private constructor() {
                 name = name.trim { it <= ' ' }
                 if (name.isNotEmpty()) {
                     val value: String? =
-                        if (hasAttrValue) if (attrValue.isNotEmpty()) attrValue.toString() else attrValueS else if (hasEmptyAttrValue) "" else null
+                        if (hasAttrValue) {
+                            if (attrValue.isNotEmpty()) {
+                                attrValue.toString()
+                            } else {
+                                attrValueS
+                            }
+                        } else if (hasEmptyAttrValue) {
+                            ""
+                        } else {
+                            null
+                        }
                     // note that we add, not put. So that the first is kept, and rest are deduped, once in a context where case sensitivity is known (the appropriate tree builder).
                     attributes!!.add(name, value)
                 }
@@ -234,7 +240,6 @@ internal abstract class Token private constructor() {
         fun appendAttributeValue(appendCodepoints: IntArray) {
             ensureAttrValue()
             for (codepoint in appendCodepoints) {
-
                 attrValue.appendCodePoint(codepoint)
             }
         }
@@ -282,7 +287,10 @@ internal abstract class Token private constructor() {
             return this
         }
 
-        fun nameAttr(name: String?, attributes: Attributes?): StartTag {
+        fun nameAttr(
+            name: String?,
+            attributes: Attributes?,
+        ): StartTag {
             tagName = name
             this.attributes = attributes
             normalName = ParseSettings.normalName(tagName)
@@ -309,6 +317,7 @@ internal abstract class Token private constructor() {
         private val data: StringBuilder = StringBuilder()
         private var dataS: String? = null // try to get in one shot
         var bogus = false
+
         override fun reset(): Token {
             super.reset()
             reset(data)
@@ -434,6 +443,7 @@ internal abstract class Token private constructor() {
     }
 
     fun isCharacter(): Boolean = type == TokenType.Character
+
     fun isCData(): Boolean = this is CData
 
     fun asCharacter(): Character {
@@ -443,7 +453,11 @@ internal abstract class Token private constructor() {
     fun isEOF(): Boolean = type == TokenType.EOF
 
     enum class TokenType {
-        Doctype, StartTag, EndTag, Comment, Character, // note no CData - treated in builder as an extension of Character
+        Doctype,
+        StartTag,
+        EndTag,
+        Comment,
+        Character, // note no CData - treated in builder as an extension of Character
         EOF,
     }
 
@@ -456,6 +470,7 @@ internal abstract class Token private constructor() {
 
     companion object {
         const val Unset = -1
+
         fun reset(sb: StringBuilder) {
             sb.clear()
         }

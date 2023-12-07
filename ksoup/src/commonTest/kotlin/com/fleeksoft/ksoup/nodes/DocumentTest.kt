@@ -156,11 +156,12 @@ class DocumentTest {
     fun testLocation() {
         // tests location vs base href
         val `in`: String = TestHelper.getResourceAbsolutePath("htmltests/basehref.html")
-        val doc: Document = Ksoup.parseFile(
-            file = `in`,
-            baseUri = "http://example.com/",
-            charsetName = "UTF-8",
-        )
+        val doc: Document =
+            Ksoup.parseFile(
+                file = `in`,
+                baseUri = "http://example.com/",
+                charsetName = "UTF-8",
+            )
         val location = doc.location()
         val baseUri = doc.baseUri()
         assertEquals("http://example.com/", location)
@@ -454,7 +455,11 @@ class DocumentTest {
         return doc
     }
 
-    private fun createXmlDocument(version: String, charset: String, addDecl: Boolean): Document {
+    private fun createXmlDocument(
+        version: String,
+        charset: String,
+        addDecl: Boolean,
+    ): Document {
         val doc = Document("")
         doc.appendElement("root").text("node")
         doc.outputSettings().syntax(Document.OutputSettings.Syntax.xml)
@@ -479,7 +484,7 @@ class DocumentTest {
                 "before&nbsp;after" +
                 "</body>" +
                 "</html>"
-            )
+        )
         val `is`: BufferReader = BufferReader(input.toByteArray())
         val doc: Document = Ksoup.parse(bufferReader = `is`, baseUri = "http://example.com", charsetName = null)
         doc.outputSettings().escapeMode(Entities.EscapeMode.xhtml)

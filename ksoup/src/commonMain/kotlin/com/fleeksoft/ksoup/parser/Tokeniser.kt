@@ -72,8 +72,9 @@ internal class Tokeniser(private val reader: CharacterReader, private val errors
 
             Token.TokenType.EndTag -> {
                 val endTag = token as Token.EndTag
-                if (endTag.hasAttributes())
+                if (endTag.hasAttributes()) {
                     error("Attributes incorrectly present on end tag [/${endTag.retrieveNormalName()}]")
+                }
             }
 
             else -> {}
@@ -167,14 +168,16 @@ internal class Tokeniser(private val reader: CharacterReader, private val errors
             }
 
             reader.unmark()
-            if (!reader.matchConsume(";"))
+            if (!reader.matchConsume(";")) {
                 characterReferenceError("missing semicolon on [&#$numRef]")
-
-            var charval = try {
-                numRef.toInt(if (isHexMode) 16 else 10)
-            } catch (e: NumberFormatException) {
-                -1
             }
+
+            var charval =
+                try {
+                    numRef.toInt(if (isHexMode) 16 else 10)
+                } catch (e: NumberFormatException) {
+                    -1
+                }
 
             if (charval == -1 || (charval in 0xD800..0xDFFF) || charval > 0x10FFFF) {
                 characterReferenceError("character [$charval] outside of valid range")
@@ -258,10 +261,8 @@ internal class Tokeniser(private val reader: CharacterReader, private val errors
         Token.reset(dataBuffer)
     }
 
-    fun isAppropriateEndTagToken(): Boolean =
-        lastStartTag != null && tagPending.name().equals(lastStartTag, ignoreCase = true)
+    fun isAppropriateEndTagToken(): Boolean = lastStartTag != null && tagPending.name().equals(lastStartTag, ignoreCase = true)
 
-    
     fun appropriateEndTagName(): String? {
         return lastStartTag // could be null
     }

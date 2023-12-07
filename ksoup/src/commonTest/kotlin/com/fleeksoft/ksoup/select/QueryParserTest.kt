@@ -15,16 +15,17 @@ import kotlin.test.assertTrue
 class QueryParserTest {
     @Test
     fun testConsumeSubQuery() {
-        val doc = parse(
-            "<html><head>h</head><body>" +
+        val doc =
+            parse(
+                "<html><head>h</head><body>" +
                     "<li><strong>l1</strong></li>" +
                     "<a><li><strong>l2</strong></li></a>" +
                     "<p><strong>yes</strong></p>" +
-                    "</body></html>"
-        )
+                    "</body></html>",
+            )
         assertEquals(
             "l1 yes",
-            doc.body().select(">p>strong,>li>strong").text()
+            doc.body().select(">p>strong,>li>strong").text(),
         ) // selecting immediate from body
         assertEquals("l2 yes", doc.select("body>p>strong,body>*>li>strong").text())
         assertEquals("l2 yes", doc.select("body>*>li>strong,body>p>strong").text())

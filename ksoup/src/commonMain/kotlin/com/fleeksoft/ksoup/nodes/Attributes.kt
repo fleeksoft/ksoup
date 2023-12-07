@@ -1,6 +1,5 @@
 package com.fleeksoft.ksoup.nodes
 
-import okio.IOException
 import com.fleeksoft.ksoup.SerializationException
 import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.internal.Normalizer.lowerCase
@@ -8,6 +7,7 @@ import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.parser.ParseSettings
 import com.fleeksoft.ksoup.ported.Cloneable
 import com.fleeksoft.ksoup.ported.Collections
+import okio.IOException
 
 /**
  * The attributes of an Element.
@@ -107,12 +107,18 @@ public class Attributes : Iterable<Attribute>, Cloneable<Attributes> {
      * Adds a new attribute. Will produce duplicates if the key already exists.
      * @see Attributes.put
      */
-    public fun add(key: String, value: String?): Attributes {
+    public fun add(
+        key: String,
+        value: String?,
+    ): Attributes {
         addObject(key, value)
         return this
     }
 
-    private fun addObject(key: String, value: Any?) {
+    private fun addObject(
+        key: String,
+        value: Any?,
+    ) {
         checkCapacity(size + 1)
         keys[size] = key
         vals[size] = value
@@ -125,7 +131,10 @@ public class Attributes : Iterable<Attribute>, Cloneable<Attributes> {
      * @param value attribute value (may be null, to set a boolean attribute)
      * @return these attributes, for chaining
      */
-    public fun put(key: String, value: String?): Attributes {
+    public fun put(
+        key: String,
+        value: String?,
+    ): Attributes {
         val i = indexOfKey(key)
         if (i != NotFound) vals[i] = value else add(key, value)
         return this
@@ -138,7 +147,10 @@ public class Attributes : Iterable<Attribute>, Cloneable<Attributes> {
      * @return these attributes
      * @see .getUserData
      */
-    public fun putUserData(key: String, value: Any): Attributes {
+    public fun putUserData(
+        key: String,
+        value: Any,
+    ): Attributes {
         val effectiveKey = if (!isInternalKey(key)) internalKey(key) else key
         val index = indexOfKey(effectiveKey)
         if (index != NotFound) {
@@ -149,7 +161,10 @@ public class Attributes : Iterable<Attribute>, Cloneable<Attributes> {
         return this
     }
 
-    public fun putIgnoreCase(key: String, value: String?) {
+    public fun putIgnoreCase(
+        key: String,
+        value: String?,
+    ) {
         val i = indexOfKeyIgnoreCase(key)
         if (i != NotFound) {
             vals[i] = value
@@ -168,7 +183,10 @@ public class Attributes : Iterable<Attribute>, Cloneable<Attributes> {
      * @param value attribute value
      * @return these attributes, for chaining
      */
-    public fun put(key: String, value: Boolean): Attributes {
+    public fun put(
+        key: String,
+        value: Boolean,
+    ): Attributes {
         if (value) putIgnoreCase(key, null) else remove(key)
         return this
     }
@@ -293,6 +311,7 @@ public class Attributes : Iterable<Attribute>, Cloneable<Attributes> {
         return object : MutableIterator<Attribute> {
             var expectedSize = size
             var i = 0
+
             override fun hasNext(): Boolean {
                 checkModified()
                 while (i < size) {
@@ -314,7 +333,11 @@ public class Attributes : Iterable<Attribute>, Cloneable<Attributes> {
             }
 
             private fun checkModified() {
-                if (size != expectedSize) throw ConcurrentModificationException("Use Iterator#remove() instead to remove attributes while iterating.")
+                if (size != expectedSize) {
+                    throw ConcurrentModificationException(
+                        "Use Iterator#remove() instead to remove attributes while iterating.",
+                    )
+                }
             }
 
             override fun remove() {
@@ -358,14 +381,18 @@ public class Attributes : Iterable<Attribute>, Cloneable<Attributes> {
                 sb,
                 Document("").outputSettings(),
             ) // output settings a bit funky, but this html() seldom used
-        } catch (e: IOException) { // ought never happen
+        } catch (e: IOException) {
+            // ought never happen
             throw SerializationException(e)
         }
         return StringUtil.releaseBuilder(sb)
     }
 
     @Throws(IOException::class)
-    public fun html(accum: Appendable, out: Document.OutputSettings) {
+    public fun html(
+        accum: Appendable,
+        out: Document.OutputSettings,
+    ) {
         val sz = size
         for (i in 0 until sz) {
             if (isInternalKey(keys[i])) continue
@@ -404,7 +431,9 @@ public class Attributes : Iterable<Attribute>, Cloneable<Attributes> {
             val thatVal = that.vals[thatI]
             if (value == null) {
                 if (thatVal != null) return false
-            } else if (value != thatVal) return false
+            } else if (value != thatVal) {
+                return false
+            }
         }
         return true
     }
@@ -453,7 +482,8 @@ public class Attributes : Iterable<Attribute>, Cloneable<Attributes> {
             var j = i + 1
             while (j < keys.size) {
                 if (keys[j] == null) continue@OUTER // keys.length doesn't shrink when removing, so re-test
-                if (preserve && keys[i] == keys[j] || !preserve && keys[i].equals(
+                if (preserve && keys[i] == keys[j] || !preserve &&
+                    keys[i].equals(
                         keys[j],
                         ignoreCase = true,
                     )
@@ -472,7 +502,10 @@ public class Attributes : Iterable<Attribute>, Cloneable<Attributes> {
         public val size: Int
             get() = attributes.count { it.isDataAttribute() }
 
-        public operator fun set(key: String, value: String): String? {
+        public operator fun set(
+            key: String,
+            value: String,
+        ): String? {
             val dataKey = dataKey(key)
             val oldValue = if (attributes.hasKey(dataKey)) attributes[dataKey] else null
             attributes.put(dataKey, value)

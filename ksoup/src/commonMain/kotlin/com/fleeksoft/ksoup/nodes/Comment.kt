@@ -28,11 +28,16 @@ public class Comment(data: String) : LeafNode() {
         return this
     }
 
-    override fun outerHtmlHead(accum: Appendable, depth: Int, out: Document.OutputSettings) {
+    override fun outerHtmlHead(
+        accum: Appendable,
+        depth: Int,
+        out: Document.OutputSettings,
+    ) {
         if (out.prettyPrint() && (
-                    isEffectivelyFirst() && _parentNode is Element && (_parentNode as Element).tag()
+                isEffectivelyFirst() && _parentNode is Element &&
+                    (_parentNode as Element).tag()
                         .formatAsBlock() || out.outline()
-                    )
+            )
         ) {
             indent(accum, depth, out)
         }
@@ -70,7 +75,7 @@ public class Comment(data: String) : LeafNode() {
      * Attempt to cast this comment to an XML Declaration node.
      * @return an XML declaration if it could be parsed as one, null otherwise.
      */
-    
+
     public fun asXmlDeclaration(): XmlDeclaration? {
         val data = getData()
         var decl: XmlDeclaration? = null
@@ -83,10 +88,11 @@ public class Comment(data: String) : LeafNode() {
             Parser.htmlParser().settings(ParseSettings.preserveCase).parseInput(fragment, baseUri())
         if (doc.body().childrenSize() > 0) {
             val el: Element = doc.body().child(0)
-            decl = XmlDeclaration(
-                NodeUtils.parser(doc).settings()!!.normalizeTag(el.tagName()),
-                data.startsWith("!"),
-            )
+            decl =
+                XmlDeclaration(
+                    NodeUtils.parser(doc).settings()!!.normalizeTag(el.tagName()),
+                    data.startsWith("!"),
+                )
             decl.attributes().addAll(el.attributes())
         }
         return decl

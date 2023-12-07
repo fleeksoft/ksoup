@@ -260,7 +260,7 @@ class AttributesTest {
         val el = parse(html).selectFirst("a")
         assertEquals(
             " foo bar=\"\" async qux=\"qux\" defer=\"deferring\" ismap inert",
-            el!!.attributes().html()
+            el!!.attributes().html(),
         )
     }
 
@@ -293,23 +293,27 @@ class AttributesTest {
 
     @Test
     fun equalsIsOrderInsensitive() {
-        val one = Attributes()
-            .add("Key1", "Val1")
-            .add("Key2", "Val2")
-            .add("Key3", null)
-        val two = Attributes()
-            .add("Key1", "Val1")
-            .add("Key2", "Val2")
-            .add("Key3", null)
-        val three = Attributes()
-            .add("Key2", "Val2")
-            .add("Key3", null)
-            .add("Key1", "Val1")
-        val four = Attributes()
-            .add("Key1", "Val1")
-            .add("Key2", "Val2")
-            .add("Key3", null)
-            .add("Key4", "Val4")
+        val one =
+            Attributes()
+                .add("Key1", "Val1")
+                .add("Key2", "Val2")
+                .add("Key3", null)
+        val two =
+            Attributes()
+                .add("Key1", "Val1")
+                .add("Key2", "Val2")
+                .add("Key3", null)
+        val three =
+            Attributes()
+                .add("Key2", "Val2")
+                .add("Key3", null)
+                .add("Key1", "Val1")
+        val four =
+            Attributes()
+                .add("Key1", "Val1")
+                .add("Key2", "Val2")
+                .add("Key3", null)
+                .add("Key4", "Val4")
         assertEquals(one, one.clone())
         assertEquals(one, two)
         assertEquals(two, two)
@@ -324,10 +328,11 @@ class AttributesTest {
 
     @Test
     fun cloneAttributes() {
-        val one = Attributes()
-            .add("Key1", "Val1")
-            .add("Key2", "Val2")
-            .add("Key3", null)
+        val one =
+            Attributes()
+                .add("Key1", "Val1")
+                .add("Key2", "Val2")
+                .add("Key3", null)
         val two = one.clone()
         assertEquals(3, two.size())
         assertEquals("Val2", two["Key2"])

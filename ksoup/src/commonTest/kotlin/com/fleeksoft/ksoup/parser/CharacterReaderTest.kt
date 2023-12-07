@@ -505,9 +505,10 @@ class CharacterReaderTest {
     @Test
     @Throws(IOException::class)
     fun linenumbersAgreeWithEditor() {
-        val content: String = TestHelper.getFileAsString(
-            TestHelper.getResourceAbsolutePath("htmltests/large.html").toPath(),
-        )
+        val content: String =
+            TestHelper.getFileAsString(
+                TestHelper.getResourceAbsolutePath("htmltests/large.html").toPath(),
+            )
         val reader = CharacterReader(content)
         reader.trackNewlines(true)
         val scan = "<p>VESTIBULUM" // near the end of the file
@@ -522,6 +523,7 @@ class CharacterReaderTest {
 
     companion object {
         const val maxBufferLen = CharacterReader.maxBufferLen
+
         fun BufferBuster(content: String): String {
             val builder = StringBuilder()
             while (builder.length < maxBufferLen) builder.append(content)

@@ -1,7 +1,5 @@
 package com.fleeksoft.ksoup.helper
 
-import kotlin.jvm.JvmOverloads
-
 /**
  * Validators to check that method arguments meet expectations.
  */
@@ -26,7 +24,10 @@ internal object Validate {
      * @throws ValidationException if the object is null
      */
     @Throws(ValidationException::class)
-    fun notNullParam(obj: Any?, param: String?) {
+    fun notNullParam(
+        obj: Any?,
+        param: String?,
+    ) {
         if (obj == null) {
             throw ValidationException("The parameter '$param' must not be null.")
         }
@@ -38,7 +39,10 @@ internal object Validate {
      * @param msg message to include in the Exception if validation fails
      * @throws ValidationException if the object is null
      */
-    fun notNull(obj: Any?, msg: String?) {
+    fun notNull(
+        obj: Any?,
+        msg: String?,
+    ) {
         if (obj == null) throw ValidationException(msg)
     }
 
@@ -62,7 +66,10 @@ internal object Validate {
      * @return the object, or throws an exception if it is null
      * @throws ValidationException if the object is null
      */
-    fun ensureNotNull(obj: Any?, msg: String?): Any {
+    fun ensureNotNull(
+        obj: Any?,
+        msg: String?,
+    ): Any {
         return obj ?: throw ValidationException(msg)
     }
 
@@ -81,7 +88,10 @@ internal object Validate {
      * @param msg message to include in the Exception if validation fails
      * @throws ValidationException if the object is not true
      */
-    fun isTrue(value: Boolean, msg: String?) {
+    fun isTrue(
+        value: Boolean,
+        msg: String?,
+    ) {
         if (!value) throw ValidationException(msg)
     }
 
@@ -100,7 +110,10 @@ internal object Validate {
      * @param msg message to include in the Exception if validation fails
      * @throws ValidationException if the object is not false
      */
-    fun isFalse(value: Boolean, msg: String?) {
+    fun isFalse(
+        value: Boolean,
+        msg: String?,
+    ) {
         if (value) throw ValidationException(msg)
     }
 
@@ -119,7 +132,10 @@ internal object Validate {
      * @param param the name of the parameter, for presentation in the validation exception.
      * @throws ValidationException if the string is null or empty
      */
-    fun notEmptyParam(string: String?, param: String?) {
+    fun notEmptyParam(
+        string: String?,
+        param: String?,
+    ) {
         if (string.isNullOrEmpty()) {
             throw ValidationException("The $param parameter must not be empty.")
         }
@@ -131,7 +147,10 @@ internal object Validate {
      * @param msg message to include in the Exception if validation fails
      * @throws ValidationException if the string is null or empty
      */
-    fun notEmpty(string: String?, msg: String?) {
+    fun notEmpty(
+        string: String?,
+        msg: String?,
+    ) {
         if (string.isNullOrEmpty()) throw ValidationException(msg)
     }
 

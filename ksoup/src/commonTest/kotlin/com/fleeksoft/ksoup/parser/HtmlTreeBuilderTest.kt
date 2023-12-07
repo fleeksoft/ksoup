@@ -4,18 +4,19 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class HtmlTreeBuilderTest {
-    private val htmlTreeBuilderConstants = arrayListOf(
-        HtmlTreeBuilder.TagsSearchInScope,
-        HtmlTreeBuilder.TagSearchList,
-        HtmlTreeBuilder.TagSearchButton,
-        HtmlTreeBuilder.TagSearchTableScope,
-        HtmlTreeBuilder.TagSearchSelectScope,
-        HtmlTreeBuilder.TagSearchEndTags,
-        HtmlTreeBuilder.TagThoroughSearchEndTags,
-        HtmlTreeBuilder.TagSearchSpecial,
-        HtmlTreeBuilder.TagMathMlTextIntegration,
-        HtmlTreeBuilder.TagSvgHtmlIntegration,
-    )
+    private val htmlTreeBuilderConstants =
+        arrayListOf(
+            HtmlTreeBuilder.TagsSearchInScope,
+            HtmlTreeBuilder.TagSearchList,
+            HtmlTreeBuilder.TagSearchButton,
+            HtmlTreeBuilder.TagSearchTableScope,
+            HtmlTreeBuilder.TagSearchSelectScope,
+            HtmlTreeBuilder.TagSearchEndTags,
+            HtmlTreeBuilder.TagThoroughSearchEndTags,
+            HtmlTreeBuilder.TagSearchSpecial,
+            HtmlTreeBuilder.TagMathMlTextIntegration,
+            HtmlTreeBuilder.TagSvgHtmlIntegration,
+        )
 
     @Test
     fun ensureSearchArraysAreSorted() {

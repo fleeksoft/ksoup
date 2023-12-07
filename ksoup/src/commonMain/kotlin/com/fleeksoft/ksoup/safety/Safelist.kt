@@ -91,17 +91,19 @@ public open class Safelist() {
             attributes[key] = HashSet<AttributeKey>(value)
         }
         for ((key, value) in copy.enforcedAttributes) {
-            enforcedAttributes[key] = HashMap<AttributeKey, AttributeValue>(
-                value,
-            )
+            enforcedAttributes[key] =
+                HashMap<AttributeKey, AttributeValue>(
+                    value,
+                )
         }
         for ((key, value) in copy.protocols) {
             val attributeProtocolsCopy: MutableMap<AttributeKey, MutableSet<Protocol>> =
                 mutableMapOf()
             for ((key1, value1) in value) {
-                attributeProtocolsCopy[key1] = HashSet<Protocol>(
-                    value1,
-                )
+                attributeProtocolsCopy[key1] =
+                    HashSet<Protocol>(
+                        value1,
+                    )
             }
             protocols[key] = attributeProtocolsCopy
         }
@@ -162,7 +164,10 @@ public open class Safelist() {
      * @param attributes List of valid attributes for the tag
      * @return this (for chaining)
      */
-    public fun addAttributes(tag: String, vararg attributes: String): Safelist {
+    public fun addAttributes(
+        tag: String,
+        vararg attributes: String,
+    ): Safelist {
         Validate.notEmpty(tag)
         Validate.isTrue(attributes.isNotEmpty(), "No attribute names supplied.")
         val tagName = TagName.valueOf(tag)
@@ -198,7 +203,10 @@ public open class Safelist() {
      * @param attributes List of invalid attributes for the tag
      * @return this (for chaining)
      */
-    public fun removeAttributes(tag: String, vararg attributes: String): Safelist {
+    public fun removeAttributes(
+        tag: String,
+        vararg attributes: String,
+    ): Safelist {
         Validate.notEmpty(tag)
         Validate.isTrue(attributes.isNotEmpty(), "No attribute names supplied.")
         val tagName = TagName.valueOf(tag)
@@ -244,7 +252,11 @@ public open class Safelist() {
      * @param value The enforced attribute value
      * @return this (for chaining)
      */
-    public fun addEnforcedAttribute(tag: String, attribute: String, value: String): Safelist {
+    public fun addEnforcedAttribute(
+        tag: String,
+        attribute: String,
+        value: String,
+    ): Safelist {
         Validate.notEmpty(tag)
         Validate.notEmpty(attribute)
         Validate.notEmpty(value)
@@ -270,7 +282,10 @@ public open class Safelist() {
      * @param attribute   The attribute name
      * @return this (for chaining)
      */
-    public fun removeEnforcedAttribute(tag: String, attribute: String): Safelist {
+    public fun removeEnforcedAttribute(
+        tag: String,
+        attribute: String,
+    ): Safelist {
         Validate.notEmpty(tag)
         Validate.notEmpty(attribute)
         val tagName = TagName.valueOf(tag)
@@ -325,7 +340,11 @@ public open class Safelist() {
      * @param protocols List of valid protocols
      * @return this, for chaining
      */
-    public fun addProtocols(tag: String, attribute: String, vararg protocols: String): Safelist {
+    public fun addProtocols(
+        tag: String,
+        attribute: String,
+        vararg protocols: String,
+    ): Safelist {
         Validate.notEmpty(tag)
         Validate.notEmpty(attribute)
         val tagName = TagName.valueOf(tag)
@@ -365,7 +384,11 @@ public open class Safelist() {
      * @param removeProtocols List of invalid protocols
      * @return this, for chaining
      */
-    public fun removeProtocols(tag: String, attribute: String, vararg removeProtocols: String): Safelist {
+    public fun removeProtocols(
+        tag: String,
+        attribute: String,
+        vararg removeProtocols: String,
+    ): Safelist {
         Validate.notEmpty(tag)
         Validate.notEmpty(attribute)
         val tagName = TagName.valueOf(tag)
@@ -407,7 +430,11 @@ public open class Safelist() {
      * @param attr attribute under test
      * @return true if allowed
      */
-    public open fun isSafeAttribute(tagName: String, el: Element, attr: Attribute): Boolean {
+    public open fun isSafeAttribute(
+        tagName: String,
+        el: Element,
+        attr: Attribute,
+    ): Boolean {
         val tag = TagName.valueOf(tagName)
         val key = AttributeKey.valueOf(attr.key)
         val okSet: Set<AttributeKey>? = attributes[tag]
@@ -433,7 +460,11 @@ public open class Safelist() {
         return tagName != All && isSafeAttribute(All, el, attr)
     }
 
-    private fun testValidProtocol(el: Element, attr: Attribute, protocols: Set<Protocol>): Boolean {
+    private fun testValidProtocol(
+        el: Element,
+        attr: Attribute,
+        protocols: Set<Protocol>,
+    ): Boolean {
         // try to resolve relative urls to abs, and optionally update the attribute so output html has abs.
         // rels without a baseuri get removed
         var value: String = el.absUrl(attr.key)

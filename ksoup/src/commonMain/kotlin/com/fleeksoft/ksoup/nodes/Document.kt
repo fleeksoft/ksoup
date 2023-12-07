@@ -369,7 +369,8 @@ public class Document(private val namespace: String, private val location: Strin
          * The output serialization syntax.
          */
         public enum class Syntax {
-            html, xml
+            html,
+            xml,
         }
 
         /**
@@ -565,7 +566,9 @@ public class Document(private val namespace: String, private val location: Strin
     }
 
     public enum class QuirksMode {
-        noQuirks, quirks, limitedQuirks
+        noQuirks,
+        quirks,
+        limitedQuirks,
     }
 
     public fun quirksMode(): QuirksMode {

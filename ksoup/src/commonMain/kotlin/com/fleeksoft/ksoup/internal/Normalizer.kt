@@ -15,7 +15,10 @@ internal object Normalizer {
     }
 
     /** If a string literal, just lower case the string; otherwise lower-case and trim.  */
-    fun normalize(input: String?, isStringLiteral: Boolean): String {
+    fun normalize(
+        input: String?,
+        isStringLiteral: Boolean,
+    ): String {
         return if (isStringLiteral) lowerCase(input) else normalize(input)
     }
 }

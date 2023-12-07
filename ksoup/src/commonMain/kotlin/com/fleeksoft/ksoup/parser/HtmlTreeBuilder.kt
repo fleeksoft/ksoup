@@ -27,13 +27,10 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
     private var originalState: HtmlTreeBuilderState? = null // original / marked state
     private var baseUriSetFromDoc = false
 
-    
     private var headElement: Element? = null // the current head element
 
-    
     private var formElement: FormElement? = null // the current form element
 
-    
     private var contextElement: Element? =
         null // fragment parse context -- could be null even if fragment parsing
     private var formattingElements: ArrayList<Element?>? =
@@ -78,9 +75,10 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
             val contextTag: String = context.normalName()
             when (contextTag) {
                 "title", "textarea" -> tokeniser!!.transition(TokeniserState.Rcdata)
-                "iframe", "noembed", "noframes", "style", "xmp" -> tokeniser!!.transition(
-                    TokeniserState.Rawtext,
-                )
+                "iframe", "noembed", "noframes", "style", "xmp" ->
+                    tokeniser!!.transition(
+                        TokeniserState.Rawtext,
+                    )
 
                 "script" -> tokeniser!!.transition(TokeniserState.ScriptData)
                 "plaintext" -> tokeniser!!.transition(TokeniserState.PLAINTEXT)
@@ -203,9 +201,9 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
         A MathML mtext element
          */
         return (
-                Parser.NamespaceMathml == el.tag().namespace() &&
-                        StringUtil.inSorted(el.normalName(), TagMathMlTextIntegration)
-                )
+            Parser.NamespaceMathml == el.tag().namespace() &&
+                StringUtil.inSorted(el.normalName(), TagMathMlTextIntegration)
+        )
     }
 
     fun isHtmlIntegration(el: Element): Boolean {
@@ -224,13 +222,16 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
             if (encoding == "text/html" || encoding == "application/xhtml+xml") return true
         }
         return Parser.NamespaceSvg == el.tag().namespace() &&
-                StringUtil.isIn(
-                    el.tagName(),
-                    *TagSvgHtmlIntegration,
-                )
+            StringUtil.isIn(
+                el.tagName(),
+                *TagSvgHtmlIntegration,
+            )
     }
 
-    fun process(token: Token, state: HtmlTreeBuilderState): Boolean {
+    fun process(
+        token: Token,
+        state: HtmlTreeBuilderState,
+    ): Boolean {
         currentToken = token
         return state.process(token, this)
     }
@@ -301,11 +302,12 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
             ) // ensure we get out of whatever state we are in. emitted for yielded processing
             return el
         }
-        val el = Element(
-            tagFor(startTag.name(), settings),
-            null,
-            settings!!.normalizeAttributes(startTag.attributes),
-        )
+        val el =
+            Element(
+                tagFor(startTag.name(), settings),
+                null,
+                settings!!.normalizeAttributes(startTag.attributes),
+            )
         insert(el, startTag)
         return el
     }
@@ -313,14 +315,18 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
     /**
      * Inserts a foreign element. Preserves the case of the tag name and of the attributes.
      */
-    fun insertForeign(startTag: Token.StartTag, namespace: String?): Element {
+    fun insertForeign(
+        startTag: Token.StartTag,
+        namespace: String?,
+    ): Element {
         dedupeAttributes(startTag)
         val tag: Tag = tagFor(startTag.name(), namespace!!, ParseSettings.preserveCase)
-        val el = Element(
-            tag,
-            null,
-            ParseSettings.preserveCase.normalizeAttributes(startTag.attributes),
-        )
+        val el =
+            Element(
+                tag,
+                null,
+                ParseSettings.preserveCase.normalizeAttributes(startTag.attributes),
+            )
         insert(el, startTag)
         if (startTag.isSelfClosing) {
             tag.setSelfClosing() // remember this is self-closing for output
@@ -340,7 +346,10 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
         stack.add(el)
     }
 
-    private fun insert(el: Element, token: Token) {
+    private fun insert(
+        el: Element,
+        token: Token,
+    ) {
         insertNode(el, token)
         stack.add(el)
     }
@@ -396,29 +405,37 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
     }
 
     /** Inserts the provided character token into the provided element.  */
-    fun insert(characterToken: Token.Character, el: Element) {
+    fun insert(
+        characterToken: Token.Character,
+        el: Element,
+    ) {
         val node: Node
         val tagName: String = el.normalName()
         val data: String = characterToken.data ?: ""
-        node = if (characterToken.isCData()) {
-            CDataNode(data)
-        } else if (isContentForTagData(tagName)) {
-            DataNode(
-                data,
-            )
-        } else {
-            TextNode(data)
-        }
+        node =
+            if (characterToken.isCData()) {
+                CDataNode(data)
+            } else if (isContentForTagData(tagName)) {
+                DataNode(
+                    data,
+                )
+            } else {
+                TextNode(data)
+            }
         el.appendChild(node) // doesn't use insertNode, because we don't foster these; and will always have a stack.
         onNodeInserted(node, characterToken)
     }
 
     /** Inserts the provided Node into the current element.  */
-    private fun insertNode(node: Node, token: Token?) {
+    private fun insertNode(
+        node: Node,
+        token: Token?,
+    ) {
         // if the stack hasn't been set up yet, elements (doctype, comments) go into the doc
         if (stack.isEmpty()) {
             doc.appendChild(node)
-        } else if (isFosterInserts && StringUtil.inSorted(
+        } else if (isFosterInserts &&
+            StringUtil.inSorted(
                 currentElement().normalName(),
                 InTableFoster,
             )
@@ -470,7 +487,7 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
     }
 
     /** Gets the nearest (lowest) HTML element with the given name from the stack.  */
-    
+
     fun getFromStack(elName: String?): Element? {
         val bottom: Int = stack.size - 1
         val upper = if (bottom >= maxQueueDepth) bottom - maxQueueDepth else 0
@@ -495,7 +512,7 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
     }
 
     /** Pops the stack until the given HTML element is removed.  */
-    
+
     fun popStackToClose(elName: String?): Element? {
         for (pos in stack.size - 1 downTo 0) {
             val el: Element? = stack[pos]
@@ -509,7 +526,7 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
     }
 
     /** Pops the stack until an element with the supplied name is removed, irrespective of namespace.  */
-    
+
     fun popStackToCloseAnyNamespace(elName: String?): Element? {
         for (pos in stack.size - 1 downTo 0) {
             val el: Element? = stack[pos]
@@ -564,7 +581,6 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
         }
     }
 
-    
     fun aboveOnStack(el: Element): Element? {
         assert(onStack(el))
         for (pos in stack.size - 1 downTo 0) {
@@ -576,17 +592,27 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
         return null
     }
 
-    fun insertOnStackAfter(after: Element, inEl: Element) {
+    fun insertOnStackAfter(
+        after: Element,
+        inEl: Element,
+    ) {
         val i: Int = stack.lastIndexOf(after)
         Validate.isTrue(i != -1)
         stack.add(i + 1, inEl)
     }
 
-    fun replaceOnStack(out: Element, `in`: Element) {
+    fun replaceOnStack(
+        out: Element,
+        `in`: Element,
+    ) {
         replaceInQueue(stack, out, `in`)
     }
 
-    private fun replaceInQueue(queue: ArrayList<Element?>, out: Element, inEl: Element) {
+    private fun replaceInQueue(
+        queue: ArrayList<Element?>,
+        out: Element,
+        inEl: Element,
+    ) {
         val i: Int = queue.lastIndexOf(out)
         Validate.isTrue(i != -1)
         queue[i] = inEl
@@ -624,10 +650,11 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
                     break@LOOP
                 }
 
-                "td", "th" -> if (!last) {
-                    transition(HtmlTreeBuilderState.InCell)
-                    break@LOOP
-                }
+                "td", "th" ->
+                    if (!last) {
+                        transition(HtmlTreeBuilderState.InCell)
+                        break@LOOP
+                    }
 
                 "tr" -> {
                     transition(HtmlTreeBuilderState.InRow)
@@ -661,10 +688,11 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
                     break@LOOP
                 }
 
-                "head" -> if (!last) {
-                    transition(HtmlTreeBuilderState.InHead)
-                    break@LOOP
-                }
+                "head" ->
+                    if (!last) {
+                        transition(HtmlTreeBuilderState.InHead)
+                        break@LOOP
+                    }
 
                 "body" -> {
                     transition(HtmlTreeBuilderState.InBody)
@@ -699,6 +727,7 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
 
     // todo: tidy up in specific scope methods
     private val specificScopeTarget = arrayOf("")
+
     private fun inSpecificScope(
         targetName: String,
         baseTypes: Array<String>,
@@ -711,7 +740,6 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
     private fun inSpecificScope(
         targetNames: Array<String>,
         baseTypes: Array<String>,
-        
         extraTypes: Array<String>?,
     ): Boolean {
         // https://html.spec.whatwg.org/multipage/parsing.html#has-an-element-in-the-specific-scope
@@ -735,7 +763,10 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
     }
 
     @JvmOverloads
-    fun inScope(targetName: String, extras: Array<String>? = null): Boolean {
+    fun inScope(
+        targetName: String,
+        extras: Array<String>? = null,
+    ): Boolean {
         return inSpecificScope(
             targetName = targetName,
             baseTypes = TagsSearchInScope,
@@ -791,7 +822,6 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
         return headElement
     }
 
-    
     fun getFormElement(): FormElement? {
         return formElement
     }
@@ -885,7 +915,10 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
         formattingElements!!.add(`in`)
     }
 
-    fun pushWithBookmark(`in`: Element, bookmark: Int) {
+    fun pushWithBookmark(
+        `in`: Element,
+        bookmark: Int,
+    ) {
         checkActiveFormattingElements(`in`)
         // catch any range errors and assume bookmark is incorrect - saves a redundant range check.
         try {
@@ -910,10 +943,13 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
         }
     }
 
-    private fun isSameFormattingElement(a: Element, b: Element): Boolean {
+    private fun isSameFormattingElement(
+        a: Element,
+        b: Element,
+    ): Boolean {
         // same if: same namespace, tag, and attributes. Element.equals only checks tag, might in future check children
         return a.normalName() == b.normalName() && // a.namespace().equals(b.namespace()) &&
-                a.attributes() == b.attributes()
+            a.attributes() == b.attributes()
         // todo: namespaces
     }
 
@@ -982,19 +1018,23 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
         return onStack(formattingElements?.mapNotNull { it }?.toList() ?: emptyList(), el)
     }
 
-    
     fun getActiveFormattingElement(nodeName: String?): Element? {
         for (pos in formattingElements!!.indices.reversed()) {
             val next: Element? = formattingElements?.get(pos)
             if (next == null) {
                 // scope marker
                 break
-            } else if (next.normalName() == nodeName) return next
+            } else if (next.normalName() == nodeName) {
+                return next
+            }
         }
         return null
     }
 
-    fun replaceActiveFormattingElement(out: Element, `in`: Element) {
+    fun replaceActiveFormattingElement(
+        out: Element,
+        `in`: Element,
+    ) {
         replaceInQueue(formattingElements!!, out, `in`)
     }
 
@@ -1029,7 +1069,6 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
         tmplInsertMode?.add(state)
     }
 
-    
     fun popTemplateMode(): HtmlTreeBuilderState? {
         return if (!tmplInsertMode.isNullOrEmpty()) {
             tmplInsertMode?.removeAt(tmplInsertMode!!.size - 1)
@@ -1042,17 +1081,16 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
         return tmplInsertMode?.size ?: 0
     }
 
-    
     fun currentTemplateMode(): HtmlTreeBuilderState? {
         return if (tmplInsertMode!!.size > 0) tmplInsertMode?.get(tmplInsertMode!!.size - 1) else null
     }
 
     override fun toString(): String {
         return "TreeBuilder{" +
-                "currentToken=" + currentToken +
-                ", state=" + state +
-                ", currentElement=" + currentElement() +
-                '}'
+            "currentToken=" + currentToken +
+            ", state=" + state +
+            ", currentElement=" + currentElement() +
+            '}'
     }
 
     override fun isContentForTagData(normalName: String): Boolean {
@@ -1067,107 +1105,109 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
         val TagSearchTableScope = arrayOf<String>("html", "table")
         val TagSearchSelectScope = arrayOf<String>("optgroup", "option")
         val TagSearchEndTags = arrayOf<String>("dd", "dt", "li", "optgroup", "option", "p", "rb", "rp", "rt", "rtc")
-        val TagThoroughSearchEndTags = arrayOf<String>(
-            "caption",
-            "colgroup",
-            "dd",
-            "dt",
-            "li",
-            "optgroup",
-            "option",
-            "p",
-            "rb",
-            "rp",
-            "rt",
-            "rtc",
-            "tbody",
-            "td",
-            "tfoot",
-            "th",
-            "thead",
-            "tr",
-        )
-        val TagSearchSpecial = arrayOf<String>(
-            "address",
-            "applet",
-            "area",
-            "article",
-            "aside",
-            "base",
-            "basefont",
-            "bgsound",
-            "blockquote",
-            "body",
-            "br",
-            "button",
-            "caption",
-            "center",
-            "col",
-            "colgroup",
-            "command",
-            "dd",
-            "details",
-            "dir",
-            "div",
-            "dl",
-            "dt",
-            "embed",
-            "fieldset",
-            "figcaption",
-            "figure",
-            "footer",
-            "form",
-            "frame",
-            "frameset",
-            "h1",
-            "h2",
-            "h3",
-            "h4",
-            "h5",
-            "h6",
-            "head",
-            "header",
-            "hgroup",
-            "hr",
-            "html",
-            "iframe",
-            "img",
-            "input",
-            "isindex",
-            "li",
-            "link",
-            "listing",
-            "marquee",
-            "menu",
-            "meta",
-            "nav",
-            "noembed",
-            "noframes",
-            "noscript",
-            "object",
-            "ol",
-            "p",
-            "param",
-            "plaintext",
-            "pre",
-            "script",
-            "section",
-            "select",
-            "style",
-            "summary",
-            "table",
-            "tbody",
-            "td",
-            "textarea",
-            "tfoot",
-            "th",
-            "thead",
-            "title",
-            "tr",
-            "ul",
-            "wbr",
-            "xmp",
-        )
+        val TagThoroughSearchEndTags =
+            arrayOf<String>(
+                "caption",
+                "colgroup",
+                "dd",
+                "dt",
+                "li",
+                "optgroup",
+                "option",
+                "p",
+                "rb",
+                "rp",
+                "rt",
+                "rtc",
+                "tbody",
+                "td",
+                "tfoot",
+                "th",
+                "thead",
+                "tr",
+            )
+        val TagSearchSpecial =
+            arrayOf<String>(
+                "address",
+                "applet",
+                "area",
+                "article",
+                "aside",
+                "base",
+                "basefont",
+                "bgsound",
+                "blockquote",
+                "body",
+                "br",
+                "button",
+                "caption",
+                "center",
+                "col",
+                "colgroup",
+                "command",
+                "dd",
+                "details",
+                "dir",
+                "div",
+                "dl",
+                "dt",
+                "embed",
+                "fieldset",
+                "figcaption",
+                "figure",
+                "footer",
+                "form",
+                "frame",
+                "frameset",
+                "h1",
+                "h2",
+                "h3",
+                "h4",
+                "h5",
+                "h6",
+                "head",
+                "header",
+                "hgroup",
+                "hr",
+                "html",
+                "iframe",
+                "img",
+                "input",
+                "isindex",
+                "li",
+                "link",
+                "listing",
+                "marquee",
+                "menu",
+                "meta",
+                "nav",
+                "noembed",
+                "noframes",
+                "noscript",
+                "object",
+                "ol",
+                "p",
+                "param",
+                "plaintext",
+                "pre",
+                "script",
+                "section",
+                "select",
+                "style",
+                "summary",
+                "table",
+                "tbody",
+                "td",
+                "textarea",
+                "tfoot",
+                "th",
+                "thead",
+                "title",
+                "tr",
+                "ul",
+                "wbr",
+                "xmp",
+            )
         val TagMathMlTextIntegration = arrayOf<String>("mi", "mn", "mo", "ms", "mtext")
         val TagSvgHtmlIntegration = arrayOf("desc", "foreignObject", "title")
         const val MaxScopeSearchDepth =
@@ -1175,7 +1215,10 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
         private const val maxQueueDepth =
             256 // an arbitrary tension point between real HTML and crafted pain
 
-        private fun onStack(queue: List<Element?>, element: Element): Boolean {
+        private fun onStack(
+            queue: List<Element?>,
+            element: Element,
+        ): Boolean {
             val bottom: Int = queue.size - 1
             val upper = if (bottom >= maxQueueDepth) bottom - maxQueueDepth else 0
             for (pos in bottom downTo upper) {

@@ -24,7 +24,11 @@ class SafelistExtensionTest {
 
     // passes tags and attributes starting with "open"
     private class OpenSafelist(safelist: Safelist?) : Safelist(safelist!!) {
-        override fun isSafeAttribute(tagName: String, el: Element, attr: Attribute): Boolean {
+        override fun isSafeAttribute(
+            tagName: String,
+            el: Element,
+            attr: Attribute,
+        ): Boolean {
             return if (attr.key.startsWith("open")) true else super.isSafeAttribute(tagName, el, attr)
         }
 

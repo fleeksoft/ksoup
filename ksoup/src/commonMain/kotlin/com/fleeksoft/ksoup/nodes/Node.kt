@@ -1,20 +1,21 @@
 package com.fleeksoft.ksoup.nodes
 
-import okio.IOException
 import com.fleeksoft.ksoup.SerializationException
 import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.internal.StringUtil
+import com.fleeksoft.ksoup.ported.*
+import com.fleeksoft.ksoup.ported.Cloneable
 import com.fleeksoft.ksoup.select.NodeFilter
 import com.fleeksoft.ksoup.select.NodeTraversor
 import com.fleeksoft.ksoup.select.NodeVisitor
-import com.fleeksoft.ksoup.ported.*
-import com.fleeksoft.ksoup.ported.Cloneable
+import okio.IOException
 
 /**
  * The base, abstract Node model. Elements, Documents, Comments etc are all Node instances.
  *
  * @author Sabeeh, fleeksoft@gmail.com
  */
+
 /**
  * Default constructor. Doesn't set up base uri, children, or attributes; use with caution.
  */
@@ -108,7 +109,10 @@ public abstract class Node protected constructor() : Cloneable<Node> {
      * @param attributeValue The attribute value.
      * @return this (for chaining)
      */
-    public open fun attr(attributeKey: String, attributeValue: String?): Node {
+    public open fun attr(
+        attributeKey: String,
+        attributeValue: String?,
+    ): Node {
         val normalizedAttributeKey = NodeUtils.parser(this).settings()!!.normalizeAttribute(attributeKey)
         attributes().putIgnoreCase(normalizedAttributeKey, attributeValue)
         return this
@@ -259,6 +263,7 @@ public abstract class Node protected constructor() : Cloneable<Node> {
      * @return the number of child nodes that this node holds.
      */
     public abstract fun childNodeSize(): Int
+
     protected fun childNodesAsArray(): Array<Node> {
         return ensureChildNodes().toTypedArray()
     }
@@ -361,11 +366,15 @@ public abstract class Node protected constructor() : Cloneable<Node> {
         return this
     }
 
-    private fun addSiblingHtml(index: Int, html: String) {
+    private fun addSiblingHtml(
+        index: Int,
+        html: String,
+    ) {
         Validate.notNull(_parentNode)
         val context: Element? = if (parent() is Element) parent() as Element? else null
-        val nodes: List<Node> = NodeUtils.parser(this)
-            .parseFragmentInput(html, context, baseUri())
+        val nodes: List<Node> =
+            NodeUtils.parser(this)
+                .parseFragmentInput(html, context, baseUri())
         _parentNode!!.addChildren(index, *nodes.toTypedArray())
     }
 
@@ -382,10 +391,12 @@ public abstract class Node protected constructor() : Cloneable<Node> {
         // Parse context - parent (because wrapping), this, or null
         val context: Element =
             if (_parentNode != null && _parentNode is Element) _parentNode as Element else (if (this is Element) this else null)!!
-        val wrapChildren: List<Node> = NodeUtils.parser(this)
-            .parseFragmentInput(html, context, baseUri())
-        val wrapNode = wrapChildren[0] as? Element // nothing to wrap with; noop
-            ?: return this
+        val wrapChildren: List<Node> =
+            NodeUtils.parser(this)
+                .parseFragmentInput(html, context, baseUri())
+        val wrapNode =
+            wrapChildren[0] as? Element // nothing to wrap with; noop
+                ?: return this
         val wrap: Element = wrapNode
         val deepest: Element = getDeepChild(wrap)
         if (_parentNode != null) _parentNode!!.replaceChild(this, wrap)
@@ -453,7 +464,10 @@ public abstract class Node protected constructor() : Cloneable<Node> {
         _parentNode!!.replaceChild(this, inNode)
     }
 
-    private fun replaceChild(out: Node, inNode: Node) {
+    private fun replaceChild(
+        out: Node,
+        inNode: Node,
+    ) {
         Validate.isTrue(out._parentNode === this)
         if (out === inNode) return // no-op self replacement
         if (inNode._parentNode != null) inNode._parentNode!!.removeChild(inNode)
@@ -487,7 +501,10 @@ public abstract class Node protected constructor() : Cloneable<Node> {
         }
     }
 
-    public fun addChildren(index: Int, vararg children: Node) {
+    public fun addChildren(
+        index: Int,
+        vararg children: Node,
+    ) {
         if (children.isEmpty()) {
             return
         }
@@ -727,7 +744,11 @@ public abstract class Node protected constructor() : Cloneable<Node> {
     }
 
     @Throws(IOException::class)
-    protected fun indent(accum: Appendable, depth: Int, out: Document.OutputSettings) {
+    protected fun indent(
+        accum: Appendable,
+        depth: Int,
+        out: Document.OutputSettings,
+    ) {
         accum.append('\n')
             .append(StringUtil.padding(depth * out.indentAmount(), out.maxPaddingWidth()))
     }
@@ -765,7 +786,6 @@ public abstract class Node protected constructor() : Cloneable<Node> {
         if (this === o) return true
         return if (o == null || this::class != o::class) false else this.outerHtml() == (o as Node).outerHtml()
     }
-
 
     internal abstract fun createClone(): Node
 
@@ -845,7 +865,10 @@ public abstract class Node protected constructor() : Cloneable<Node> {
             out.prepareEncoder()
         }
 
-        override fun head(node: Node, depth: Int) {
+        override fun head(
+            node: Node,
+            depth: Int,
+        ) {
             try {
                 node.outerHtmlHead(accum, depth, out)
             } catch (exception: IOException) {
@@ -853,7 +876,10 @@ public abstract class Node protected constructor() : Cloneable<Node> {
             }
         }
 
-        override fun tail(node: Node, depth: Int) {
+        override fun tail(
+            node: Node,
+            depth: Int,
+        ) {
             if (node.nodeName() != "#text") { // saves a void hit.
                 try {
                     node.outerHtmlTail(accum, depth, out)
@@ -869,7 +895,10 @@ public abstract class Node protected constructor() : Cloneable<Node> {
         public const val EmptyString: String = ""
 
         /** Test if this node is not null and has the supplied normal name.  */
-        public fun isNode(node: Node?, normalName: String): Boolean {
+        public fun isNode(
+            node: Node?,
+            normalName: String,
+        ): Boolean {
             return node != null && node.normalName() == normalName
         }
     }

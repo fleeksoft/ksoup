@@ -96,12 +96,13 @@ class XmlTreeBuilderTest {
     fun testSupplyParserToDataStream() {
 //
         val inStream = TestHelper.resourceFilePathToBufferReader("htmltests/xml-test.xml")
-        val doc = Ksoup.parse(
-            bufferReader = inStream,
-            baseUri = "http://foo.com",
-            charsetName = null,
-            parser = Parser.xmlParser(),
-        )
+        val doc =
+            Ksoup.parse(
+                bufferReader = inStream,
+                baseUri = "http://foo.com",
+                charsetName = null,
+                parser = Parser.xmlParser(),
+            )
         assertEquals(
             "<doc><val>One<val>Two</val>Three</val></doc>",
             TextUtil.stripNewlines(doc.html()),
@@ -152,12 +153,13 @@ class XmlTreeBuilderTest {
     @Test
     fun testDetectCharsetEncodingDeclaration() {
         val inStream = TestHelper.resourceFilePathToBufferReader("htmltests/xml-charset.xml")
-        val doc = Ksoup.parse(
-            bufferReader = inStream,
-            baseUri = "http://example.com/",
-            charsetName = null,
-            parser = Parser.xmlParser(),
-        )
+        val doc =
+            Ksoup.parse(
+                bufferReader = inStream,
+                baseUri = "http://example.com/",
+                charsetName = null,
+                parser = Parser.xmlParser(),
+            )
         assertEquals("ISO-8859-1", doc.charset().name.uppercase())
         assertEquals(
             "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><data>äöåéü</data>",

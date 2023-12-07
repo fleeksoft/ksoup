@@ -89,7 +89,6 @@ kotlin {
         jsMain.dependencies {
             implementation(libs.ktor.client.js)
         }
-
     }
 }
 
@@ -116,18 +115,21 @@ publishing {
         }
     }
 
-    val javadocJar = tasks.register<Jar>("javadocJar") {
-        dependsOn(tasks.dokkaHtml)
-        archiveClassifier.set("javadoc")
-        from("${layout.buildDirectory}/dokka")
-    }
+    val javadocJar =
+        tasks.register<Jar>("javadocJar") {
+            dependsOn(tasks.dokkaHtml)
+            archiveClassifier.set("javadoc")
+            from("${layout.buildDirectory}/dokka")
+        }
 
     publications {
         withType<MavenPublication> {
             artifact(javadocJar)
             pom {
                 name.set("ksoup-network")
-                description.set("Ksoup is a Kotlin Multiplatform library for working with HTML and XML, and offers an easy-to-use API for URL fetching, data parsing, extraction, and manipulation using DOM and CSS selectors.")
+                description.set(
+                    "Ksoup is a Kotlin Multiplatform library for working with HTML and XML, and offers an easy-to-use API for URL fetching, data parsing, extraction, and manipulation using DOM and CSS selectors.",
+                )
                 licenses {
                     license {
                         name.set("Apache-2.0")

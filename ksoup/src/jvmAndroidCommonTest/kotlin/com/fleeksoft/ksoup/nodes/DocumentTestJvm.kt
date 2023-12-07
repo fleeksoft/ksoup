@@ -13,7 +13,6 @@ import kotlin.test.*
  */
 
 class DocumentTestJvm {
-
     @Test
     fun testHtmlAppendable() {
         val htmlContent =
@@ -33,10 +32,11 @@ class DocumentTestJvm {
         val out = arrayOfNulls<String>(1)
         val p = doc.select("p")
         assertEquals(html, p.outerHtml())
-        val thread = Thread {
-            out[0] = p.outerHtml()
-            doc.outputSettings().charset(StandardCharsets.US_ASCII.name())
-        }
+        val thread =
+            Thread {
+                out[0] = p.outerHtml()
+                doc.outputSettings().charset(StandardCharsets.US_ASCII.name())
+            }
         thread.start()
         thread.join()
         assertEquals(html, out[0])
@@ -56,14 +56,15 @@ class DocumentTestJvm {
                 "before&nbsp;after" +
                 "</body>" +
                 "</html>"
-            )
+        )
         val buffer: BufferReader = BufferReader(input.toByteArray(StandardCharsets.US_ASCII))
         val doc: Document = Ksoup.parse(bufferReader = buffer, baseUri = "http://example.com", charsetName = null)
         doc.outputSettings().escapeMode(Entities.EscapeMode.xhtml)
-        val output = String(
-            doc.html().toByteArray(doc.outputSettings().charset()),
-            doc.outputSettings().charset(),
-        )
+        val output =
+            String(
+                doc.html().toByteArray(doc.outputSettings().charset()),
+                doc.outputSettings().charset(),
+            )
         assertFalse(output.contains("?"), "Should not have contained a '?'.")
         assertTrue(
             output.contains("&#xa0;") || output.contains("&nbsp;"),

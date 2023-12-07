@@ -1,10 +1,10 @@
 package com.fleeksoft.ksoup.parser
 
-import io.ktor.utils.io.core.toByteArray
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.nodes.Element
 import com.fleeksoft.ksoup.nodes.Node
 import com.fleeksoft.ksoup.ported.BufferReader
+import io.ktor.utils.io.core.toByteArray
 
 /**
  * Parses HTML or XML into a [com.fleeksoft.ksoup.nodes.Document]. Generally, it is simpler to use one of the parse methods in
@@ -50,22 +50,36 @@ public class Parser {
         isTrackPosition = copy.isTrackPosition
     }
 
-    public fun parseInput(htmlBytes: ByteArray, baseUri: String): Document {
+    public fun parseInput(
+        htmlBytes: ByteArray,
+        baseUri: String,
+    ): Document {
         return treeBuilder.parse(BufferReader(htmlBytes), baseUri, this)
     }
 
-    public fun parseInput(html: String, baseUri: String): Document {
+    public fun parseInput(
+        html: String,
+        baseUri: String,
+    ): Document {
         return treeBuilder.parse(BufferReader(html), baseUri, this)
     }
 
-    public fun parseInput(inputHtml: BufferReader, baseUri: String): Document {
+    public fun parseInput(
+        inputHtml: BufferReader,
+        baseUri: String,
+    ): Document {
         return treeBuilder.parse(inputHtml, baseUri, this)
     }
 
-    public fun parseFragmentInput(fragment: String, context: Element?, baseUri: String?): List<Node> {
+    public fun parseFragmentInput(
+        fragment: String,
+        context: Element?,
+        baseUri: String?,
+    ): List<Node> {
         return treeBuilder.parseFragment(fragment, context, baseUri, this)
     }
     // gets & sets
+
     /**
      * Get the TreeBuilder currently in use.
      * @return current TreeBuilder.
@@ -154,6 +168,7 @@ public class Parser {
         public const val NamespaceMathml: String = "http://www.w3.org/1998/Math/MathML"
         public const val NamespaceSvg: String = "http://www.w3.org/2000/svg"
         // static parse functions below
+
         /**
          * Parse HTML into a Document.
          *
@@ -162,7 +177,10 @@ public class Parser {
          *
          * @return parsed Document
          */
-        public fun parse(html: String, baseUri: String): Document {
+        public fun parse(
+            html: String,
+            baseUri: String,
+        ): Document {
             val treeBuilder: TreeBuilder = HtmlTreeBuilder()
             return treeBuilder.parse(
                 BufferReader(html.toByteArray()),
@@ -181,7 +199,11 @@ public class Parser {
          *
          * @return list of nodes parsed from the input HTML. Note that the context element, if supplied, is not modified.
          */
-        public fun parseFragment(fragmentHtml: String, context: Element?, baseUri: String?): List<Node> {
+        public fun parseFragment(
+            fragmentHtml: String,
+            context: Element?,
+            baseUri: String?,
+        ): List<Node> {
             val treeBuilder = HtmlTreeBuilder()
             return treeBuilder.parseFragment(fragmentHtml, context, baseUri, Parser(treeBuilder))
         }
@@ -216,7 +238,10 @@ public class Parser {
          * @param baseUri base URI of document (i.e. original fetch location), for resolving relative URLs.
          * @return list of nodes parsed from the input XML.
          */
-        public fun parseXmlFragment(fragmentXml: String, baseUri: String?): List<Node> {
+        public fun parseXmlFragment(
+            fragmentXml: String,
+            baseUri: String?,
+        ): List<Node> {
             val treeBuilder = XmlTreeBuilder()
             return treeBuilder.parseFragment(fragmentXml, baseUri, Parser(treeBuilder))
         }
@@ -229,7 +254,10 @@ public class Parser {
          *
          * @return Document, with empty head, and HTML parsed into body
          */
-        public fun parseBodyFragment(bodyHtml: String, baseUri: String): Document {
+        public fun parseBodyFragment(
+            bodyHtml: String,
+            baseUri: String,
+        ): Document {
             val doc: Document = Document.createShell(baseUri)
             val body: Element = doc.body()
             val nodeList: List<Node> = parseFragment(bodyHtml, body, baseUri)
@@ -250,11 +278,15 @@ public class Parser {
          * @param inAttribute if the string is to be escaped in strict mode (as attributes are)
          * @return an unescaped string
          */
-        public fun unescapeEntities(string: String, inAttribute: Boolean): String {
+        public fun unescapeEntities(
+            string: String,
+            inAttribute: Boolean,
+        ): String {
             val tokeniser = Tokeniser(CharacterReader(string), ParseErrorList.noTracking())
             return tokeniser.unescapeEntities(inAttribute)
         }
         // builders
+
         /**
          * Create a new HTML parser. This parser treats input as HTML5, and enforces the creation of a normalised document,
          * based on a knowledge of the semantics of the incoming tags.

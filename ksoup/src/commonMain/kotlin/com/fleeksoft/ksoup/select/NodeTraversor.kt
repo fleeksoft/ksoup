@@ -16,11 +16,11 @@ the {@code head} method is the {@link FunctionalInterface}.
 <p><b>Example:</b></p>
 <pre><code>
 doc.body().traverse { node, depth ->
-    when (node) {
-        is Element -> print("${node.tag()}: ${node.ownText()}");
-        is DataNode -> print("Data: ${node.getWholeData()}");
-        else -> print("${node.nodeName()} at depth $depth");
-    }
+ when (node) {
+ is Element -> print("${node.tag()}: ${node.ownText()}");
+ is DataNode -> print("Data: ${node.getWholeData()}");
+ else -> print("${node.nodeName()} at depth $depth");
+ }
 }
 </code></pre>
  */
@@ -30,7 +30,10 @@ public object NodeTraversor {
      * @param visitor Node visitor.
      * @param root the root node point to traverse.
      */
-    public fun traverse(visitor: NodeVisitor, root: Node) {
+    public fun traverse(
+        visitor: NodeVisitor,
+        root: Node,
+    ) {
         var node: Node? = root
         var depth = 0
         while (node != null) {
@@ -77,7 +80,10 @@ public object NodeTraversor {
      * @param visitor Node visitor.
      * @param elements Elements to filter.
      */
-    public fun traverse(visitor: NodeVisitor, elements: Elements) {
+    public fun traverse(
+        visitor: NodeVisitor,
+        elements: Elements,
+    ) {
         elements.forEach {
             traverse(visitor, it)
         }
@@ -89,7 +95,10 @@ public object NodeTraversor {
      * @param root the root node point to traverse.
      * @return The filter result of the root node, or [FilterResult.STOP].
      */
-    public fun filter(filter: NodeFilter, root: Node): FilterResult {
+    public fun filter(
+        filter: NodeFilter,
+        root: Node,
+    ): FilterResult {
         var node: Node? = root
         var depth = 0
         while (node != null) {
@@ -135,7 +144,10 @@ public object NodeTraversor {
      * @param filter Node filter.
      * @param elements Elements to filter.
      */
-    public fun filter(filter: NodeFilter, elements: Elements) {
+    public fun filter(
+        filter: NodeFilter,
+        elements: Elements,
+    ) {
         elements.forEach { el ->
             if (filter(filter, el) == FilterResult.STOP) return
         }

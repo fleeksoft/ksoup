@@ -35,7 +35,6 @@ import com.fleeksoft.ksoup.select.NodeVisitor
  *
  */
 public class Cleaner(private val safelist: Safelist) {
-
     /**
      * Creates a new, clean document, from the original dirty document, containing only elements allowed by the safelist.
      * The original document is not modified. Only elements from the dirty document's `body` are used. The
@@ -68,7 +67,7 @@ public class Cleaner(private val safelist: Safelist) {
      * Cleaner cleaner = new Cleaner(Safelist.relaxed());
      * boolean isValid = cleaner.isValid(inputDoc);
      * Document normalizedDoc = cleaner.clean(inputDoc);
-    `</pre> *
+     `</pre> *
      *
      * @param dirtyDocument document to test
      * @return true if no tags or attributes need to be removed; false if they do
@@ -77,10 +76,10 @@ public class Cleaner(private val safelist: Safelist) {
         val clean: Document = Document.createShell(dirtyDocument.baseUri())
         val numDiscarded = copySafeNodes(dirtyDocument.body(), clean.body())
         return (
-                numDiscarded == 0 &&
-                        dirtyDocument.head().childNodes()
-                            .isEmpty() // because we only look at the body, but we start from a shell, make sure there's nothing in the head
-                )
+            numDiscarded == 0 &&
+                dirtyDocument.head().childNodes()
+                    .isEmpty() // because we only look at the body, but we start from a shell, make sure there's nothing in the head
+        )
     }
 
     /**
@@ -100,7 +99,7 @@ public class Cleaner(private val safelist: Safelist) {
      * Cleaner cleaner = new Cleaner(Safelist.relaxed());
      * boolean isValid = cleaner.isValidBodyHtml(inputHtml);
      * Document normalizedDoc = cleaner.clean(inputDoc);
-    `</pre> *
+     `</pre> *
      *
      * @param bodyHtml HTML fragment to test
      * @return true if no tags or attributes need to be removed; false if they do
@@ -120,49 +119,58 @@ public class Cleaner(private val safelist: Safelist) {
      */
     public inner class CleaningVisitor constructor(root: Element, destination: Element) :
         NodeVisitor {
-        internal var numDiscarded = 0
-        private val root: Element
-        private var destination: Element // current element to append nodes to
+            internal var numDiscarded = 0
+            private val root: Element
+            private var destination: Element // current element to append nodes to
 
-        init {
-            this.root = root
-            this.destination = destination
-        }
+            init {
+                this.root = root
+                this.destination = destination
+            }
 
-        override fun head(node: Node, depth: Int) {
-            if (node is Element) {
-                val sourceEl: Element = node
-                if (safelist.isSafeTag(sourceEl.normalName())) { // safe, clone and copy safe attrs
-                    val meta = createSafeElement(sourceEl)
-                    val destChild: Element = meta.el
-                    destination.appendChild(destChild)
-                    numDiscarded += meta.numAttribsDiscarded
-                    destination = destChild
-                } else if (node !== root) { // not a safe tag, so don't add. don't count root against discarded.
+            override fun head(
+                node: Node,
+                depth: Int,
+            ) {
+                if (node is Element) {
+                    val sourceEl: Element = node
+                    if (safelist.isSafeTag(sourceEl.normalName())) { // safe, clone and copy safe attrs
+                        val meta = createSafeElement(sourceEl)
+                        val destChild: Element = meta.el
+                        destination.appendChild(destChild)
+                        numDiscarded += meta.numAttribsDiscarded
+                        destination = destChild
+                    } else if (node !== root) { // not a safe tag, so don't add. don't count root against discarded.
+                        numDiscarded++
+                    }
+                } else if (node is TextNode) {
+                    val sourceText: TextNode = node
+                    val destText = TextNode(sourceText.getWholeText())
+                    destination.appendChild(destText)
+                } else if (node is DataNode && safelist.isSafeTag(node.parent()!!.nodeName())) {
+                    val sourceData: DataNode = node
+                    val destData = DataNode(sourceData.getWholeData())
+                    destination.appendChild(destData)
+                } else { // else, we don't care about comments, xml proc instructions, etc
                     numDiscarded++
                 }
-            } else if (node is TextNode) {
-                val sourceText: TextNode = node
-                val destText = TextNode(sourceText.getWholeText())
-                destination.appendChild(destText)
-            } else if (node is DataNode && safelist.isSafeTag(node.parent()!!.nodeName())) {
-                val sourceData: DataNode = node
-                val destData = DataNode(sourceData.getWholeData())
-                destination.appendChild(destData)
-            } else { // else, we don't care about comments, xml proc instructions, etc
-                numDiscarded++
+            }
+
+            override fun tail(
+                node: Node,
+                depth: Int,
+            ) {
+                if (node is Element && safelist.isSafeTag(node.nodeName())) {
+                    destination =
+                        destination.parent()!! // would have descended, so pop destination stack
+                }
             }
         }
 
-        override fun tail(node: Node, depth: Int) {
-            if (node is Element && safelist.isSafeTag(node.nodeName())) {
-                destination =
-                    destination.parent()!! // would have descended, so pop destination stack
-            }
-        }
-    }
-
-    private fun copySafeNodes(source: Element, dest: Element): Int {
+    private fun copySafeNodes(
+        source: Element,
+        dest: Element,
+    ): Int {
         val cleaningVisitor: CleaningVisitor = CleaningVisitor(source, dest)
         NodeTraversor.traverse(cleaningVisitor, source)
         return cleaningVisitor.numDiscarded
@@ -171,11 +179,12 @@ public class Cleaner(private val safelist: Safelist) {
     private fun createSafeElement(sourceEl: Element): ElementMeta {
         val sourceTag: String = sourceEl.tagName()
         val destAttrs = Attributes()
-        val dest = Element(
-            Tag.valueOf(sourceTag, sourceEl.tag().namespace(), ParseSettings.preserveCase),
-            sourceEl.baseUri(),
-            destAttrs,
-        )
+        val dest =
+            Element(
+                Tag.valueOf(sourceTag, sourceEl.tag().namespace(), ParseSettings.preserveCase),
+                sourceEl.baseUri(),
+                destAttrs,
+            )
         var numDiscarded = 0
         val sourceAttrs: Attributes = sourceEl.attributes()
         for (sourceAttr in sourceAttrs) {
