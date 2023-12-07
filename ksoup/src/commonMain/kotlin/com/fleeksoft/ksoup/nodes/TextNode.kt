@@ -1,8 +1,8 @@
 package com.fleeksoft.ksoup.nodes
 
-import okio.IOException
 import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.internal.StringUtil
+import okio.IOException
 
 /**
  * A text node.
@@ -69,7 +69,11 @@ public open class TextNode(text: String) : LeafNode() {
     }
 
     @Throws(IOException::class)
-    override fun outerHtmlHead(accum: Appendable, depth: Int, out: Document.OutputSettings) {
+    override fun outerHtmlHead(
+        accum: Appendable,
+        depth: Int,
+        out: Document.OutputSettings,
+    ) {
         val prettyPrint: Boolean = out.prettyPrint()
         val parent: Element? = if (_parentNode is Element) _parentNode as Element? else null
         val normaliseWhite = prettyPrint && !Element.preserveWhitespace(_parentNode)
@@ -86,13 +90,16 @@ public open class TextNode(text: String) : LeafNode() {
             val isBlank = isBlank()
             val couldSkip =
                 next is Element && next.shouldIndent(out) || next is TextNode && next.isBlank() || prev is Element && (
-                        prev.isBlock() || prev.isNode(
+                    prev.isBlock() ||
+                        prev.isNode(
                             "br",
                         )
-                        ) // br is a bit special - make sure we don't get a dangling blank line, but not a block otherwise wraps in head
+                ) // br is a bit special - make sure we don't get a dangling blank line, but not a block otherwise wraps in head
             if (couldSkip && isBlank) return
-            if (siblingIndex == 0 && parent != null && parent.tag()
-                    .formatAsBlock() && !isBlank || out.outline() && siblingNodes().isNotEmpty() && !isBlank || siblingIndex > 0 && isNode(
+            if (siblingIndex == 0 && parent != null &&
+                parent.tag()
+                    .formatAsBlock() && !isBlank || out.outline() && siblingNodes().isNotEmpty() && !isBlank || siblingIndex > 0 &&
+                isNode(
                     prev,
                     "br",
                 ) // special case wrap on inline <br> - doesn't make sense as a block tag

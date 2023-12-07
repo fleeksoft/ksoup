@@ -17,7 +17,10 @@ internal object Collector {
      * @param root root of tree to descend
      * @return list of matches; empty if none
      */
-    fun collect(eval: Evaluator, root: Element): Elements {
+    fun collect(
+        eval: Evaluator,
+        root: Element,
+    ): Elements {
         eval.reset()
         val elements = Elements()
         NodeTraversor.traverse(
@@ -40,16 +43,17 @@ internal object Collector {
      * @return the first match; `null` if none
      */
 
-    fun findFirst(eval: Evaluator, root: Element): Element? {
+    fun findFirst(
+        eval: Evaluator,
+        root: Element,
+    ): Element? {
         eval.reset()
         val finder = FirstFinder(eval)
         return finder.find(root, root)
     }
 
     internal class FirstFinder(eval: Evaluator) : NodeFilter {
-
         private var evalRoot: Element? = null
-
 
         private var match: Element? = null
         private val eval: Evaluator
@@ -58,15 +62,20 @@ internal object Collector {
             this.eval = eval
         }
 
-
-        fun find(root: Element?, start: Element): Element? {
+        fun find(
+            root: Element?,
+            start: Element,
+        ): Element? {
             evalRoot = root
             match = null
             NodeTraversor.filter(this, start)
             return match
         }
 
-        override fun head(node: Node, depth: Int): NodeFilter.FilterResult {
+        override fun head(
+            node: Node,
+            depth: Int,
+        ): NodeFilter.FilterResult {
             if (node is Element) {
                 val el: Element = node
                 if (eval.matches(evalRoot!!, el)) {

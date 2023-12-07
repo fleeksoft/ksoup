@@ -43,7 +43,10 @@ class DataUtilTest {
         return BufferReader(data.toByteArray())
     }
 
-    private fun bufferByteArrayCharset(data: String, charset: String): BufferReader {
+    private fun bufferByteArrayCharset(
+        data: String,
+        charset: String,
+    ): BufferReader {
         return BufferReader(data.toByteArray(Charset.forName(charset)))
     }
 
@@ -136,7 +139,8 @@ class DataUtilTest {
             // FIXME: euc-kr charset not supported
             return
         }
-        val html = "<html><head>" +
+        val html =
+            "<html><head>" +
                 "<meta http-equiv=\"Content-Type\" content=\"text/html\">" +
                 "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=euc-kr\">" +
                 "</head><body>한국어</body></html>"
@@ -153,7 +157,8 @@ class DataUtilTest {
     @Test
     @Throws(Exception::class)
     fun firstMetaElementWithCharsetShouldBeUsedForDecoding() {
-        val html = "<html><head>" +
+        val html =
+            "<html><head>" +
                 "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=iso-8859-1\">" +
                 "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=koi8-u\">" +
                 "</head><body>Übergrößenträger</body></html>"
@@ -213,16 +218,13 @@ class DataUtilTest {
 
     @Test
     fun supportsZippedUTF8BOM() {
-        if (Platform.current == PlatformType.JS) {
-            // FIXME: gzip not supported yet on js
-            return
-        }
         val input: String = TestHelper.getResourceAbsolutePath("bomtests/bom_utf8.html.gz")
-        val doc: Document = Ksoup.parseFile(
-            file = input,
-            baseUri = "http://example.com",
-            charsetName = null,
-        )
+        val doc: Document =
+            Ksoup.parseFile(
+                file = input,
+                baseUri = "http://example.com",
+                charsetName = null,
+            )
         assertEquals("OK", doc.head().select("title").text())
         assertEquals(
             "There is a UTF8 BOM at the top (before the XML decl). If not read correctly, will look like a non-joining space.",
@@ -233,25 +235,22 @@ class DataUtilTest {
     @Test
     fun supportsXmlCharsetDeclaration() {
         val encoding = "iso-8859-1"
-        val soup = BufferReader(
-            (
+        val soup =
+            BufferReader(
+                (
                     "<?xml version=\"1.0\" encoding=\"iso-8859-1\"?>" +
-                            "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">" +
-                            "<html xmlns=\"http://www.w3.org/1999/xhtml\" lang=\"en\" xml:lang=\"en\">Hellö Wörld!</html>"
-                    ).toByteArray(
+                        "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">" +
+                        "<html xmlns=\"http://www.w3.org/1999/xhtml\" lang=\"en\" xml:lang=\"en\">Hellö Wörld!</html>"
+                ).toByteArray(
                     Charset.forName(encoding),
                 ),
-        )
+            )
         val doc: Document = Ksoup.parse(soup, baseUri = "", charsetName = null)
         assertEquals("Hellö Wörld!", doc.body().text())
     }
 
     @Test
     fun lLoadsGzipFile() {
-        if (Platform.current == PlatformType.JS) {
-            // FIXME: gzip not supported yet for js
-            return
-        }
         val input: String = TestHelper.getResourceAbsolutePath("htmltests/gzip.html.gz")
         val doc: Document = Ksoup.parseFile(file = input, charsetName = null)
         doc.toString()
@@ -261,10 +260,6 @@ class DataUtilTest {
 
     @Test
     fun loadsZGzipFile() {
-        if (Platform.current == PlatformType.JS) {
-            // FIXME: gzip not supported yet for js
-            return
-        }
         // compressed on win, with z suffix
         val input: String = TestHelper.getResourceAbsolutePath("htmltests/gzip.html.z")
         val doc: Document = Ksoup.parseFile(file = input, charsetName = null)
@@ -274,10 +269,6 @@ class DataUtilTest {
 
     @Test
     fun handlesFakeGzipFile() {
-        if (Platform.current == PlatformType.JS) {
-            // FIXME: gzip not supported yet for js
-            return
-        }
         val input: String = TestHelper.getResourceAbsolutePath("htmltests/fake-gzip.html.gz")
         val doc: Document = Ksoup.parseFile(file = input, charsetName = null)
         assertEquals("This is not gzipped", doc.title())

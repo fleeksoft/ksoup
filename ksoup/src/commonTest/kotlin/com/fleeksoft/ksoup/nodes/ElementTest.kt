@@ -153,10 +153,11 @@ class ElementTest {
 
     @Test
     fun testBrHasSpaceCaseSensitive() {
-        var doc = Ksoup.parse(
-            "<p>Hello<br>there<BR>now</p>",
-            Parser.htmlParser().settings(ParseSettings.preserveCase),
-        )
+        var doc =
+            Ksoup.parse(
+                "<p>Hello<br>there<BR>now</p>",
+                Parser.htmlParser().settings(ParseSettings.preserveCase),
+            )
         assertEquals("Hello there now", doc.text())
         assertEquals("Hello there now", doc.select("p").first()!!.ownText())
         doc = Ksoup.parse("<p>Hello <br> there <BR> now</p>")
@@ -321,7 +322,9 @@ class ElementTest {
     @Test
     fun testGetElementsWithAttributeDash() {
         val doc =
-            Ksoup.parse("<meta http-equiv=content-type value=utf8 id=1> <meta name=foo content=bar id=2> <div http-equiv=content-type value=utf8 id=3>")
+            Ksoup.parse(
+                "<meta http-equiv=content-type value=utf8 id=1> <meta name=foo content=bar id=2> <div http-equiv=content-type value=utf8 id=3>",
+            )
         val meta = doc.select("meta[http-equiv=content-type], meta[charset]")
         assertEquals(1, meta.size)
         assertEquals("1", meta.first()!!.id())
@@ -1321,7 +1324,8 @@ class ElementTest {
         5 1534787905 - <p class="one">One</p>
         6 1539683239 - <p class="one">Two</p>
         7 1535455211 - <p class="two">One</p>
-        */assertEquals(8, els.size)
+         */
+        assertEquals(8, els.size)
         val e0 = els[0]
         val e1 = els[1]
         val e2 = els[2]
@@ -1554,10 +1558,10 @@ class ElementTest {
         assertEquals(4, els2.size)
         assertEquals(
             """
-    <p><a>One</a></p>
-    <p>P3</p>
-    <p><a>Two</a></p>
-    <p>P4</p>Three
+            <p><a>One</a></p>
+            <p>P3</p>
+            <p><a>Two</a></p>
+            <p>P4</p>Three
             """.trimIndent(),
             div.html(),
         )
@@ -1570,10 +1574,10 @@ class ElementTest {
         assertEquals("Another", els3[2].text())
         assertEquals(
             """
-    <p><a>One</a></p>
-    <p>P3</p><span>Another</span>
-    <p><a>Two</a></p>
-    <p>P4</p>Three
+            <p><a>One</a></p>
+            <p>P3</p><span>Another</span>
+            <p><a>Two</a></p>
+            <p>P4</p>Three
             """.trimIndent(),
             div.html(),
         )
@@ -1664,18 +1668,20 @@ class ElementTest {
         assertEquals("Thisisonelongword", p!!.text()) // text is normalized
         assertEquals("<p>$escaped</p>", p.outerHtml()) // html / whole text keeps &shy etc;
         assertEquals(decoded, p.textNodes()[0].getWholeText())
-        val matched = doc.select("p:contains(Thisisonelongword)")
-            .first() // really just oneloneword, no invisibles
+        val matched =
+            doc.select("p:contains(Thisisonelongword)")
+                .first() // really just oneloneword, no invisibles
         assertEquals("p", matched!!.nodeName())
         assertTrue(matched.`is`(":containsOwn(Thisisonelongword)"))
     }
 
     @Test
     fun testRemoveBeforeIndex() {
-        val doc = Ksoup.parse(
-            "<html><body><div><p>before1</p><p>before2</p><p>XXX</p><p>after1</p><p>after2</p></div></body></html>",
-            "",
-        )
+        val doc =
+            Ksoup.parse(
+                "<html><body><div><p>before1</p><p>before2</p><p>XXX</p><p>after1</p><p>after2</p></div></body></html>",
+                "",
+            )
         val body = doc.select("body").first()
         val elems = body!!.select("p:matchesOwn(XXX)")
         val xElem = elems.first()
@@ -1691,10 +1697,11 @@ class ElementTest {
 
     @Test
     fun testRemoveAfterIndex() {
-        val doc2 = Ksoup.parse(
-            "<html><body><div><p>before1</p><p>before2</p><p>XXX</p><p>after1</p><p>after2</p></div></body></html>",
-            "",
-        )
+        val doc2 =
+            Ksoup.parse(
+                "<html><body><div><p>before1</p><p>before2</p><p>XXX</p><p>after1</p><p>after2</p></div></body></html>",
+                "",
+            )
         val body = doc2.select("body").first()
         val elems = body!!.select("p:matchesOwn(XXX)")
         val xElem = elems.first()
@@ -1776,16 +1783,17 @@ class ElementTest {
 
     @Test
     fun testNextElementSiblings() {
-        val doc = Ksoup.parse(
-            "<ul id='ul'>" +
-                "<li id='a'>a</li>" +
-                "<li id='b'>b</li>" +
-                "<li id='c'>c</li>" +
-                "</ul> Not An Element but a node" +
-                "<div id='div'>" +
-                "<li id='d'>d</li>" +
-                "</div>",
-        )
+        val doc =
+            Ksoup.parse(
+                "<ul id='ul'>" +
+                    "<li id='a'>a</li>" +
+                    "<li id='b'>b</li>" +
+                    "<li id='c'>c</li>" +
+                    "</ul> Not An Element but a node" +
+                    "<div id='div'>" +
+                    "<li id='d'>d</li>" +
+                    "</div>",
+            )
         val element = doc.getElementById("a")
         val elementSiblings = element!!.nextElementSiblings()
         assertNotNull(elementSiblings)
@@ -1812,16 +1820,17 @@ class ElementTest {
 
     @Test
     fun testPreviousElementSiblings() {
-        val doc = Ksoup.parse(
-            "<ul id='ul'>" +
-                "<li id='a'>a</li>" +
-                "<li id='b'>b</li>" +
-                "<li id='c'>c</li>" +
-                "</ul>" +
-                "<div id='div'>" +
-                "<li id='d'>d</li>" +
-                "</div>",
-        )
+        val doc =
+            Ksoup.parse(
+                "<ul id='ul'>" +
+                    "<li id='a'>a</li>" +
+                    "<li id='b'>b</li>" +
+                    "<li id='c'>c</li>" +
+                    "</ul>" +
+                    "<div id='div'>" +
+                    "<li id='d'>d</li>" +
+                    "</div>",
+            )
         val element = doc.getElementById("b")
         val elementSiblings = element!!.previousElementSiblings()
         assertNotNull(elementSiblings)
@@ -1852,10 +1861,11 @@ class ElementTest {
 
     @Test
     fun testRemoveAttr() {
-        val el = Element("a")
-            .attr("href", "http://example.com")
-            .attr("id", "1")
-            .text("Hello")
+        val el =
+            Element("a")
+                .attr("href", "http://example.com")
+                .attr("id", "1")
+                .text("Hello")
         assertEquals("<a href=\"http://example.com\" id=\"1\">Hello</a>", el.outerHtml())
         val el2 = el.removeAttr("href") // really just force testing the return type is Element
         assertSame(el, el2)
@@ -1908,26 +1918,40 @@ class ElementTest {
         val doc = Ksoup.parse("<div><p>One<p>Two<p>Three")
         val div = doc.selectFirst("div")
         assertNotNull(div)
-        val div2 = div.filter(object : NodeFilter {
-            override fun head(node: Node, depth: Int): NodeFilter.FilterResult {
-                return NodeFilter.FilterResult.CONTINUE
-            }
+        val div2 =
+            div.filter(
+                object : NodeFilter {
+                    override fun head(
+                        node: Node,
+                        depth: Int,
+                    ): NodeFilter.FilterResult {
+                        return NodeFilter.FilterResult.CONTINUE
+                    }
 
-            override fun tail(node: Node?, depth: Int): NodeFilter.FilterResult {
-                return NodeFilter.FilterResult.CONTINUE
-            }
-        })
+                    override fun tail(
+                        node: Node?,
+                        depth: Int,
+                    ): NodeFilter.FilterResult {
+                        return NodeFilter.FilterResult.CONTINUE
+                    }
+                },
+            )
         assertSame(div, div2)
     }
 
     @Test
     fun testFilterAsLambda() {
         val doc = Ksoup.parse("<div><p>One<p id=2>Two<p>Three")
-        doc.filter(object : NodeFilter {
-            override fun head(node: Node, depth: Int): NodeFilter.FilterResult {
-                return if (node.attr("id") == "2") NodeFilter.FilterResult.REMOVE else NodeFilter.FilterResult.CONTINUE
-            }
-        })
+        doc.filter(
+            object : NodeFilter {
+                override fun head(
+                    node: Node,
+                    depth: Int,
+                ): NodeFilter.FilterResult {
+                    return if (node.attr("id") == "2") NodeFilter.FilterResult.REMOVE else NodeFilter.FilterResult.CONTINUE
+                }
+            },
+        )
         assertEquals(
             "<div><p>One</p><p>Three</p></div>",
             TextUtil.stripNewlines(doc.body().html()),
@@ -2964,7 +2988,10 @@ Three
     }
 
     companion object {
-        private fun validateScriptContents(src: String, el: Element?) {
+        private fun validateScriptContents(
+            src: String,
+            el: Element?,
+        ) {
             assertEquals("", el!!.text()) // it's not text
             assertEquals("", el.ownText())
             assertEquals("", el.wholeText())

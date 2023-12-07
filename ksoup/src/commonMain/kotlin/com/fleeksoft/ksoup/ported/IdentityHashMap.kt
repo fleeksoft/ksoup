@@ -58,7 +58,10 @@ internal class IdentityHashMap<K, V> : MutableMap<K, V> {
         delegate.clear()
     }
 
-    override fun put(key: K, value: V): V? {
+    override fun put(
+        key: K,
+        value: V,
+    ): V? {
         return delegate.put(IdentityWrapper(key), value)
     }
 

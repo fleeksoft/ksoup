@@ -1,9 +1,8 @@
 package com.fleeksoft.ksoup.nodes
 
-import okio.IOException
-import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.nodes.Document.OutputSettings.Syntax
+import okio.IOException
 
 /**
  * A `<!DOCTYPE>` node.
@@ -33,7 +32,9 @@ public class DocumentType(private val name: String, private val publicId: String
     private fun updatePubSyskey() {
         if (has(PUBLIC_ID)) {
             attr(PUB_SYS_KEY, PUBLIC_KEY)
-        } else if (has(SYSTEM_ID)) attr(PUB_SYS_KEY, SYSTEM_KEY)
+        } else if (has(SYSTEM_ID)) {
+            attr(PUB_SYS_KEY, SYSTEM_KEY)
+        }
     }
 
     /**
@@ -65,7 +66,11 @@ public class DocumentType(private val name: String, private val publicId: String
     }
 
     @Throws(IOException::class)
-    override fun outerHtmlHead(accum: Appendable, depth: Int, out: Document.OutputSettings) {
+    override fun outerHtmlHead(
+        accum: Appendable,
+        depth: Int,
+        out: Document.OutputSettings,
+    ) {
         // add a newline if the doctype has a preceding node (which must be a comment)
         if (siblingIndex > 0 && out.prettyPrint()) accum.append('\n')
         if (out.syntax() === Syntax.html && !has(PUBLIC_ID) && !has(SYSTEM_ID)) {

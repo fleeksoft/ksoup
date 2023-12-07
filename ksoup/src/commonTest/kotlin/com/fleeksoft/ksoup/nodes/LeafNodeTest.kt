@@ -2,8 +2,8 @@ package com.fleeksoft.ksoup.nodes
 
 import com.fleeksoft.ksoup.Ksoup.parse
 import com.fleeksoft.ksoup.select.NodeFilter
-import kotlin.test.Test
 import kotlin.test.*
+import kotlin.test.Test
 
 class LeafNodeTest {
     @Test
@@ -40,20 +40,28 @@ class LeafNodeTest {
 
     private fun hasAnyAttributes(node: Node?): Boolean {
         val found = BooleanArray(1)
-        node!!.filter(object : NodeFilter {
-            override fun head(node: Node, depth: Int): NodeFilter.FilterResult {
-                return if (node.hasAttributes()) {
-                    found[0] = true
-                    NodeFilter.FilterResult.STOP
-                } else {
-                    NodeFilter.FilterResult.CONTINUE
+        node!!.filter(
+            object : NodeFilter {
+                override fun head(
+                    node: Node,
+                    depth: Int,
+                ): NodeFilter.FilterResult {
+                    return if (node.hasAttributes()) {
+                        found[0] = true
+                        NodeFilter.FilterResult.STOP
+                    } else {
+                        NodeFilter.FilterResult.CONTINUE
+                    }
                 }
-            }
 
-            override fun tail(node: Node?, depth: Int): NodeFilter.FilterResult {
-                return NodeFilter.FilterResult.CONTINUE
-            }
-        })
+                override fun tail(
+                    node: Node?,
+                    depth: Int,
+                ): NodeFilter.FilterResult {
+                    return NodeFilter.FilterResult.CONTINUE
+                }
+            },
+        )
         return found[0]
     }
 }

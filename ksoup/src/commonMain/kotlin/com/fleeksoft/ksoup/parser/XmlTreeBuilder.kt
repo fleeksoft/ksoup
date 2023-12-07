@@ -31,11 +31,17 @@ internal open class XmlTreeBuilder : TreeBuilder() {
             .prettyPrint(false) // as XML, we don't understand what whitespace is significant or not
     }
 
-    fun parse(input: BufferReader, baseUri: String?): Document {
+    fun parse(
+        input: BufferReader,
+        baseUri: String?,
+    ): Document {
         return parse(input, baseUri, Parser(this))
     }
 
-    fun parse(input: String, baseUri: String?): Document {
+    fun parse(
+        input: String,
+        baseUri: String?,
+    ): Document {
         return parse(BufferReader(input), baseUri, Parser(this))
     }
 
@@ -66,7 +72,10 @@ internal open class XmlTreeBuilder : TreeBuilder() {
         onNodeInserted(node, null)
     }
 
-    private fun insertNode(node: Node, token: Token?) {
+    private fun insertNode(
+        node: Node,
+        token: Token?,
+    ) {
         currentElement().appendChild(node)
         onNodeInserted(node, token)
     }
@@ -103,11 +112,12 @@ internal open class XmlTreeBuilder : TreeBuilder() {
     }
 
     fun insert(d: Token.Doctype) {
-        val doctypeNode = DocumentType(
-            settings!!.normalizeTag(d.getName()),
-            d.getPublicIdentifier(),
-            d.getSystemIdentifier(),
-        )
+        val doctypeNode =
+            DocumentType(
+                settings!!.normalizeTag(d.getName()),
+                d.getPublicIdentifier(),
+                d.getSystemIdentifier(),
+            )
         doctypeNode.setPubSysKey(d.pubSysKey)
         insertNode(doctypeNode, d)
     }
@@ -151,7 +161,11 @@ internal open class XmlTreeBuilder : TreeBuilder() {
         return parseFragment(inputFragment, baseUri, parser)
     }
 
-    fun parseFragment(inputFragment: String, baseUri: String?, parser: Parser): List<Node> {
+    fun parseFragment(
+        inputFragment: String,
+        baseUri: String?,
+        parser: Parser,
+    ): List<Node> {
         initialiseParse(BufferReader(inputFragment), baseUri, parser)
         runParser()
         return doc.childNodes()

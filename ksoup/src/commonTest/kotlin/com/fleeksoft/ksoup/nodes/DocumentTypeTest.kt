@@ -2,8 +2,8 @@ package com.fleeksoft.ksoup.nodes
 
 import com.fleeksoft.ksoup.Ksoup.parse
 import com.fleeksoft.ksoup.parser.Parser
-import kotlin.test.Test
 import kotlin.test.*
+import kotlin.test.Test
 
 /**
  * Tests for the DocumentType node
@@ -30,7 +30,7 @@ class DocumentTypeTest {
         val systemDocType = DocumentType("html", "", "http://www.ibm.com/data/dtd/v11/ibmxhtml1-transitional.dtd")
         assertEquals(
             "<!DOCTYPE html SYSTEM \"http://www.ibm.com/data/dtd/v11/ibmxhtml1-transitional.dtd\">",
-            systemDocType.outerHtml()
+            systemDocType.outerHtml(),
         )
         val combo = DocumentType("notHtml", "--public", "--system")
         assertEquals("<!DOCTYPE notHtml PUBLIC \"--public\" \"--system\">", combo.outerHtml())

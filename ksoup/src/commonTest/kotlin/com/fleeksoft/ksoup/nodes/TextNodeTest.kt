@@ -73,7 +73,7 @@ class TextNodeTest {
         tail.wrap("<b></b>")
         assertEquals(
             "Hello <b>there</b>",
-            TextUtil.stripNewlines(div.html())
+            TextUtil.stripNewlines(div.html()),
         ) // not great that we get \n<b>there there... must correct
     }
 
@@ -94,7 +94,8 @@ class TextNodeTest {
         val t = doc.body().textNodes()[0]
         assertEquals(
             135361.toCodePoint().toChars().concatToString(),
-            t.outerHtml().trim { it <= ' ' })
+            t.outerHtml().trim { it <= ' ' },
+        )
     }
 
     @Test
@@ -118,7 +119,7 @@ class TextNodeTest {
         assertEquals(norm, tn.toString())
         val el = Element("p")
         el.appendChild(tn) // this used to change the context
-        //tn.setParentNode(el); // set any parent
+        // tn.setParentNode(el); // set any parent
         assertEquals(whole, tn.getWholeText())
         assertEquals(norm, tn.text())
         assertEquals(norm, tn.outerHtml())

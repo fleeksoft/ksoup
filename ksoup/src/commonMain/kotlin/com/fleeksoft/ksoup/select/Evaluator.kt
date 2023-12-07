@@ -27,7 +27,10 @@ internal abstract class Evaluator protected constructor() {
      * @return Returns <tt>true</tt> if the requirements are met or
      * <tt>false</tt> otherwise
      */
-    abstract fun matches(root: Element, element: Element): Boolean
+    abstract fun matches(
+        root: Element,
+        element: Element,
+    ): Boolean
 
     /**
      * Reset any internal state in this Evaluator before executing a new Collector evaluation.
@@ -46,7 +49,10 @@ internal abstract class Evaluator protected constructor() {
      * Evaluator for tag name
      */
     class Tag(private val tagName: String) : Evaluator() {
-        override fun matches(root: Element, element: Element): Boolean {
+        override fun matches(
+            root: Element,
+            element: Element,
+        ): Boolean {
             return element.normalName() == tagName
         }
 
@@ -63,7 +69,10 @@ internal abstract class Evaluator protected constructor() {
      * Evaluator for tag name that ends with
      */
     class TagEndsWith(private val tagName: String) : Evaluator() {
-        override fun matches(root: Element, element: Element): Boolean {
+        override fun matches(
+            root: Element,
+            element: Element,
+        ): Boolean {
             return element.normalName().endsWith(tagName)
         }
 
@@ -76,7 +85,10 @@ internal abstract class Evaluator protected constructor() {
      * Evaluator for element id
      */
     class Id(private val id: String) : Evaluator() {
-        override fun matches(root: Element, element: Element): Boolean {
+        override fun matches(
+            root: Element,
+            element: Element,
+        ): Boolean {
             return id == element.id()
         }
 
@@ -93,7 +105,10 @@ internal abstract class Evaluator protected constructor() {
      * Evaluator for element class
      */
     class Class(private val className: String) : Evaluator() {
-        override fun matches(root: Element, element: Element): Boolean {
+        override fun matches(
+            root: Element,
+            element: Element,
+        ): Boolean {
             return element.hasClass(className)
         }
 
@@ -110,7 +125,10 @@ internal abstract class Evaluator protected constructor() {
      * Evaluator for attribute name matching
      */
     class Attribute(private val key: String) : Evaluator() {
-        override fun matches(root: Element, element: Element): Boolean {
+        override fun matches(
+            root: Element,
+            element: Element,
+        ): Boolean {
             return element.hasAttr(key)
         }
 
@@ -134,7 +152,10 @@ internal abstract class Evaluator protected constructor() {
             this.keyPrefix = lowerCase(keyPrefix)
         }
 
-        override fun matches(root: Element, element: Element): Boolean {
+        override fun matches(
+            root: Element,
+            element: Element,
+        ): Boolean {
             val values: List<com.fleeksoft.ksoup.nodes.Attribute> = element.attributes().asList()
             for (attribute in values) {
                 if (lowerCase(attribute.key).startsWith(keyPrefix)) return true
@@ -155,7 +176,10 @@ internal abstract class Evaluator protected constructor() {
      * Evaluator for attribute name/value matching
      */
     class AttributeWithValue(key: String?, value: String) : AttributeKeyPair(key, value) {
-        override fun matches(root: Element, element: Element): Boolean {
+        override fun matches(
+            root: Element,
+            element: Element,
+        ): Boolean {
             return element.hasAttr(key) && value.equals(element.attr(key).trim(), ignoreCase = true)
         }
 
@@ -172,7 +196,10 @@ internal abstract class Evaluator protected constructor() {
      * Evaluator for attribute name != value matching
      */
     class AttributeWithValueNot(key: String, value: String) : AttributeKeyPair(key, value) {
-        override fun matches(root: Element, element: Element): Boolean {
+        override fun matches(
+            root: Element,
+            element: Element,
+        ): Boolean {
             return !value.equals(element.attr(key), ignoreCase = true)
         }
 
@@ -190,7 +217,10 @@ internal abstract class Evaluator protected constructor() {
      */
     class AttributeWithValueStarting(key: String, value: String) :
         AttributeKeyPair(key, value, false) {
-        override fun matches(root: Element, element: Element): Boolean {
+        override fun matches(
+            root: Element,
+            element: Element,
+        ): Boolean {
             return element.hasAttr(key) && lowerCase(element.attr(key)).startsWith(value) // value is lower case already
         }
 
@@ -208,7 +238,10 @@ internal abstract class Evaluator protected constructor() {
      */
     class AttributeWithValueEnding(key: String?, value: String) :
         AttributeKeyPair(key, value, false) {
-        override fun matches(root: Element, element: Element): Boolean {
+        override fun matches(
+            root: Element,
+            element: Element,
+        ): Boolean {
             return element.hasAttr(key) && lowerCase(element.attr(key)).endsWith(value) // value is lower case
         }
 
@@ -225,7 +258,10 @@ internal abstract class Evaluator protected constructor() {
      * Evaluator for attribute name/value matching (value containing)
      */
     class AttributeWithValueContaining(key: String, value: String) : AttributeKeyPair(key, value) {
-        override fun matches(root: Element, element: Element): Boolean {
+        override fun matches(
+            root: Element,
+            element: Element,
+        ): Boolean {
             return element.hasAttr(key) && lowerCase(element.attr(key)).contains(value) // value is lower case
         }
 
@@ -250,7 +286,10 @@ internal abstract class Evaluator protected constructor() {
             this.regex = regex
         }
 
-        override fun matches(root: Element, element: Element): Boolean {
+        override fun matches(
+            root: Element,
+            element: Element,
+        ): Boolean {
             // TODO: test regex.find vs pattern.matcher
             return element.hasAttr(key) && regex.find(element.attr(key)) != null
         }
@@ -267,35 +306,40 @@ internal abstract class Evaluator protected constructor() {
     /**
      * Abstract evaluator for attribute name/value matching
      */
-    abstract class AttributeKeyPair @JvmOverloads constructor(
-        key: String?,
-        value: String,
-        trimValue: Boolean = true,
-    ) : Evaluator() {
-        var key: String
-        var value: String
+    abstract class AttributeKeyPair
+        @JvmOverloads
+        constructor(
+            key: String?,
+            value: String,
+            trimValue: Boolean = true,
+        ) : Evaluator() {
+            var key: String
+            var value: String
 
-        init {
-            var resultValue = value
-            Validate.notEmpty(key)
-            Validate.notEmpty(resultValue)
-            this.key = normalize(key)
-            val isStringLiteral = (
-                resultValue.startsWith("'") && resultValue.endsWith("'") ||
-                    resultValue.startsWith("\"") && resultValue.endsWith("\"")
+            init {
+                var resultValue = value
+                Validate.notEmpty(key)
+                Validate.notEmpty(resultValue)
+                this.key = normalize(key)
+                val isStringLiteral = (
+                    resultValue.startsWith("'") && resultValue.endsWith("'") ||
+                        resultValue.startsWith("\"") && resultValue.endsWith("\"")
                 )
-            if (isStringLiteral) {
-                resultValue = resultValue.substring(1, resultValue.length - 1)
+                if (isStringLiteral) {
+                    resultValue = resultValue.substring(1, resultValue.length - 1)
+                }
+                this.value = if (trimValue) normalize(resultValue) else normalize(resultValue, isStringLiteral)
             }
-            this.value = if (trimValue) normalize(resultValue) else normalize(resultValue, isStringLiteral)
         }
-    }
 
     /**
      * Evaluator for any / all element matching
      */
     class AllElements : Evaluator() {
-        override fun matches(root: Element, element: Element): Boolean {
+        override fun matches(
+            root: Element,
+            element: Element,
+        ): Boolean {
             return true
         }
 
@@ -312,7 +356,10 @@ internal abstract class Evaluator protected constructor() {
      * Evaluator for matching by sibling index number (e &lt; idx)
      */
     class IndexLessThan(index: Int) : IndexEvaluator(index) {
-        override fun matches(root: Element, element: Element): Boolean {
+        override fun matches(
+            root: Element,
+            element: Element,
+        ): Boolean {
             return root !== element && element.elementSiblingIndex() < index
         }
 
@@ -325,7 +372,10 @@ internal abstract class Evaluator protected constructor() {
      * Evaluator for matching by sibling index number (e &gt; idx)
      */
     class IndexGreaterThan(index: Int) : IndexEvaluator(index) {
-        override fun matches(root: Element, element: Element): Boolean {
+        override fun matches(
+            root: Element,
+            element: Element,
+        ): Boolean {
             return element.elementSiblingIndex() > index
         }
 
@@ -338,7 +388,10 @@ internal abstract class Evaluator protected constructor() {
      * Evaluator for matching by sibling index number (e = idx)
      */
     class IndexEquals(index: Int) : IndexEvaluator(index) {
-        override fun matches(root: Element, element: Element): Boolean {
+        override fun matches(
+            root: Element,
+            element: Element,
+        ): Boolean {
             return element.elementSiblingIndex() == index
         }
 
@@ -351,7 +404,10 @@ internal abstract class Evaluator protected constructor() {
      * Evaluator for matching the last sibling (css :last-child)
      */
     class IsLastChild : Evaluator() {
-        override fun matches(root: Element, element: Element): Boolean {
+        override fun matches(
+            root: Element,
+            element: Element,
+        ): Boolean {
             val p: Element? = element.parent()
             return p != null && p !is Document && element === p.lastElementChild()
         }
@@ -376,7 +432,10 @@ internal abstract class Evaluator protected constructor() {
     abstract class CssNthEvaluator(protected val a: Int, protected val b: Int) : Evaluator() {
         constructor(b: Int) : this(0, b)
 
-        override fun matches(root: Element, element: Element): Boolean {
+        override fun matches(
+            root: Element,
+            element: Element,
+        ): Boolean {
             val p: Element? = element.parent()
             if (p == null || p is Document) return false
             val pos = calculatePosition(root, element)
@@ -394,7 +453,11 @@ internal abstract class Evaluator protected constructor() {
         }
 
         protected abstract val pseudoClass: String?
-        protected abstract fun calculatePosition(root: Element, element: Element): Int
+
+        protected abstract fun calculatePosition(
+            root: Element,
+            element: Element,
+        ): Int
     }
 
     /**
@@ -403,7 +466,10 @@ internal abstract class Evaluator protected constructor() {
      * @see IndexEquals
      */
     open class IsNthChild(a: Int, b: Int) : CssNthEvaluator(a, b) {
-        override fun calculatePosition(root: Element, element: Element): Int {
+        override fun calculatePosition(
+            root: Element,
+            element: Element,
+        ): Int {
             return element.elementSiblingIndex() + 1
         }
 
@@ -416,7 +482,10 @@ internal abstract class Evaluator protected constructor() {
      * @see IndexEquals
      */
     class IsNthLastChild(a: Int, b: Int) : CssNthEvaluator(a, b) {
-        override fun calculatePosition(root: Element, element: Element): Int {
+        override fun calculatePosition(
+            root: Element,
+            element: Element,
+        ): Int {
             val parent: Element? = element.parent()
             return if (parent == null) {
                 0
@@ -433,7 +502,10 @@ internal abstract class Evaluator protected constructor() {
      *
      */
     open class IsNthOfType(a: Int, b: Int) : CssNthEvaluator(a, b) {
-        override fun calculatePosition(root: Element, element: Element): Int {
+        override fun calculatePosition(
+            root: Element,
+            element: Element,
+        ): Int {
             val parent: Element = element.parent() ?: return 0
             var pos = 0
             val size: Int = parent.childNodeSize()
@@ -449,7 +521,10 @@ internal abstract class Evaluator protected constructor() {
     }
 
     open class IsNthLastOfType(a: Int, b: Int) : CssNthEvaluator(a, b) {
-        override fun calculatePosition(root: Element, element: Element): Int {
+        override fun calculatePosition(
+            root: Element,
+            element: Element,
+        ): Int {
             element.parent() ?: return 0
             var pos = 0
             var next: Element? = element
@@ -467,7 +542,10 @@ internal abstract class Evaluator protected constructor() {
      * Evaluator for matching the first sibling (css :first-child)
      */
     class IsFirstChild : Evaluator() {
-        override fun matches(root: Element, element: Element): Boolean {
+        override fun matches(
+            root: Element,
+            element: Element,
+        ): Boolean {
             val p: Element? = element.parent()
             return p != null && p !is Document && element === p.firstElementChild()
         }
@@ -482,7 +560,10 @@ internal abstract class Evaluator protected constructor() {
      * @see [:root selector](http://www.w3.org/TR/selectors/.root-pseudo)
      */
     class IsRoot : Evaluator() {
-        override fun matches(root: Element, element: Element): Boolean {
+        override fun matches(
+            root: Element,
+            element: Element,
+        ): Boolean {
             val r: Element? = if (root is Document) root.firstElementChild() else root
             return element === r
         }
@@ -497,7 +578,10 @@ internal abstract class Evaluator protected constructor() {
     }
 
     class IsOnlyChild : Evaluator() {
-        override fun matches(root: Element, element: Element): Boolean {
+        override fun matches(
+            root: Element,
+            element: Element,
+        ): Boolean {
             val p: Element? = element.parent()
             return p != null && p !is Document && element.siblingElements().isEmpty()
         }
@@ -508,7 +592,10 @@ internal abstract class Evaluator protected constructor() {
     }
 
     class IsOnlyOfType : Evaluator() {
-        override fun matches(root: Element, element: Element): Boolean {
+        override fun matches(
+            root: Element,
+            element: Element,
+        ): Boolean {
             val p: Element? = element.parent()
             if (p == null || p is Document) return false
             var pos = 0
@@ -527,7 +614,10 @@ internal abstract class Evaluator protected constructor() {
     }
 
     class IsEmpty : Evaluator() {
-        override fun matches(root: Element, element: Element): Boolean {
+        override fun matches(
+            root: Element,
+            element: Element,
+        ): Boolean {
             val family: List<Node> = element.childNodes()
             for (n in family) {
                 if (n is TextNode) return n.isBlank()
@@ -558,7 +648,10 @@ internal abstract class Evaluator protected constructor() {
             this.searchText = lowerCase(normaliseWhitespace(searchText))
         }
 
-        override fun matches(root: Element, element: Element): Boolean {
+        override fun matches(
+            root: Element,
+            element: Element,
+        ): Boolean {
             return lowerCase(element.text()).contains(searchText)
         }
 
@@ -577,7 +670,10 @@ internal abstract class Evaluator protected constructor() {
      * @since 1.15.1.
      */
     class ContainsWholeText(private val searchText: String) : Evaluator() {
-        override fun matches(root: Element, element: Element): Boolean {
+        override fun matches(
+            root: Element,
+            element: Element,
+        ): Boolean {
             return element.wholeText().contains(searchText)
         }
 
@@ -596,7 +692,10 @@ internal abstract class Evaluator protected constructor() {
      * @since 1.15.1.
      */
     class ContainsWholeOwnText(private val searchText: String) : Evaluator() {
-        override fun matches(root: Element, element: Element): Boolean {
+        override fun matches(
+            root: Element,
+            element: Element,
+        ): Boolean {
             return element.wholeOwnText().contains(searchText)
         }
 
@@ -615,7 +714,10 @@ internal abstract class Evaluator protected constructor() {
             this.searchText = lowerCase(searchText)
         }
 
-        override fun matches(root: Element, element: Element): Boolean {
+        override fun matches(
+            root: Element,
+            element: Element,
+        ): Boolean {
             return lowerCase(element.data()).contains(searchText) // not whitespace normalized
         }
 
@@ -634,7 +736,10 @@ internal abstract class Evaluator protected constructor() {
             this.searchText = lowerCase(normaliseWhitespace(searchText))
         }
 
-        override fun matches(root: Element, element: Element): Boolean {
+        override fun matches(
+            root: Element,
+            element: Element,
+        ): Boolean {
             return lowerCase(element.ownText()).contains(searchText)
         }
 
@@ -647,8 +752,10 @@ internal abstract class Evaluator protected constructor() {
      * Evaluator for matching Element (and its descendants) text with regex
      */
     class Matches(private val pattern: Regex) : Evaluator() {
-
-        override fun matches(root: Element, element: Element): Boolean {
+        override fun matches(
+            root: Element,
+            element: Element,
+        ): Boolean {
             return pattern.containsMatchIn(element.text())
         }
 
@@ -661,8 +768,10 @@ internal abstract class Evaluator protected constructor() {
      * Evaluator for matching Element's own text with regex
      */
     class MatchesOwn(private val pattern: Regex) : Evaluator() {
-
-        override fun matches(root: Element, element: Element): Boolean {
+        override fun matches(
+            root: Element,
+            element: Element,
+        ): Boolean {
             return pattern.containsMatchIn(element.ownText())
         }
 
@@ -676,8 +785,10 @@ internal abstract class Evaluator protected constructor() {
      * @since 1.15.1.
      */
     class MatchesWholeText(private val pattern: Regex) : Evaluator() {
-
-        override fun matches(root: Element, element: Element): Boolean {
+        override fun matches(
+            root: Element,
+            element: Element,
+        ): Boolean {
             return pattern.containsMatchIn(element.wholeText())
         }
 
@@ -691,8 +802,10 @@ internal abstract class Evaluator protected constructor() {
      * @since 1.15.1.
      */
     class MatchesWholeOwnText(private val pattern: Regex) : Evaluator() {
-
-        override fun matches(root: Element, element: Element): Boolean {
+        override fun matches(
+            root: Element,
+            element: Element,
+        ): Boolean {
             return pattern.containsMatchIn(element.wholeOwnText())
         }
 
@@ -702,19 +815,23 @@ internal abstract class Evaluator protected constructor() {
     }
 
     class MatchText : Evaluator() {
-        override fun matches(root: Element, element: Element): Boolean {
+        override fun matches(
+            root: Element,
+            element: Element,
+        ): Boolean {
             if (element is PseudoTextElement) return true
             val textNodes: List<TextNode> = element.textNodes()
             for (textNode in textNodes) {
-                val pel = PseudoTextElement(
-                    com.fleeksoft.ksoup.parser.Tag.valueOf(
-                        element.tagName(),
-                        element.tag().namespace(),
-                        ParseSettings.preserveCase,
-                    ),
-                    element.baseUri(),
-                    element.attributes(),
-                )
+                val pel =
+                    PseudoTextElement(
+                        com.fleeksoft.ksoup.parser.Tag.valueOf(
+                            element.tagName(),
+                            element.tag().namespace(),
+                            ParseSettings.preserveCase,
+                        ),
+                        element.baseUri(),
+                        element.attributes(),
+                    )
                 textNode.replaceWith(pel)
                 pel.appendChild(textNode)
             }

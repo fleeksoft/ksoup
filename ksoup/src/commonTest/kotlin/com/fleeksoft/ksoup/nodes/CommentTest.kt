@@ -1,12 +1,13 @@
 package com.fleeksoft.ksoup.nodes
 
 import com.fleeksoft.ksoup.Ksoup.parse
-import kotlin.test.Test
 import kotlin.test.*
+import kotlin.test.Test
 
 class CommentTest {
     private val comment = Comment(" This is one heck of a comment! ")
     private val decl = Comment("?xml encoding='ISO-8859-1'?")
+
     @Test
     fun nodeName() {
         assertEquals("#comment", comment.nodeName())
@@ -46,7 +47,8 @@ class CommentTest {
             """<div>
  <!-- comment --> Text
 </div>
-<p><!-- comment --> Text</p>""", out
+<p><!-- comment --> Text</p>""",
+            out,
         )
         val doc2 = parse(out)
         val out2 = doc2.body().html()

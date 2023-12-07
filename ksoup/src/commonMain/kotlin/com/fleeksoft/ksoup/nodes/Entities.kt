@@ -67,7 +67,10 @@ public object Entities {
         }
     }
 
-    public fun codepointsForName(name: String, codepoints: IntArray): Int {
+    public fun codepointsForName(
+        name: String,
+        codepoints: IntArray,
+    ): Int {
         val value: String? = multipoints[name]
         if (value != null) {
             codepoints[0] = value.codePointAt(0).value
@@ -89,7 +92,10 @@ public object Entities {
      * @param out the output settings to use
      * @return the escaped string
      */
-    public fun escape(string: String?, out: OutputSettings?): String {
+    public fun escape(
+        string: String?,
+        out: OutputSettings?,
+    ): String {
         if (string == null) return ""
         val accum: StringBuilder = StringUtil.borrowBuilder()
         try {
@@ -236,7 +242,11 @@ public object Entities {
     }
 
     @Throws(IOException::class)
-    private fun appendEncoded(accum: Appendable, escapeMode: EscapeMode, codePoint: Int) {
+    private fun appendEncoded(
+        accum: Appendable,
+        escapeMode: EscapeMode,
+        codePoint: Int,
+    ) {
         val name = escapeMode.nameForCodepoint(codePoint)
         if (emptyName != name) {
             // ok for identity check
@@ -272,7 +282,10 @@ public object Entities {
      * @param strict if "strict" (that is, requires trailing ';' char, otherwise that's optional)
      * @return unescaped string
      */
-    public fun unescape(string: String, strict: Boolean): String {
+    public fun unescape(
+        string: String,
+        strict: Boolean,
+    ): String {
         return Parser.unescapeEntities(string, strict)
     }
 
@@ -302,7 +315,11 @@ public object Entities {
         }
     }
 
-    private fun load(e: EscapeMode, pointsData: String, size: Int) {
+    private fun load(
+        e: EscapeMode,
+        pointsData: String,
+        size: Int,
+    ) {
         e.nameKeys = arrayOfNulls(size)
         e.codeVals = IntArray(size)
         e.codeKeys = IntArray(size)
@@ -393,7 +410,10 @@ public object Entities {
     }
 
     public enum class CoreCharset {
-        ascii, utf, fallback;
+        ascii,
+        utf,
+        fallback,
+        ;
 
         public companion object {
             public fun byName(name: String): CoreCharset {

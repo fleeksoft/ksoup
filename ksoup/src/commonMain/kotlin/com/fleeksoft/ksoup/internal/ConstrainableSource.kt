@@ -10,13 +10,15 @@ import okio.Buffer
 
 internal class ConstrainableSource(
     bufferReader: BufferReader,
-    maxSize: Int
+    maxSize: Int,
 ) : BufferReader(bufferReader) {
-
     companion object {
         private const val DEFAULT_SIZE = 1024 * 32
 
-        fun wrap(bufferReader: BufferReader, maxSize: Int): ConstrainableSource {
+        fun wrap(
+            bufferReader: BufferReader,
+            maxSize: Int,
+        ): ConstrainableSource {
             return if (bufferReader is ConstrainableSource) {
                 bufferReader
             } else {
@@ -37,7 +39,11 @@ internal class ConstrainableSource(
 
     fun fullyRead(): Boolean = this.exhausted()
 
-    override fun read(sink: ByteArray, offset: Int, byteCount: Int): Int {
+    override fun read(
+        sink: ByteArray,
+        offset: Int,
+        byteCount: Int,
+    ): Int {
         if (interrupted || capped && remaining <= 0) {
             return -1
         }
@@ -49,11 +55,12 @@ internal class ConstrainableSource(
 
         return try {
             val calculatedByteCount: Int = if (this.size() > 0) this.size().toInt() else toRead
-            val read = getBuffer().read(
-                sink = sink,
-                offset = 0,
-                byteCount = calculatedByteCount
-            )
+            val read =
+                getBuffer().read(
+                    sink = sink,
+                    offset = 0,
+                    byteCount = calculatedByteCount,
+                )
             if (!this.exhausted()) {
                 remaining -= read
             }
@@ -87,12 +94,14 @@ internal class ConstrainableSource(
                 }
                 remaining -= read
             }
-
         }
         return BufferReader(buffer)
     }
 
-    fun timeout(startTimeNanos: Long, timeoutMillis: Long): ConstrainableSource {
+    fun timeout(
+        startTimeNanos: Long,
+        timeoutMillis: Long,
+    ): ConstrainableSource {
         this.startTime = startTimeNanos
         this.timeout = timeoutMillis * 1_000_000
         return this

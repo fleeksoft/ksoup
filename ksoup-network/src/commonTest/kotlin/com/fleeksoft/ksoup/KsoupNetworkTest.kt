@@ -1,7 +1,6 @@
 package com.fleeksoft.ksoup
 
 class KsoupNetworkTest {
-
     private val rootUri = "https://aip.dfs.de/BasicVFR/"
 
     // TODO: create common module for common code in modules like runTest

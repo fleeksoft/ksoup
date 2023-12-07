@@ -1,11 +1,11 @@
 package com.fleeksoft.ksoup.nodes
 
-import okio.IOException
 import com.fleeksoft.ksoup.SerializationException
 import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.nodes.Document.OutputSettings.Syntax
 import com.fleeksoft.ksoup.ported.Cloneable
+import okio.IOException
 
 /**
  * A single key + value attribute. (Only used for presentation.)
@@ -13,10 +13,8 @@ import com.fleeksoft.ksoup.ported.Cloneable
 public open class Attribute : Map.Entry<String, String?>, Cloneable<Attribute> {
     private var attributeKey: String
 
-    
     private var attributeValue: String?
 
-    
     internal var parent: Attributes?
 
     /**
@@ -97,7 +95,10 @@ public open class Attribute : Map.Entry<String, String?>, Cloneable<Attribute> {
     }
 
     @Throws(IOException::class)
-    protected fun html(accum: Appendable, out: Document.OutputSettings) {
+    protected fun html(
+        accum: Appendable,
+        out: Document.OutputSettings,
+    ) {
         html(attributeKey, attributeValue, accum, out)
     }
 
@@ -109,8 +110,8 @@ public open class Attribute : Map.Entry<String, String?>, Cloneable<Attribute> {
      * @see .createFromEncoded
      */
     public constructor(
-        key: String, 
-        value: String?, 
+        key: String,
+        value: String?,
         parent: Attributes?,
     ) {
         var sKey = key
@@ -162,43 +163,43 @@ public open class Attribute : Map.Entry<String, String?>, Cloneable<Attribute> {
     }
 
     internal companion object {
-        private val booleanAttributes = arrayOf(
-            "allowfullscreen",
-            "async",
-            "autofocus",
-            "checked",
-            "compact",
-            "declare",
-            "default",
-            "defer",
-            "disabled",
-            "formnovalidate",
-            "hidden",
-            "inert",
-            "ismap",
-            "itemscope",
-            "multiple",
-            "muted",
-            "nohref",
-            "noresize",
-            "noshade",
-            "novalidate",
-            "nowrap",
-            "open",
-            "readonly",
-            "required",
-            "reversed",
-            "seamless",
-            "selected",
-            "sortable",
-            "truespeed",
-            "typemustmatch",
-        )
+        private val booleanAttributes =
+            arrayOf(
+                "allowfullscreen",
+                "async",
+                "autofocus",
+                "checked",
+                "compact",
+                "declare",
+                "default",
+                "defer",
+                "disabled",
+                "formnovalidate",
+                "hidden",
+                "inert",
+                "ismap",
+                "itemscope",
+                "multiple",
+                "muted",
+                "nohref",
+                "noresize",
+                "noshade",
+                "novalidate",
+                "nowrap",
+                "open",
+                "readonly",
+                "required",
+                "reversed",
+                "seamless",
+                "selected",
+                "sortable",
+                "truespeed",
+                "typemustmatch",
+            )
 
         @Throws(IOException::class)
         protected fun html(
             key: String,
-            
             value: String?,
             accum: Appendable,
             out: Document.OutputSettings,
@@ -210,7 +211,6 @@ public open class Attribute : Map.Entry<String, String?>, Cloneable<Attribute> {
         @Throws(IOException::class)
         fun htmlNoValidate(
             key: String,
-            
             value: String?,
             accum: Appendable,
             out: Document.OutputSettings,
@@ -241,7 +241,10 @@ public open class Attribute : Map.Entry<String, String?>, Cloneable<Attribute> {
         private val htmlKeyReplace: Regex =
             Regex("[\\x00-\\x1f\\x7f-\\x9f \"'/=]")
 
-        fun getValidKey(key: String, syntax: Syntax): String? {
+        fun getValidKey(
+            key: String,
+            syntax: Syntax,
+        ): String? {
             return when (syntax) {
                 Syntax.xml -> {
                     if (!xmlKeyValid.matches(key)) {
@@ -263,7 +266,6 @@ public open class Attribute : Map.Entry<String, String?>, Cloneable<Attribute> {
             }
         }
 
-        
         /*fun getValidKey(key: String?, syntax: Syntax): String? {
             // we consider HTML attributes to always be valid. XML checks key validity
             var key = key
@@ -295,7 +297,10 @@ public open class Attribute : Map.Entry<String, String?>, Cloneable<Attribute> {
          * @param encodedValue HTML attribute encoded value
          * @return attribute
          */
-        fun createFromEncoded(unencodedKey: String, encodedValue: String): Attribute {
+        fun createFromEncoded(
+            unencodedKey: String,
+            encodedValue: String,
+        ): Attribute {
             val value: String = Entities.unescape(encodedValue, true)
             return Attribute(unencodedKey, value, null) // parent will get set when Put
         }
@@ -307,19 +312,19 @@ public open class Attribute : Map.Entry<String, String?>, Cloneable<Attribute> {
         // collapse unknown foo=null, known checked=null, checked="", checked=checked; write out others
         protected fun shouldCollapseAttribute(
             key: String,
-            
             value: String?,
             out: Document.OutputSettings,
         ): Boolean {
             return out.syntax() === Syntax.html &&
-                    (
-                            value == null || (
-                                    value.isEmpty() || value.equals(
-                                        key,
-                                        ignoreCase = true,
-                                    )
-                                    ) && isBooleanAttribute(key)
+                (
+                    value == null || (
+                        value.isEmpty() ||
+                            value.equals(
+                                key,
+                                ignoreCase = true,
                             )
+                    ) && isBooleanAttribute(key)
+                )
         }
 
         /**

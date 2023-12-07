@@ -65,7 +65,7 @@ class CssTest {
                 (11 - i).toString(),
                 (11 - i).toString(),
                 (11 - i).toString(),
-                (11 - i).toString()
+                (11 - i).toString(),
             )
         }
     }
@@ -166,7 +166,10 @@ class CssTest {
         assertEquals("em", sel[5].tagName())
     }
 
-    private fun check(result: Elements, vararg expectedContent: String?) {
+    private fun check(
+        result: Elements,
+        vararg expectedContent: String?,
+    ) {
         assertEquals(expectedContent.size, result.size, "Number of elements")
         for (i in expectedContent.indices) {
             assertNotNull(result[i])

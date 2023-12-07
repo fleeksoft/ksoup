@@ -24,17 +24,25 @@ internal abstract class TreeBuilder {
         null // tags we've used in this parse; saves tag GC for custom tags.
     private val start: Token.StartTag = Token.StartTag() // start tag to process
     private val end: Token.EndTag = Token.EndTag()
+
     abstract fun defaultSettings(): ParseSettings?
+
     private var trackSourceRange = false // optionally tracks the source range of nodes
 
-    protected open fun initialiseParse(input: BufferReader, baseUri: String?, parser: Parser) {
+    protected open fun initialiseParse(
+        input: BufferReader,
+        baseUri: String?,
+        parser: Parser,
+    ) {
         doc = Document(parser.defaultNamespace(), baseUri)
         doc.parser(parser)
         this.parser = parser
         settings = parser.settings()
         reader = CharacterReader(input)
         trackSourceRange = parser.isTrackPosition
-        reader.trackNewlines(parser.isTrackErrors() || trackSourceRange) // when tracking errors or source ranges, enable newline tracking for better legibility
+        reader.trackNewlines(
+            parser.isTrackErrors() || trackSourceRange,
+        ) // when tracking errors or source ranges, enable newline tracking for better legibility
         currentToken = null
         tokeniser = Tokeniser(reader, parser.getErrors())
         stack = ArrayList(32)
@@ -42,7 +50,11 @@ internal abstract class TreeBuilder {
         this.baseUri = baseUri
     }
 
-    fun parse(input: BufferReader, baseUri: String?, parser: Parser): Document {
+    fun parse(
+        input: BufferReader,
+        baseUri: String?,
+        parser: Parser,
+    ): Document {
         initialiseParse(input, baseUri, parser)
         runParser()
 
@@ -59,6 +71,7 @@ internal abstract class TreeBuilder {
      * @return copy, ready for a new parse
      */
     abstract fun newInstance(): TreeBuilder
+
     abstract fun parseFragment(
         inputFragment: String,
         context: Element?,
@@ -78,6 +91,7 @@ internal abstract class TreeBuilder {
     }
 
     abstract fun process(token: Token): Boolean
+
     fun processStartTag(name: String): Boolean {
         // these are "virtual" start tags (auto-created by the treebuilder), so not tracking the start position
         val start: Token.StartTag = start
@@ -88,7 +102,10 @@ internal abstract class TreeBuilder {
         }
     }
 
-    fun processStartTag(name: String?, attrs: Attributes?): Boolean {
+    fun processStartTag(
+        name: String?,
+        attrs: Attributes?,
+    ): Boolean {
         val start: Token.StartTag = start
         if (currentToken === start) { // don't recycle an in-use token
             return process(Token.StartTag().nameAttr(name, attrs))
@@ -125,8 +142,8 @@ internal abstract class TreeBuilder {
         if (stack.size == 0) return false
         val current: Element = currentElement()
         return (
-                current.normalName() == normalName && current.tag().namespace() == NamespaceHtml
-                )
+            current.normalName() == normalName && current.tag().namespace() == NamespaceHtml
+        )
     }
 
     /**
@@ -135,12 +152,15 @@ internal abstract class TreeBuilder {
      * @param namespace the namespace
      * @return true if there is a current element on the stack, and its name equals the supplied
      */
-    fun currentElementIs(normalName: String?, namespace: String?): Boolean {
+    fun currentElementIs(
+        normalName: String?,
+        namespace: String?,
+    ): Boolean {
         if (stack.size == 0) return false
         val current: Element = currentElement()
         return (
-                current.normalName() == normalName && current.tag().namespace() == namespace
-                )
+            current.normalName() == normalName && current.tag().namespace() == namespace
+        )
     }
 
     /**
@@ -160,7 +180,11 @@ internal abstract class TreeBuilder {
         return false
     }
 
-    protected fun tagFor(tagName: String, namespace: String, settings: ParseSettings?): Tag {
+    protected fun tagFor(
+        tagName: String,
+        namespace: String,
+        settings: ParseSettings?,
+    ): Tag {
         val cached: Tag? =
             seenTags!![tagName] // note that we don't normalize the cache key. But tag via valueOf may be normalized.
         if (cached == null || cached.namespace() != namespace) {
@@ -172,7 +196,10 @@ internal abstract class TreeBuilder {
         return cached
     }
 
-    fun tagFor(tagName: String, settings: ParseSettings?): Tag {
+    fun tagFor(
+        tagName: String,
+        settings: ParseSettings?,
+    ): Tag {
         return tagFor(tagName, defaultNamespace(), settings)
     }
 
@@ -190,7 +217,10 @@ internal abstract class TreeBuilder {
      * @param node the node that was just inserted
      * @param token the (optional) token that created this node
      */
-    fun onNodeInserted(node: Node, token: Token?) {
+    fun onNodeInserted(
+        node: Node,
+        token: Token?,
+    ) {
         trackNodePosition(node, token, true)
     }
 
@@ -200,11 +230,18 @@ internal abstract class TreeBuilder {
      * @param node the node being closed
      * @param token the end-tag token that closed this node
      */
-    protected fun onNodeClosed(node: Node, token: Token?) {
+    protected fun onNodeClosed(
+        node: Node,
+        token: Token?,
+    ) {
         trackNodePosition(node, token, false)
     }
 
-    private fun trackNodePosition(node: Node, token: Token?, start: Boolean) {
+    private fun trackNodePosition(
+        node: Node,
+        token: Token?,
+        start: Boolean,
+    ) {
         if (trackSourceRange && token != null) {
             val startPos: Int = token.startPos()
             if (startPos == Token.Unset) return // untracked, virtual token

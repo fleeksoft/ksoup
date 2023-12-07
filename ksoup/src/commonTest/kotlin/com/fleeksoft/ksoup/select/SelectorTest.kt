@@ -4,8 +4,8 @@ import com.fleeksoft.ksoup.Ksoup
 import com.fleeksoft.ksoup.nodes.Element
 import com.fleeksoft.ksoup.parser.Parser
 import de.cketti.codepoints.deluxe.toCodePoint
-import kotlin.test.Test
 import kotlin.test.*
+import kotlin.test.Test
 
 /**
  * Tests that the selector selects correctly.
@@ -80,7 +80,8 @@ class SelectorTest {
     fun testByAttribute() {
         // TODO: mutlilocale test may move to jvm
 //        Locale.setDefault(locale)
-        val h = "<div Title=Foo /><div Title=Bar /><div Style=Qux /><div title=Balim /><div title=SLIM />" +
+        val h =
+            "<div Title=Foo /><div Title=Bar /><div Style=Qux /><div title=Balim /><div title=SLIM />" +
                 "<div data-name='with spaces'/>"
         val doc = Ksoup.parse(h)
         val withTitle = doc.select("[title]")
@@ -139,10 +140,12 @@ class SelectorTest {
 
     @Test
     fun testWildcardNamespacedXmlTag() {
-        val doc = Ksoup.parse(
-            "<div><Abc:Def id=1>Hello</Abc:Def></div> <Abc:Def class=bold id=2>There</abc:def>",
-            "", Parser.xmlParser()
-        )
+        val doc =
+            Ksoup.parse(
+                "<div><Abc:Def id=1>Hello</Abc:Def></div> <Abc:Def class=bold id=2>There</abc:def>",
+                "",
+                Parser.xmlParser(),
+            )
         val byTag = doc.select("*|Def")
         assertSelectedIds(byTag, "1", "2")
         val byAttr = doc.select(".bold")
@@ -764,7 +767,8 @@ class SelectorTest {
 
     @Test
     fun selectClassWithSpace() {
-        val html = """
+        val html =
+            """
             <div class="value">class without space</div>
             <div class="value ">class with space</div>
             """.trimIndent()
@@ -1128,19 +1132,21 @@ class SelectorTest {
         val doc = Ksoup.parse(html)
         assertSelectedIds(
             doc.select(":is(section, article) :is(h1, h2, h3)"),
-            "2", "3"
+            "2",
+            "3",
         )
         assertSelectedIds(
             doc.select(":is(section, article) ~ :is(h1, h2, h3):has(p)"),
-            "4"
+            "4",
         )
         assertSelectedIds(
             doc.select(":is(h1:has(p), h2:has(section), h3)"),
-            "1"
+            "1",
         )
         assertSelectedIds(
             doc.select(":is(h1, h2, h3):has(p)"),
-            "1", "4"
+            "1",
+            "4",
         )
         val query = "div :is(h1, h2)"
         val parse = QueryParser.parse(query)
@@ -1149,7 +1155,10 @@ class SelectorTest {
 
     companion object {
         /** Test that the selected elements match exactly the specified IDs.  */
-        fun assertSelectedIds(els: Elements, vararg ids: String?) {
+        fun assertSelectedIds(
+            els: Elements,
+            vararg ids: String?,
+        ) {
             assertNotNull(els)
             assertEquals(ids.size, els.size, "Incorrect number of selected elements")
             for (i in ids.indices) {
@@ -1157,7 +1166,10 @@ class SelectorTest {
             }
         }
 
-        fun assertSelectedOwnText(els: Elements, vararg ownTexts: String?) {
+        fun assertSelectedOwnText(
+            els: Elements,
+            vararg ownTexts: String?,
+        ) {
             assertNotNull(els)
             assertEquals(ownTexts.size, els.size, "Incorrect number of selected elements")
             for (i in ownTexts.indices) {

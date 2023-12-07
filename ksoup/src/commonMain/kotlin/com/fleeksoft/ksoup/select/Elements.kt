@@ -23,7 +23,6 @@ import kotlin.reflect.cast
  */
 public class Elements(private val delegateList: MutableList<Element> = mutableListOf()) :
     MutableList<Element> by delegateList {
-
     public constructor(element: Element) : this() {
         add(element)
     }
@@ -49,6 +48,7 @@ public class Elements(private val delegateList: MutableList<Element> = mutableLi
     }
 
     // attribute methods
+
     /**
      * Get an attribute value from the first matched element that has the attribute.
      * @param attributeKey The attribute key.
@@ -96,7 +96,10 @@ public class Elements(private val delegateList: MutableList<Element> = mutableLi
      * @param attributeValue attribute value
      * @return this
      */
-    public fun attr(attributeKey: String, attributeValue: String?): Elements {
+    public fun attr(
+        attributeKey: String,
+        attributeValue: String?,
+    ): Elements {
         for (element in this) {
             element.attr(attributeKey, attributeValue)
         }
@@ -439,6 +442,7 @@ public class Elements(private val delegateList: MutableList<Element> = mutableLi
         return this
     }
     // filters
+
     /**
      * Find matching elements within this element list.
      * @param query A [Selector] query
@@ -559,7 +563,11 @@ public class Elements(private val delegateList: MutableList<Element> = mutableLi
     }
 
     // TODO: test it
-    private fun siblings(query: String? = null, next: Boolean, all: Boolean): Elements {
+    private fun siblings(
+        query: String? = null,
+        next: Boolean,
+        all: Boolean,
+    ): Elements {
         val els = Elements()
         val eval = query?.let { QueryParser.parse(it) }
 
@@ -580,7 +588,8 @@ public class Elements(private val delegateList: MutableList<Element> = mutableLi
         return els
     }
 
-    /*private fun siblings(*//* query: String?, next: Boolean, all: Boolean): Elements {
+    // private fun siblings(
+    /* query: String?, next: Boolean, all: Boolean): Elements {
         val els = Elements()
         val eval: Evaluator? = if (query != null) QueryParser.parse(query) else null
         for (e in this) {
@@ -607,11 +616,12 @@ public class Elements(private val delegateList: MutableList<Element> = mutableLi
     }
 
     // list-like methods
+
     /**
      * Get the first matched element.
      * @return The first matched element, or `null` if contents is empty.
      */
-    
+
     public fun first(): Element? {
         return if (isEmpty()) null else get(0)
     }
@@ -620,7 +630,7 @@ public class Elements(private val delegateList: MutableList<Element> = mutableLi
      * Get the last matched element.
      * @return The last matched element, or `null` if contents is empty.
      */
-    
+
     public fun last(): Element? {
         return if (isEmpty()) null else get(size - 1)
     }
@@ -692,6 +702,7 @@ public class Elements(private val delegateList: MutableList<Element> = mutableLi
         return nodes
     }
     // list methods that update the DOM:
+
     /**
      * Replace the Element at the specified index in this list, and in the DOM.
      * @param index index of the element to replace
@@ -699,7 +710,10 @@ public class Elements(private val delegateList: MutableList<Element> = mutableLi
      * @return the old Element at this index
      * @since 1.17.1
      */
-    override operator fun set(index: Int, element: Element): Element {
+    override operator fun set(
+        index: Int,
+        element: Element,
+    ): Element {
         val old: Element = delegateList.set(index = index, element = element)
         old.replaceWith(element)
         return old
@@ -811,7 +825,6 @@ public class Elements(private val delegateList: MutableList<Element> = mutableLi
             this[i] = operator(this[i])
         }
     }
-
 
     override fun equals(other: Any?): Boolean {
         return delegateList == other

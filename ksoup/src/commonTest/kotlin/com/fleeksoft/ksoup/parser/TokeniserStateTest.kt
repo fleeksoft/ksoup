@@ -15,10 +15,11 @@ class TokeniserStateTest {
 
     @Test
     fun ensureSearchArraysAreSorted() {
-        val arrays = arrayOf(
-            TokeniserState.attributeNameCharsSorted,
-            TokeniserState.attributeValueUnquoted
-        )
+        val arrays =
+            arrayOf(
+                TokeniserState.attributeNameCharsSorted,
+                TokeniserState.attributeValueUnquoted,
+            )
         for (array in arrays) {
             val copy = array.copyOf(array.size)
             array.sort()
@@ -121,14 +122,15 @@ class TokeniserStateTest {
         val expectedOutput = "<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.0//EN\">"
         for (q in quote) {
             for (ws in whiteSpace) {
-                val htmls = arrayOf(
-                    "<!DOCTYPE html${ws}PUBLIC ${q}-//W3C//DTD HTML 4.0//EN${q}>",
-                    "<!DOCTYPE html ${ws}PUBLIC ${q}-//W3C//DTD HTML 4.0//EN${q}>",
-                    "<!DOCTYPE html PUBLIC${ws}${q}-//W3C//DTD HTML 4.0//EN${q}>",
-                    "<!DOCTYPE html PUBLIC ${ws}${q}-//W3C//DTD HTML 4.0//EN${q}>",
-                    "<!DOCTYPE html PUBLIC ${q}-//W3C//DTD HTML 4.0//EN${q}${ws}>",
-                    "<!DOCTYPE html PUBLIC${q}-//W3C//DTD HTML 4.0//EN${q}${ws}>",
-                )
+                val htmls =
+                    arrayOf(
+                        "<!DOCTYPE html${ws}PUBLIC $q-//W3C//DTD HTML 4.0//EN$q>",
+                        "<!DOCTYPE html ${ws}PUBLIC $q-//W3C//DTD HTML 4.0//EN$q>",
+                        "<!DOCTYPE html PUBLIC${ws}$q-//W3C//DTD HTML 4.0//EN$q>",
+                        "<!DOCTYPE html PUBLIC ${ws}$q-//W3C//DTD HTML 4.0//EN$q>",
+                        "<!DOCTYPE html PUBLIC $q-//W3C//DTD HTML 4.0//EN${q}$ws>",
+                        "<!DOCTYPE html PUBLIC$q-//W3C//DTD HTML 4.0//EN${q}$ws>",
+                    )
                 for (html in htmls) {
                     val doc = Ksoup.parse(html)
                     assertEquals(expectedOutput, doc.childNode(0).outerHtml())
@@ -142,14 +144,15 @@ class TokeniserStateTest {
         val expectedOutput = "<!DOCTYPE html SYSTEM \"http://www.w3.org/TR/REC-html40/strict.dtd\">"
         for (q in quote) {
             for (ws in whiteSpace) {
-                val htmls = arrayOf(
-                    "<!DOCTYPE html${ws}SYSTEM ${q}http://www.w3.org/TR/REC-html40/strict.dtd${q}>",
-                    "<!DOCTYPE html ${ws}SYSTEM ${q}http://www.w3.org/TR/REC-html40/strict.dtd${q}>",
-                    "<!DOCTYPE html SYSTEM${ws}${q}http://www.w3.org/TR/REC-html40/strict.dtd${q}>",
-                    "<!DOCTYPE html SYSTEM ${ws}${q}http://www.w3.org/TR/REC-html40/strict.dtd${q}>",
-                    "<!DOCTYPE html SYSTEM ${q}http://www.w3.org/TR/REC-html40/strict.dtd${q}${ws}>",
-                    "<!DOCTYPE html SYSTEM${q}http://www.w3.org/TR/REC-html40/strict.dtd${q}${ws}>",
-                )
+                val htmls =
+                    arrayOf(
+                        "<!DOCTYPE html${ws}SYSTEM ${q}http://www.w3.org/TR/REC-html40/strict.dtd$q>",
+                        "<!DOCTYPE html ${ws}SYSTEM ${q}http://www.w3.org/TR/REC-html40/strict.dtd$q>",
+                        "<!DOCTYPE html SYSTEM${ws}${q}http://www.w3.org/TR/REC-html40/strict.dtd$q>",
+                        "<!DOCTYPE html SYSTEM ${ws}${q}http://www.w3.org/TR/REC-html40/strict.dtd$q>",
+                        "<!DOCTYPE html SYSTEM ${q}http://www.w3.org/TR/REC-html40/strict.dtd${q}$ws>",
+                        "<!DOCTYPE html SYSTEM${q}http://www.w3.org/TR/REC-html40/strict.dtd${q}$ws>",
+                    )
                 for (html in htmls) {
                     val doc = Ksoup.parse(html)
                     assertEquals(expectedOutput, doc.childNode(0).outerHtml())
@@ -160,17 +163,19 @@ class TokeniserStateTest {
 
     @Test
     fun testPublicAndSystemIdentifiersWithWhitespace() {
-        val expectedOutput = ("<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.0//EN\""
-                + " \"http://www.w3.org/TR/REC-html40/strict.dtd\">")
+        val expectedOutput = (
+            "<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.0//EN\"" +
+                " \"http://www.w3.org/TR/REC-html40/strict.dtd\">"
+        )
         for (q in quote) {
             for (ws in whiteSpace) {
-                val htmls = arrayOf(
-                    "<!DOCTYPE html PUBLIC ${q}-//W3C//DTD HTML 4.0//EN${q}"
-                            + "${ws}${q}http://www.w3.org/TR/REC-html40/strict.dtd${q}>",
-
-                    "<!DOCTYPE html PUBLIC ${q}-//W3C//DTD HTML 4.0//EN${q}"
-                            + "${q}http://www.w3.org/TR/REC-html40/strict.dtd${q}>"
-                )
+                val htmls =
+                    arrayOf(
+                        "<!DOCTYPE html PUBLIC $q-//W3C//DTD HTML 4.0//EN$q" +
+                            "${ws}${q}http://www.w3.org/TR/REC-html40/strict.dtd$q>",
+                        "<!DOCTYPE html PUBLIC $q-//W3C//DTD HTML 4.0//EN$q" +
+                            "${q}http://www.w3.org/TR/REC-html40/strict.dtd$q>",
+                    )
                 for (html in htmls) {
                     val doc = Ksoup.parse(html)
                     assertEquals(expectedOutput, doc.childNode(0).outerHtml())
@@ -186,7 +191,7 @@ class TokeniserStateTest {
         val doc = Ksoup.parse(html)
         assertEquals(
             "<p></p><p></p><div id=\"one\"><span>Two</span></div>",
-            com.fleeksoft.ksoup.TextUtil.stripNewlines(doc.body().html())
+            com.fleeksoft.ksoup.TextUtil.stripNewlines(doc.body().html()),
         )
     }
 
@@ -207,7 +212,9 @@ class TokeniserStateTest {
         // test for after consume() a bufferUp occurs (look-forward) but then attempts to unconsume. Would throw a "No buffer left to unconsume"
         val triggeringSnippet = "<title>One <span>Two"
         val padding =
-            CharArray(CharacterReader.readAheadLimit - triggeringSnippet.length + 8) // The "<span" part must be just at the limit. The "containsIgnoreCase" scan does a bufferUp, losing the unconsume
+            CharArray(
+                CharacterReader.readAheadLimit - triggeringSnippet.length + 8,
+            ) // The "<span" part must be just at the limit. The "containsIgnoreCase" scan does a bufferUp, losing the unconsume
         padding.fill(' ')
         val paddedSnippet = padding.concatToString() + triggeringSnippet
         val errorList = ParseErrorList.tracking(1)
@@ -250,7 +257,7 @@ class TokeniserStateTest {
         val doc = Ksoup.parse("<div>One<plaintext><div>Two</plaintext>\u0000no < Return")
         assertEquals(
             "<html><head></head><body><div>One<plaintext>&lt;div&gt;Two&lt;/plaintext&gt;�no &lt; Return</plaintext></div></body></html>",
-            com.fleeksoft.ksoup.TextUtil.stripNewlines(doc.html())
+            com.fleeksoft.ksoup.TextUtil.stripNewlines(doc.html()),
         )
     }
 

@@ -89,19 +89,19 @@ class TokenQueueTest {
     fun testNestedQuotes() {
         validateNestedQuotes(
             "<html><body><a id=\"identifier\" onclick=\"func('arg')\" /></body></html>",
-            "a[onclick*=\"('arg\"]"
+            "a[onclick*=\"('arg\"]",
         )
         validateNestedQuotes(
             "<html><body><a id=\"identifier\" onclick=func('arg') /></body></html>",
-            "a[onclick*=\"('arg\"]"
+            "a[onclick*=\"('arg\"]",
         )
         validateNestedQuotes(
             "<html><body><a id=\"identifier\" onclick='func(\"arg\")' /></body></html>",
-            "a[onclick*='(\"arg']"
+            "a[onclick*='(\"arg']",
         )
         validateNestedQuotes(
             "<html><body><a id=\"identifier\" onclick=func(\"arg\") /></body></html>",
-            "a[onclick*='(\"arg']"
+            "a[onclick*='(\"arg']",
         )
     }
 
@@ -122,15 +122,15 @@ class TokenQueueTest {
         val doc = parse("<div>\\) foo1</div><div>( foo2</div><div>1) foo3</div>")
         assertEquals(
             "\n\\) foo1",
-            doc.select("div:matches(" + Regex.escape("\\)") + ")")[0].childNode(0).toString()
+            doc.select("div:matches(" + Regex.escape("\\)") + ")")[0].childNode(0).toString(),
         )
         assertEquals(
             "\n( foo2",
-            doc.select("div:matches(" + Regex.escape("(") + ")")[0].childNode(0).toString()
+            doc.select("div:matches(" + Regex.escape("(") + ")")[0].childNode(0).toString(),
         )
         assertEquals(
             "\n1) foo3",
-            doc.select("div:matches(" + Regex.escape("1)") + ")")[0].childNode(0).toString()
+            doc.select("div:matches(" + Regex.escape("1)") + ")")[0].childNode(0).toString(),
         )
     }
 
@@ -157,10 +157,14 @@ class TokenQueueTest {
     }
 
     companion object {
-        private fun validateNestedQuotes(html: String, selector: String) {
+        private fun validateNestedQuotes(
+            html: String,
+            selector: String,
+        ) {
             assertEquals(
-                "#identifier", parse(html).select(selector).first()!!
-                    .cssSelector()
+                "#identifier",
+                parse(html).select(selector).first()!!
+                    .cssSelector(),
             )
         }
     }

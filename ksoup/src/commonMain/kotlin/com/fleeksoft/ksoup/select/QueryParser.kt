@@ -5,8 +5,8 @@ import com.fleeksoft.ksoup.internal.Normalizer.normalize
 import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.jsSupportedRegex
 import com.fleeksoft.ksoup.parser.TokenQueue
-import com.fleeksoft.ksoup.select.StructuralEvaluator.ImmediateParentRun
 import com.fleeksoft.ksoup.ported.assert
+import com.fleeksoft.ksoup.select.StructuralEvaluator.ImmediateParentRun
 
 /**
  * Parses a CSS selector into an Evaluator tree.
@@ -84,10 +84,12 @@ internal class QueryParser private constructor(query: String) {
                 currentEval =
                     CombiningEvaluator.And(StructuralEvaluator.Parent(currentEval!!), newEval)
 
-            '+' -> currentEval = CombiningEvaluator.And(
-                StructuralEvaluator.ImmediatePreviousSibling(currentEval!!),
-                newEval,
-            )
+            '+' ->
+                currentEval =
+                    CombiningEvaluator.And(
+                        StructuralEvaluator.ImmediatePreviousSibling(currentEval!!),
+                        newEval,
+                    )
 
             '~' ->
                 currentEval =
@@ -145,7 +147,8 @@ internal class QueryParser private constructor(query: String) {
             byId()
         } else if (tq.matchChomp(".")) {
             byClass()
-        } else if (tq.matchesWord() || tq.matches(
+        } else if (tq.matchesWord() ||
+            tq.matches(
                 "*|",
             )
         ) {
@@ -226,10 +229,11 @@ internal class QueryParser private constructor(query: String) {
         // namespaces: wildcard match equals(tagName) or ending in ":"+tagName
         if (tagName.startsWith("*|")) {
             val plainTag = tagName.substring(2) // strip *|
-            eval = CombiningEvaluator.Or(
-                Evaluator.Tag(plainTag),
-                Evaluator.TagEndsWith(tagName.replace("*|", ":")),
-            )
+            eval =
+                CombiningEvaluator.Or(
+                    Evaluator.Tag(plainTag),
+                    Evaluator.TagEndsWith(tagName.replace("*|", ":")),
+                )
         } else {
             // namespaces: if element name is "abc:def", selector must be "abc|def", so flip:
             if (tagName.contains("|")) tagName = tagName.replace("|", ":")
@@ -246,11 +250,12 @@ internal class QueryParser private constructor(query: String) {
         cq.consumeWhitespace()
         val eval: Evaluator
         if (cq.isEmpty()) {
-            eval = if (key.startsWith("^")) {
-                Evaluator.AttributeStarting(key.substring(1))
-            } else {
-                Evaluator.Attribute(key)
-            }
+            eval =
+                if (key.startsWith("^")) {
+                    Evaluator.AttributeStarting(key.substring(1))
+                } else {
+                    Evaluator.Attribute(key)
+                }
         } else {
             if (cq.matchChomp("=")) {
                 eval =
@@ -262,10 +267,11 @@ internal class QueryParser private constructor(query: String) {
             } else if (cq.matchChomp("$=")) {
                 eval = Evaluator.AttributeWithValueEnding(key, cq.remainder())
             } else if (cq.matchChomp("*=")) {
-                eval = Evaluator.AttributeWithValueContaining(
-                    key,
-                    cq.remainder(),
-                )
+                eval =
+                    Evaluator.AttributeWithValueContaining(
+                        key,
+                        cq.remainder(),
+                    )
             } else if (cq.matchChomp("~=")) {
                 eval = Evaluator.AttributeWithValueMatching(key, jsSupportedRegex(cq.remainder()))
             } else {
@@ -288,7 +294,10 @@ internal class QueryParser private constructor(query: String) {
         tq = TokenQueue(trimmedQuery)
     }
 
-    private fun cssNthChild(backwards: Boolean, ofType: Boolean): Evaluator {
+    private fun cssNthChild(
+        backwards: Boolean,
+        ofType: Boolean,
+    ): Evaluator {
         val arg = normalize(consumeParens())
 
         val mAB = NTH_AB.matchEntire(arg)
@@ -325,14 +334,15 @@ internal class QueryParser private constructor(query: String) {
         }
 
         return when {
-            ofType -> if (backwards) {
-                Evaluator.IsNthLastOfType(a, b)
-            } else {
-                Evaluator.IsNthOfType(
-                    a,
-                    b,
-                )
-            }
+            ofType ->
+                if (backwards) {
+                    Evaluator.IsNthLastOfType(a, b)
+                } else {
+                    Evaluator.IsNthOfType(
+                        a,
+                        b,
+                    )
+                }
 
             else -> if (backwards) Evaluator.IsNthLastChild(a, b) else Evaluator.IsNthChild(a, b)
         }
@@ -478,10 +488,11 @@ internal class QueryParser private constructor(query: String) {
         }
 
         // pseudo selectors :first-child, :last-child, :nth-child, ...
-        private val NTH_AB: Regex = Regex(
-            "(([+-])?(\\d+)?)n(\\s*([+-])?\\s*\\d+)?",
-            RegexOption.IGNORE_CASE,
-        )
+        private val NTH_AB: Regex =
+            Regex(
+                "(([+-])?(\\d+)?)n(\\s*([+-])?\\s*\\d+)?",
+                RegexOption.IGNORE_CASE,
+            )
         private val NTH_B: Regex =
             Regex("([+-])?(\\d+)")
     }

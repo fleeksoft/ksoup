@@ -311,7 +311,9 @@ class HtmlParserTest {
     fun handlesWhatWgExpensesTableExample() {
         // http://www.whatwg.org/specs/web-apps/current-work/multipage/tabular-data.html#examples-0
         val doc =
-            Ksoup.parse("<table> <colgroup> <col> <colgroup> <col> <col> <col> <thead> <tr> <th> <th>2008 <th>2007 <th>2006 <tbody> <tr> <th scope=rowgroup> Research and development <td> $ 1,109 <td> $ 782 <td> $ 712 <tr> <th scope=row> Percentage of net sales <td> 3.4% <td> 3.3% <td> 3.7% <tbody> <tr> <th scope=rowgroup> Selling, general, and administrative <td> $ 3,761 <td> $ 2,963 <td> $ 2,433 <tr> <th scope=row> Percentage of net sales <td> 11.6% <td> 12.3% <td> 12.6% </table>")
+            Ksoup.parse(
+                "<table> <colgroup> <col> <colgroup> <col> <col> <col> <thead> <tr> <th> <th>2008 <th>2007 <th>2006 <tbody> <tr> <th scope=rowgroup> Research and development <td> $ 1,109 <td> $ 782 <td> $ 712 <tr> <th scope=row> Percentage of net sales <td> 3.4% <td> 3.3% <td> 3.7% <tbody> <tr> <th scope=rowgroup> Selling, general, and administrative <td> $ 3,761 <td> $ 2,963 <td> $ 2,433 <tr> <th scope=row> Percentage of net sales <td> 11.6% <td> 12.3% <td> 12.6% </table>",
+            )
         assertEquals(
             "<table><colgroup><col></colgroup><colgroup><col><col><col></colgroup><thead><tr><th></th><th>2008</th><th>2007</th><th>2006</th></tr></thead><tbody><tr><th scope=\"rowgroup\">Research and development</th><td>$ 1,109</td><td>$ 782</td><td>$ 712</td></tr><tr><th scope=\"row\">Percentage of net sales</th><td>3.4%</td><td>3.3%</td><td>3.7%</td></tr></tbody><tbody><tr><th scope=\"rowgroup\">Selling, general, and administrative</th><td>$ 3,761</td><td>$ 2,963</td><td>$ 2,433</td></tr><tr><th scope=\"row\">Percentage of net sales</th><td>11.6%</td><td>12.3%</td><td>12.6%</td></tr></tbody></table>",
             TextUtil.stripNewlines(doc.body().html()),
@@ -349,7 +351,9 @@ class HtmlParserTest {
     @Test
     fun ignoresDupeEndTrTag() {
         val doc =
-            Ksoup.parse("<table><tr><td>One</td><td><table><tr><td>Two</td></tr></tr></table></td><td>Three</td></tr></table>") // two </tr></tr>, must ignore or will close table
+            Ksoup.parse(
+                "<table><tr><td>One</td><td><table><tr><td>Two</td></tr></tr></table></td><td>Three</td></tr></table>",
+            ) // two </tr></tr>, must ignore or will close table
         assertEquals(
             "<table><tbody><tr><td>One</td><td><table><tbody><tr><td>Two</td></tr></tbody></table></td><td>Three</td></tr></tbody></table>",
             TextUtil.stripNewlines(doc.body().html()),
@@ -822,16 +826,18 @@ class HtmlParserTest {
     @Test
     fun handlesUnclosedFormattingElements() {
         // whatwg: formatting elements get collected and applied, but excess elements are thrown away
-        val h = """
+        val h =
+            """
             <!DOCTYPE html>
             <p><b class=x><b class=x><b><b class=x><b class=x><b>X
             <p>X
             <p><b><b class=x><b>X
             <p></b></b></b></b></b></b>X
-        """.trimIndent()
+            """.trimIndent()
         val doc = Ksoup.parse(h)
         doc.outputSettings().indentAmount(0)
-        val want = """
+        val want =
+            """
             <!doctype html>
             <html>
             <head></head>
@@ -842,7 +848,7 @@ class HtmlParserTest {
             <p>X</p>
             </body>
             </html>
-        """.trimIndent()
+            """.trimIndent()
         assertEquals(want, doc.html())
     }
 
@@ -1406,11 +1412,12 @@ class HtmlParserTest {
     @Test
     fun testFragment() {
         // make sure when parsing a body fragment, a script tag at start goes into the body
-        val html = """
+        val html =
+            """
             <script type="text/javascript">console.log('foo');</script>
             <div id="somecontent">some content</div>
             <script type="text/javascript">console.log('bar');</script>
-        """.trimIndent()
+            """.trimIndent()
         val body = Ksoup.parseBodyFragment(html)
         assertEquals(
             """<script type="text/javascript">console.log('foo');</script>
@@ -1520,9 +1527,10 @@ class HtmlParserTest {
     @Test
     fun preservedCaseLinksCantNest() {
         val html = "<A>ONE <A>Two</A></A>"
-        val doc = Parser.htmlParser()
-            .settings(ParseSettings.preserveCase)
-            .parseInput(html, "")
+        val doc =
+            Parser.htmlParser()
+                .settings(ParseSettings.preserveCase)
+                .parseInput(html, "")
         // assertEquals("<A>ONE </A><A>Two</A>", StringUtil.normaliseWhitespace(doc.body().html()));
         assertEquals("<A>ONE </A><A>Two</A>", doc.body().html())
     }
@@ -1635,11 +1643,6 @@ class HtmlParserTest {
     @Test
     @Throws(IOException::class)
     fun characterReaderBuffer() {
-        if (Platform.current == PlatformType.JS) {
-            // FIXME: gzip not supported yet on js
-            return
-        }
-
         val input: String = TestHelper.getResourceAbsolutePath("htmltests/character-reader-buffer.html.gz")
         val doc: Document = Ksoup.parseFile(input, "UTF-8")
         val expectedHref = "http://www.domain.com/path?param_one=value&param_two=value"
@@ -1765,11 +1768,12 @@ class HtmlParserTest {
         var doc = Ksoup.parse("<script>Hello</script><style>There</style>")
         assertTrue(doc.selectFirst("script")!!.childNode(0) is DataNode)
         assertTrue(doc.selectFirst("style")!!.childNode(0) is DataNode)
-        doc = Ksoup.parse(
-            "<SCRIPT>Hello</SCRIPT><STYLE>There</STYLE>",
-            "",
-            Parser.htmlParser().settings(ParseSettings.preserveCase),
-        )
+        doc =
+            Ksoup.parse(
+                "<SCRIPT>Hello</SCRIPT><STYLE>There</STYLE>",
+                "",
+                Parser.htmlParser().settings(ParseSettings.preserveCase),
+            )
         assertTrue(doc.selectFirst("script")!!.childNode(0) is DataNode)
         assertTrue(doc.selectFirst("style")!!.childNode(0) is DataNode)
     }
@@ -1870,8 +1874,9 @@ class HtmlParserTest {
     fun parseFragmentOnCreatedDocument() {
         // https://github.com/jhy/jsoup/issues/1601
         val bareFragment = "<h2>text</h2>"
-        val nodes = Document("").parser()!!
-            .parseFragmentInput(bareFragment, Element("p"), "")
+        val nodes =
+            Document("").parser()!!
+                .parseFragmentInput(bareFragment, Element("p"), "")
         assertEquals(1, nodes.size)
         val node = nodes[0]
         assertEquals("h2", node.nodeName())
@@ -1882,8 +1887,9 @@ class HtmlParserTest {
     fun nestedPFragments() {
         // https://github.com/jhy/jsoup/issues/1602
         val bareFragment = "<p></p><a></a>"
-        val nodes = Document("").parser()!!
-            .parseFragmentInput(bareFragment, Element("p"), "")
+        val nodes =
+            Document("").parser()!!
+                .parseFragmentInput(bareFragment, Element("p"), "")
         assertEquals(2, nodes.size)
         val node = nodes[0]
         assertEquals(

@@ -10,19 +10,21 @@ import io.ktor.http.parameters
 import io.ktor.utils.io.core.*
 
 internal class NetworkHelper(private val client: HttpClient) {
-
     companion object {
-        val instance: NetworkHelper = NetworkHelper(HttpClient(provideHttpClientEngine()) {
-            this.followRedirects = true
+        val instance: NetworkHelper =
+            NetworkHelper(
+                HttpClient(provideHttpClientEngine()) {
+                    this.followRedirects = true
             /*this.ResponseObserver {
                 println("headers => ${it.headers}")
             }*/
-        })
+                },
+            )
     }
 
     suspend fun get(
         url: String,
-        httpRequestBuilder: HttpRequestBuilder.() -> Unit = {}
+        httpRequestBuilder: HttpRequestBuilder.() -> Unit = {},
     ): HttpResponse {
         return client.get(url) {
             httpRequestBuilder()
@@ -32,20 +34,24 @@ internal class NetworkHelper(private val client: HttpClient) {
     suspend fun submitForm(
         url: String,
         params: Map<String, String>,
-        httpRequestBuilder: HttpRequestBuilder.() -> Unit = {}
+        httpRequestBuilder: HttpRequestBuilder.() -> Unit = {},
     ): HttpResponse {
-        return client.submitForm(url = url, formParameters = parameters {
-            params.forEach { (key, value) ->
-                append(key, value)
-            }
-        }) {
+        return client.submitForm(
+            url = url,
+            formParameters =
+                parameters {
+                    params.forEach { (key, value) ->
+                        append(key, value)
+                    }
+                },
+        ) {
             httpRequestBuilder()
         }
     }
 
-
     suspend fun post(
-        url: String, httpRequestBuilder: HttpRequestBuilder.() -> Unit = {}
+        url: String,
+        httpRequestBuilder: HttpRequestBuilder.() -> Unit = {},
     ): HttpResponse {
         return client.post(url) {
             httpRequestBuilder()

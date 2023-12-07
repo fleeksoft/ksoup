@@ -1,10 +1,10 @@
 package com.fleeksoft.ksoup.parser
 
-import okio.IOException
 import com.fleeksoft.ksoup.UncheckedIOException
 import com.fleeksoft.ksoup.ported.BufferReader
 import com.fleeksoft.ksoup.ported.buildString
 import io.ktor.utils.io.core.*
+import okio.IOException
 import kotlin.math.abs
 import kotlin.math.min
 
@@ -55,22 +55,24 @@ internal class CharacterReader {
 //        println("pre => bufSize: ${charBuf?.size} bufLength: $bufLength, readerPos: $readerPos, bufPos: $bufPos, bufSplitPoint: $bufSplitPoint")
         if (readFully || bufPos < bufSplitPoint) return
 
-        val (pos, offset) = if (bufMark != -1) {
-            Pair(bufMark.toLong(), bufPos - bufMark)
-        } else {
-            Pair(bufPos.toLong(), 0)
-        }
+        val (pos, offset) =
+            if (bufMark != -1) {
+                Pair(bufMark.toLong(), bufPos - bufMark)
+            } else {
+                Pair(bufPos.toLong(), 0)
+            }
 
         source!!.skip(pos)
         val reader: BufferReader = source!!.peek()
         var read: Int = 0
         while (read <= minReadAheadLen) {
             val toReadSize = charBuf!!.size - read
-            val str = if (toReadSize > 0) {
-                reader.readString(toReadSize.toLong())
-            } else {
-                ""
-            }
+            val str =
+                if (toReadSize > 0) {
+                    reader.readString(toReadSize.toLong())
+                } else {
+                    ""
+                }
 
             val thisRead = if (str.isEmpty() && reader.exhausted()) -1 else str.length
 
@@ -130,7 +132,9 @@ internal class CharacterReader {
             newlinePositions =
                 ArrayList<Int>(maxBufferLen / 80) // rough guess of likely count
             scanBufferForNewlines() // first pass when enabled; subsequently called during bufferUp
-        } else if (!track) newlinePositions = null
+        } else if (!track) {
+            newlinePositions = null
+        }
     }
 
     fun isTrackNewlines(): Boolean = newlinePositions != null
@@ -233,7 +237,11 @@ internal class CharacterReader {
      * Unconsume one character (bufPos--). MUST only be called directly after a consume(), and no chance of a bufferUp.
      */
     fun unconsume() {
-        if (bufPos < 1) throw UncheckedIOException(IOException("WTF: No buffer left to unconsume.")) // a bug if this fires, need to trace it.
+        if (bufPos < 1) {
+            throw UncheckedIOException(
+                IOException("WTF: No buffer left to unconsume."),
+            ) // a bug if this fires, need to trace it.
+        }
         bufPos--
     }
 
@@ -288,9 +296,10 @@ internal class CharacterReader {
         var offset = bufPos
         while (offset < bufLength) {
             // scan to first instance of startChar:
-            if (startChar != charBuf!![offset])
-                while (++offset < bufLength && startChar != charBuf!![offset]) { /* empty */
+            if (startChar != charBuf!![offset]) {
+                while (++offset < bufLength && startChar != charBuf!![offset]) { // empty
                 }
+            }
 
             var i = offset + 1
             val last = i + seq.length - 1
@@ -300,8 +309,10 @@ internal class CharacterReader {
                     i++
                     j++
                 }
-                if (i == last) // found full sequence
+                if (i == last) {
+                    // found full sequence
                     return offset - bufPos
+                }
             }
             offset++
         }
@@ -316,12 +327,13 @@ internal class CharacterReader {
     fun consumeTo(c: Char): String {
         val offset = nextIndexOf(c)
         return if (offset != -1) {
-            val consumed = cacheString(
-                charBuf,
-                stringCache,
-                bufPos,
-                offset,
-            )
+            val consumed =
+                cacheString(
+                    charBuf,
+                    stringCache,
+                    bufPos,
+                    offset,
+                )
             bufPos += offset
             consumed
         } else {
@@ -332,12 +344,13 @@ internal class CharacterReader {
     fun consumeTo(seq: String): String {
         val offset = nextIndexOf(seq)
         return if (offset != -1) {
-            val consumed = cacheString(
-                charBuf,
-                stringCache,
-                bufPos,
-                offset,
-            )
+            val consumed =
+                cacheString(
+                    charBuf,
+                    stringCache,
+                    bufPos,
+                    offset,
+                )
             bufPos += offset
             consumed
         } else if (bufLength - bufPos < seq.length) {
@@ -347,12 +360,13 @@ internal class CharacterReader {
             // the string we're looking for may be straddling a buffer boundary, so keep (length - 1) characters
             // unread in case they contain the beginning of the search string
             val endPos = bufLength - seq.length + 1
-            val consumed = cacheString(
-                charBuf,
-                stringCache,
-                bufPos,
-                endPos - bufPos,
-            )
+            val consumed =
+                cacheString(
+                    charBuf,
+                    stringCache,
+                    bufPos,
+                    endPos - bufPos,
+                )
             bufPos = endPos
             consumed
         }
@@ -649,7 +663,11 @@ internal class CharacterReader {
     }
 
     // just used for testing
-    fun rangeEquals(start: Int, count: Int, cached: String): Boolean {
+    fun rangeEquals(
+        start: Int,
+        count: Int,
+        cached: String,
+    ): Boolean {
         return rangeEquals(charBuf, start, count, cached)
     }
 
@@ -704,7 +722,12 @@ internal class CharacterReader {
         /**
          * Check if the value of the provided range equals the string.
          */
-        fun rangeEquals(charBuf: CharArray?, start: Int, count: Int, cached: String): Boolean {
+        fun rangeEquals(
+            charBuf: CharArray?,
+            start: Int,
+            count: Int,
+            cached: String,
+        ): Boolean {
             var loopCount = count
             if (loopCount == cached.length) {
                 var i = start

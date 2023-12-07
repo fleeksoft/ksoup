@@ -20,7 +20,10 @@ internal abstract class StructuralEvaluator(evaluator: Evaluator) : Evaluator() 
         this.evaluator = evaluator
     }
 
-    fun memoMatches(root: Element, element: Element): Boolean {
+    fun memoMatches(
+        root: Element,
+        element: Element,
+    ): Boolean {
         // not using computeIfAbsent, as the lambda impl requires a new Supplier closure object on every hit: tons of GC
         val rootMemo: IdentityHashMap<Element, IdentityHashMap<Element, Boolean>> = threadMemo
         var memo: IdentityHashMap<Element, Boolean>? = rootMemo[root]
@@ -42,7 +45,10 @@ internal abstract class StructuralEvaluator(evaluator: Evaluator) : Evaluator() 
     }
 
     internal class Root : Evaluator() {
-        override fun matches(root: Element, element: Element): Boolean {
+        override fun matches(
+            root: Element,
+            element: Element,
+        ): Boolean {
             return root === element
         }
 
@@ -62,7 +68,10 @@ internal abstract class StructuralEvaluator(evaluator: Evaluator) : Evaluator() 
             finder = Collector.FirstFinder(evaluator)
         }
 
-        override fun matches(root: Element, element: Element): Boolean {
+        override fun matches(
+            root: Element,
+            element: Element,
+        ): Boolean {
             // for :has, we only want to match children (or below), not the input element. And we want to minimize GCs
             for (i in 0 until element.childNodeSize()) {
                 val node: Node = element.childNode(i)
@@ -85,7 +94,10 @@ internal abstract class StructuralEvaluator(evaluator: Evaluator) : Evaluator() 
 
     /** Implements the :is(sub-query) pseudo-selector  */
     internal class Is(evaluator: Evaluator) : StructuralEvaluator(evaluator) {
-        override fun matches(root: Element, element: Element): Boolean {
+        override fun matches(
+            root: Element,
+            element: Element,
+        ): Boolean {
             return evaluator.matches(root, element)
         }
 
@@ -99,7 +111,10 @@ internal abstract class StructuralEvaluator(evaluator: Evaluator) : Evaluator() 
     }
 
     internal class Not(evaluator: Evaluator) : StructuralEvaluator(evaluator) {
-        override fun matches(root: Element, element: Element): Boolean {
+        override fun matches(
+            root: Element,
+            element: Element,
+        ): Boolean {
             return !memoMatches(root, element)
         }
 
@@ -113,7 +128,10 @@ internal abstract class StructuralEvaluator(evaluator: Evaluator) : Evaluator() 
     }
 
     class Parent(evaluator: Evaluator) : StructuralEvaluator(evaluator) {
-        override fun matches(root: Element, element: Element): Boolean {
+        override fun matches(
+            root: Element,
+            element: Element,
+        ): Boolean {
             if (root === element) return false
             var parent: Element? = element.parent()
             while (parent != null) {
@@ -135,7 +153,10 @@ internal abstract class StructuralEvaluator(evaluator: Evaluator) : Evaluator() 
 
     @Deprecated("replaced by {@link  ImmediateParentRun}")
     internal class ImmediateParent(evaluator: Evaluator) : StructuralEvaluator(evaluator) {
-        override fun matches(root: Element, element: Element): Boolean {
+        override fun matches(
+            root: Element,
+            element: Element,
+        ): Boolean {
             if (root === element) return false
             val parent: Element? = element.parent()
             return parent != null && memoMatches(root, parent)
@@ -168,7 +189,10 @@ internal abstract class StructuralEvaluator(evaluator: Evaluator) : Evaluator() 
             _cost += evaluator.cost()
         }
 
-        override fun matches(root: Element, element: Element): Boolean {
+        override fun matches(
+            root: Element,
+            element: Element,
+        ): Boolean {
             var element: Element? = element
             if (element === root) return false // cannot match as the second eval (first parent test) would be above the root
             for (i in evaluators.indices.reversed()) {
@@ -190,7 +214,10 @@ internal abstract class StructuralEvaluator(evaluator: Evaluator) : Evaluator() 
     }
 
     class PreviousSibling(evaluator: Evaluator) : StructuralEvaluator(evaluator) {
-        override fun matches(root: Element, element: Element): Boolean {
+        override fun matches(
+            root: Element,
+            element: Element,
+        ): Boolean {
             if (root === element) return false
             var sibling: Element? = element.firstElementSibling()
             while (sibling != null) {
@@ -211,7 +238,10 @@ internal abstract class StructuralEvaluator(evaluator: Evaluator) : Evaluator() 
     }
 
     internal class ImmediatePreviousSibling(evaluator: Evaluator) : StructuralEvaluator(evaluator) {
-        override fun matches(root: Element, element: Element): Boolean {
+        override fun matches(
+            root: Element,
+            element: Element,
+        ): Boolean {
             if (root === element) return false
             val prev: Element? = element.previousElementSibling()
             return prev != null && memoMatches(root, prev)

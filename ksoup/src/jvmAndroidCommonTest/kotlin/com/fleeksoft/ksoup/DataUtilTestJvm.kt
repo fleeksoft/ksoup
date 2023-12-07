@@ -15,7 +15,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class DataUtilTestJvm {
-
     private fun inputStream(data: String): ByteArrayInputStream {
         return ByteArrayInputStream(data.toByteArray())
     }
@@ -28,10 +27,11 @@ class DataUtilTestJvm {
         val halfLength = fileContent.length / 2
         val firstPart: String = fileContent.substring(0, halfLength)
         val secondPart = fileContent.substring(halfLength)
-        val sequenceStream = SequenceInputStream(
-            inputStream(firstPart),
-            inputStream(secondPart),
-        )
+        val sequenceStream =
+            SequenceInputStream(
+                inputStream(firstPart),
+                inputStream(secondPart),
+            )
         val doc: Document =
             DataUtil.parseInputSource(
                 BufferReader(sequenceStream.source()),
@@ -55,21 +55,24 @@ class DataUtilTestJvm {
     fun handlesChunkedInputStream() {
         val file = File(TestHelper.getResourceAbsolutePath("htmltests/large.html"))
         val input = getFileAsString(file)
-        val expected = Ksoup.parse(
-            html = input,
-            baseUri = "https://example.com",
-        )
-        val doc: Document = Ksoup.parse(
-            bufferReader = BufferReader(FileInputStream(file).source()),
-            charsetName = null,
-            baseUri = "https://example.com",
-        )
+        val expected =
+            Ksoup.parse(
+                html = input,
+                baseUri = "https://example.com",
+            )
+        val doc: Document =
+            Ksoup.parse(
+                bufferReader = BufferReader(FileInputStream(file).source()),
+                charsetName = null,
+                baseUri = "https://example.com",
+            )
 
-        val doc2: Document = Ksoup.parseInputStream(
-            inputStream = FileInputStream(file),
-            charsetName = null,
-            baseUri = "https://example.com",
-        )
+        val doc2: Document =
+            Ksoup.parseInputStream(
+                inputStream = FileInputStream(file),
+                charsetName = null,
+                baseUri = "https://example.com",
+            )
 
         println("""docSize: ${doc.toString().length}, expectedSize: ${expected.toString().length}""")
         assertTrue(doc.hasSameValue(expected))
@@ -83,21 +86,24 @@ class DataUtilTestJvm {
 
         //        VaryingReadInputStream stream = new VaryingReadInputStream(ParseTest.inputStreamFrom(input));
         val expected: Document = Ksoup.parse(html = input, baseUri = "https://example.com")
-        val doc: Document = Ksoup.parseInputStream(
-            inputStream = inputStreamFrom(input),
-            charsetName = null,
-            baseUri = "https://example.com",
-        )
-        val doc2: Document = Ksoup.parseInputStream(
-            inputStream = FileInputStream(file),
-            charsetName = null,
-            baseUri = "https://example.com",
-        )
-        val docThree: Document = Ksoup.parse(
-            bufferReader = BufferReader(FileInputStream(file).source()),
-            charsetName = null,
-            baseUri = "https://example.com",
-        )
+        val doc: Document =
+            Ksoup.parseInputStream(
+                inputStream = inputStreamFrom(input),
+                charsetName = null,
+                baseUri = "https://example.com",
+            )
+        val doc2: Document =
+            Ksoup.parseInputStream(
+                inputStream = FileInputStream(file),
+                charsetName = null,
+                baseUri = "https://example.com",
+            )
+        val docThree: Document =
+            Ksoup.parse(
+                bufferReader = BufferReader(FileInputStream(file).source()),
+                charsetName = null,
+                baseUri = "https://example.com",
+            )
 
         assertTrue(doc.hasSameValue(expected))
         assertTrue(doc.hasSameValue(doc2))
@@ -106,13 +112,14 @@ class DataUtilTestJvm {
 
     companion object {
         fun getFileAsString(file: File): String {
-            val bytes: ByteArray = if (file.getName().endsWith(".gz")) {
-                val stream: InputStream = GZIPInputStream(FileInputStream(file))
-                val byteBuffer: ByteArray = DataUtil.readToByteBuffer(BufferReader(stream.source()), 0)
-                byteBuffer
-            } else {
-                Files.readAllBytes(file.toPath())
-            }
+            val bytes: ByteArray =
+                if (file.getName().endsWith(".gz")) {
+                    val stream: InputStream = GZIPInputStream(FileInputStream(file))
+                    val byteBuffer: ByteArray = DataUtil.readToByteBuffer(BufferReader(stream.source()), 0)
+                    byteBuffer
+                } else {
+                    Files.readAllBytes(file.toPath())
+                }
             return String(bytes)
         }
 

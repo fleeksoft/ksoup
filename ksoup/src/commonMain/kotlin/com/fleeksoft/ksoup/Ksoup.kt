@@ -24,7 +24,10 @@ public object Ksoup {
      * before the HTML declares a `<base href>` tag.
      * @return sane HTML
      */
-    public fun parse(html: String, baseUri: String): Document {
+    public fun parse(
+        html: String,
+        baseUri: String,
+    ): Document {
         return Parser.parse(html, baseUri)
     }
 
@@ -38,7 +41,11 @@ public object Ksoup {
      * @param parser alternate [parser][Parser.xmlParser] to use.
      * @return sane HTML
      */
-    public fun parse(html: String, baseUri: String, parser: Parser): Document {
+    public fun parse(
+        html: String,
+        baseUri: String,
+        parser: Parser,
+    ): Document {
         return parser.parseInput(html, baseUri)
     }
 
@@ -52,7 +59,10 @@ public object Ksoup {
      * @param parser alternate [parser][Parser.xmlParser] to use.
      * @return sane HTML
      */
-    public fun parse(html: String, parser: Parser): Document {
+    public fun parse(
+        html: String,
+        parser: Parser,
+    ): Document {
         return parser.parseInput(html, "")
     }
 
@@ -79,7 +89,11 @@ public object Ksoup {
      * @throws IOException if the file could not be found, or read, or if the charsetName is invalid.
      */
     @Throws(IOException::class)
-    public fun parseFile(file: String, baseUri: String, charsetName: String? = null): Document {
+    public fun parseFile(
+        file: String,
+        baseUri: String,
+        charsetName: String? = null,
+    ): Document {
         val filePath = file.toPath()
         return DataUtil.load(filePath, charsetName, baseUri)
     }
@@ -95,7 +109,10 @@ public object Ksoup {
      * @see .parse
      */
     @Throws(IOException::class)
-    public fun parseFile(file: String, charsetName: String? = null): Document {
+    public fun parseFile(
+        file: String,
+        charsetName: String? = null,
+    ): Document {
         val filePath = file.toPath()
         return DataUtil.load(filePath, charsetName, filePath.toString())
     }
@@ -191,7 +208,10 @@ public object Ksoup {
      * @return sane HTML document
      * @see Document.body
      */
-    public fun parseBodyFragment(bodyHtml: String, baseUri: String?): Document {
+    public fun parseBodyFragment(
+        bodyHtml: String,
+        baseUri: String?,
+    ): Document {
         return Parser.parseBodyFragment(bodyHtml, baseUri ?: "")
     }
 
@@ -216,7 +236,11 @@ public object Ksoup {
      * @return safe HTML (body fragment)
      * @see Cleaner.clean
      */
-    public fun clean(bodyHtml: String, baseUri: String?, safelist: Safelist): String {
+    public fun clean(
+        bodyHtml: String,
+        baseUri: String?,
+        safelist: Safelist,
+    ): String {
         val dirty: Document = parseBodyFragment(bodyHtml, baseUri)
         val cleaner = Cleaner(safelist)
         val clean: Document = cleaner.clean(dirty)
@@ -248,14 +272,17 @@ public object Ksoup {
      *
      * // html is: 5 is &lt; 6.
      * // text is: 5 is < 6.
-    `</pre> *
+     `</pre> *
      *
      * @param bodyHtml input untrusted HTML (body fragment)
      * @param safelist list of permitted HTML elements
      * @return safe HTML (body fragment)
      * @see Cleaner.clean
      */
-    public fun clean(bodyHtml: String, safelist: Safelist): String {
+    public fun clean(
+        bodyHtml: String,
+        safelist: Safelist,
+    ): String {
         return clean(bodyHtml, "", safelist)
     }
 
@@ -302,7 +329,7 @@ public object Ksoup {
      * <pre>`Safelist safelist = Safelist.relaxed();
      * boolean isValid = Jsoup.isValid(sourceBodyHtml, safelist);
      * String normalizedHtml = Jsoup.clean(sourceBodyHtml, "https://example.com/", safelist);
-    `</pre> *
+     `</pre> *
      *
      * Assumes the HTML is a body fragment (i.e. will be used in an existing HTML document body.)
      * @param bodyHtml HTML to test
@@ -310,7 +337,10 @@ public object Ksoup {
      * @return true if no tags or attributes were removed; false otherwise
      * @see .clean
      */
-    public fun isValid(bodyHtml: String, safelist: Safelist): Boolean {
+    public fun isValid(
+        bodyHtml: String,
+        safelist: Safelist,
+    ): Boolean {
         return Cleaner(safelist).isValidBodyHtml(bodyHtml)
     }
 }

@@ -24,7 +24,10 @@ public fun interface NodeVisitor {
      * @param depth the depth of the node, relative to the root node. E.g., the root node has depth 0, and a child node
      * of that will have depth 1.
      */
-    public fun head(node: Node, depth: Int)
+    public fun head(
+        node: Node,
+        depth: Int,
+    )
 
     /**
      * Callback for when a node is last visited, after all of its descendants have been visited.
@@ -38,7 +41,10 @@ public fun interface NodeVisitor {
      * @param depth the depth of the node, relative to the root node. E.g., the root node has depth 0, and a child node
      * of that will have depth 1.
      */
-    public fun tail(node: Node, depth: Int) {
+    public fun tail(
+        node: Node,
+        depth: Int,
+    ) {
         // no-op by default, to allow just specifying the head() method
     }
 }

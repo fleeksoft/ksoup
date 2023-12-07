@@ -38,7 +38,10 @@ public abstract class LeafNode : Node() {
         }
     }
 
-    override fun attr(attributeKey: String, attributeValue: String?): Node {
+    override fun attr(
+        attributeKey: String,
+        attributeValue: String?,
+    ): Node {
         if (!hasAttributes() && attributeKey == nodeName()) {
             this.value = attributeValue
         } else {

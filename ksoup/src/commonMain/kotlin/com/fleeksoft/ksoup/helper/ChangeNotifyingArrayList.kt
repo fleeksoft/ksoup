@@ -6,12 +6,14 @@ import com.fleeksoft.ksoup.removeRange
  * Implementation of ArrayList that watches out for changes to the contents.
  */
 internal abstract class ChangeNotifyingArrayList<E>(initialCapacity: Int) : MutableList<E> {
-
     private val delegate: MutableList<E> = ArrayList(initialCapacity)
 
     abstract fun onContentsChanged()
 
-    override fun set(index: Int, element: E): E {
+    override fun set(
+        index: Int,
+        element: E,
+    ): E {
         onContentsChanged()
         return delegate.set(index, element)
     }
@@ -21,7 +23,10 @@ internal abstract class ChangeNotifyingArrayList<E>(initialCapacity: Int) : Muta
         return delegate.add(element)
     }
 
-    override fun add(index: Int, element: E) {
+    override fun add(
+        index: Int,
+        element: E,
+    ) {
         onContentsChanged()
         delegate.add(index, element)
     }
@@ -46,12 +51,18 @@ internal abstract class ChangeNotifyingArrayList<E>(initialCapacity: Int) : Muta
         return delegate.addAll(elements)
     }
 
-    override fun addAll(index: Int, elements: Collection<E>): Boolean {
+    override fun addAll(
+        index: Int,
+        elements: Collection<E>,
+    ): Boolean {
         onContentsChanged()
         return delegate.addAll(index, elements)
     }
 
-    fun removeRange(fromIndex: Int, toIndex: Int) {
+    fun removeRange(
+        fromIndex: Int,
+        toIndex: Int,
+    ) {
         onContentsChanged()
         (delegate as ArrayList<E>).removeRange(fromIndex, toIndex)
     }
@@ -67,15 +78,27 @@ internal abstract class ChangeNotifyingArrayList<E>(initialCapacity: Int) : Muta
     }
 
     override val size: Int get() = delegate.size
+
     override fun contains(element: E) = delegate.contains(element)
+
     override fun containsAll(elements: Collection<E>) = delegate.containsAll(elements)
+
     override fun get(index: Int): E = delegate[index]
+
     override fun indexOf(element: E): Int = delegate.indexOf(element)
+
     override fun isEmpty(): Boolean = delegate.isEmpty()
+
     override fun iterator(): MutableIterator<E> = delegate.iterator()
+
     override fun lastIndexOf(element: E): Int = delegate.lastIndexOf(element)
+
     override fun listIterator(): MutableListIterator<E> = delegate.listIterator()
+
     override fun listIterator(index: Int): MutableListIterator<E> = delegate.listIterator(index)
-    override fun subList(fromIndex: Int, toIndex: Int): MutableList<E> =
-        delegate.subList(fromIndex, toIndex)
+
+    override fun subList(
+        fromIndex: Int,
+        toIndex: Int,
+    ): MutableList<E> = delegate.subList(fromIndex, toIndex)
 }

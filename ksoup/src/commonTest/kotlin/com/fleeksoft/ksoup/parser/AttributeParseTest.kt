@@ -35,7 +35,7 @@ class AttributeParseTest {
         assertEquals(2, el!!.attributes().size())
         assertEquals(
             "bar\r\nqux",
-            el.attr("foo")
+            el.attr("foo"),
         ) // currently preserves newlines in quoted attributes. todo confirm if should.
         assertEquals("two", el.attr("bar"))
     }

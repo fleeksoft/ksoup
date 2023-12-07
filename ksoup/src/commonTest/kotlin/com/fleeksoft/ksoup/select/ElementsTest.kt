@@ -4,8 +4,8 @@ import com.fleeksoft.ksoup.Ksoup
 import com.fleeksoft.ksoup.TextUtil
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.nodes.Node
-import kotlin.test.Test
 import kotlin.test.*
+import kotlin.test.Test
 
 /**
  * Tests for ElementList.
@@ -164,7 +164,7 @@ class ElementsTest {
         doc.select("a").before("<span>foo</span>")
         assertEquals(
             "<p>This <span>foo</span><a>is</a> <span>foo</span><a>jsoup</a>.</p>",
-            TextUtil.stripNewlines(doc.body().html())
+            TextUtil.stripNewlines(doc.body().html()),
         )
     }
 
@@ -174,7 +174,7 @@ class ElementsTest {
         doc.select("a").after("<span>foo</span>")
         assertEquals(
             "<p>This <a>is</a><span>foo</span> <a>jsoup</a><span>foo</span>.</p>",
-            TextUtil.stripNewlines(doc.body().html())
+            TextUtil.stripNewlines(doc.body().html()),
         )
     }
 
@@ -193,7 +193,7 @@ class ElementsTest {
         doc.select("p").wrap("<div></div>")
         assertEquals(
             "<div>\n <p><b>This</b> is <b>jsoup</b>.</p>\n</div>\n<div>\n <p>How do you like it?</p>\n</div>",
-            doc.body().html()
+            doc.body().html(),
         )
     }
 
@@ -205,7 +205,8 @@ class ElementsTest {
         assertEquals(
             """<div>
  One <a href="/">Two</a>
-</div>""", doc.body().html()
+</div>""",
+            doc.body().html(),
         )
     }
 
@@ -290,15 +291,23 @@ class ElementsTest {
     fun traverse() {
         val doc = Ksoup.parse("<div><p>Hello</p></div><div>There</div>")
         val accum = StringBuilder()
-        doc.select("div").traverse(object : NodeVisitor {
-            override fun head(node: Node, depth: Int) {
-                accum.append("<").append(node.nodeName()).append(">")
-            }
+        doc.select("div").traverse(
+            object : NodeVisitor {
+                override fun head(
+                    node: Node,
+                    depth: Int,
+                ) {
+                    accum.append("<").append(node.nodeName()).append(">")
+                }
 
-            override fun tail(node: Node, depth: Int) {
-                accum.append("</").append(node.nodeName()).append(">")
-            }
-        })
+                override fun tail(
+                    node: Node,
+                    depth: Int,
+                ) {
+                    accum.append("</").append(node.nodeName()).append(">")
+                }
+            },
+        )
         assertEquals("<div><p><#text></#text></p></div><div><#text></#text></div>", accum.toString())
     }
 
@@ -426,10 +435,11 @@ class ElementsTest {
 
     @Test
     fun eachAttr() {
-        val doc = Ksoup.parse(
-            "<div><a href='/foo'>1</a><a href='http://example.com/bar'>2</a><a href=''>3</a><a>4</a>",
-            "http://example.com"
-        )
+        val doc =
+            Ksoup.parse(
+                "<div><a href='/foo'>1</a><a href='http://example.com/bar'>2</a><a href=''>3</a><a>4</a>",
+                "http://example.com",
+            )
         val hrefAttrs = doc.select("a").eachAttr("href")
         assertEquals(3, hrefAttrs.size)
         assertEquals("/foo", hrefAttrs[0])
@@ -510,7 +520,7 @@ class ElementsTest {
         val doc = Ksoup.parse("<p>One<p>Two<p>Three<p>Four</p><div>Div")
         val ps = doc.select("p")
         assertEquals(4, ps.size)
-        val midPs = doc.select("p:gt(0):lt(3)") //Two and Three
+        val midPs = doc.select("p:gt(0):lt(3)") // Two and Three
         assertEquals(2, midPs.size)
         val removed = ps.removeAll(midPs)
         assertEquals(2, ps.size)
@@ -530,7 +540,7 @@ class ElementsTest {
 //        val ps2 = Elements(ps)
 //        ps2.removeAt(1)
         assertEquals(4, ps.size)
-        val midPs = doc.select("p:gt(0):lt(3)") //Two and Three
+        val midPs = doc.select("p:gt(0):lt(3)") // Two and Three
         assertEquals(2, midPs.size)
         val removed = ps.retainAll(midPs)
         assertEquals(2, ps.size)
@@ -599,7 +609,7 @@ class ElementsTest {
         // check dom
         assertEquals(
             "<div> One</div><div> Two</div><div> Three</div><div> Four</div>",
-            TextUtil.normalizeSpaces(doc.body().html())
+            TextUtil.normalizeSpaces(doc.body().html()),
         )
     }
 }

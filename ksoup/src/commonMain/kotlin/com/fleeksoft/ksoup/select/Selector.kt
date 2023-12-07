@@ -105,7 +105,10 @@ internal object Selector {
      * @return matching elements, empty if none
      * @throws Selector.SelectorParseException (unchecked) on an invalid CSS query.
      */
-    fun select(query: String, root: Element): Elements {
+    fun select(
+        query: String,
+        root: Element,
+    ): Elements {
         Validate.notEmpty(query)
         return select(QueryParser.parse(query), root)
     }
@@ -117,7 +120,10 @@ internal object Selector {
      * @param root root element to descend into
      * @return matching elements, empty if none
      */
-    fun select(evaluator: Evaluator, root: Element): Elements {
+    fun select(
+        evaluator: Evaluator,
+        root: Element,
+    ): Elements {
         return Collector.collect(evaluator, root)
     }
 
@@ -128,7 +134,10 @@ internal object Selector {
      * @param roots root elements to descend into
      * @return matching elements, empty if none
      */
-    fun select(query: String, roots: Iterable<Element>): Elements {
+    fun select(
+        query: String,
+        roots: Iterable<Element>,
+    ): Elements {
         Validate.notEmpty(query)
         val evaluator: Evaluator = QueryParser.parse(query)
         val elements = Elements()
@@ -146,7 +155,10 @@ internal object Selector {
     }
 
     // exclude set. package open so that Elements can implement .not() selector.
-    fun filterOut(elements: Collection<Element>, outs: Collection<Element?>): Elements {
+    fun filterOut(
+        elements: Collection<Element>,
+        outs: Collection<Element?>,
+    ): Elements {
         val output = Elements()
         for (el in elements) {
             var found = false
@@ -167,8 +179,11 @@ internal object Selector {
      * @param root root element to descend into
      * @return the matching element, or **null** if none.
      */
-    
-    fun selectFirst(cssQuery: String, root: Element): Element? {
+
+    fun selectFirst(
+        cssQuery: String,
+        root: Element,
+    ): Element? {
         Validate.notEmpty(cssQuery)
         return Collector.findFirst(QueryParser.parse(cssQuery), root)
     }

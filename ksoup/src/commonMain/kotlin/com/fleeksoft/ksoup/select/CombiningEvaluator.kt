@@ -29,7 +29,6 @@ internal abstract class CombiningEvaluator internal constructor() : Evaluator() 
         return _cost
     }
 
-
     fun rightMostEvaluator(): Evaluator? {
         return if (num > 0) evaluators[num - 1] else null
     }
@@ -56,20 +55,23 @@ internal abstract class CombiningEvaluator internal constructor() : Evaluator() 
     // ^ comparingInt, sortedEvaluators.sort not available in targeted version
     class And internal constructor(evaluators: Collection<Evaluator>) :
         CombiningEvaluator(evaluators) {
-        internal constructor(vararg evaluators: Evaluator) : this(evaluators.toList())
+            internal constructor(vararg evaluators: Evaluator) : this(evaluators.toList())
 
-        override fun matches(root: Element, element: Element): Boolean {
-            for (i in 0 until num) {
-                val s: Evaluator = sortedEvaluators[i]
-                if (!s.matches(root, element)) return false
+            override fun matches(
+                root: Element,
+                element: Element,
+            ): Boolean {
+                for (i in 0 until num) {
+                    val s: Evaluator = sortedEvaluators[i]
+                    if (!s.matches(root, element)) return false
+                }
+                return true
             }
-            return true
-        }
 
-        override fun toString(): String {
-            return StringUtil.join(evaluators, "")
+            override fun toString(): String {
+                return StringUtil.join(evaluators, "")
+            }
         }
-    }
 
     class Or : CombiningEvaluator {
         /**
@@ -94,7 +96,10 @@ internal abstract class CombiningEvaluator internal constructor() : Evaluator() 
             updateEvaluators()
         }
 
-        override fun matches(root: Element, element: Element): Boolean {
+        override fun matches(
+            root: Element,
+            element: Element,
+        ): Boolean {
             for (i in 0 until num) {
                 val s: Evaluator = sortedEvaluators[i]
                 if (s.matches(root, element)) return true

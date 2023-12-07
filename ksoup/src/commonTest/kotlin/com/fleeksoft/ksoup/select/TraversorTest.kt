@@ -16,17 +16,26 @@ class TraversorTest {
     fun filterVisit() {
         val doc = Ksoup.parse("<div><p>Hello</p></div><div>There</div>")
         val accum = StringBuilder()
-        NodeTraversor.filter(object : NodeFilter {
-            override fun head(node: Node, depth: Int): NodeFilter.FilterResult {
-                accum.append("<").append(node.nodeName()).append(">")
-                return NodeFilter.FilterResult.CONTINUE
-            }
+        NodeTraversor.filter(
+            object : NodeFilter {
+                override fun head(
+                    node: Node,
+                    depth: Int,
+                ): NodeFilter.FilterResult {
+                    accum.append("<").append(node.nodeName()).append(">")
+                    return NodeFilter.FilterResult.CONTINUE
+                }
 
-            override fun tail(node: Node?, depth: Int): NodeFilter.FilterResult {
-                accum.append("</").append(node!!.nodeName()).append(">")
-                return NodeFilter.FilterResult.CONTINUE
-            }
-        }, doc.select("div"))
+                override fun tail(
+                    node: Node?,
+                    depth: Int,
+                ): NodeFilter.FilterResult {
+                    accum.append("</").append(node!!.nodeName()).append(">")
+                    return NodeFilter.FilterResult.CONTINUE
+                }
+            },
+            doc.select("div"),
+        )
         assertEquals("<div><p><#text></#text></p></div><div><#text></#text></div>", accum.toString())
     }
 
@@ -34,18 +43,27 @@ class TraversorTest {
     fun filterSkipChildren() {
         val doc = Ksoup.parse("<div><p>Hello</p></div><div>There</div>")
         val accum = StringBuilder()
-        NodeTraversor.filter(object : NodeFilter {
-            override fun head(node: Node, depth: Int): NodeFilter.FilterResult {
-                accum.append("<").append(node.nodeName()).append(">")
-                // OMIT contents of p:
-                return if ("p" == node.nodeName()) NodeFilter.FilterResult.SKIP_CHILDREN else NodeFilter.FilterResult.CONTINUE
-            }
+        NodeTraversor.filter(
+            object : NodeFilter {
+                override fun head(
+                    node: Node,
+                    depth: Int,
+                ): NodeFilter.FilterResult {
+                    accum.append("<").append(node.nodeName()).append(">")
+                    // OMIT contents of p:
+                    return if ("p" == node.nodeName()) NodeFilter.FilterResult.SKIP_CHILDREN else NodeFilter.FilterResult.CONTINUE
+                }
 
-            override fun tail(node: Node?, depth: Int): NodeFilter.FilterResult {
-                accum.append("</").append(node!!.nodeName()).append(">")
-                return NodeFilter.FilterResult.CONTINUE
-            }
-        }, doc.select("div"))
+                override fun tail(
+                    node: Node?,
+                    depth: Int,
+                ): NodeFilter.FilterResult {
+                    accum.append("</").append(node!!.nodeName()).append(">")
+                    return NodeFilter.FilterResult.CONTINUE
+                }
+            },
+            doc.select("div"),
+        )
         assertEquals("<div><p></p></div><div><#text></#text></div>", accum.toString())
     }
 
@@ -53,36 +71,54 @@ class TraversorTest {
     fun filterSkipEntirely() {
         val doc = Ksoup.parse("<div><p>Hello</p></div><div>There</div>")
         val accum = StringBuilder()
-        NodeTraversor.filter(object : NodeFilter {
-            override fun head(node: Node, depth: Int): NodeFilter.FilterResult {
-                // OMIT p:
-                if ("p" == node.nodeName()) return NodeFilter.FilterResult.SKIP_ENTIRELY
-                accum.append("<").append(node.nodeName()).append(">")
-                return NodeFilter.FilterResult.CONTINUE
-            }
+        NodeTraversor.filter(
+            object : NodeFilter {
+                override fun head(
+                    node: Node,
+                    depth: Int,
+                ): NodeFilter.FilterResult {
+                    // OMIT p:
+                    if ("p" == node.nodeName()) return NodeFilter.FilterResult.SKIP_ENTIRELY
+                    accum.append("<").append(node.nodeName()).append(">")
+                    return NodeFilter.FilterResult.CONTINUE
+                }
 
-            override fun tail(node: Node?, depth: Int): NodeFilter.FilterResult {
-                accum.append("</").append(node!!.nodeName()).append(">")
-                return NodeFilter.FilterResult.CONTINUE
-            }
-        }, doc.select("div"))
+                override fun tail(
+                    node: Node?,
+                    depth: Int,
+                ): NodeFilter.FilterResult {
+                    accum.append("</").append(node!!.nodeName()).append(">")
+                    return NodeFilter.FilterResult.CONTINUE
+                }
+            },
+            doc.select("div"),
+        )
         assertEquals("<div></div><div><#text></#text></div>", accum.toString())
     }
 
     @Test
     fun filterRemove() {
         val doc = Ksoup.parse("<div><p>Hello</p></div><div>There be <b>bold</b></div>")
-        NodeTraversor.filter(object : NodeFilter {
-            override fun head(node: Node, depth: Int): NodeFilter.FilterResult {
-                // Delete "p" in head:
-                return if ("p" == node.nodeName()) NodeFilter.FilterResult.REMOVE else NodeFilter.FilterResult.CONTINUE
-            }
+        NodeTraversor.filter(
+            object : NodeFilter {
+                override fun head(
+                    node: Node,
+                    depth: Int,
+                ): NodeFilter.FilterResult {
+                    // Delete "p" in head:
+                    return if ("p" == node.nodeName()) NodeFilter.FilterResult.REMOVE else NodeFilter.FilterResult.CONTINUE
+                }
 
-            override fun tail(node: Node?, depth: Int): NodeFilter.FilterResult {
-                // Delete "b" in tail:
-                return if ("b" == node!!.nodeName()) NodeFilter.FilterResult.REMOVE else NodeFilter.FilterResult.CONTINUE
-            }
-        }, doc.select("div"))
+                override fun tail(
+                    node: Node?,
+                    depth: Int,
+                ): NodeFilter.FilterResult {
+                    // Delete "b" in tail:
+                    return if ("b" == node!!.nodeName()) NodeFilter.FilterResult.REMOVE else NodeFilter.FilterResult.CONTINUE
+                }
+            },
+            doc.select("div"),
+        )
         assertEquals("<div></div>\n<div>\n There be\n</div>", doc.select("body").html())
     }
 
@@ -90,18 +126,27 @@ class TraversorTest {
     fun filterStop() {
         val doc = Ksoup.parse("<div><p>Hello</p></div><div>There</div>")
         val accum = StringBuilder()
-        NodeTraversor.filter(object : NodeFilter {
-            override fun head(node: Node, depth: Int): NodeFilter.FilterResult {
-                accum.append("<").append(node.nodeName()).append(">")
-                return NodeFilter.FilterResult.CONTINUE
-            }
+        NodeTraversor.filter(
+            object : NodeFilter {
+                override fun head(
+                    node: Node,
+                    depth: Int,
+                ): NodeFilter.FilterResult {
+                    accum.append("<").append(node.nodeName()).append(">")
+                    return NodeFilter.FilterResult.CONTINUE
+                }
 
-            override fun tail(node: Node?, depth: Int): NodeFilter.FilterResult {
-                accum.append("</").append(node!!.nodeName()).append(">")
-                // Stop after p.
-                return if ("p" == node.nodeName()) NodeFilter.FilterResult.STOP else NodeFilter.FilterResult.CONTINUE
-            }
-        }, doc.select("div"))
+                override fun tail(
+                    node: Node?,
+                    depth: Int,
+                ): NodeFilter.FilterResult {
+                    accum.append("</").append(node!!.nodeName()).append(">")
+                    // Stop after p.
+                    return if ("p" == node.nodeName()) NodeFilter.FilterResult.STOP else NodeFilter.FilterResult.CONTINUE
+                }
+            },
+            doc.select("div"),
+        )
         assertEquals("<div><p><#text></#text></p>", accum.toString())
     }
 
@@ -128,27 +173,38 @@ class TraversorTest {
     @Test
     fun canAddChildren() {
         val doc = Ksoup.parse("<div><p></p><p></p></div>")
-        NodeTraversor.traverse(object : NodeVisitor {
-            var i = 0
-            override fun head(node: Node, depth: Int) {
-                if (node.nodeName() == "p") {
-                    val p = node as Element
-                    p.append("<span>" + i++ + "</span>")
-                }
-            }
+        NodeTraversor.traverse(
+            object : NodeVisitor {
+                var i = 0
 
-            override fun tail(node: Node, depth: Int) {
-                if (node.nodeName() == "p") {
-                    val p = node as Element
-                    p.append("<span>" + i++ + "</span>")
+                override fun head(
+                    node: Node,
+                    depth: Int,
+                ) {
+                    if (node.nodeName() == "p") {
+                        val p = node as Element
+                        p.append("<span>" + i++ + "</span>")
+                    }
                 }
-            }
-        }, doc)
+
+                override fun tail(
+                    node: Node,
+                    depth: Int,
+                ) {
+                    if (node.nodeName() == "p") {
+                        val p = node as Element
+                        p.append("<span>" + i++ + "</span>")
+                    }
+                }
+            },
+            doc,
+        )
         assertEquals(
             """<div>
  <p><span>0</span><span>1</span></p>
  <p><span>2</span><span>3</span></p>
-</div>""", doc.body().html()
+</div>""",
+            doc.body().html(),
         )
     }
 
@@ -165,8 +221,14 @@ class TraversorTest {
     fun canRemoveDuringHead() {
         val doc = Ksoup.parse("<div><p id=1>Zero<p id=1>One<p id=2>Two<p>Three</div>")
         NodeTraversor.traverse(
-            { node, depth -> if (node.attr("id") == "1") node.remove() else if (node is TextNode && node.text() == "Three") node.remove() },
-            doc
+            { node, depth ->
+                if (node.attr("id") == "1") {
+                    node.remove()
+                } else if (node is TextNode && node.text() == "Three") {
+                    node.remove()
+                }
+            },
+            doc,
         )
         assertEquals("<div><p id=\"2\">Two</p><p></p></div>", TextUtil.stripNewlines(doc.body().html()))
     }
