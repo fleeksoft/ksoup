@@ -197,3 +197,9 @@ val generateRootPathSource: Task by tasks.creating {
         file.get().asFile.writeText(content)
     }
 }
+
+tasks.all {
+    if (name != "generateRootPathSource") {
+        dependsOn("generateRootPathSource")
+    }
+}
