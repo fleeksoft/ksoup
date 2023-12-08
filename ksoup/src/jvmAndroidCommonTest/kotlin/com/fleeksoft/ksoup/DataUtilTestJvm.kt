@@ -20,7 +20,7 @@ class DataUtilTestJvm {
     }
 
     @Test
-    fun parseSequenceBufferReader() {
+    fun testParseSequenceBufferReader() {
         // https://github.com/jhy/jsoup/pull/1671
         val bufferReader: BufferReader = TestHelper.resourceFilePathToBufferReader("htmltests/medium.html")
         val fileContent = String(bufferReader.readByteArray())
@@ -52,7 +52,7 @@ class DataUtilTestJvm {
     }
 
     @Test
-    fun handlesChunkedInputStream() {
+    fun testHandlesChunkedInputStream() {
         val file = File(TestHelper.getResourceAbsolutePath("htmltests/large.html"))
         val input = getFileAsString(file)
         val expected =
@@ -80,7 +80,7 @@ class DataUtilTestJvm {
     }
 
     @Test
-    fun handlesUnlimitedRead() {
+    fun testHandlesUnlimitedRead() {
         val file = File(TestHelper.getResourceAbsolutePath("htmltests/large.html"))
         val input: String = getFileAsString(file)
 
