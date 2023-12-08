@@ -129,7 +129,6 @@ public object Ksoup {
      * @return sane HTML
      * @throws IOException if the file could not be found or read.
      * @see .parse
-     * @since 1.15.1
      */
     @Throws(IOException::class)
     public fun parseFile(file: String): Document {
@@ -147,7 +146,6 @@ public object Ksoup {
      * @param parser alternate [parser][Parser.xmlParser] to use.
      * @return sane HTML
      * @throws IOException if the file could not be found, or read, or if the charsetName is invalid.
-     * @since 1.14.2
      */
     @Throws(IOException::class)
     public fun parseFile(

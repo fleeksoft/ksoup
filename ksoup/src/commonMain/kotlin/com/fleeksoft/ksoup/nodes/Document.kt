@@ -126,7 +126,6 @@ public class Document(private val namespace: String, private val location: Strin
      * @return a List of FormElement objects, which will be empty if there are none.
      * @see Elements.forms
      * @see FormElement.elements
-     * @since 1.15.4
      */
     public fun forms(): List<FormElement> {
         return select("form").forms()
@@ -138,7 +137,6 @@ public class Document(private val namespace: String, private val location: Strin
      * @param cssQuery a [Selector] CSS query
      * @return the first matching `<form>` element
      * @throws IllegalArgumentException if no match is found
-     * @since 1.15.4
      */
     public fun expectForm(cssQuery: String): FormElement? {
         val els: Elements = select(cssQuery)

@@ -667,7 +667,6 @@ internal abstract class Evaluator protected constructor() {
     /**
      * Evaluator for matching Element (and its descendants) wholeText. Neither the input nor the element text is
      * normalized. `:containsWholeText()`
-     * @since 1.15.1.
      */
     class ContainsWholeText(private val searchText: String) : Evaluator() {
         override fun matches(
@@ -689,7 +688,6 @@ internal abstract class Evaluator protected constructor() {
     /**
      * Evaluator for matching Element (but **not** its descendants) wholeText. Neither the input nor the element text is
      * normalized. `:containsWholeOwnText()`
-     * @since 1.15.1.
      */
     class ContainsWholeOwnText(private val searchText: String) : Evaluator() {
         override fun matches(
@@ -782,7 +780,6 @@ internal abstract class Evaluator protected constructor() {
 
     /**
      * Evaluator for matching Element (and its descendants) whole text with regex.
-     * @since 1.15.1.
      */
     class MatchesWholeText(private val pattern: Regex) : Evaluator() {
         override fun matches(
@@ -799,7 +796,6 @@ internal abstract class Evaluator protected constructor() {
 
     /**
      * Evaluator for matching Element's own whole text with regex.
-     * @since 1.15.1.
      */
     class MatchesWholeOwnText(private val pattern: Regex) : Evaluator() {
         override fun matches(

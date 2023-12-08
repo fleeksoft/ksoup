@@ -481,7 +481,6 @@ public open class Element : Node {
      * @param cssQuery a [Selector] CSS-like query
      * @return the first matching element
      * @throws IllegalArgumentException if no match is found
-     * @since 1.15.2
      */
     public fun expectFirst(cssQuery: String): Element {
         return Validate.ensureNotNull(
@@ -987,9 +986,7 @@ public open class Element : Node {
      * @return the first Element child node, or null.
      * @see .firstChild
      * @see .lastElementChild
-     * @since 1.15.2
      */
-//    @Nullable
     public fun firstElementChild(): Element? {
         var child: Node? = firstChild()
         while (child != null) {
@@ -1004,9 +1001,7 @@ public open class Element : Node {
      * @return the last Element child node, or null.
      * @see .lastChild
      * @see .firstElementChild
-     * @since 1.15.2
      */
-//    @Nullable
     public fun lastElementChild(): Element? {
         var child: Node? = lastChild()
         while (child != null) {
@@ -1380,7 +1375,6 @@ public open class Element : Node {
      * @see .text
      * @see .wholeText
      * @see .ownText
-     * @since 1.15.1
      */
     public fun wholeOwnText(): String {
         val accum: StringBuilder = StringUtil.borrowBuilder()
@@ -1655,7 +1649,6 @@ public open class Element : Node {
      * otherwise.
      * @see com.fleeksoft.ksoup.parser.Parser.setTrackPosition
      * @see Node.sourceRange
-     * @since 1.15.2
      */
     internal fun endSourceRange(): Range {
         return Range.of(this, false)

@@ -327,7 +327,6 @@ internal object StringUtil {
 
     /**
      * A StringJoiner allows incremental / filtered joining of a set of stringable objects.
-     * @since 1.14.1
      */
     class StringJoiner
     /**

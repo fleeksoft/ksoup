@@ -125,7 +125,6 @@ internal class CharacterReader {
      * use.
      *
      * @param track set tracking on|off
-     * @since 1.14.3
      */
     fun trackNewlines(track: Boolean) {
         if (track && newlinePositions == null) {
@@ -142,7 +141,6 @@ internal class CharacterReader {
     /**
      * Get the current line number (that the reader has consumed to). Starts at line #1.
      * @return the current line number, or 1 if line tracking is not enabled.
-     * @since 1.14.3
      * @see .trackNewlines
      */
     fun lineNumber(): Int {
@@ -160,7 +158,6 @@ internal class CharacterReader {
     /**
      * Get the current column number (that the reader has consumed to). Starts at column #1.
      * @return the current column number
-     * @since 1.14.3
      * @see .trackNewlines
      */
     fun columnNumber(): Int {
@@ -177,7 +174,6 @@ internal class CharacterReader {
      * Get a formatted string representing the current line and cursor positions. E.g. `5:10` indicating line
      * number 5 and column number 10.
      * @return line:col position
-     * @since 1.14.3
      * @see .trackNewlines
      */
     fun cursorPos(): String {

@@ -7,7 +7,6 @@ import com.fleeksoft.ksoup.helper.Validate
  * track these positions, tracking must be enabled in the Parser with
  * [com.fleeksoft.ksoup.parser.Parser.setTrackPosition].
  * @see Node.sourceRange
- * @since 1.15.2
  */
 internal class Range
 /**
@@ -75,7 +74,7 @@ internal class Range
      * @param pos position index
      * @param lineNumber line number
      * @param columnNumber column number
-     */(private val pos: Int, private val lineNumber: Int, private val columnNumber: Int) {
+     */(internal val pos: Int, private val lineNumber: Int, private val columnNumber: Int) {
         /**
          * Gets the position index (0-based) of the original input source that this Position was read at. This tracks the
          * total number of characters read into the source at this position, regardless of the number of preceeding lines.

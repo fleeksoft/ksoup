@@ -66,7 +66,6 @@ public object DataUtil {
      *
      * @return Document
      * @throws IOException on IO error
-     * @since 1.14.2
      */
     @Throws(IOException::class)
     public fun load(

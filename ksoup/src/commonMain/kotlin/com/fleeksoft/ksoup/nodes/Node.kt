@@ -33,7 +33,6 @@ public abstract class Node protected constructor() : Cloneable<Node> {
      * Get the normalized name of this node. For node types other than Element, this is the same as [.nodeName].
      * For an Element, will be the lower-cased tag name.
      * @return normalized node name
-     * @since 1.15.4.
      */
     public open fun normalName(): String {
         return nodeName()
@@ -95,7 +94,6 @@ public abstract class Node protected constructor() : Cloneable<Node> {
     /**
      * Get the number of attributes that this Node has.
      * @return the number of attributes
-     * @since 1.14.2
      */
     public fun attributesSize(): Int {
         // added so that we can test how many attributes exist without implicitly creating the Attributes object
@@ -607,7 +605,6 @@ public abstract class Node protected constructor() : Cloneable<Node> {
      * @return the first child node, or null if there are no children.
      * @see Element.firstElementChild
      * @see .lastChild
-     * @since 1.15.2
      */
     public fun firstChild(): Node? {
         return if (childNodeSize() == 0) null else ensureChildNodes()[0]
@@ -618,7 +615,6 @@ public abstract class Node protected constructor() : Cloneable<Node> {
      * @return the last child node, or null if there are no children.
      * @see Element.lastElementChild
      * @see .firstChild
-     * @since 1.15.2
      */
     public fun lastChild(): Node? {
         val size = childNodeSize()
@@ -714,7 +710,6 @@ public abstract class Node protected constructor() : Cloneable<Node> {
      * @return the range for the start of the node.
      * @see com.fleeksoft.ksoup.parser.Parser.setTrackPosition
      * @see Element.endSourceRange
-     * @since 1.15.2
      */
     internal fun sourceRange(): Range {
         return Range.of(this, true)
