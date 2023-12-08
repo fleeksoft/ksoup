@@ -137,6 +137,8 @@ class StringUtilTest {
         assertEquals("https://example2.com/one", StringUtil.resolve("http://example.com/", "https://example2.com/one"))
         assertEquals("https://example.com/one", StringUtil.resolve("wrong", "https://example.com/one"))
         assertEquals("https://example.com/one", StringUtil.resolve("https://example.com/one", ""))
+        assertEquals("https://example.com/one/two.c", StringUtil.resolve("https://example.com/one/two/", "../two.c"))
+        assertEquals("https://example.com/two.c", StringUtil.resolve("https://example.com/one/two", "../two.c"))
         assertEquals("", StringUtil.resolve("wrong", "also wrong"))
         assertEquals("ftp://example.com/one", StringUtil.resolve("ftp://example.com/two/", "../one"))
         assertEquals("ftp://example.com/one/two.c", StringUtil.resolve("ftp://example.com/one/", "./two.c"))
