@@ -8,7 +8,8 @@ class GzipTest {
     @Test
     fun testReadGzipFile() {
         val gzipFileStr =
-            readGzipFile(TestHelper.getResourceAbsolutePath("htmltests/gzip.html.gz").toPath()).readByteString().utf8()
+            readGzipFile(TestHelper.getResourceAbsolutePath("htmltests/gzip.html.gz").toPath())
+                .readByteString().utf8()
         val expected = """<title>Gzip test</title>
 
 <p>This is a gzipped HTML file.</p>
