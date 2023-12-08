@@ -32,6 +32,6 @@ familiarize yourself with the following guidelines:
 
 This library is built with Gradle.
 
-* Run `./gradlew build` to build the entire project..
+* Run `./gradlew build` to build the entire project. It also runs all the tests.
 * Run `./gradlew <module>:check` to test only the module you are working on.
 * Run `./gradlew <module>:jvmTest` to perform only the fast JVM tests of a multiplatform module.
