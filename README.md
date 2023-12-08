@@ -71,9 +71,11 @@ Ksoup is an open source project, a Kotlin Multiplatform port of jsoup, distribut
 
 
 ## Development and Support
-For questions, ideas, or contributions regarding Ksoup, please contact us via [email](mailto:fleeksoft@gmail.com) or create new pull requests.
+For questions about usage and general inquiries, please refer to [GitHub Discussions](https://github.com/fleeksoft/ksoup/discussions).
 
-Report any issues on [our GitHub page](https://github.com/fleeksoft/ksoup/issues), ensuring to check for duplicates beforehand.
+If you wish to contribute, please read the [Contributing Guidelines](CONTRIBUTING.md).
+
+To report any issues, visit our [GitHub issues](https://github.com/fleeksoft/ksoup/issues), Please ensure to check for duplicates before submitting a new issue.
 
 ## Library Status
 
