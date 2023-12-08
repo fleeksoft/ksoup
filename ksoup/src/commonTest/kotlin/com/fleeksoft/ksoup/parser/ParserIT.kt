@@ -1,5 +1,7 @@
 package com.fleeksoft.ksoup.parser
 
+import com.fleeksoft.ksoup.Platform
+import com.fleeksoft.ksoup.PlatformType
 import com.fleeksoft.ksoup.ported.System
 import kotlin.test.Ignore
 import kotlin.test.Test
@@ -27,6 +29,10 @@ class ParserIT {
 
     @Test
     fun handlesDeepStack() {
+        if (Platform.current == PlatformType.IOS) {
+//            The GitHub action is taking too much time.
+            return
+        }
         // inspired by http://sv.stargate.wikia.com/wiki/M2J and https://github.com/jhy/jsoup/issues/955
         // I didn't put it in the integration tests, because explorer and intellij kept dieing trying to preview/index it
 
