@@ -11,6 +11,8 @@ plugins {
 group = "com.fleeksoft.ksoup"
 version = libs.versions.libraryVersion.get()
 
+val rootPath = "generated/kotlin"
+
 kotlin {
     explicitApi()
 
@@ -51,10 +53,13 @@ kotlin {
             implementation(libs.codepoints)
             api(libs.okio)
         }
-        commonTest.dependencies {
-            implementation(libs.kotlin.test)
-            implementation(libs.gson)
-            implementation(projects.ksoupNetwork)
+        commonTest {
+            this.kotlin.srcDir(layout.buildDirectory.file(rootPath))
+            dependencies {
+                implementation(libs.kotlin.test)
+                implementation(libs.gson)
+                implementation(projects.ksoupNetwork)
+            }
         }
 
         jvmMain.dependencies {
@@ -153,6 +158,7 @@ publishing {
                     developer {
                         name.set("Sabeeh Ul Hussnain")
                         email.set("fleeksoft@gmail.com")
+                        organization.set("Fleek Soft")
                     }
                 }
             }
@@ -172,4 +178,22 @@ signing {
 // TODO: remove after https://youtrack.jetbrains.com/issue/KT-46466 is fixed
 project.tasks.withType(AbstractPublishToMaven::class.java).configureEach {
     dependsOn(project.tasks.withType(Sign::class.java))
+}
+
+val generateRootPathSource: Task by tasks.creating {
+    group = "build setup"
+    val file = layout.buildDirectory.file("$rootPath/BuildConfig.kt")
+    outputs.file(file)
+
+    doLast {
+        val content =
+            """
+            package com.fleeksoft.ksoup
+
+            object BuildConfig {
+                const val PROJECT_ROOT: String = "${rootProject.rootDir.absolutePath.replace("\\", "\\\\")}"
+            }
+            """.trimIndent()
+        file.get().asFile.writeText(content)
+    }
 }

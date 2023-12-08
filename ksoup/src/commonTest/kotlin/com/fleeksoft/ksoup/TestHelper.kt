@@ -6,15 +6,22 @@ import okio.Path.Companion.toPath
 
 object TestHelper {
     fun getResourceAbsolutePath(resourceName: String): String {
-//        return "/Users/sabeeh/AndroidStudioProjects/ksoup/ksoup/src/commonTest/resources/$resourceName"
-        val rootPath =
-            if (Platform.current == PlatformType.IOS) {
-                "/Users/runner/work/ksoup/ksoup/ksoup"
-            } else {
-                "/home/runner/work/ksoup/ksoup/ksoup"
+        return "${BuildConfig.PROJECT_ROOT}/ksoup/src/commonTest/resources/$resourceName"
+        /*return when (Platform.current) {
+            PlatformType.JVM, PlatformType.ANDROID -> {
+                "src/commonTest/resources/$resourceName"
             }
-        return "$rootPath/src/commonTest/resources/$resourceName"
-//            return "../ksoup/src/commonTest/resources/$resourceName"
+
+            PlatformType.JS -> {
+                "../../../../ksoup/src/commonTest/resources/$resourceName"
+            }
+
+            PlatformType.IOS -> {
+                "/Users/runner/work/ksoup/ksoup/ksoup/src/commonTest/resources/$resourceName"
+            }
+
+            else -> "src/commonTest/resources/$resourceName"
+        }*/
     }
 
     fun getFileAsString(file: Path): String {

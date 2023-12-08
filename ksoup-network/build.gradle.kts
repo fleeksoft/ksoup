@@ -149,6 +149,7 @@ publishing {
                     developer {
                         name.set("Sabeeh Ul Hussnain")
                         email.set("fleeksoft@gmail.com")
+                        organization.set("Fleek Soft")
                     }
                 }
             }
