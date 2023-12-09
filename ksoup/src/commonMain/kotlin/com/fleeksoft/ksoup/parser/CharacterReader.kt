@@ -431,22 +431,14 @@ internal class CharacterReader {
         val start = pos
         val remaining = bufLength
         val value = charBuf
+
         OUTER@ while (pos < remaining) {
             when (value!![pos]) {
                 '&', TokeniserState.nullChar -> break@OUTER
-                '\'' -> {
-                    if (single) break@OUTER
-                    if (!single) break@OUTER
-                    pos++
-                }
-
-                '"' -> {
-                    if (!single) break@OUTER
-                    pos++
-                }
-
-                else -> pos++
+                '\'' -> if (single) break@OUTER
+                '"' -> if (!single) break@OUTER
             }
+            pos++
         }
         bufPos = pos
         return if (pos > start) cacheString(charBuf, stringCache, start, pos - start) else ""

@@ -38,7 +38,7 @@ internal class Range
      * @param start if this is the starting range. `false` for Element end tags.
      */
     fun track(node: Node, start: Boolean) {
-        node.attributes().putUserData(if (start) RangeKey else EndRangeKey, this)
+        node.attributes().userData(if (start) RangeKey else EndRangeKey, this)
     }
 
     override fun equals(other: Any?): Boolean {
@@ -101,12 +101,7 @@ internal class Range
             return columnNumber
         }
 
-        val isTracked: Boolean
-            /**
-             * Test if this position was tracked during parsing.
-             * @return true if this was tracked during parsing, false otherwise (and all fields will be `-1`).
-             */
-            get() = this !== UntrackedPos
+        fun isTracked(): Boolean = this !== UntrackedPos
 
         /**
          * Gets a String presentation of this Position, in the format `line,column:pos`.
@@ -150,7 +145,7 @@ internal class Range
                 Untracked
             } else {
                 Validate.ensureNotNull(
-                    node.attributes().getUserData(key),
+                    node.attributes().userData(key),
                 ) as Range
             }
         }

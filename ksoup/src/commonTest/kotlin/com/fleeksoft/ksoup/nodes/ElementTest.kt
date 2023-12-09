@@ -9,17 +9,7 @@ import com.fleeksoft.ksoup.select.Elements
 import com.fleeksoft.ksoup.select.NodeFilter
 import com.fleeksoft.ksoup.select.NodeVisitor
 import com.fleeksoft.ksoup.select.QueryParser
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertFalse
-import kotlin.test.assertNotEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertNotSame
-import kotlin.test.assertNull
-import kotlin.test.assertSame
-import kotlin.test.assertTrue
-import kotlin.test.fail
+import kotlin.test.*
 
 /**
  * Tests for Element (DOM stuff mostly).
@@ -182,6 +172,19 @@ class ElementTest {
         assertEquals("Hello  \n  there", doc.wholeText())
         doc = Ksoup.parse("<p>Hello  <div>\n  there</div></p>")
         assertEquals("Hello  \n  there", doc.wholeText())
+    }
+
+    @Test
+    fun wholeTextRuns() {
+        val doc: Document = Ksoup.parse("<div><p id=1></p><p id=2> </p><p id=3>.  </p>")
+
+        val p1 = doc.expectFirst("#1")
+        val p2 = doc.expectFirst("#2")
+        val p3 = doc.expectFirst("#3")
+
+        assertEquals("", p1.wholeText())
+        assertEquals(" ", p2.wholeText())
+        assertEquals(".  ", p3.wholeText())
     }
 
     @Test

@@ -4,11 +4,11 @@ import com.fleeksoft.ksoup.SerializationException
 import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.ported.*
-import com.fleeksoft.ksoup.ported.Cloneable
 import com.fleeksoft.ksoup.select.NodeFilter
 import com.fleeksoft.ksoup.select.NodeTraversor
 import com.fleeksoft.ksoup.select.NodeVisitor
 import okio.IOException
+import kotlin.reflect.KClass
 
 /**
  * The base, abstract Node model. Elements, Documents, Comments etc are all Node instances.
@@ -222,7 +222,8 @@ public abstract class Node protected constructor() : Cloneable<Node> {
     /**
      * Get a child node by its 0-based index.
      * @param index index of child node
-     * @return the child node at this index. Throws a `IndexOutOfBoundsException` if the index is out of bounds.
+     * @return the child node at this index.
+     * @throws IndexOutOfBoundsException if the index is out of bounds.
      */
     public fun childNode(index: Int): Node {
         return ensureChildNodes()[index]
@@ -571,7 +572,7 @@ public abstract class Node protected constructor() : Cloneable<Node> {
 
     /**
      * Get this node's next sibling.
-     * @return next sibling, or @{code null} if this is the last sibling
+     * @return next sibling, or {@code null} if this is the last sibling
      */
     public fun nextSibling(): Node? {
         if (_parentNode == null) return null // root
@@ -641,21 +642,45 @@ public abstract class Node protected constructor() : Cloneable<Node> {
      * @see Element.forEach
      */
     public open fun forEachNode(action: Consumer<in Node>): Node {
-        NodeTraversor.traverse(
+        nodeStream().forEach {
+            action.accept(it)
+        }
+        /*NodeTraversor.traverse(
             { node, depth -> action.accept(node) },
             this,
-        )
+        )*/
         return this
     }
 
     /**
-     * Perform a depth-first filtering through this node and its descendants.
+     * Perform a depth-first filtered traversal through this node and its descendants.
      * @param nodeFilter the filter callbacks to perform on each node
      * @return this node, for chaining
      */
     public open fun filter(nodeFilter: NodeFilter): Node {
         NodeTraversor.filter(nodeFilter, this)
         return this
+    }
+
+    /**
+     * Returns a Stream of this Node and all of its descendant Nodes. The stream has document order.
+     * @return a stream of all nodes.
+     * @see Element.stream
+     * @since 1.17.1
+     */
+    public fun nodeStream(): Sequence<Node> {
+        return NodeUtils.stream(this, Node::class)
+    }
+
+    /**
+     * Returns a Stream of this and descendant nodes, containing only nodes of the specified type. The stream has document
+     * order.
+     * @return a stream of nodes filtered by type.
+     * @see Element.stream
+     * @since 1.17.1
+     */
+    public fun <T : Node> nodeStream(type: KClass<T>): Sequence<T> {
+        return NodeUtils.stream(this, type)
     }
 
     /**

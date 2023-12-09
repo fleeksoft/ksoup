@@ -4,14 +4,7 @@ import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.internal.Normalizer.lowerCase
 import com.fleeksoft.ksoup.internal.Normalizer.normalize
 import com.fleeksoft.ksoup.internal.StringUtil.normaliseWhitespace
-import com.fleeksoft.ksoup.nodes.Comment
-import com.fleeksoft.ksoup.nodes.Document
-import com.fleeksoft.ksoup.nodes.DocumentType
-import com.fleeksoft.ksoup.nodes.Element
-import com.fleeksoft.ksoup.nodes.Node
-import com.fleeksoft.ksoup.nodes.PseudoTextElement
-import com.fleeksoft.ksoup.nodes.TextNode
-import com.fleeksoft.ksoup.nodes.XmlDeclaration
+import com.fleeksoft.ksoup.nodes.*
 import com.fleeksoft.ksoup.parser.ParseSettings
 import kotlin.jvm.JvmOverloads
 
@@ -19,6 +12,13 @@ import kotlin.jvm.JvmOverloads
  * Evaluates that an element matches the selector.
  */
 internal abstract class Evaluator protected constructor() {
+    /**
+     * Provides a Predicate for this Evaluator, matching the test Element.
+     * @param root the root Element, for match evaluation
+     * @return a predicate that accepts an Element to test for matches with this Evaluator
+     */
+    fun asPredicate(root: Element): (Element) -> Boolean = { element -> matches(root, element) }
+
     /**
      * Test if the element meets the evaluator's requirements.
      *

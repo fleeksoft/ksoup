@@ -14,14 +14,7 @@ import com.fleeksoft.ksoup.ported.AtomicBoolean
 import com.fleeksoft.ksoup.ported.Collections
 import com.fleeksoft.ksoup.ported.Consumer
 import com.fleeksoft.ksoup.ported.PatternSyntaxException
-import com.fleeksoft.ksoup.select.Collector
-import com.fleeksoft.ksoup.select.Elements
-import com.fleeksoft.ksoup.select.Evaluator
-import com.fleeksoft.ksoup.select.NodeFilter
-import com.fleeksoft.ksoup.select.NodeTraversor
-import com.fleeksoft.ksoup.select.NodeVisitor
-import com.fleeksoft.ksoup.select.QueryParser
-import com.fleeksoft.ksoup.select.Selector
+import com.fleeksoft.ksoup.select.*
 import okio.IOException
 import kotlin.jvm.JvmOverloads
 
@@ -369,6 +362,16 @@ public open class Element : Node {
     }
 
     /**
+     * Returns a Stream of this Element and all of its descendant Elements. The stream has document order.
+     * @return a stream of this element and its descendants.
+     * @see .nodeStream
+     * @since 1.17.1
+     */
+    public fun stream(): Sequence<Element> {
+        return NodeUtils.stream(this, Element::class)
+    }
+
+    /**
      * Get this element's child text nodes. The list is unmodifiable but the text nodes may be manipulated.
      *
      *
@@ -645,25 +648,19 @@ public open class Element : Node {
     }
 
     /**
-     * Create a new element by tag name, and add it as the last child.
+     * Create a new element by tag name and namespace, add it as this Element's last child.
      *
      * @param tagName the name of the tag (e.g. `div`).
-     * @return the new element, to allow you to add content to it, e.g.:
-     * `parent.appendElement("h1").attr("id", "header").text("Welcome");`
+     * @param namespace the namespace of the tag (e.g. [Parser.NamespaceHtml])
+     * @return the new element, in the specified namespace
      */
-    @JvmOverloads
     public fun appendElement(
         tagName: String,
         namespace: String = tag.namespace(),
     ): Element {
         val child =
             Element(
-                Tag.valueOf(
-                    tagName,
-                    namespace,
-                    NodeUtils.parser(this)
-                        .settings(),
-                ),
+                Tag.valueOf(tagName, namespace, NodeUtils.parser(this).settings()),
                 baseUri(),
             )
         appendChild(child)
@@ -671,11 +668,11 @@ public open class Element : Node {
     }
 
     /**
-     * Create a new element by tag name, and add it as the first child.
+     * Create a new element by tag name and namespace, and add it as this Element's first child.
      *
-     * @param tagName the name of the tag (e.g. `div`).
-     * @return the new element, to allow you to add content to it, e.g.:
-     * `parent.prependElement("h1").attr("id", "header").text("Welcome");`
+     * @param tagName the name of the tag (e.g. {@code div}).
+     * @param namespace the namespace of the tag (e.g. {@link Parser#NamespaceHtml})
+     * @return the new element, in the specified namespace
      */
     @JvmOverloads
     public fun prependElement(
@@ -684,12 +681,7 @@ public open class Element : Node {
     ): Element {
         val child =
             Element(
-                Tag.valueOf(
-                    tagName,
-                    namespace,
-                    NodeUtils.parser(this)
-                        .settings(),
-                ),
+                Tag.valueOf(tagName, namespace, NodeUtils.parser(this).settings()),
                 baseUri(),
             )
         prependChild(child)
@@ -1361,15 +1353,12 @@ public open class Element : Node {
      */
     public fun wholeText(): String {
         val accum: StringBuilder = StringUtil.borrowBuilder()
-        NodeTraversor.traverse(
-            { node, depth -> appendWholeText(node, accum) },
-            this,
-        )
+        nodeStream().forEach { node -> appendWholeText(node, accum) }
         return StringUtil.releaseBuilder(accum)
     }
 
     /**
-     * Get the non-normalized, decoded text of this element, **not including** any child elements, including only any
+     * Get the non-normalized, decoded text of this element, <b>not including</b> any child elements, including any
      * newlines and spaces present in the original source.
      * @return decoded, non-normalized text that is a direct child of this Element
      * @see .text
@@ -1809,11 +1798,12 @@ public open class Element : Node {
      * @return this Element, for chaining
      * @see Node.forEachNode
      */
-    public fun forEach(action: Consumer<in Element?>): Element {
-        NodeTraversor.traverse(
+    public fun forEach(action: Consumer<in Element>): Element {
+        stream().forEach { node -> action.accept(node) }
+        /*NodeTraversor.traverse(
             { node, depth -> if (node is Element) action.accept(node) },
             this,
-        )
+        )*/
         return this
     }
 

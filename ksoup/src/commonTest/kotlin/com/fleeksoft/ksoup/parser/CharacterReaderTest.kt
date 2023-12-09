@@ -264,7 +264,7 @@ class CharacterReaderTest {
     @Test
     fun containsIgnoreCaseBuffer() {
         val html =
-            "<p><p><p></title><p></TITLE><p>" + BufferBuster("Foo Bar Qux ") + "<foo><bar></title>"
+            "<p><p><p></title><p></TITLE><p>" + bufferBuster("Foo Bar Qux ") + "<foo><bar></title>"
         val r = CharacterReader(html)
         assertTrue(r.containsIgnoreCase("</title>"))
         assertFalse(r.containsIgnoreCase("</not>"))
@@ -521,10 +521,42 @@ class CharacterReaderTest {
         assertEquals(14, reader.columnNumber())
     }
 
+    @Test
+    fun consumeDoubleQuotedAttributeConsumesThruSingleQuote() {
+        val html = "He'llo\" >"
+        val r = CharacterReader(html)
+        assertEquals("He'llo", r.consumeAttributeQuoted(false))
+        assertEquals('"', r.consume())
+    }
+
+    @Test
+    fun consumeSingleQuotedAttributeConsumesThruDoubleQuote() {
+        val html = "He\"llo' >"
+        val r = CharacterReader(html)
+        assertEquals("He\"llo", r.consumeAttributeQuoted(true))
+        assertEquals('\'', r.consume())
+    }
+
+    @Test
+    fun consumeDoubleQuotedAttributeConsumesThruSingleQuoteToAmp() {
+        val html = "He'llo &copy;\" >"
+        val r = CharacterReader(html)
+        assertEquals("He'llo ", r.consumeAttributeQuoted(false))
+        assertEquals('&', r.consume())
+    }
+
+    @Test
+    fun consumeSingleQuotedAttributeConsumesThruDoubleQuoteToAmp() {
+        val html = "He\"llo &copy;' >"
+        val r = CharacterReader(html)
+        assertEquals("He\"llo ", r.consumeAttributeQuoted(true))
+        assertEquals('&', r.consume())
+    }
+
     companion object {
         const val maxBufferLen = CharacterReader.maxBufferLen
 
-        fun BufferBuster(content: String): String {
+        fun bufferBuster(content: String): String {
             val builder = StringBuilder()
             while (builder.length < maxBufferLen) builder.append(content)
             return builder.toString()

@@ -1,9 +1,6 @@
 package com.fleeksoft.ksoup.select
 
 import com.fleeksoft.ksoup.nodes.Element
-import com.fleeksoft.ksoup.nodes.Node
-import com.fleeksoft.ksoup.select.NodeFilter.FilterResult.CONTINUE
-import com.fleeksoft.ksoup.select.NodeFilter.FilterResult.STOP
 
 /**
  * Collects a list of elements that match the supplied criteria.
@@ -22,17 +19,7 @@ internal object Collector {
         root: Element,
     ): Elements {
         eval.reset()
-        val elements = Elements()
-        NodeTraversor.traverse(
-            { node, depth ->
-                if (node is Element) {
-                    val el: Element = node
-                    if (eval.matches(root, el)) elements.add(el)
-                }
-            },
-            root,
-        )
-        return elements
+        return root.stream().filter(eval.asPredicate(root)).toMutableList() as Elements
     }
 
     /**
@@ -48,42 +35,6 @@ internal object Collector {
         root: Element,
     ): Element? {
         eval.reset()
-        val finder = FirstFinder(eval)
-        return finder.find(root, root)
-    }
-
-    internal class FirstFinder(eval: Evaluator) : NodeFilter {
-        private var evalRoot: Element? = null
-
-        private var match: Element? = null
-        private val eval: Evaluator
-
-        init {
-            this.eval = eval
-        }
-
-        fun find(
-            root: Element?,
-            start: Element,
-        ): Element? {
-            evalRoot = root
-            match = null
-            NodeTraversor.filter(this, start)
-            return match
-        }
-
-        override fun head(
-            node: Node,
-            depth: Int,
-        ): NodeFilter.FilterResult {
-            if (node is Element) {
-                val el: Element = node
-                if (eval.matches(evalRoot!!, el)) {
-                    match = el
-                    return STOP
-                }
-            }
-            return CONTINUE
-        }
+        return root.stream().firstOrNull(eval.asPredicate(root))
     }
 }

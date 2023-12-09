@@ -2,6 +2,7 @@ package com.fleeksoft.ksoup.nodes
 
 import com.fleeksoft.ksoup.parser.HtmlTreeBuilder
 import com.fleeksoft.ksoup.parser.Parser
+import kotlin.reflect.KClass
 
 /**
  * Internal helpers for Nodes, to keep the actual node APIs relatively clean. A com.fleeksoft.ksoup internal class, so don't use it as
@@ -23,5 +24,14 @@ internal object NodeUtils {
     fun parser(node: Node): Parser {
         val doc: Document? = node.ownerDocument()
         return doc?.parser() ?: Parser(HtmlTreeBuilder())
+    }
+
+    /** Creates a Stream, starting with the supplied node.  */
+    fun <T : Node> stream(
+        start: Node,
+        type: KClass<T>,
+    ): Sequence<T> {
+        val iterator: NodeIterator<T> = NodeIterator(start, type)
+        return iterator.asSequence()
     }
 }
