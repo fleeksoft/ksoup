@@ -171,7 +171,7 @@ internal abstract class Token private constructor() {
 
         /** Preserves case  */
         fun name(): String { // preserves case, for input into Tag.valueOf (which may drop case)
-            Validate.isFalse(tagName == null || tagName!!.length == 0)
+            Validate.isFalse(tagName == null || tagName!!.isEmpty())
             return tagName ?: ""
         }
 
@@ -220,7 +220,7 @@ internal abstract class Token private constructor() {
 
         fun appendAttributeValue(append: String?) {
             ensureAttrValue()
-            if (attrValue.length == 0) {
+            if (attrValue.isEmpty()) {
                 attrValueS = append
             } else {
                 attrValue.append(append)
@@ -336,7 +336,7 @@ internal abstract class Token private constructor() {
 
         fun append(append: String?): Comment {
             ensureData()
-            if (data.length == 0) {
+            if (data.isEmpty()) {
                 dataS = append
             } else {
                 data.append(append)

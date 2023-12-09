@@ -15,14 +15,14 @@ internal class Tokeniser(private val reader: CharacterReader, private val errors
     private var isEmitPending = false
     private var charsString: String? = null
     private val charsBuilder = StringBuilder(1024)
-    var dataBuffer = StringBuilder(1024)
+    val dataBuffer = StringBuilder(1024)
 
-    private var startPending = Token.StartTag()
-    private var endPending = Token.EndTag()
+    private val startPending = Token.StartTag()
+    private val endPending = Token.EndTag()
     var tagPending: Token.Tag = startPending
-    private var charPending = Token.Character()
-    var doctypePending = Token.Doctype()
-    var commentPending = Token.Comment()
+    private val charPending = Token.Character()
+    val doctypePending = Token.Doctype()
+    val commentPending = Token.Comment()
     private var lastStartTag: String? = null
     private var lastStartCloseSeq: String? = null
     private var markupStartPos = Unset
@@ -313,13 +313,6 @@ internal class Tokeniser(private val reader: CharacterReader, private val errors
         if (errors.canAddError()) errors.add(ParseError(reader, errorMsg))
     }
 
-    fun currentNodeInHtmlNS(): Boolean {
-        // todo: implement namespaces correctly
-        return true
-        // Element currentNode = currentNode();
-        // return currentNode != null && currentNode.namespace().equals("HTML");
-    }
-
     /**
      * Utility method to consume reader and unescape entities found within.
      * @param inAttribute if the text to be unescaped is in an attribute
@@ -362,5 +355,12 @@ internal class Tokeniser(private val reader: CharacterReader, private val errors
             )
 
         private const val Unset = -1
+
+        fun currentNodeInHtmlNS(): Boolean {
+            // todo: implement namespaces correctly
+            return true
+            // Element currentNode = currentNode();
+            // return currentNode != null && currentNode.namespace().equals("HTML");
+        }
     }
 }

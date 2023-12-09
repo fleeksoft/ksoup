@@ -6,7 +6,6 @@ import com.fleeksoft.ksoup.internal.Normalizer.normalize
 import com.fleeksoft.ksoup.internal.StringUtil.normaliseWhitespace
 import com.fleeksoft.ksoup.nodes.*
 import com.fleeksoft.ksoup.parser.ParseSettings
-import kotlin.jvm.JvmOverloads
 
 /**
  * Evaluates that an element matches the selector.
@@ -175,7 +174,7 @@ internal abstract class Evaluator protected constructor() {
     /**
      * Evaluator for attribute name/value matching
      */
-    class AttributeWithValue(key: String?, value: String) : AttributeKeyPair(key, value) {
+    class AttributeWithValue(key: String, value: String) : AttributeKeyPair(key, value) {
         override fun matches(
             root: Element,
             element: Element,
@@ -236,7 +235,7 @@ internal abstract class Evaluator protected constructor() {
     /**
      * Evaluator for attribute name/value matching (value ending)
      */
-    class AttributeWithValueEnding(key: String?, value: String) :
+    class AttributeWithValueEnding(key: String, value: String) :
         AttributeKeyPair(key, value, false) {
         override fun matches(
             root: Element,
@@ -306,31 +305,29 @@ internal abstract class Evaluator protected constructor() {
     /**
      * Abstract evaluator for attribute name/value matching
      */
-    abstract class AttributeKeyPair
-        @JvmOverloads
-        constructor(
-            key: String?,
-            value: String,
-            trimValue: Boolean = true,
-        ) : Evaluator() {
-            var key: String
-            var value: String
+    abstract class AttributeKeyPair(
+        key: String,
+        value: String,
+        trimValue: Boolean = true,
+    ) : Evaluator() {
+        var key: String
+        var value: String
 
-            init {
-                var resultValue = value
-                Validate.notEmpty(key)
-                Validate.notEmpty(resultValue)
-                this.key = normalize(key)
-                val isStringLiteral = (
-                    resultValue.startsWith("'") && resultValue.endsWith("'") ||
-                        resultValue.startsWith("\"") && resultValue.endsWith("\"")
-                )
-                if (isStringLiteral) {
-                    resultValue = resultValue.substring(1, resultValue.length - 1)
-                }
-                this.value = if (trimValue) normalize(resultValue) else normalize(resultValue, isStringLiteral)
+        init {
+            var resultValue = value
+            Validate.notEmpty(key)
+            Validate.notEmpty(resultValue)
+            this.key = normalize(key)
+            val isStringLiteral = (
+                resultValue.startsWith("'") && resultValue.endsWith("'") ||
+                    resultValue.startsWith("\"") && resultValue.endsWith("\"")
+            )
+            if (isStringLiteral) {
+                resultValue = resultValue.substring(1, resultValue.length - 1)
             }
+            this.value = if (trimValue) normalize(resultValue) else normalize(resultValue, isStringLiteral)
         }
+    }
 
     /**
      * Evaluator for any / all element matching

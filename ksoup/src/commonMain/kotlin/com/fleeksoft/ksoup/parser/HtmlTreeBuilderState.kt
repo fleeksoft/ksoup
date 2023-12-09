@@ -389,12 +389,12 @@ internal enum class HtmlTreeBuilderState {
                     stack = tb.stack
                     var i: Int = stack.size - 1
                     while (i > 0) {
-                        el = stack[i]
-                        if (el?.normalName() == "li") {
+                        el = stack[i]!!
+                        if (el.normalName() == "li") {
                             tb.processEndTag("li")
                             break
                         }
-                        if (tb.isSpecial(el!!) &&
+                        if (HtmlTreeBuilder.isSpecial(el) &&
                             !inSorted(
                                 el.normalName(),
                                 Constants.InBodyStartLiBreakers,
@@ -681,7 +681,7 @@ internal enum class HtmlTreeBuilderState {
                             tb.processEndTag(el.normalName())
                             break
                         }
-                        if (tb.isSpecial(el) &&
+                        if (HtmlTreeBuilder.isSpecial(el) &&
                             !inSorted(
                                 el.normalName(),
                                 Constants.InBodyStartLiBreakers,
@@ -920,7 +920,7 @@ internal enum class HtmlTreeBuilderState {
                     tb.popStackToClose(name)
                     break
                 } else {
-                    if (tb.isSpecial(node)) {
+                    if (HtmlTreeBuilder.isSpecial(node)) {
                         tb.error(this)
                         return false
                     }
@@ -967,7 +967,7 @@ internal enum class HtmlTreeBuilderState {
                         seenFormattingElement = true
                         // Let a bookmark note the position of the formatting element in the list of active formatting elements relative to the elements on either side of it in the list.
                         bookmark = tb.positionOfElement(el)
-                    } else if (seenFormattingElement && tb.isSpecial(el)) {
+                    } else if (seenFormattingElement && HtmlTreeBuilder.isSpecial(el)) {
                         furthestBlock = el
                         break
                     }

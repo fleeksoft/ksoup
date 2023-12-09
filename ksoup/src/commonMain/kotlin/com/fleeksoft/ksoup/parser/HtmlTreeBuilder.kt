@@ -191,43 +191,6 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
         // If the token is an end-of-file token
     }
 
-    fun isMathmlTextIntegration(el: Element): Boolean {
-        /*
-        A node is a MathML text integration point if it is one of the following elements:
-        A MathML mi element
-        A MathML mo element
-        A MathML mn element
-        A MathML ms element
-        A MathML mtext element
-         */
-        return (
-            Parser.NamespaceMathml == el.tag().namespace() &&
-                StringUtil.inSorted(el.normalName(), TagMathMlTextIntegration)
-        )
-    }
-
-    fun isHtmlIntegration(el: Element): Boolean {
-        /*
-        A node is an HTML integration point if it is one of the following elements:
-        A MathML annotation-xml element whose start tag token had an attribute with the name "encoding" whose value was an ASCII case-insensitive match for the string "text/html"
-        A MathML annotation-xml element whose start tag token had an attribute with the name "encoding" whose value was an ASCII case-insensitive match for the string "application/xhtml+xml"
-        An SVG foreignObject element
-        An SVG desc element
-        An SVG title element
-         */
-        if (Parser.NamespaceMathml == el.tag().namespace() &&
-            el.normalName() == "annotation-xml"
-        ) {
-            val encoding: String = Normalizer.normalize(el.attr("encoding"))
-            if (encoding == "text/html" || encoding == "application/xhtml+xml") return true
-        }
-        return Parser.NamespaceSvg == el.tag().namespace() &&
-            StringUtil.isIn(
-                el.tagName(),
-                *TagSvgHtmlIntegration,
-            )
-    }
-
     fun process(
         token: Token,
         state: HtmlTreeBuilderState,
@@ -608,16 +571,6 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
         replaceInQueue(stack, out, `in`)
     }
 
-    private fun replaceInQueue(
-        queue: ArrayList<Element?>,
-        out: Element,
-        inEl: Element,
-    ) {
-        val i: Int = queue.lastIndexOf(out)
-        Validate.isTrue(i != -1)
-        queue[i] = inEl
-    }
-
     /**
      * Reset the insertion mode, by searching up the stack for an appropriate insertion mode. The stack search depth
      * is limited to [.maxQueueDepth].
@@ -882,13 +835,6 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
         popStackToClose(name)
     }
 
-    fun isSpecial(el: Element): Boolean {
-        // todo: mathml's mi, mo, mn
-        // todo: svg's foreigObject, desc, title
-        val name: String = el.normalName()
-        return StringUtil.inSorted(name, TagSearchSpecial)
-    }
-
     fun lastFormattingElement(): Element? {
         return if ((formattingElements?.size ?: 0) > 0) {
             formattingElements!![formattingElements!!.size - 1]
@@ -941,16 +887,6 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
                 break
             }
         }
-    }
-
-    private fun isSameFormattingElement(
-        a: Element,
-        b: Element,
-    ): Boolean {
-        // same if: same namespace, tag, and attributes. Element.equals only checks tag, might in future check children
-        return a.normalName() == b.normalName() && // a.namespace().equals(b.namespace()) &&
-            a.attributes() == b.attributes()
-        // todo: namespaces
     }
 
     fun reconstructFormattingElements() {
@@ -1099,7 +1035,8 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
 
     companion object {
         // tag searches. must be sorted, used in inSorted. HtmlTreeBuilderTest validates they're sorted.
-        val TagsSearchInScope: Array<String> = arrayOf<String>("applet", "caption", "html", "marquee", "object", "table", "td", "th")
+        val TagsSearchInScope: Array<String> =
+            arrayOf<String>("applet", "caption", "html", "marquee", "object", "table", "td", "th")
         val TagSearchList = arrayOf<String>("ol", "ul")
         val TagSearchButton = arrayOf<String>("button")
         val TagSearchTableScope = arrayOf<String>("html", "table")
@@ -1231,5 +1168,69 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
         }
 
         private const val maxUsedFormattingElements = 12 // limit how many elements get recreated
+
+        fun isMathmlTextIntegration(el: Element): Boolean {
+            /*
+            A node is a MathML text integration point if it is one of the following elements:
+            A MathML mi element
+            A MathML mo element
+            A MathML mn element
+            A MathML ms element
+            A MathML mtext element
+             */
+            return (
+                Parser.NamespaceMathml == el.tag().namespace() &&
+                    StringUtil.inSorted(el.normalName(), TagMathMlTextIntegration)
+            )
+        }
+
+        fun isHtmlIntegration(el: Element): Boolean {
+            /*
+            A node is an HTML integration point if it is one of the following elements:
+            A MathML annotation-xml element whose start tag token had an attribute with the name "encoding" whose value was an ASCII case-insensitive match for the string "text/html"
+            A MathML annotation-xml element whose start tag token had an attribute with the name "encoding" whose value was an ASCII case-insensitive match for the string "application/xhtml+xml"
+            An SVG foreignObject element
+            An SVG desc element
+            An SVG title element
+             */
+            if (Parser.NamespaceMathml == el.tag().namespace() &&
+                el.normalName() == "annotation-xml"
+            ) {
+                val encoding: String = Normalizer.normalize(el.attr("encoding"))
+                if (encoding == "text/html" || encoding == "application/xhtml+xml") return true
+            }
+            return Parser.NamespaceSvg == el.tag().namespace() &&
+                StringUtil.isIn(
+                    el.tagName(),
+                    *TagSvgHtmlIntegration,
+                )
+        }
+
+        private fun replaceInQueue(
+            queue: ArrayList<Element?>,
+            out: Element,
+            inEl: Element,
+        ) {
+            val i: Int = queue.lastIndexOf(out)
+            Validate.isTrue(i != -1)
+            queue[i] = inEl
+        }
+
+        fun isSpecial(el: Element): Boolean {
+            // todo: mathml's mi, mo, mn
+            // todo: svg's foreigObject, desc, title
+            val name: String = el.normalName()
+            return StringUtil.inSorted(name, TagSearchSpecial)
+        }
+
+        private fun isSameFormattingElement(
+            a: Element,
+            b: Element,
+        ): Boolean {
+            // same if: same namespace, tag, and attributes. Element.equals only checks tag, might in future check children
+            return a.normalName() == b.normalName() && // a.namespace().equals(b.namespace()) &&
+                a.attributes() == b.attributes()
+            // todo: namespaces
+        }
     }
 }
