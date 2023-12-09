@@ -19,7 +19,7 @@ internal object Collector {
         root: Element,
     ): Elements {
         eval.reset()
-        return root.stream().filter(eval.asPredicate(root)).toMutableList() as Elements
+        return Elements(root.stream().filter(eval.asPredicate(root)).toList())
     }
 
     /**
