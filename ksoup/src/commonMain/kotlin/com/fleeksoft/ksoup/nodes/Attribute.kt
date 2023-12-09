@@ -4,13 +4,13 @@ import com.fleeksoft.ksoup.SerializationException
 import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.nodes.Document.OutputSettings.Syntax
-import com.fleeksoft.ksoup.ported.Cloneable
+import com.fleeksoft.ksoup.ported.KCloneable
 import okio.IOException
 
 /**
  * A single key + value attribute. (Only used for presentation.)
  */
-public open class Attribute : Map.Entry<String, String?>, Cloneable<Attribute> {
+public open class Attribute : Map.Entry<String, String?>, KCloneable<Attribute> {
     private var attributeKey: String
 
     private var attributeValue: String?

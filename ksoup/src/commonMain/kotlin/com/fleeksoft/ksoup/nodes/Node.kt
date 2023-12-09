@@ -19,7 +19,7 @@ import kotlin.reflect.KClass
 /**
  * Default constructor. Doesn't set up base uri, children, or attributes; use with caution.
  */
-public abstract class Node protected constructor() : Cloneable<Node> {
+public abstract class Node protected constructor() : KCloneable<Node> {
     internal var _parentNode: Node? = null // Nodes don't always have parents
     internal var siblingIndex = 0
 

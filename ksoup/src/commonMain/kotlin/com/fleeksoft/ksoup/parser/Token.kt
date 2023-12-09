@@ -2,7 +2,7 @@ package com.fleeksoft.ksoup.parser
 
 import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.nodes.Attributes
-import com.fleeksoft.ksoup.ported.Cloneable
+import com.fleeksoft.ksoup.ported.KCloneable
 import de.cketti.codepoints.appendCodePoint
 
 /**
@@ -363,7 +363,7 @@ internal abstract class Token private constructor() {
         }
     }
 
-    open class Character : Token(), Cloneable<Character> {
+    open class Character : Token(), KCloneable<Character> {
         var data: String? = null
             private set
 

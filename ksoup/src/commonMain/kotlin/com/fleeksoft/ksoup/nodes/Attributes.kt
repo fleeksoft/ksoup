@@ -5,8 +5,8 @@ import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.internal.Normalizer.lowerCase
 import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.parser.ParseSettings
-import com.fleeksoft.ksoup.ported.Cloneable
 import com.fleeksoft.ksoup.ported.Collections
+import com.fleeksoft.ksoup.ported.KCloneable
 import okio.IOException
 
 /**
@@ -24,7 +24,7 @@ import okio.IOException
  *
  * @author Sabeeh, fleeksoft@gmail.com
  */
-public class Attributes : Iterable<Attribute>, Cloneable<Attributes> {
+public class Attributes : Iterable<Attribute>, KCloneable<Attributes> {
     // the number of instance fields is kept as low as possible giving an object size of 24 bytes
     private var size = 0 // number of slots used (not total capacity, which is keys.length)
     internal var keys: Array<String?> = arrayOfNulls(InitialCapacity)
