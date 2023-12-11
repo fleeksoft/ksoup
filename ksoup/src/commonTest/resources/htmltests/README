@@ -1,5 +1,5 @@
 Note
-====
+===
 
 The HTML files in this directory (htmltests) are intended to be used for testing the Jsoup parser and improving its
 interoperability with real world published HTML. These files are not distributed in the core Jsoup library.
@@ -10,7 +10,7 @@ If you are the copyright holder and do not wish your works to be used in this ma
 (fleeksoft@gmail.com) and your works will be removed from this test-suite.
 
 Sources
-========
+======
 
 * yahoo-article-1.html    http://news.yahoo.com/s/nm/20100831/bs_nm/us_gm_china 1-Sep-2010
 * smh-biz-article-1.html  http://www.smh.com.au/business/the-boards-next-fear-the-female-quota-20100106-lteq.html

@@ -20,11 +20,14 @@ internal open class XmlTreeBuilder : TreeBuilder() {
 
     override fun initialiseParse(
         input: BufferReader,
-        baseUri: String?,
+        baseUri: String,
         parser: Parser,
     ) {
         super.initialiseParse(input, baseUri, parser)
-        stack.add(doc) // place the document onto the stack. differs from HtmlTreeBuilder (not on stack)
+
+        // place the document onto the stack. differs from HtmlTreeBuilder (not on stack). Note not push()ed, so not onNodeInserted.
+        stack.add(doc)
+
         doc.outputSettings()
             .syntax(Document.OutputSettings.Syntax.xml)
             .escapeMode(Entities.EscapeMode.xhtml)
@@ -33,16 +36,16 @@ internal open class XmlTreeBuilder : TreeBuilder() {
 
     fun parse(
         input: BufferReader,
-        baseUri: String?,
+        baseUri: String? = null,
     ): Document {
-        return parse(input, baseUri, Parser(this))
+        return parse(input, baseUri ?: "", Parser(this))
     }
 
     fun parse(
         input: String,
-        baseUri: String?,
+        baseUri: String? = null,
     ): Document {
-        return parse(BufferReader(input), baseUri, Parser(this))
+        return parse(BufferReader(input), baseUri ?: "", Parser(this))
     }
 
     override fun newInstance(): XmlTreeBuilder {
@@ -54,72 +57,81 @@ internal open class XmlTreeBuilder : TreeBuilder() {
     }
 
     override fun process(token: Token): Boolean {
-        // start tag, end tag, doctype, comment, character, eof
+        currentToken = token
+
         when (token.type) {
-            Token.TokenType.StartTag -> insert(token.asStartTag())
+            Token.TokenType.StartTag -> insertElementFor(token.asStartTag())
             Token.TokenType.EndTag -> popStackToClose(token.asEndTag())
-            Token.TokenType.Comment -> insert(token.asComment())
-            Token.TokenType.Character -> insert(token.asCharacter())
-            Token.TokenType.Doctype -> insert(token.asDoctype())
+            Token.TokenType.Comment -> insertCommentFor(token.asComment())
+            Token.TokenType.Character -> insertCharacterFor(token.asCharacter())
+            Token.TokenType.Doctype -> insertDoctypeFor(token.asDoctype())
             Token.TokenType.EOF -> {}
             else -> Validate.fail("Unexpected token type: " + token.type)
         }
         return true
     }
 
-    protected fun insertNode(node: Node) {
-        currentElement().appendChild(node)
-        onNodeInserted(node, null)
-    }
+    fun insertElementFor(startTag: Token.StartTag) {
+        val tag = tagFor(startTag.name(), settings)
+        if (startTag.attributes != null) startTag.attributes!!.deduplicate(settings!!)
 
-    private fun insertNode(
-        node: Node,
-        token: Token?,
-    ) {
-        currentElement().appendChild(node)
-        onNodeInserted(node, token)
-    }
-
-    fun insert(startTag: Token.StartTag): Element {
-        val tag: Tag = tagFor(startTag.name(), settings)
-        if (startTag.hasAttributes()) startTag.attributes!!.deduplicate(settings!!)
         val el = Element(tag, null, settings!!.normalizeAttributes(startTag.attributes))
-        insertNode(el, startTag)
+        currentElement().appendChild(el)
+        push(el)
+
         if (startTag.isSelfClosing) {
             tag.setSelfClosing()
-        } else {
-            stack.add(el)
+            pop() // push & pop ensures onNodeInserted & onNodeClosed
         }
-        return el
     }
 
-    fun insert(commentToken: Token.Comment) {
+    fun insertLeafNode(node: LeafNode?) {
+        currentElement().appendChild(node!!)
+        onNodeInserted(node)
+    }
+
+    fun insertCommentFor(commentToken: Token.Comment) {
         val comment = Comment(commentToken.getData())
-        var insert: Node = comment
+        var insert: LeafNode? = comment
         if (commentToken.bogus && comment.isXmlDeclaration()) {
             // xml declarations are emitted as bogus comments (which is right for html, but not xml)
             // so we do a bit of a hack and parse the data as an element to pull the attributes out
-            // else, we couldn't parse it as a decl, so leave as a comment
-            val decl: XmlDeclaration? = comment.asXmlDeclaration()
+            // todo - refactor this to parse more appropriately
+            val decl = comment.asXmlDeclaration() // else, we couldn't parse it as a decl, so leave as a comment
             if (decl != null) insert = decl
         }
-        insertNode(insert, commentToken)
+        insertLeafNode(insert)
     }
 
-    fun insert(token: Token.Character) {
-        val data: String = token.data ?: ""
-        insertNode(if (token.isCData()) CDataNode(data) else TextNode(data), token)
+    fun insertCharacterFor(token: Token.Character) {
+        val data: String = token.data!!
+        insertLeafNode(if (token.isCData()) CDataNode(data) else TextNode(data))
     }
 
-    fun insert(d: Token.Doctype) {
+    fun insertDoctypeFor(token: Token.Doctype) {
         val doctypeNode =
             DocumentType(
-                settings!!.normalizeTag(d.getName()),
-                d.getPublicIdentifier(),
-                d.getSystemIdentifier(),
+                settings!!.normalizeTag(token.getName()),
+                token.getPublicIdentifier(),
+                token.getSystemIdentifier(),
             )
-        doctypeNode.setPubSysKey(d.pubSysKey)
-        insertNode(doctypeNode, d)
+        doctypeNode.setPubSysKey(token.pubSysKey)
+        insertLeafNode(doctypeNode)
+    }
+
+    @Deprecated("unused and will be removed. ")
+    protected fun insertNode(node: Node?) {
+        currentElement().appendChild(node!!)
+        onNodeInserted(node)
+    }
+
+    @Deprecated("unused and will be removed. ")
+    protected fun insertNode(
+        node: Node?,
+        token: Token?,
+    ) {
+        currentElement().appendChild(node!!)
+        onNodeInserted(node)
     }
 
     /**
@@ -130,23 +142,25 @@ internal open class XmlTreeBuilder : TreeBuilder() {
      */
     protected fun popStackToClose(endTag: Token.EndTag) {
         // like in HtmlTreeBuilder - don't scan up forever for very (artificially) deeply nested stacks
-        val elName: String = settings!!.normalizeTag(endTag.tagName!!)
+        val elName = settings!!.normalizeTag(endTag.tagName!!)
         var firstFound: Element? = null
+
         val bottom: Int = stack.size - 1
-        val upper = if (bottom >= maxQueueDepth) bottom - maxQueueDepth else 0
+        val upper =
+            if (bottom >= XmlTreeBuilder.maxQueueDepth) bottom - XmlTreeBuilder.maxQueueDepth else 0
+
         for (pos in stack.size - 1 downTo upper) {
-            val next: Element? = stack[pos]
-            if (next?.nodeName() == elName) {
+            val next = stack[pos]!!
+            if (next.nodeName() == elName) {
                 firstFound = next
                 break
             }
         }
         if (firstFound == null) return // not found, skip
+
         for (pos in stack.size - 1 downTo 0) {
-            val next: Element? = stack[pos]
-            stack.removeAt(pos)
+            val next = pop()
             if (next === firstFound) {
-                onNodeClosed(next, endTag)
                 break
             }
         }
@@ -166,13 +180,12 @@ internal open class XmlTreeBuilder : TreeBuilder() {
         baseUri: String?,
         parser: Parser,
     ): List<Node> {
-        initialiseParse(BufferReader(inputFragment), baseUri, parser)
+        initialiseParse(BufferReader(inputFragment), baseUri ?: "", parser)
         runParser()
         return doc.childNodes()
     }
 
     companion object {
-        private const val maxQueueDepth =
-            256 // an arbitrary tension point between real XML and crafted pain
+        private const val maxQueueDepth = 256 // an arbitrary tension point between real XML and crafted pain
     }
 }

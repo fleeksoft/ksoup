@@ -664,8 +664,7 @@ internal enum class TokeniserState {
             t: Tokeniser,
             r: CharacterReader,
         ) {
-            val c: Char = r.consume()
-            when (c) {
+            when (val c: Char = r.consume()) {
                 '\t', '\n', '\r', '\u000c', ' ' -> {}
                 '/' -> t.transition(SelfClosingStartTag)
                 '<' -> {
@@ -695,7 +694,7 @@ internal enum class TokeniserState {
                 '"', '\'', '=' -> {
                     t.error(this)
                     t.tagPending.newAttribute()
-                    t.tagPending.appendAttributeName(c)
+                    t.tagPending.appendAttributeName(c, r.pos() - 1, r.pos())
                     t.transition(AttributeName)
                 }
 
@@ -713,11 +712,13 @@ internal enum class TokeniserState {
             t: Tokeniser,
             r: CharacterReader,
         ) {
-            val name: String =
-                r.consumeToAnySorted(*attributeNameCharsSorted) // spec deviate - consume and emit nulls in one hit vs stepping
-            t.tagPending.appendAttributeName(name)
-            val c: Char = r.consume()
-            when (c) {
+            var pos = r.pos()
+            // spec deviate - consume and emit nulls in one hit vs stepping
+            val name: String = r.consumeToAnySorted(*attributeNameCharsSorted)
+            t.tagPending.appendAttributeName(name, pos, r.pos())
+
+            pos = r.pos()
+            when (val c: Char = r.consume()) {
                 '\t', '\n', '\r', '\u000c', ' ' -> t.transition(AfterAttributeName)
                 '/' -> t.transition(SelfClosingStartTag)
                 '=' -> t.transition(BeforeAttributeValue)
@@ -733,10 +734,10 @@ internal enum class TokeniserState {
 
                 '"', '\'', '<' -> {
                     t.error(this)
-                    t.tagPending.appendAttributeName(c)
+                    t.tagPending.appendAttributeName(c, pos, r.pos())
                 }
 
-                else -> t.tagPending.appendAttributeName(c)
+                else -> t.tagPending.appendAttributeName(c, pos, r.pos())
             }
         }
     },
@@ -757,7 +758,7 @@ internal enum class TokeniserState {
 
                 nullChar -> {
                     t.error(this)
-                    t.tagPending.appendAttributeName(replacementChar)
+                    t.tagPending.appendAttributeName(TokeniserState.replacementChar, r.pos() - 1, r.pos())
                     t.transition(AttributeName)
                 }
 
@@ -769,7 +770,7 @@ internal enum class TokeniserState {
                 '"', '\'', '<' -> {
                     t.error(this)
                     t.tagPending.newAttribute()
-                    t.tagPending.appendAttributeName(c)
+                    t.tagPending.appendAttributeName(c, r.pos() - 1, r.pos())
                     t.transition(AttributeName)
                 }
 
@@ -798,7 +799,7 @@ internal enum class TokeniserState {
                 '\'' -> t.transition(AttributeValue_singleQuoted)
                 nullChar -> {
                     t.error(this)
-                    t.tagPending.appendAttributeValue(replacementChar)
+                    t.tagPending.appendAttributeValue(TokeniserState.replacementChar, r.pos() - 1, r.pos())
                     t.transition(AttributeValue_unquoted)
                 }
 
@@ -816,7 +817,7 @@ internal enum class TokeniserState {
 
                 '<', '=', '`' -> {
                     t.error(this)
-                    t.tagPending.appendAttributeValue(c)
+                    t.tagPending.appendAttributeValue(c, r.pos() - 1, r.pos())
                     t.transition(AttributeValue_unquoted)
                 }
 
@@ -832,25 +833,28 @@ internal enum class TokeniserState {
             t: Tokeniser,
             r: CharacterReader,
         ) {
+            var pos = r.pos()
             val value: String = r.consumeAttributeQuoted(false)
-            if (value.isNotEmpty()) t.tagPending.appendAttributeValue(value) else t.tagPending.setEmptyAttributeValue()
-            val c: Char = r.consume()
-            when (c) {
+            if (value.isNotEmpty()) {
+                t.tagPending.appendAttributeValue(value, pos, r.pos())
+            } else {
+                t.tagPending.setEmptyAttributeValue()
+            }
+            pos = r.pos()
+            when (val c: Char = r.consume()) {
                 '"' -> t.transition(AfterAttributeValue_quoted)
                 '&' -> {
                     val ref: IntArray? = t.consumeCharacterReference('"', true)
                     if (ref != null) {
-                        t.tagPending.appendAttributeValue(ref)
+                        t.tagPending.appendAttributeValue(ref, pos, r.pos())
                     } else {
-                        t.tagPending.appendAttributeValue(
-                            '&',
-                        )
+                        t.tagPending.appendAttributeValue('&', pos, r.pos())
                     }
                 }
 
                 nullChar -> {
                     t.error(this)
-                    t.tagPending.appendAttributeValue(replacementChar)
+                    t.tagPending.appendAttributeValue(TokeniserState.replacementChar, pos, r.pos())
                 }
 
                 eof -> {
@@ -858,7 +862,7 @@ internal enum class TokeniserState {
                     t.transition(Data)
                 }
 
-                else -> t.tagPending.appendAttributeValue(c)
+                else -> t.tagPending.appendAttributeValue(c, pos, r.pos())
             }
         }
     },
@@ -867,25 +871,32 @@ internal enum class TokeniserState {
             t: Tokeniser,
             r: CharacterReader,
         ) {
+            var pos = r.pos()
             val value: String = r.consumeAttributeQuoted(true)
-            if (value.isNotEmpty()) t.tagPending.appendAttributeValue(value) else t.tagPending.setEmptyAttributeValue()
-            val c: Char = r.consume()
-            when (c) {
+            if (value.isNotEmpty()) {
+                t.tagPending.appendAttributeValue(
+                    value,
+                    pos,
+                    r.pos(),
+                )
+            } else {
+                t.tagPending.setEmptyAttributeValue()
+            }
+            pos = r.pos()
+            when (val c: Char = r.consume()) {
                 '\'' -> t.transition(AfterAttributeValue_quoted)
                 '&' -> {
                     val ref: IntArray? = t.consumeCharacterReference('\'', true)
                     if (ref != null) {
-                        t.tagPending.appendAttributeValue(ref)
+                        t.tagPending.appendAttributeValue(ref, pos, r.pos())
                     } else {
-                        t.tagPending.appendAttributeValue(
-                            '&',
-                        )
+                        t.tagPending.appendAttributeValue('&', pos, r.pos())
                     }
                 }
 
                 nullChar -> {
                     t.error(this)
-                    t.tagPending.appendAttributeValue(replacementChar)
+                    t.tagPending.appendAttributeValue(TokeniserState.replacementChar, pos, r.pos())
                 }
 
                 eof -> {
@@ -893,7 +904,7 @@ internal enum class TokeniserState {
                     t.transition(Data)
                 }
 
-                else -> t.tagPending.appendAttributeValue(c)
+                else -> t.tagPending.appendAttributeValue(c, pos, r.pos())
             }
         }
     },
@@ -902,19 +913,18 @@ internal enum class TokeniserState {
             t: Tokeniser,
             r: CharacterReader,
         ) {
+            var pos = r.pos()
             val value: String = r.consumeToAnySorted(*attributeValueUnquoted)
-            if (value.isNotEmpty()) t.tagPending.appendAttributeValue(value)
-            val c: Char = r.consume()
-            when (c) {
+            if (value.isNotEmpty()) t.tagPending.appendAttributeValue(value, pos, r.pos())
+            pos = r.pos()
+            when (val c: Char = r.consume()) {
                 '\t', '\n', '\r', '\u000c', ' ' -> t.transition(BeforeAttributeName)
                 '&' -> {
                     val ref: IntArray? = t.consumeCharacterReference('>', true)
                     if (ref != null) {
-                        t.tagPending.appendAttributeValue(ref)
+                        t.tagPending.appendAttributeValue(ref, pos, r.pos())
                     } else {
-                        t.tagPending.appendAttributeValue(
-                            '&',
-                        )
+                        t.tagPending.appendAttributeValue('&', pos, r.pos())
                     }
                 }
 
@@ -925,7 +935,7 @@ internal enum class TokeniserState {
 
                 nullChar -> {
                     t.error(this)
-                    t.tagPending.appendAttributeValue(replacementChar)
+                    t.tagPending.appendAttributeValue(TokeniserState.replacementChar, pos, r.pos())
                 }
 
                 eof -> {
@@ -935,10 +945,10 @@ internal enum class TokeniserState {
 
                 '"', '\'', '<', '=', '`' -> {
                     t.error(this)
-                    t.tagPending.appendAttributeValue(c)
+                    t.tagPending.appendAttributeValue(c, pos, r.pos())
                 }
 
-                else -> t.tagPending.appendAttributeValue(c)
+                else -> t.tagPending.appendAttributeValue(c, pos, r.pos())
             }
         }
     }, // CharacterReferenceInAttributeValue state handled inline
@@ -1072,8 +1082,7 @@ internal enum class TokeniserState {
             t: Tokeniser,
             r: CharacterReader,
         ) {
-            val c: Char = r.consume()
-            when (c) {
+            when (val c: Char = r.consume()) {
                 '-' -> t.transition(CommentEnd)
                 nullChar -> {
                     t.error(this)
@@ -1156,8 +1165,7 @@ internal enum class TokeniserState {
             t: Tokeniser,
             r: CharacterReader,
         ) {
-            val c: Char = r.consume()
-            when (c) {
+            when (val c: Char = r.consume()) {
                 '>' -> {
                     t.emitCommentPending()
                     t.transition(Data)
@@ -1189,8 +1197,7 @@ internal enum class TokeniserState {
             t: Tokeniser,
             r: CharacterReader,
         ) {
-            val c: Char = r.consume()
-            when (c) {
+            when (val c: Char = r.consume()) {
                 '-' -> {
                     t.commentPending.append("--!")
                     t.transition(CommentEndDash)
@@ -1262,8 +1269,7 @@ internal enum class TokeniserState {
                 t.transition(DoctypeName)
                 return
             }
-            val c: Char = r.consume()
-            when (c) {
+            when (val c: Char = r.consume()) {
                 '\t', '\n', '\r', '\u000c', ' ' -> {}
                 nullChar -> {
                     t.error(this)
@@ -1298,8 +1304,7 @@ internal enum class TokeniserState {
                 t.doctypePending.name.append(name)
                 return
             }
-            val c: Char = r.consume()
-            when (c) {
+            when (val c: Char = r.consume()) {
                 '>' -> {
                     t.emitDoctypePending()
                     t.transition(Data)
@@ -1435,8 +1440,7 @@ internal enum class TokeniserState {
             t: Tokeniser,
             r: CharacterReader,
         ) {
-            val c: Char = r.consume()
-            when (c) {
+            when (val c: Char = r.consume()) {
                 '"' -> t.transition(AfterDoctypePublicIdentifier)
                 nullChar -> {
                     t.error(this)
@@ -1690,8 +1694,7 @@ internal enum class TokeniserState {
             t: Tokeniser,
             r: CharacterReader,
         ) {
-            val c: Char = r.consume()
-            when (c) {
+            when (val c: Char = r.consume()) {
                 '\'' -> t.transition(AfterDoctypeSystemIdentifier)
                 nullChar -> {
                     t.error(this)

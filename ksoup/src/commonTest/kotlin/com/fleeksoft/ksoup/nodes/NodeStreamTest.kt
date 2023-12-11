@@ -1,7 +1,6 @@
 package com.fleeksoft.ksoup.nodes
 
 import com.fleeksoft.ksoup.Ksoup
-import com.fleeksoft.ksoup.nodes.NodeIteratorTest.Companion.assertContents
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -15,14 +14,15 @@ class NodeStreamTest {
         val doc: Document = Ksoup.parse(html)
         val seen = StringBuilder()
         val stream: Sequence<Node> = doc.nodeStream()
-        stream.forEach { node -> NodeIteratorTest.trackSeen(node, seen) }
+        stream.forEach { node: Node -> NodeIteratorTest.trackSeen(node, seen) }
         assertEquals("#root;html;head;body;div#1;p;One;p;Two;div#2;p;Three;p;Four;", seen.toString())
     }
 
     @Test
     fun canStreamParallel() {
-//        kotlin sequence don't support parallel. Flow support parallel but that is suspend
         val doc: Document = Ksoup.parse(html)
+//        parallel not supported in sequence
+//        val count: Long = doc.nodeStream().parallel().count()
         val count: Int = doc.nodeStream().count()
         assertEquals(14, count)
     }
@@ -30,7 +30,7 @@ class NodeStreamTest {
     @Test
     fun canFindFirst() {
         val doc: Document = Ksoup.parse(html)
-        val first: Node? = doc.nodeStream().firstOrNull()
+        val first = doc.nodeStream().firstOrNull()
         assertNotNull(first)
         assertSame(doc, first)
     }
@@ -38,7 +38,7 @@ class NodeStreamTest {
     @Test
     fun canFilter() {
         val doc: Document = Ksoup.parse(html)
-        val seen: StringBuilder = StringBuilder()
+        val seen = StringBuilder()
 
         doc.nodeStream()
             .filter { node -> node is TextNode }
@@ -54,18 +54,18 @@ class NodeStreamTest {
 
         doc.nodeStream()
             .filter { node -> node is Element }
-            .filter { node -> node.attr("id").equals("1") || node.attr("id").equals("2") }
-            .forEach { obj: Node -> obj.remove() }
+            .filter { node -> node.attr("id") == "1" || node.attr("id") == "2" }
+            .forEach(Node::remove)
 
-        assertContents(doc, "#root;html;head;body;div#3;p;Five;")
+        NodeIteratorTest.assertContents(doc, "#root;html;head;body;div#3;p;Five;")
     }
 
     @Test
     fun elementStream() {
         val doc: Document = Ksoup.parse(html)
-        val seen: StringBuilder = StringBuilder()
+        val seen = StringBuilder()
         val stream: Sequence<Element> = doc.stream()
-        stream.forEach { node -> NodeIteratorTest.trackSeen(node, seen) }
+        stream.forEach { node: Element -> NodeIteratorTest.trackSeen(node, seen) }
         assertEquals("#root;html;head;body;div#1;p;p;div#2;p;p;", seen.toString())
     }
 }

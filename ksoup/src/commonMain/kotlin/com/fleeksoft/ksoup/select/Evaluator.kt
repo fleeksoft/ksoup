@@ -276,14 +276,8 @@ internal abstract class Evaluator protected constructor() {
     /**
      * Evaluator for attribute name/value matching (value regex matching)
      */
-    class AttributeWithValueMatching(key: String?, regex: Regex) : Evaluator() {
-        var key: String
-        var regex: Regex
-
-        init {
-            this.key = normalize(key)
-            this.regex = regex
-        }
+    internal class AttributeWithValueMatching(key: String?, var regex: Regex) : Evaluator() {
+        var key: String = normalize(key)
 
         override fun matches(
             root: Element,
@@ -305,7 +299,7 @@ internal abstract class Evaluator protected constructor() {
     /**
      * Abstract evaluator for attribute name/value matching
      */
-    abstract class AttributeKeyPair(
+    internal abstract class AttributeKeyPair(
         key: String,
         value: String,
         trimValue: Boolean = true,
@@ -332,7 +326,7 @@ internal abstract class Evaluator protected constructor() {
     /**
      * Evaluator for any / all element matching
      */
-    class AllElements : Evaluator() {
+    internal class AllElements : Evaluator() {
         override fun matches(
             root: Element,
             element: Element,
@@ -352,12 +346,12 @@ internal abstract class Evaluator protected constructor() {
     /**
      * Evaluator for matching by sibling index number (e &lt; idx)
      */
-    class IndexLessThan(index: Int) : IndexEvaluator(index) {
+    internal class IndexLessThan(index: Int) : IndexEvaluator(index) {
         override fun matches(
             root: Element,
             element: Element,
         ): Boolean {
-            return root !== element && element.elementSiblingIndex() < index
+            return root != element && element.elementSiblingIndex() < index
         }
 
         override fun toString(): String {
@@ -368,7 +362,7 @@ internal abstract class Evaluator protected constructor() {
     /**
      * Evaluator for matching by sibling index number (e &gt; idx)
      */
-    class IndexGreaterThan(index: Int) : IndexEvaluator(index) {
+    internal class IndexGreaterThan(index: Int) : IndexEvaluator(index) {
         override fun matches(
             root: Element,
             element: Element,
@@ -384,7 +378,7 @@ internal abstract class Evaluator protected constructor() {
     /**
      * Evaluator for matching by sibling index number (e = idx)
      */
-    class IndexEquals(index: Int) : IndexEvaluator(index) {
+    internal class IndexEquals(index: Int) : IndexEvaluator(index) {
         override fun matches(
             root: Element,
             element: Element,
@@ -400,7 +394,7 @@ internal abstract class Evaluator protected constructor() {
     /**
      * Evaluator for matching the last sibling (css :last-child)
      */
-    class IsLastChild : Evaluator() {
+    internal class IsLastChild : Evaluator() {
         override fun matches(
             root: Element,
             element: Element,
@@ -470,7 +464,7 @@ internal abstract class Evaluator protected constructor() {
             return element.elementSiblingIndex() + 1
         }
 
-        protected override val pseudoClass: String = "nth-child"
+        override val pseudoClass: String = "nth-child"
     }
 
     /**
@@ -514,7 +508,7 @@ internal abstract class Evaluator protected constructor() {
             return pos
         }
 
-        protected override val pseudoClass: String = "nth-of-type"
+        override val pseudoClass: String = "nth-of-type"
     }
 
     open class IsNthLastOfType(a: Int, b: Int) : CssNthEvaluator(a, b) {
@@ -532,7 +526,7 @@ internal abstract class Evaluator protected constructor() {
             return pos
         }
 
-        protected override val pseudoClass: String = "nth-last-of-type"
+        override val pseudoClass: String = "nth-last-of-type"
     }
 
     /**

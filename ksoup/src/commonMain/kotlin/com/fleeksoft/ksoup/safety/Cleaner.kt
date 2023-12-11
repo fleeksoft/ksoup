@@ -1,15 +1,8 @@
 package com.fleeksoft.ksoup.safety
 
-import com.fleeksoft.ksoup.nodes.Attributes
-import com.fleeksoft.ksoup.nodes.DataNode
-import com.fleeksoft.ksoup.nodes.Document
-import com.fleeksoft.ksoup.nodes.Element
-import com.fleeksoft.ksoup.nodes.Node
-import com.fleeksoft.ksoup.nodes.TextNode
+import com.fleeksoft.ksoup.nodes.*
 import com.fleeksoft.ksoup.parser.ParseErrorList
-import com.fleeksoft.ksoup.parser.ParseSettings
 import com.fleeksoft.ksoup.parser.Parser
-import com.fleeksoft.ksoup.parser.Tag
 import com.fleeksoft.ksoup.select.NodeTraversor
 import com.fleeksoft.ksoup.select.NodeVisitor
 
@@ -75,11 +68,8 @@ public class Cleaner(private val safelist: Safelist) {
     public fun isValid(dirtyDocument: Document): Boolean {
         val clean: Document = Document.createShell(dirtyDocument.baseUri())
         val numDiscarded = copySafeNodes(dirtyDocument.body(), clean.body())
-        return (
-            numDiscarded == 0 &&
-                dirtyDocument.head().childNodes()
-                    .isEmpty() // because we only look at the body, but we start from a shell, make sure there's nothing in the head
-        )
+        // because we only look at the body, but we start from a shell, make sure there's nothing in the head
+        return (numDiscarded == 0 && dirtyDocument.head().childNodes().isEmpty())
     }
 
     /**
@@ -117,105 +107,82 @@ public class Cleaner(private val safelist: Safelist) {
     /**
      * Iterates the input and copies trusted nodes (tags, attributes, text) into the destination.
      */
-    public inner class CleaningVisitor constructor(root: Element, destination: Element) :
-        NodeVisitor {
-            internal var numDiscarded = 0
-            private val root: Element
-            private var destination: Element // current element to append nodes to
+    public inner class CleaningVisitor(
+        private val root: Element,
+        private var destination: Element, // current element to append nodes to
+    ) : NodeVisitor {
+        internal var numDiscarded = 0
 
-            init {
-                this.root = root
-                this.destination = destination
-            }
+        override fun head(
+            node: Node,
+            depth: Int,
+        ) {
+            if (node is Element) {
+                val sourceEl = node as Element
 
-            override fun head(
-                node: Node,
-                depth: Int,
-            ) {
-                if (node is Element) {
-                    val sourceEl: Element = node
-                    if (safelist.isSafeTag(sourceEl.normalName())) { // safe, clone and copy safe attrs
-                        val meta = createSafeElement(sourceEl)
-                        val destChild: Element = meta.el
-                        destination.appendChild(destChild)
-                        numDiscarded += meta.numAttribsDiscarded
-                        destination = destChild
-                    } else if (node !== root) { // not a safe tag, so don't add. don't count root against discarded.
-                        numDiscarded++
-                    }
-                } else if (node is TextNode) {
-                    val sourceText: TextNode = node
-                    val destText = TextNode(sourceText.getWholeText())
-                    destination.appendChild(destText)
-                } else if (node is DataNode && safelist.isSafeTag(node.parent()!!.nodeName())) {
-                    val sourceData: DataNode = node
-                    val destData = DataNode(sourceData.getWholeData())
-                    destination.appendChild(destData)
-                } else { // else, we don't care about comments, xml proc instructions, etc
+                if (safelist.isSafeTag(sourceEl.normalName())) { // safe, clone and copy safe attrs
+                    val meta: ElementMeta = createSafeElement(sourceEl)
+                    val destChild: Element = meta.el
+                    destination.appendChild(destChild)
+
+                    numDiscarded += meta.numAttribsDiscarded
+                    destination = destChild
+                } else if (node !== root) { // not a safe tag, so don't add. don't count root against discarded.
                     numDiscarded++
                 }
-            }
-
-            override fun tail(
-                node: Node,
-                depth: Int,
-            ) {
-                if (node is Element && safelist.isSafeTag(node.nodeName())) {
-                    destination =
-                        destination.parent()!! // would have descended, so pop destination stack
-                }
+            } else if (node is TextNode) {
+                val sourceText = node as TextNode
+                val destText = TextNode(sourceText.getWholeText())
+                destination.appendChild(destText)
+            } else if (node is DataNode && safelist.isSafeTag(node.parent()!!.normalName())) {
+                val sourceData = node as DataNode
+                val destData = DataNode(sourceData.getWholeData())
+                destination.appendChild(destData)
+            } else { // else, we don't care about comments, xml proc instructions, etc
+                numDiscarded++
             }
         }
+
+        override fun tail(
+            node: Node,
+            depth: Int,
+        ) {
+            if (node is Element && safelist.isSafeTag(node.normalName())) {
+                // would have descended, so pop destination stack
+                destination = destination.parent()!!
+            }
+        }
+    }
 
     private fun copySafeNodes(
         source: Element,
         dest: Element,
     ): Int {
-        val cleaningVisitor: CleaningVisitor = CleaningVisitor(source, dest)
+        val cleaningVisitor = CleaningVisitor(source, dest)
         NodeTraversor.traverse(cleaningVisitor, source)
         return cleaningVisitor.numDiscarded
     }
 
     private fun createSafeElement(sourceEl: Element): ElementMeta {
-        val sourceTag: String = sourceEl.tagName()
-        val destAttrs = Attributes()
-        val dest =
-            Element(
-                Tag.valueOf(sourceTag, sourceEl.tag().namespace(), ParseSettings.preserveCase),
-                sourceEl.baseUri(),
-                destAttrs,
-            )
+        val dest = sourceEl.shallowClone() // reuses tag, clones attributes and preserves any user data
+        val sourceTag = sourceEl.tagName()
+        val destAttrs = dest.attributes()
+        dest.clearAttributes() // clear all non-internal attributes, ready for safe copy
+
         var numDiscarded = 0
-        val sourceAttrs: Attributes = sourceEl.attributes()
+        val sourceAttrs = sourceEl.attributes()
         for (sourceAttr in sourceAttrs) {
-            if (safelist.isSafeAttribute(
-                    sourceTag,
-                    sourceEl,
-                    sourceAttr,
-                )
-            ) {
+            if (safelist.isSafeAttribute(sourceTag, sourceEl, sourceAttr)) {
                 destAttrs.put(sourceAttr)
             } else {
                 numDiscarded++
             }
         }
-        val enforcedAttrs: Attributes = safelist.getEnforcedAttributes(sourceTag)
+        val enforcedAttrs = safelist.getEnforcedAttributes(sourceTag)
         destAttrs.addAll(enforcedAttrs)
-
-        // Copy the original start and end range, if set
-        // TODO - might be good to make a generic Element#userData set type interface, and copy those all over
-        if (sourceEl.sourceRange().isTracked()) sourceEl.sourceRange().track(dest, true)
-        if (sourceEl.endSourceRange().isTracked()) sourceEl.endSourceRange().track(dest, false)
+        dest.attributes().addAll(destAttrs) // re-attach, if removed in clear
         return ElementMeta(dest, numDiscarded)
     }
 
-    private class ElementMeta(el: Element, numAttribsDiscarded: Int) {
-        var el: Element
-        var numAttribsDiscarded: Int
-
-        init {
-            this.el = el
-            this.numAttribsDiscarded = numAttribsDiscarded
-        }
-    }
+    private class ElementMeta(var el: Element, var numAttribsDiscarded: Int)
 }

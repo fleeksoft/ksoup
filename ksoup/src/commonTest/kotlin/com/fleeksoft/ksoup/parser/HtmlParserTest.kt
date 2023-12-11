@@ -7,14 +7,9 @@ import com.fleeksoft.ksoup.ported.BufferReader
 import com.fleeksoft.ksoup.ported.System
 import com.fleeksoft.ksoup.safety.Safelist
 import io.ktor.utils.io.charsets.*
-import io.ktor.utils.io.core.toByteArray
+import io.ktor.utils.io.core.*
 import okio.IOException
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
+import kotlin.test.*
 
 /**
  * Tests for the Parser
@@ -58,7 +53,7 @@ class HtmlParserTest {
             assertEquals(expected, el.outerHtml()) // normalized names due to lower casing
             val tag = el.normalName()
             assertEquals(1, parser.getErrors().size)
-            assertEquals("Dropped duplicate attribute(s) in tag [$tag]", parser.getErrors()[0].errorMessage)
+            assertEquals("Dropped duplicate attribute(s) in tag [$tag]", parser.getErrors()[0].errorMsg)
         }
     }
 
@@ -69,8 +64,7 @@ class HtmlParserTest {
         val doc = parser.parseInput(html, "")
         assertEquals(
             "<p One=\"One\" one=\"Three\" two=\"Four\" Two=\"Six\">Text</p>",
-            doc.selectFirst("p")!!
-                .outerHtml(),
+            doc.selectFirst("p")!!.outerHtml(),
         )
     }
 
@@ -166,7 +160,7 @@ class HtmlParserTest {
     fun testSelectWithOption() {
         val parser = Parser.htmlParser()
         parser.setTrackErrors(10)
-        val document = parser.parseInput("<select><option>Option 1</option></select>", "http://jsoup.org")
+        val document = parser.parseInput("<select><option>Option 1</option></select>", "http://ksoup.org")
         assertEquals(0, parser.getErrors().size)
     }
 
@@ -943,68 +937,55 @@ class HtmlParserTest {
     fun handlesUnclosedScriptAtEof() {
         assertEquals(
             "Data",
-            Ksoup.parse("<script>Data").select("script").first()!!
-                .data(),
+            Ksoup.parse("<script>Data").select("script").first()!!.data(),
         )
         assertEquals(
             "Data<",
-            Ksoup.parse("<script>Data<").select("script").first()!!
-                .data(),
+            Ksoup.parse("<script>Data<").select("script").first()!!.data(),
         )
         assertEquals(
             "Data</sc",
-            Ksoup.parse("<script>Data</sc").select("script").first()!!
-                .data(),
+            Ksoup.parse("<script>Data</sc").select("script").first()!!.data(),
         )
         assertEquals(
             "Data</-sc",
-            Ksoup.parse("<script>Data</-sc").select("script").first()!!
-                .data(),
+            Ksoup.parse("<script>Data</-sc").select("script").first()!!.data(),
         )
         assertEquals(
             "Data</sc-",
-            Ksoup.parse("<script>Data</sc-").select("script").first()!!
-                .data(),
+            Ksoup.parse("<script>Data</sc-").select("script").first()!!.data(),
         )
         assertEquals(
             "Data</sc--",
-            Ksoup.parse("<script>Data</sc--").select("script").first()!!
-                .data(),
+            Ksoup.parse("<script>Data</sc--").select("script").first()!!.data(),
         )
         assertEquals(
             "Data",
-            Ksoup.parse("<script>Data</script>").select("script").first()!!
-                .data(),
+            Ksoup.parse("<script>Data</script>").select("script").first()!!.data(),
         )
         assertEquals(
             "Data</script",
-            Ksoup.parse("<script>Data</script").select("script").first()!!
-                .data(),
+            Ksoup.parse("<script>Data</script").select("script").first()!!.data(),
         )
         assertEquals(
             "Data",
-            Ksoup.parse("<script>Data</script ").select("script").first()!!
-                .data(),
+            Ksoup.parse("<script>Data</script ").select("script").first()!!.data(),
         )
         assertEquals(
             "Data",
-            Ksoup.parse("<script>Data</script n").select("script").first()!!
-                .data(),
+            Ksoup.parse("<script>Data</script n").select("script").first()!!.data(),
         )
         assertEquals(
             "Data",
-            Ksoup.parse("<script>Data</script n=").select("script").first()!!
-                .data(),
+            Ksoup.parse("<script>Data</script n=").select("script").first()!!.data(),
         )
         assertEquals(
             "Data",
-            Ksoup.parse("<script>Data</script n=\"").select("script").first()!!
-                .data(),
+            Ksoup.parse("<script>Data</script n=\"").select("script").first()!!.data(),
         )
         assertEquals(
             "Data",
-            Ksoup.parse("<script>Data</script n=\"p").select("script").first()!!
-                .data(),
+            Ksoup.parse("<script>Data</script n=\"p").select("script").first()!!.data(),
         )
     }
 
@@ -1012,38 +993,31 @@ class HtmlParserTest {
     fun handlesUnclosedRawtextAtEof() {
         assertEquals(
             "Data",
-            Ksoup.parse("<style>Data").select("style").first()!!
-                .data(),
+            Ksoup.parse("<style>Data").select("style").first()!!.data(),
         )
         assertEquals(
             "Data</st",
-            Ksoup.parse("<style>Data</st").select("style").first()!!
-                .data(),
+            Ksoup.parse("<style>Data</st").select("style").first()!!.data(),
         )
         assertEquals(
             "Data",
-            Ksoup.parse("<style>Data</style>").select("style").first()!!
-                .data(),
+            Ksoup.parse("<style>Data</style>").select("style").first()!!.data(),
         )
         assertEquals(
             "Data</style",
-            Ksoup.parse("<style>Data</style").select("style").first()!!
-                .data(),
+            Ksoup.parse("<style>Data</style").select("style").first()!!.data(),
         )
         assertEquals(
             "Data</-style",
-            Ksoup.parse("<style>Data</-style").select("style").first()!!
-                .data(),
+            Ksoup.parse("<style>Data</-style").select("style").first()!!.data(),
         )
         assertEquals(
             "Data</style-",
-            Ksoup.parse("<style>Data</style-").select("style").first()!!
-                .data(),
+            Ksoup.parse("<style>Data</style-").select("style").first()!!.data(),
         )
         assertEquals(
             "Data</style--",
-            Ksoup.parse("<style>Data</style--").select("style").first()!!
-                .data(),
+            Ksoup.parse("<style>Data</style--").select("style").first()!!.data(),
         )
     }
 
@@ -1059,8 +1033,7 @@ class HtmlParserTest {
         val doc = Ksoup.parse("<script><!-- one <script>Blah</script> --></script>")
         assertEquals(
             "<!-- one <script>Blah</script> -->",
-            doc.select("script").first()!!
-                .data(),
+            doc.select("script").first()!!.data(),
         )
     }
 
@@ -1105,38 +1078,24 @@ class HtmlParserTest {
 
     @Test
     fun tracksErrorsWhenRequested() {
-        val html = "<p>One</p href='no'>\n<!DOCTYPE html>\n&arrgh;<font />&#33 &amp &#xD800;<br /></div><foo"
+        val html = "<p>One</p href='no'>\n<!DOCTYPE html>\n&arrgh;<font />&#33 &amp &#x110000;<br /></div><foo"
         val parser = Parser.htmlParser().setTrackErrors(500)
-        val doc = Ksoup.parse(html, "http://example.com", parser)
+        val doc: Document = Ksoup.parse(html, "http://example.com", parser)
+
         val errors: List<ParseError> = parser.getErrors()
         assertEquals(9, errors.size)
         assertEquals("<1:21>: Attributes incorrectly present on end tag [/p]", errors[0].toString())
-        assertEquals(
-            "<2:16>: Unexpected Doctype token [<!doctype html>] when in state [InBody]",
-            errors[1].toString(),
-        )
-        assertEquals(
-            "<3:2>: Invalid character reference: invalid named reference [arrgh]",
-            errors[2].toString(),
-        )
+        assertEquals("<2:16>: Unexpected Doctype token [<!doctype html>] when in state [InBody]", errors[1].toString())
+        assertEquals("<3:2>: Invalid character reference: invalid named reference [arrgh]", errors[2].toString())
         assertEquals("<3:16>: Tag [font] cannot be self closing; not a void tag", errors[3].toString())
+        assertEquals("<3:20>: Invalid character reference: missing semicolon on [&#33]", errors[4].toString())
+        assertEquals("<3:25>: Invalid character reference: missing semicolon on [&amp]", errors[5].toString())
         assertEquals(
-            "<3:20>: Invalid character reference: missing semicolon on [&#33]",
-            errors[4].toString(),
-        )
-        assertEquals(
-            "<3:25>: Invalid character reference: missing semicolon on [&amp]",
-            errors[5].toString(),
-        )
-        assertEquals(
-            "<3:34>: Invalid character reference: character [55296] outside of valid range",
+            "<3:36>: Invalid character reference: character [1114112] outside of valid range",
             errors[6].toString(),
         )
-        assertEquals("<3:46>: Unexpected EndTag token [</div>] when in state [InBody]", errors[7].toString())
-        assertEquals(
-            "<3:51>: Unexpectedly reached end of file (EOF) in input state [TagName]",
-            errors[8].toString(),
-        )
+        assertEquals("<3:48>: Unexpected EndTag token [</div>] when in state [InBody]", errors[7].toString())
+        assertEquals("<3:53>: Unexpectedly reached end of file (EOF) in input state [TagName]", errors[8].toString())
     }
 
     @Test
@@ -1527,10 +1486,7 @@ class HtmlParserTest {
     @Test
     fun preservedCaseLinksCantNest() {
         val html = "<A>ONE <A>Two</A></A>"
-        val doc =
-            Parser.htmlParser()
-                .settings(ParseSettings.preserveCase)
-                .parseInput(html, "")
+        val doc = Parser.htmlParser().settings(ParseSettings.preserveCase).parseInput(html, "")
         // assertEquals("<A>ONE </A><A>Two</A>", StringUtil.normaliseWhitespace(doc.body().html()));
         assertEquals("<A>ONE </A><A>Two</A>", doc.body().html())
     }
@@ -1874,9 +1830,7 @@ class HtmlParserTest {
     fun parseFragmentOnCreatedDocument() {
         // https://github.com/jhy/jsoup/issues/1601
         val bareFragment = "<h2>text</h2>"
-        val nodes =
-            Document("").parser()!!
-                .parseFragmentInput(bareFragment, Element("p"), "")
+        val nodes = Document("").parser()!!.parseFragmentInput(bareFragment, Element("p"), "")
         assertEquals(1, nodes.size)
         val node = nodes[0]
         assertEquals("h2", node.nodeName())
@@ -1887,9 +1841,7 @@ class HtmlParserTest {
     fun nestedPFragments() {
         // https://github.com/jhy/jsoup/issues/1602
         val bareFragment = "<p></p><a></a>"
-        val nodes =
-            Document("").parser()!!
-                .parseFragmentInput(bareFragment, Element("p"), "")
+        val nodes = Document("").parser()!!.parseFragmentInput(bareFragment, Element("p"), "")
         assertEquals(2, nodes.size)
         val node = nodes[0]
         assertEquals(
@@ -1938,7 +1890,6 @@ class HtmlParserTest {
 
     @Test
     fun templateInHead() {
-        // https://try.jsoup.org/~EGp3UZxQe503TJDHQEQEzm8IeUc
         val html =
             "<head><template id=1><meta name=tmpl></template><title>Test</title><style>One</style></head><body><p>Two</p>"
         val doc = Ksoup.parse(html)
@@ -2173,7 +2124,7 @@ class HtmlParserTest {
         val doc = Ksoup.parse(html, parser)
         val errors = parser.getErrors()
         assertEquals(1, errors.size)
-        assertEquals("Unexpected EOF token [] when in state [InBody]", errors[0].errorMessage)
+        assertEquals("Unexpected EOF token [] when in state [InBody]", errors[0].errorMsg)
     }
 
     @Test
@@ -2281,7 +2232,7 @@ class HtmlParserTest {
             "<html xmlns='http://www.w3.org/1999/xhtml'><p xmlns='http://www.w3.org/1999/xhtml'><i xmlns='xhtml'></i></body>"
         val doc2 = Ksoup.parse(html2, parser)
         assertEquals(1, doc2.parser()!!.getErrors().size)
-        assertEquals("Invalid xmlns attribute [xhtml] on tag [i]", parser.getErrors()[0].errorMessage)
+        assertEquals("Invalid xmlns attribute [xhtml] on tag [i]", parser.getErrors()[0].errorMsg)
     }
 
     @Test
@@ -2317,6 +2268,26 @@ class HtmlParserTest {
         assertMathNamespace(doc4.expectFirst("math"))
         assertMathNamespace(doc4.expectFirst("annotation-xml"))
         assertHtmlNamespace(doc4.expectFirst("divv"))
+    }
+
+    @Test
+    fun parseEmojiFromMultipointEncoded() {
+        if (Platform.current == PlatformType.JS) {
+            // FIXME: ascii charset not supported for js
+            return
+        }
+
+        val html = "<img multi='&#55357;&#56495;' single='&#128175;' hexsingle='&#x1f4af;'>"
+        val document: Document = Ksoup.parse(html)
+        val img = document.expectFirst("img")
+        assertEquals("\uD83D\uDCAF", img.attr("multi"))
+        assertEquals("\uD83D\uDCAF", img.attr("single"))
+        assertEquals("\uD83D\uDCAF", img.attr("hexsingle"))
+
+        assertEquals("<img multi=\"\uD83D\uDCAF\" single=\"\uD83D\uDCAF\" hexsingle=\"\uD83D\uDCAF\">", img.outerHtml())
+
+        img.ownerDocument()!!.outputSettings().charset("ascii")
+        assertEquals("<img multi=\"&#x1f4af;\" single=\"&#x1f4af;\" hexsingle=\"&#x1f4af;\">", img.outerHtml())
     }
 
     companion object {

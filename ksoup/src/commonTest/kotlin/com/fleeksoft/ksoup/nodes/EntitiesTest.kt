@@ -8,8 +8,8 @@ import com.fleeksoft.ksoup.nodes.Entities.getByName
 import com.fleeksoft.ksoup.nodes.Entities.unescape
 import com.fleeksoft.ksoup.parser.Parser
 import de.cketti.codepoints.deluxe.toCodePoint
-import kotlin.test.*
 import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class EntitiesTest {
     @Test
@@ -230,5 +230,17 @@ class EntitiesTest {
         val escaped1 = escape(text, clone1)
         val escaped2 = escape(text, clone2)
         assertEquals(escaped1, escaped2)
+    }
+
+    @Test
+    fun parseHtmlEncodedEmojiMultipoint() {
+        val emoji = Parser.unescapeEntities("&#55357;&#56495;", false) // 💯
+        assertEquals("\uD83D\uDCAF", emoji)
+    }
+
+    @Test
+    fun parseHtmlEncodedEmoji() {
+        val emoji = Parser.unescapeEntities("&#128175;", false) // 💯
+        assertEquals("\uD83D\uDCAF", emoji)
     }
 }

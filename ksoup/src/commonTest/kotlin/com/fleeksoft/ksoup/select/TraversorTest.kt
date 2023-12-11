@@ -238,11 +238,11 @@ class TraversorTest {
 
     @Test
     fun elementFunctionalTraverse() {
-        val doc = Ksoup.parse("<div><p>1<p>2<p>3")
+        val doc: Document = Ksoup.parse("<div><p>1<p>2<p>3")
         val body = doc.body()
 
-        var seenCount = 0
-        var deepest = 0
+        var seenCount: Int = 0
+        var deepest: Int = 0
         body.traverse { node, depth ->
             ++seenCount
             if (depth > deepest) deepest = depth

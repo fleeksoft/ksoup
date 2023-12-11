@@ -1,11 +1,7 @@
 package com.fleeksoft.ksoup.nodes
 
 import com.fleeksoft.ksoup.Ksoup.parse
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertNotEquals
-import kotlin.test.assertTrue
+import kotlin.test.*
 
 /**
  * Tests for Attributes.
@@ -126,6 +122,30 @@ class AttributesTest {
             seen++
         }
         assertEquals(2, seen)
+    }
+
+    @Test
+    fun testIteratorThrows() {
+        val attrs = Attributes()
+        attrs.put("One", "one").put("Two", "two")
+
+        val it: Iterator<Attribute> = attrs.iterator()
+        var seen = 0
+        while (it.hasNext()) {
+            it.next()
+            seen++
+        }
+        assertFalse(it.hasNext())
+        assertEquals(2, seen)
+
+        var threw = false
+        try {
+            val next = it.next()
+            assertNotNull(next) // not hit
+        } catch (e: NoSuchElementException) {
+            threw = true
+        }
+        assertTrue(threw)
     }
 
     @Test

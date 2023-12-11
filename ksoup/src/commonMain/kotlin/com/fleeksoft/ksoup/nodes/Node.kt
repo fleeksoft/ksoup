@@ -11,13 +11,8 @@ import okio.IOException
 import kotlin.reflect.KClass
 
 /**
- * The base, abstract Node model. Elements, Documents, Comments etc are all Node instances.
- *
- * @author Sabeeh, fleeksoft@gmail.com
- */
-
-/**
- * Default constructor. Doesn't set up base uri, children, or attributes; use with caution.
+The base, abstract Node model. {@link Element}, {@link Document}, {@link Comment}, {@link TextNode}, et al.,
+are instances of Node.
  */
 public abstract class Node protected constructor() : KCloneable<Node> {
     internal var _parentNode: Node? = null // Nodes don't always have parents
@@ -56,7 +51,7 @@ public abstract class Node protected constructor() : KCloneable<Node> {
      * Get an attribute's value by its key. **Case insensitive**
      *
      *
-     * To get an absolute URL from an attribute that may be a relative URL, prefix the key with `**abs**`,
+     * To get an absolute URL from an attribute that may be a relative URL, prefix the key with `**abs:**`,
      * which is a shortcut to the [.absUrl] method.
      *
      * E.g.:
@@ -69,17 +64,13 @@ public abstract class Node protected constructor() : KCloneable<Node> {
      * @see .absUrl
      */
     public open fun attr(attributeKey: String): String {
-        // TODO: if attr not present then null or empty?
-        if (!hasAttributes()) return EmptyString
-        val value: String = attributes().getIgnoreCase(attributeKey)
+        if (!hasAttributes()) return Node.EmptyString
+
+        val value = attributes().getIgnoreCase(attributeKey)
         return if (value.isNotEmpty()) {
             value
         } else if (attributeKey.startsWith("abs:")) {
-            absUrl(
-                attributeKey.substring(
-                    "abs:".length,
-                ),
-            )
+            absUrl(attributeKey.substring("abs:".length))
         } else {
             ""
         }
@@ -331,11 +322,10 @@ public abstract class Node protected constructor() : KCloneable<Node> {
      * @see .after
      */
     public open fun before(node: Node): Node {
-        Validate.notNull(_parentNode)
-
         // if the incoming node is a sibling of this, remove it first so siblingIndex is correct on add
-        if (node._parentNode === _parentNode) node.remove()
-        _parentNode!!.addChildren(siblingIndex, node)
+        if (node.parentNode() === parentNode()) node.remove()
+
+        parentNode()?.addChildren(siblingIndex, node)
         return this
     }
 
@@ -357,11 +347,10 @@ public abstract class Node protected constructor() : KCloneable<Node> {
      * @see .before
      */
     public open fun after(node: Node): Node {
-        Validate.notNull(_parentNode)
-
         // if the incoming node is a sibling of this, remove it first so siblingIndex is correct on add
-        if (node._parentNode === _parentNode) node.remove()
-        _parentNode!!.addChildren(siblingIndex + 1, node)
+        if (node.parentNode() === parentNode()) node.remove()
+
+        parentNode()!!.addChildren(siblingIndex + 1, node)
         return this
     }
 
@@ -441,8 +430,8 @@ public abstract class Node protected constructor() : KCloneable<Node> {
     }
 
     private fun getDeepChild(el: Element): Element {
-        var resultEl: Element = el
-        var child: Element? = resultEl.firstElementChild()
+        var resultEl = el
+        var child = resultEl.firstElementChild()
         while (child != null) {
             resultEl = child
             child = child.firstElementChild()
@@ -517,7 +506,7 @@ public abstract class Node protected constructor() : KCloneable<Node> {
             // identity check contents to see if same
             var i = children.size
             while (i-- > 0) {
-                if (children[i] !== firstParentNodes[i]) {
+                if (children[i] != firstParentNodes[i]) {
                     sameList = false
                     break
                 }
@@ -566,7 +555,7 @@ public abstract class Node protected constructor() : KCloneable<Node> {
         if (_parentNode == null) return emptyList()
         val nodes: List<Node> = _parentNode!!.ensureChildNodes()
         val siblings: MutableList<Node> = ArrayList<Node>(nodes.size - 1)
-        for (node in nodes) if (node !== this) siblings.add(node)
+        for (node in nodes) if (node != this) siblings.add(node)
         return siblings
     }
 
@@ -645,10 +634,6 @@ public abstract class Node protected constructor() : KCloneable<Node> {
         nodeStream().forEach {
             action.accept(it)
         }
-        /*NodeTraversor.traverse(
-            { node, depth -> action.accept(node) },
-            this,
-        )*/
         return this
     }
 
@@ -666,7 +651,6 @@ public abstract class Node protected constructor() : KCloneable<Node> {
      * Returns a Stream of this Node and all of its descendant Nodes. The stream has document order.
      * @return a stream of all nodes.
      * @see Element.stream
-     * @since 1.17.1
      */
     public fun nodeStream(): Sequence<Node> {
         return NodeUtils.stream(this, Node::class)
@@ -677,7 +661,6 @@ public abstract class Node protected constructor() : KCloneable<Node> {
      * order.
      * @return a stream of nodes filtered by type.
      * @see Element.stream
-     * @since 1.17.1
      */
     public fun <T : Node> nodeStream(type: KClass<T>): Sequence<T> {
         return NodeUtils.stream(this, type)

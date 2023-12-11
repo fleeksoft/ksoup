@@ -164,15 +164,17 @@ public open class Safelist() {
     ): Safelist {
         Validate.notEmpty(tag)
         Validate.isTrue(attributes.isNotEmpty(), "No attribute names supplied.")
-        val tagName = TagName.valueOf(tag)
-        tagNames.add(tagName)
+
+        addTags(tag)
+        val tagName: TagName = TagName.valueOf(tag)
         val attributeSet: MutableSet<AttributeKey> = HashSet<AttributeKey>()
         for (key in attributes) {
             Validate.notEmpty(key)
             attributeSet.add(AttributeKey.valueOf(key))
         }
         if (this.attributes.containsKey(tagName)) {
-            val currentSet: MutableSet<AttributeKey> = this.attributes[tagName]!!
+            val currentSet: MutableSet<AttributeKey> =
+                this.attributes[tagName]!!
             currentSet.addAll(attributeSet)
         } else {
             this.attributes[tagName] = attributeSet
@@ -509,7 +511,7 @@ public open class Safelist() {
     internal class TagName(value: String) : TypedValue(value) {
         companion object {
             fun valueOf(value: String): TagName {
-                return TagName(value)
+                return TagName(lowerCase(value))
             }
         }
     }
@@ -517,7 +519,7 @@ public open class Safelist() {
     internal class AttributeKey(value: String) : TypedValue(value) {
         companion object {
             fun valueOf(value: String): AttributeKey {
-                return AttributeKey(value)
+                return AttributeKey(lowerCase(value))
             }
         }
     }

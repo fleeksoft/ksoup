@@ -9,8 +9,8 @@ class NodeIteratorTest {
     @Test
     fun canIterateNodes() {
         val doc: Document = Ksoup.parse(html)
-        val it: NodeIterator<Node> = NodeIterator.from(doc)
-        assertIterates<Node>(it, "#root;html;head;body;div#1;p;One;p;Two;div#2;p;Three;p;Four;")
+        val it = NodeIterator.from(doc)
+        assertIterates(it, "#root;html;head;body;div#1;p;One;p;Two;div#2;p;Three;p;Four;")
         // todo - need to review that the Document object #root holds the html element as child. Why not have document root == html element?
         assertFalse(it.hasNext())
 
@@ -26,10 +26,10 @@ class NodeIteratorTest {
     @Test
     fun hasNextIsPure() {
         val doc: Document = Ksoup.parse(html)
-        val it: NodeIterator<Node> = NodeIterator.from(doc)
+        val it = NodeIterator.from(doc)
         assertTrue(it.hasNext())
         assertTrue(it.hasNext())
-        assertIterates<Node>(it, "#root;html;head;body;div#1;p;One;p;Two;div#2;p;Three;p;Four;")
+        assertIterates(it, "#root;html;head;body;div#1;p;One;p;Two;div#2;p;Three;p;Four;")
         assertFalse(it.hasNext())
     }
 
@@ -38,13 +38,13 @@ class NodeIteratorTest {
         val doc: Document = Ksoup.parse(html)
 
         val div1 = doc.expectFirst("div#1")
-        val it: NodeIterator<Node> = NodeIterator.from(div1)
-        assertIterates<Node>(it, "div#1;p;One;p;Two;")
+        val it = NodeIterator.from(div1)
+        assertIterates(it, "div#1;p;One;p;Two;")
         assertFalse(it.hasNext())
 
         val div2 = doc.expectFirst("div#2")
-        val it2: NodeIterator<Node> = NodeIterator.from(div2)
-        assertIterates<Node>(it2, "div#2;p;Three;p;Four;")
+        val it2 = NodeIterator.from(div2)
+        assertIterates(it2, "div#2;p;Three;p;Four;")
         assertFalse(it2.hasNext())
     }
 
@@ -52,11 +52,11 @@ class NodeIteratorTest {
     fun canRestart() {
         val doc: Document = Ksoup.parse(html)
 
-        val it: NodeIterator<Node> = NodeIterator.from(doc)
-        assertIterates<Node>(it, "#root;html;head;body;div#1;p;One;p;Two;div#2;p;Three;p;Four;")
+        val it = NodeIterator.from(doc)
+        assertIterates(it, "#root;html;head;body;div#1;p;One;p;Two;div#2;p;Three;p;Four;")
 
         it.restart(doc.expectFirst("div#2"))
-        assertIterates<Node>(it, "div#2;p;Three;p;Four;")
+        assertIterates(it, "div#2;p;Three;p;Four;")
     }
 
     @Test
@@ -65,11 +65,11 @@ class NodeIteratorTest {
         val p2 = doc.expectFirst("p:contains(Two)")
         assertEquals("Two", p2.text())
 
-        val it: NodeIterator<Node> = NodeIterator.from(p2)
-        assertIterates<Node>(it, "p;Two;")
+        val it = NodeIterator.from(p2)
+        assertIterates(it, "p;Two;")
 
         val elIt: NodeIterator<Element> = NodeIterator(p2, Element::class)
-        val found: Element = elIt.next()
+        val found = elIt.next()
         assertSame(p2, found)
         assertFalse(elIt.hasNext())
     }
@@ -80,9 +80,9 @@ class NodeIteratorTest {
         val p1 = doc.expectFirst("p#1")
         assertEquals("", p1.ownText())
 
-        val it: NodeIterator<Node> = NodeIterator.from(p1)
+        val it = NodeIterator.from(p1)
         assertTrue(it.hasNext())
-        val node: Node = it.next()
+        val node = it.next()
         assertSame(p1, node)
         assertFalse(it.hasNext())
     }
@@ -92,11 +92,11 @@ class NodeIteratorTest {
         val html = "<div id=out1><div id=1><p>One<p>Two</div><div id=2><p>Three<p>Four</div></div><div id=out2>Out2"
         val doc: Document = Ksoup.parse(html)
 
-        var it: NodeIterator<Node> = NodeIterator.from(doc)
-        var seen = StringBuilder()
+        var it = NodeIterator.from(doc)
+        var seen: StringBuilder = StringBuilder()
         while (it.hasNext()) {
-            val node: Node = it.next()
-            if (node.attr("id") == "1") it.remove()
+            val node = it.next()
+            if (node.attr("id").equals("1")) it.remove()
             trackSeen(node, seen)
         }
         assertEquals("#root;html;head;body;div#out1;div#1;div#2;p;Three;p;Four;div#out2;Out2;", seen.toString())
@@ -105,8 +105,8 @@ class NodeIteratorTest {
         it = NodeIterator.from(doc)
         seen = StringBuilder()
         while (it.hasNext()) {
-            val node: Node = it.next()
-            if (node.attr("id") == "2") it.remove()
+            val node = it.next()
+            if (node.attr("id").equals("2")) it.remove()
             trackSeen(node, seen)
         }
         assertEquals("#root;html;head;body;div#out1;div#2;div#out2;Out2;", seen.toString())
@@ -118,11 +118,11 @@ class NodeIteratorTest {
         val html = "<div id=out1><div id=1><p>One<p>Two</div><div id=2><p>Three<p>Four</div></div><div id=out2>Out2"
         val doc: Document = Ksoup.parse(html)
 
-        var it: NodeIterator<Node> = NodeIterator.from(doc)
-        var seen = StringBuilder()
+        var it = NodeIterator.from(doc)
+        var seen: StringBuilder = StringBuilder()
         while (it.hasNext()) {
-            val node: Node = it.next()
-            if (node.attr("id") == "1") node.remove()
+            val node = it.next()
+            if (node.attr("id").equals("1")) node.remove()
             trackSeen(node, seen)
         }
         assertEquals("#root;html;head;body;div#out1;div#1;div#2;p;Three;p;Four;div#out2;Out2;", seen.toString())
@@ -131,8 +131,8 @@ class NodeIteratorTest {
         it = NodeIterator.from(doc)
         seen = StringBuilder()
         while (it.hasNext()) {
-            val node: Node = it.next()
-            if (node.attr("id") == "2") node.remove()
+            val node = it.next()
+            if (node.attr("id").equals("2")) node.remove()
             trackSeen(node, seen)
         }
         assertEquals("#root;html;head;body;div#out1;div#2;div#out2;Out2;", seen.toString())
@@ -144,12 +144,12 @@ class NodeIteratorTest {
         val html = "<div id=out1><div id=1><p>One<p>Two</div><div id=2><p>Three<p>Four</div></div><div id=out2>Out2"
         val doc: Document = Ksoup.parse(html)
 
-        var it: NodeIterator<Node> = NodeIterator.from(doc)
-        var seen = StringBuilder()
+        var it = NodeIterator.from(doc)
+        var seen: StringBuilder = StringBuilder()
         while (it.hasNext()) {
-            val node: Node = it.next()
+            val node = it.next()
             trackSeen(node, seen)
-            if (node.attr("id") == "1") {
+            if (node.attr("id").equals("1")) {
                 node.replaceWith(Element("span").text("Foo"))
             }
         }
@@ -163,9 +163,9 @@ class NodeIteratorTest {
         it = NodeIterator.from(doc)
         seen = StringBuilder()
         while (it.hasNext()) {
-            val node: Node = it.next()
+            val node = it.next()
             trackSeen(node, seen)
-            if (node.attr("id") == "2") {
+            if (node.attr("id").equals("2")) {
                 node.replaceWith(Element("span").text("Bar"))
             }
         }
@@ -176,14 +176,14 @@ class NodeIteratorTest {
     @Test
     fun canWrap() {
         val doc: Document = Ksoup.parse(html)
-        val it: NodeIterator<Node> = NodeIterator.from(doc)
+        val it = NodeIterator.from(doc)
         var sawInner = false
         while (it.hasNext()) {
-            val node: Node = it.next()
-            if (node.attr("id") == "1") {
+            val node = it.next()
+            if (node.attr("id").equals("1")) {
                 node.wrap("<div id=outer>")
             }
-            if (node is TextNode && node.text() == "One") sawInner = true
+            if (node is TextNode && node.text().equals("One")) sawInner = true
         }
         assertContents(doc, "#root;html;head;body;div#outer;div#1;p;One;p;Two;div#2;p;Three;p;Four;")
         assertTrue(sawInner)
@@ -196,7 +196,7 @@ class NodeIteratorTest {
 
         val seen = StringBuilder()
         while (it.hasNext()) {
-            val el: Element = it.next()
+            val el = it.next()
             assertNotNull(el)
             trackSeen(el, seen)
         }
@@ -209,9 +209,9 @@ class NodeIteratorTest {
         val doc: Document = Ksoup.parse(html)
         val it: NodeIterator<TextNode> = NodeIterator(doc, TextNode::class)
 
-        val seen = StringBuilder()
+        val seen: StringBuilder = StringBuilder()
         while (it.hasNext()) {
-            val text: TextNode = it.next()
+            val text = it.next()
             assertNotNull(text)
             trackSeen(text, seen)
         }
@@ -227,8 +227,8 @@ class NodeIteratorTest {
 
         val seen = StringBuilder()
         while (it.hasNext()) {
-            val el: Element = it.next()
-            if (!el.ownText().isEmpty()) el.text(el.ownText() + "++")
+            val el = it.next()
+            if (el.ownText().isNotEmpty()) el.text(el.ownText() + "++")
             trackSeen(el, seen)
         }
 
@@ -255,11 +255,11 @@ class NodeIteratorTest {
         }
 
         fun assertContents(
-            el: Element,
+            el: Element?,
             expected: String?,
         ) {
-            val it: NodeIterator<Node> = NodeIterator.from(el)
-            assertIterates<Node>(it, expected)
+            val it = NodeIterator.from(el!!)
+            assertIterates(it, expected)
         }
 
         fun trackSeen(

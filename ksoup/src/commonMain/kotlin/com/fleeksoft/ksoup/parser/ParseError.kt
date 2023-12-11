@@ -4,37 +4,23 @@ package com.fleeksoft.ksoup.parser
  * A Parse Error records an error in the input HTML that occurs in either the tokenisation or the tree building phase.
  */
 internal class ParseError {
-    /**
-     * Retrieves the offset of the error.
-     * @return error offset within input
-     */
-    val position: Int
-
-    /**
-     * Get the formatted line:column cursor position where the error occurred.
-     * @return line:number cursor position
-     */
+    val pos: Int
     val cursorPos: String
-
-    /**
-     * Retrieve the error message.
-     * @return the error message.
-     */
-    val errorMessage: String
+    val errorMsg: String
 
     internal constructor(reader: CharacterReader, errorMsg: String) {
-        position = reader.pos()
-        cursorPos = reader.cursorPos()
-        errorMessage = errorMsg
+        pos = reader.pos()
+        cursorPos = reader.posLineCol()
+        this.errorMsg = errorMsg
     }
 
     internal constructor(pos: Int, errorMsg: String) {
-        position = pos
+        this.pos = pos
         cursorPos = pos.toString()
-        errorMessage = errorMsg
+        this.errorMsg = errorMsg
     }
 
     override fun toString(): String {
-        return "<$cursorPos>: $errorMessage"
+        return "<$cursorPos>: $errorMsg"
     }
 }

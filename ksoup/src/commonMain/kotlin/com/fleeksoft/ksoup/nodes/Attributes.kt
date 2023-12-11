@@ -3,7 +3,9 @@ package com.fleeksoft.ksoup.nodes
 import com.fleeksoft.ksoup.SerializationException
 import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.internal.Normalizer.lowerCase
+import com.fleeksoft.ksoup.internal.SharedConstants
 import com.fleeksoft.ksoup.internal.StringUtil
+import com.fleeksoft.ksoup.nodes.Range.AttributeRange.Companion.UntrackedAttr
 import com.fleeksoft.ksoup.parser.ParseSettings
 import com.fleeksoft.ksoup.ported.Collections
 import com.fleeksoft.ksoup.ported.KCloneable
@@ -11,18 +13,18 @@ import okio.IOException
 
 /**
  * The attributes of an Element.
- *
- *
- * Attributes are treated as a map: there can be only one value associated with an attribute key/name.
- *
- *
- *
- * Attribute name and value comparisons are generally **case sensitive**. By default for HTML, attribute names are
+ * <p>
+ * During parsing, attributes in with the same name in an element are deduplicated, according to the configured parser's
+ * attribute case-sensitive setting. It is possible to have duplicate attributes subsequently if
+ * {@link #add(String, String)} vs {@link #put(String, String)} is used.
+ * </p>
+ * <p>
+ * Attribute name and value comparisons are generally <b>case sensitive</b>. By default for HTML, attribute names are
  * normalized to lower-case on parsing. That means you should use lower-case strings when referring to attributes by
  * name.
+ * </p>
  *
- *
- * @author Sabeeh, fleeksoft@gmail.com
+ * @author Jonathan Hedley, jonathan@hedley.net
  */
 public class Attributes : Iterable<Attribute>, KCloneable<Attributes> {
     // the number of instance fields is kept as low as possible giving an object size of 24 bytes
@@ -31,6 +33,7 @@ public class Attributes : Iterable<Attribute>, KCloneable<Attributes> {
 
     // Genericish: all non-internal attribute values must be Strings and are cast on access.
     internal var vals = arrayOfNulls<Any>(InitialCapacity)
+    // todo - make keys iterable without creating Attribute objects
 
     // check there's room for more
     private fun checkCapacity(minNewSize: Int) {
@@ -75,6 +78,22 @@ public class Attributes : Iterable<Attribute>, KCloneable<Attributes> {
     }
 
     /**
+     * Get an Attribute by key. The Attribute will remain connected to these Attributes, so changes made via
+     * [Attribute.setKey], [Attribute.setValue] etc will cascade back to these Attributes and
+     * their owning Element.
+     * @param key the (case-sensitive) attribute key
+     * @return the Attribute for this key, or null if not present.
+     */
+    public fun attribute(key: String?): Attribute? {
+        val i = indexOfKey(key!!)
+        return if (i == NotFound) {
+            null
+        } else {
+            Attribute(key, checkNotNull(vals[i]), this)
+        }
+    }
+
+    /**
      * Get an attribute's value by case-insensitive key
      * @param key the attribute name
      * @return the first matching attribute value if set; or empty string if not set (ora boolean attribute).
@@ -88,18 +107,6 @@ public class Attributes : Iterable<Attribute>, KCloneable<Attributes> {
                 vals[i],
             )
         }
-    }
-
-    /**
-     * Get an arbitrary user data object by key.
-     * @param key case-sensitive key to the object.
-     * @return the object associated to this key, or `null` if not found.
-     */
-    public fun userData(key: String): Any? {
-        var sKey = key
-        if (!isInternalKey(sKey)) sKey = internalKey(sKey)
-        val i = indexOfKeyIgnoreCase(sKey)
-        return if (i == NotFound) null else vals[i]
     }
 
     /**
@@ -127,7 +134,7 @@ public class Attributes : Iterable<Attribute>, KCloneable<Attributes> {
     /**
      * Set a new attribute, or replace an existing one by key.
      * @param key case sensitive attribute key (not null)
-     * @param value attribute value (which can be null, to set a boolean attribute)
+     * @param value attribute value (which can be null, to set a true boolean attribute)
      * @return these attributes, for chaining
      */
     public fun put(
@@ -140,23 +147,48 @@ public class Attributes : Iterable<Attribute>, KCloneable<Attributes> {
     }
 
     /**
-     Set an arbitrary user-data object by key. Will be treated as an internal attribute, so will not be emitted in HTML.
+     * Get the map holding any user-data associated with these Attributes. Will be created empty on first use. Held as
+     * an internal attribute, not a field member, to reduce the memory footprint of Attributes when not used. Can hold
+     * arbitrary objects; use for source ranges, connecting W3C nodes to Elements, etc.
+     * @return the map holding user-data
+     */
+    public fun userData(): MutableMap<String, Any> {
+        val userData: MutableMap<String, Any>
+        val i = indexOfKey(SharedConstants.UserDataKey)
+        if (i == NotFound) {
+            userData = HashMap()
+            addObject(SharedConstants.UserDataKey, userData)
+        } else {
+            userData = vals[i] as MutableMap<String, Any>
+        }
+        return userData
+    }
+
+    /**
+     * Get an arbitrary user-data object by key.
+     * @param key case-sensitive key to the object.
+     * @return the object associated to this key, or `null` if not found.
+     * @see .userData
+     */
+    public fun userData(key: String): Any? {
+        if (!hasKey(SharedConstants.UserDataKey)) return null // no user data exists
+
+        val userData: Map<String, Any> = userData()
+        return userData[key]
+    }
+
+    /**
+     * Set an arbitrary user-data object by key. Will be treated as an internal attribute, so will not be emitted in HTML.
      * @param key case-sensitive key
      * @param value object value
      * @return these attributes
-     * @see #userData(String)
+     * @see .userData
      */
     public fun userData(
         key: String,
         value: Any,
     ): Attributes {
-        val effectiveKey = if (!isInternalKey(key)) internalKey(key) else key
-        val index = indexOfKey(effectiveKey)
-        if (index != NotFound) {
-            vals[index] = value
-        } else {
-            addObject(effectiveKey, value)
-        }
+        userData()[key] = value
         return this
     }
 
@@ -287,6 +319,7 @@ public class Attributes : Iterable<Attribute>, KCloneable<Attributes> {
      */
     public fun size(): Int {
         return size
+        // todo - exclude internal attributes from this count - maintain size, count of internals
     }
 
     public fun isEmpty(): Boolean = size == 0
@@ -304,6 +337,30 @@ public class Attributes : Iterable<Attribute>, KCloneable<Attributes> {
         for (attr in incoming) {
             if (needsPut) put(attr) else add(attr.key, attr.value)
         }
+    }
+
+    /**
+     * Get the source ranges (start to end position) in the original input source from which this attribute's **name**
+     * and **value** were parsed.
+     *
+     * Position tracking must be enabled prior to parsing the content.
+     * @param key the attribute name
+     * @return the ranges for the attribute's name and value, or `untracked` if the attribute does not exist or its range
+     * was not tracked.
+     * @see com.fleeksoft.ksoup.parser.Parser.setTrackPosition
+     * @see Attribute.sourceRange
+     * @see Node.sourceRange
+     * @see Element.endSourceRange
+     */
+    public fun sourceRange(key: String): Range.AttributeRange {
+        if (!hasKey(key)) return UntrackedAttr
+        val ranges: Map<String, Range.AttributeRange> = getRanges() ?: return UntrackedAttr
+        return ranges[key] ?: UntrackedAttr
+    }
+
+    /** Get the Ranges, if tracking is enabled; null otherwise.  */
+    public fun getRanges(): MutableMap<String, Range.AttributeRange>? {
+        return userData(SharedConstants.AttrRangeKey) as MutableMap<String, Range.AttributeRange>?
     }
 
     override fun iterator(): MutableIterator<Attribute> {
@@ -326,6 +383,7 @@ public class Attributes : Iterable<Attribute>, KCloneable<Attributes> {
 
             override fun next(): Attribute {
                 checkModified()
+                if (i >= size) throw NoSuchElementException()
                 val attr = Attribute(keys[i]!!, vals[i] as String?, this@Attributes)
                 i++
                 return attr
@@ -460,11 +518,11 @@ public class Attributes : Iterable<Attribute>, KCloneable<Attributes> {
     }
 
     /**
-     * Internal method. Lowercases all keys.
+     * Internal method. Lowercases all (non-internal) keys.
      */
     public fun normalize() {
         for (i in 0 until size) {
-            keys[i] = lowerCase(keys[i])
+            if (!isInternalKey(keys[i])) keys[i] = lowerCase(keys[i])
         }
     }
 
@@ -525,24 +583,22 @@ public class Attributes : Iterable<Attribute>, KCloneable<Attributes> {
         }
     }
 
-    private fun isInternalKey(key: String?): Boolean {
-        return key != null && key.length > 1 && key[0] == InternalPrefix
-    }
-
     internal companion object {
+        // Indicates an internal key. Can't be set via HTML. (It could be set via accessor, but not too worried about
+        // that. Suppressed from list, iter.)
+        const val InternalPrefix: Char = '/'
+
         // The Attributes object is only created on the first use of an attribute; the Element will just have a null
         // Attribute slot otherwise
-        const val dataPrefix = "data-"
+        public const val dataPrefix: String = "data-"
 
-        // Indicates a com.fleeksoft.ksoup internal key. Can't be set via HTML. (It could be set via accessor, but not too worried about
-        // that. Suppressed from list, iter.
-        const val InternalPrefix = '/'
-        private const val InitialCapacity =
-            3 // sampling found mean count when attrs present = 1.49; 1.08 overall. 2.6:1 don't have any attrs.
+        // sampling found mean count when attrs present = 1.49; 1.08 overall. 2.6:1 don't have any attrs.
+        private const val InitialCapacity = 3
 
         // manages the key/val arrays
         private const val GrowthFactor = 2
-        const val NotFound = -1
+
+        const val NotFound: Int = -1
         private const val EmptyString = ""
 
         // we track boolean attributes as null in values - they're just keys. so returns empty for consumers
@@ -556,7 +612,11 @@ public class Attributes : Iterable<Attribute>, KCloneable<Attributes> {
         }
 
         fun internalKey(key: String): String {
-            return InternalPrefix.toString() + key
+            return "$InternalPrefix$key"
+        }
+
+        fun isInternalKey(key: String?): Boolean {
+            return key != null && key.length > 1 && key[0] == InternalPrefix
         }
     }
 }

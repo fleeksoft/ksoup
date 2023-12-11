@@ -171,12 +171,12 @@ internal class CharacterReader {
     }
 
     /**
-     * Get a formatted string representing the current line and cursor positions. E.g. `5:10` indicating line
+     * Get a formatted string representing the current line and column positions. E.g. <code>5:10</code> indicating line
      * number 5 and column number 10.
      * @return line:col position
      * @see .trackNewlines
      */
-    fun cursorPos(): String {
+    fun posLineCol(): String {
         return lineNumber().toString() + ":" + columnNumber()
     }
 

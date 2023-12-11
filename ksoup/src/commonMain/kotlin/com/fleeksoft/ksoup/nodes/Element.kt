@@ -249,6 +249,16 @@ public open class Element : Node {
     }
 
     /**
+     * Get an Attribute by key. Changes made via [Attribute.setKey], [Attribute.setValue] etc
+     * will cascade back to this Element.
+     * @param key the (case-sensitive) attribute key
+     * @return the Attribute for this key, or null if not present.
+     */
+    public fun attribute(key: String?): Attribute? {
+        return if (hasAttributes()) attributes().attribute(key) else null
+    }
+
+    /**
      * Get this element's HTML5 custom data attributes. Each attribute in the element that has a key
      * starting with "data-" is included the dataset.
      *
@@ -365,7 +375,6 @@ public open class Element : Node {
      * Returns a Stream of this Element and all of its descendant Elements. The stream has document order.
      * @return a stream of this element and its descendants.
      * @see .nodeStream
-     * @since 1.17.1
      */
     public fun stream(): Sequence<Element> {
         return NodeUtils.stream(this, Element::class)
@@ -868,7 +877,7 @@ public open class Element : Node {
         if (_parentNode == null) return Elements()
         val elements = (_parentNode as Element).childElementsList()
         val siblings = Elements()
-        for (el in elements) if (el !== this) siblings.add(el)
+        for (el in elements) if (el != this) siblings.add(el)
         return siblings
     }
 
@@ -1634,10 +1643,10 @@ public open class Element : Node {
     /**
      * Get the source range (start and end positions) of the end (closing) tag for this Element. Position tracking must be
      * enabled prior to parsing the content.
-     * @return the range of the closing tag for this element, if it was explicitly closed in the source. `Untracked`
-     * otherwise.
-     * @see com.fleeksoft.ksoup.parser.Parser.setTrackPosition
-     * @see Node.sourceRange
+     * @return the range of the closing tag for this element, or {@code untracked} if its range was not tracked.
+     * @see com.fleeksoft.ksoup.parser.Parser#setTrackPosition(boolean)
+     * @see Node#sourceRange()
+     * @see Range#isImplicit()
      */
     internal fun endSourceRange(): Range {
         return Range.of(this, false)
@@ -1755,7 +1764,8 @@ public open class Element : Node {
 
     override fun shallowClone(): Element {
         // simpler than implementing a clone version with no child copy
-        return Element(tag, baseUri(), attributes?.clone())
+        val baseUri = baseUri()
+        return Element(tag, if (baseUri.isEmpty()) null else baseUri, attributes?.clone())
     }
 
     protected override fun doClone(parent: Node?): Element {
@@ -1769,9 +1779,10 @@ public open class Element : Node {
     // overrides of Node for call chaining
     override fun clearAttributes(): Element {
         if (attributes != null) {
-            super.clearAttributes()
-            attributes = null
+            super.clearAttributes() // keeps internal attributes via iterator
+            if (attributes!!.isEmpty()) attributes = null // only remove entirely if no internal attributes
         }
+
         return this
     }
 
@@ -1800,10 +1811,6 @@ public open class Element : Node {
      */
     public fun forEach(action: Consumer<in Element>): Element {
         stream().forEach { node -> action.accept(node) }
-        /*NodeTraversor.traverse(
-            { node, depth -> if (node is Element) action.accept(node) },
-            this,
-        )*/
         return this
     }
 

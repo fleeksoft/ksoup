@@ -2990,6 +2990,26 @@ Three
         ) // succ is alias for Succeeds, and first hit in entities
     }
 
+    @Test
+    fun attribute() {
+        val html = "<p CLASS='yes'>One</p>"
+        val doc: Document = Ksoup.parse(html)
+        val p = doc.expectFirst("p")
+        val attr = p.attribute("class") // HTML parse lower-cases names
+        assertNotNull(attr)
+        assertEquals("class", attr.key)
+        assertEquals("yes", attr.value)
+        assertFalse(attr.sourceRange().nameRange().start().isTracked()) // tracking disabled
+
+        assertNull(p.attribute("CLASS")) // no such key
+
+        attr.setKey("CLASS") // set preserves input case
+        attr.setValue("YES")
+
+        assertEquals("<p CLASS=\"YES\">One</p>", p.outerHtml())
+        assertEquals("CLASS=\"YES\"", attr.html())
+    }
+
     companion object {
         private fun validateScriptContents(
             src: String,

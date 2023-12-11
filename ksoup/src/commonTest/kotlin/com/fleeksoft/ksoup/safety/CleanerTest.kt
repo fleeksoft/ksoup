@@ -1,14 +1,12 @@
 package com.fleeksoft.ksoup.safety
 
-import com.fleeksoft.ksoup.Ksoup
-import com.fleeksoft.ksoup.Platform
-import com.fleeksoft.ksoup.PlatformType
-import com.fleeksoft.ksoup.TextUtil
+import com.fleeksoft.ksoup.*
 import com.fleeksoft.ksoup.nodes.Document
+import com.fleeksoft.ksoup.nodes.Element
 import com.fleeksoft.ksoup.nodes.Entities
+import com.fleeksoft.ksoup.nodes.Range
 import com.fleeksoft.ksoup.parser.Parser
 import kotlin.test.*
-import kotlin.test.Test
 
 /**
  * Tests for the cleaner.
@@ -417,26 +415,51 @@ class CleanerTest {
     }
 
     @Test
-    fun copiesOutputSettings() {
-        val orig = Ksoup.parse("<p>test<br></p>")
-        orig.outputSettings().syntax(Document.OutputSettings.Syntax.xml)
-        orig.outputSettings().escapeMode(Entities.EscapeMode.xhtml)
-        val safelist = Safelist.none().addTags("p", "br")
-        val result = Cleaner(safelist).clean(orig)
-        assertEquals(Document.OutputSettings.Syntax.xml, result.outputSettings().syntax())
-        assertEquals("<p>test<br /></p>", result.body().html())
+    fun preservesSourcePositionViaUserData() {
+        val orig: Document =
+            Ksoup.parse("<script>xss</script>\n <p id=1>Hello</p>", Parser.htmlParser().setTrackPosition(true))
+        val p: Element = orig.expectFirst("p")
+        val origRange: Range = p.sourceRange()
+        assertEquals("2,2:22-2,10:30", origRange.toString())
+
+        val attributeRange: Range.AttributeRange = p.attributes().sourceRange("id")
+        assertEquals("2,5:25-2,7:27=2,8:28-2,9:29", attributeRange.toString())
+
+        val clean = Cleaner(Safelist.relaxed().addAttributes("p", "id")).clean(orig)
+        val cleanP: Element = clean.expectFirst("p")
+        assertEquals("1", cleanP.id())
+        val cleanRange: Range = cleanP.sourceRange()
+        assertEquals(origRange, cleanRange)
+        assertEquals(orig.endSourceRange(), clean.endSourceRange())
+        assertEquals(attributeRange, cleanP.attributes().sourceRange("id"))
     }
 
     @Test
-    fun preservesSourcePositionViaUserData() {
-        val orig = Ksoup.parse("<script>xss</script>\n <p>Hello</p>", Parser.htmlParser().setTrackPosition(true))
-        val p = orig.expectFirst("p")
-        val origRange = p.sourceRange()
-        assertEquals("2,2:22-2,5:25", origRange.toString())
-        val clean = Cleaner(Safelist.relaxed()).clean(orig)
-        val cleanP = clean.expectFirst("p")
-        val cleanRange = cleanP.sourceRange()
-        assertEquals(cleanRange, origRange)
-        assertEquals(clean.endSourceRange(), orig.endSourceRange())
+    fun cleansCaseSensitiveElements() {
+        parameterizedTest(listOf(true, false)) { preserveCase ->
+            // https://github.com/jhy/jsoup/issues/2049
+            val html =
+                "<svg><feMerge baseFrequency=2><feMergeNode kernelMatrix=1 /><feMergeNode><clipPath /></feMergeNode><feMergeNode />"
+            var tags = arrayOf("svg", "feMerge", "feMergeNode", "clipPath")
+            var attrs = arrayOf("kernelMatrix", "baseFrequency")
+
+            if (!preserveCase) {
+                tags = tags.map { it.lowercase() }.toTypedArray()
+                attrs = attrs.map { it.lowercase() }.toTypedArray()
+            }
+
+            val safelist = Safelist.none().addTags(*tags).addAttributes(":all", *attrs)
+            val clean: String = Ksoup.clean(html, safelist)
+            val expected = """<svg>
+ <feMerge baseFrequency="2">
+  <feMergeNode kernelMatrix="1" />
+  <feMergeNode>
+   <clipPath />
+  </feMergeNode>
+  <feMergeNode />
+ </feMerge>
+</svg>"""
+            assertEquals(expected, clean)
+        }
     }
 }
