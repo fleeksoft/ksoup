@@ -5,7 +5,7 @@ import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.parser.ParseSettings
 import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.parser.Tag
-import com.fleeksoft.ksoup.ported.Cloneable
+import com.fleeksoft.ksoup.ported.KCloneable
 import com.fleeksoft.ksoup.select.Elements
 import com.fleeksoft.ksoup.select.Evaluator
 import com.fleeksoft.ksoup.select.Selector
@@ -360,7 +360,7 @@ public class Document(private val namespace: String, private val location: Strin
         private var indentAmount: Int = 1,
         private var maxPaddingWidth: Int = 30,
         private var syntax: Syntax = Syntax.html,
-    ) : Cloneable<OutputSettings> {
+    ) : KCloneable<OutputSettings> {
         private var charsetEncoder: CharsetEncoder? = null
 
         /**

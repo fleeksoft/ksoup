@@ -4,22 +4,17 @@ import com.fleeksoft.ksoup.SerializationException
 import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.ported.*
-import com.fleeksoft.ksoup.ported.Cloneable
 import com.fleeksoft.ksoup.select.NodeFilter
 import com.fleeksoft.ksoup.select.NodeTraversor
 import com.fleeksoft.ksoup.select.NodeVisitor
 import okio.IOException
+import kotlin.reflect.KClass
 
 /**
- * The base, abstract Node model. Elements, Documents, Comments etc are all Node instances.
- *
- * @author Sabeeh, fleeksoft@gmail.com
+The base, abstract Node model. {@link Element}, {@link Document}, {@link Comment}, {@link TextNode}, et al.,
+are instances of Node.
  */
-
-/**
- * Default constructor. Doesn't set up base uri, children, or attributes; use with caution.
- */
-public abstract class Node protected constructor() : Cloneable<Node> {
+public abstract class Node protected constructor() : KCloneable<Node> {
     internal var _parentNode: Node? = null // Nodes don't always have parents
     internal var siblingIndex = 0
 
@@ -56,7 +51,7 @@ public abstract class Node protected constructor() : Cloneable<Node> {
      * Get an attribute's value by its key. **Case insensitive**
      *
      *
-     * To get an absolute URL from an attribute that may be a relative URL, prefix the key with `**abs**`,
+     * To get an absolute URL from an attribute that may be a relative URL, prefix the key with `**abs:**`,
      * which is a shortcut to the [.absUrl] method.
      *
      * E.g.:
@@ -69,17 +64,13 @@ public abstract class Node protected constructor() : Cloneable<Node> {
      * @see .absUrl
      */
     public open fun attr(attributeKey: String): String {
-        // TODO: if attr not present then null or empty?
-        if (!hasAttributes()) return EmptyString
-        val value: String = attributes().getIgnoreCase(attributeKey)
+        if (!hasAttributes()) return Node.EmptyString
+
+        val value = attributes().getIgnoreCase(attributeKey)
         return if (value.isNotEmpty()) {
             value
         } else if (attributeKey.startsWith("abs:")) {
-            absUrl(
-                attributeKey.substring(
-                    "abs:".length,
-                ),
-            )
+            absUrl(attributeKey.substring("abs:".length))
         } else {
             ""
         }
@@ -222,7 +213,8 @@ public abstract class Node protected constructor() : Cloneable<Node> {
     /**
      * Get a child node by its 0-based index.
      * @param index index of child node
-     * @return the child node at this index. Throws a `IndexOutOfBoundsException` if the index is out of bounds.
+     * @return the child node at this index.
+     * @throws IndexOutOfBoundsException if the index is out of bounds.
      */
     public fun childNode(index: Int): Node {
         return ensureChildNodes()[index]
@@ -330,11 +322,10 @@ public abstract class Node protected constructor() : Cloneable<Node> {
      * @see .after
      */
     public open fun before(node: Node): Node {
-        Validate.notNull(_parentNode)
-
         // if the incoming node is a sibling of this, remove it first so siblingIndex is correct on add
-        if (node._parentNode === _parentNode) node.remove()
-        _parentNode!!.addChildren(siblingIndex, node)
+        if (node.parentNode() === parentNode()) node.remove()
+
+        parentNode()?.addChildren(siblingIndex, node)
         return this
     }
 
@@ -356,11 +347,10 @@ public abstract class Node protected constructor() : Cloneable<Node> {
      * @see .before
      */
     public open fun after(node: Node): Node {
-        Validate.notNull(_parentNode)
-
         // if the incoming node is a sibling of this, remove it first so siblingIndex is correct on add
-        if (node._parentNode === _parentNode) node.remove()
-        _parentNode!!.addChildren(siblingIndex + 1, node)
+        if (node.parentNode() === parentNode()) node.remove()
+
+        parentNode()!!.addChildren(siblingIndex + 1, node)
         return this
     }
 
@@ -440,8 +430,8 @@ public abstract class Node protected constructor() : Cloneable<Node> {
     }
 
     private fun getDeepChild(el: Element): Element {
-        var resultEl: Element = el
-        var child: Element? = resultEl.firstElementChild()
+        var resultEl = el
+        var child = resultEl.firstElementChild()
         while (child != null) {
             resultEl = child
             child = child.firstElementChild()
@@ -516,7 +506,7 @@ public abstract class Node protected constructor() : Cloneable<Node> {
             // identity check contents to see if same
             var i = children.size
             while (i-- > 0) {
-                if (children[i] !== firstParentNodes[i]) {
+                if (children[i] != firstParentNodes[i]) {
                     sameList = false
                     break
                 }
@@ -565,13 +555,13 @@ public abstract class Node protected constructor() : Cloneable<Node> {
         if (_parentNode == null) return emptyList()
         val nodes: List<Node> = _parentNode!!.ensureChildNodes()
         val siblings: MutableList<Node> = ArrayList<Node>(nodes.size - 1)
-        for (node in nodes) if (node !== this) siblings.add(node)
+        for (node in nodes) if (node != this) siblings.add(node)
         return siblings
     }
 
     /**
      * Get this node's next sibling.
-     * @return next sibling, or @{code null} if this is the last sibling
+     * @return next sibling, or {@code null} if this is the last sibling
      */
     public fun nextSibling(): Node? {
         if (_parentNode == null) return null // root
@@ -641,21 +631,39 @@ public abstract class Node protected constructor() : Cloneable<Node> {
      * @see Element.forEach
      */
     public open fun forEachNode(action: Consumer<in Node>): Node {
-        NodeTraversor.traverse(
-            { node, depth -> action.accept(node) },
-            this,
-        )
+        nodeStream().forEach {
+            action.accept(it)
+        }
         return this
     }
 
     /**
-     * Perform a depth-first filtering through this node and its descendants.
+     * Perform a depth-first filtered traversal through this node and its descendants.
      * @param nodeFilter the filter callbacks to perform on each node
      * @return this node, for chaining
      */
     public open fun filter(nodeFilter: NodeFilter): Node {
         NodeTraversor.filter(nodeFilter, this)
         return this
+    }
+
+    /**
+     * Returns a Stream of this Node and all of its descendant Nodes. The stream has document order.
+     * @return a stream of all nodes.
+     * @see Element.stream
+     */
+    public fun nodeStream(): Sequence<Node> {
+        return NodeUtils.stream(this, Node::class)
+    }
+
+    /**
+     * Returns a Stream of this and descendant nodes, containing only nodes of the specified type. The stream has document
+     * order.
+     * @return a stream of nodes filtered by type.
+     * @see Element.stream
+     */
+    public fun <T : Node> nodeStream(type: KClass<T>): Sequence<T> {
+        return NodeUtils.stream(this, type)
     }
 
     /**

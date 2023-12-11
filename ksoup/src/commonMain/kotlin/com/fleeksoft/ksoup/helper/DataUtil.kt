@@ -10,14 +10,11 @@ import com.fleeksoft.ksoup.nodes.Node
 import com.fleeksoft.ksoup.nodes.XmlDeclaration
 import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.ported.*
-import com.fleeksoft.ksoup.ported.canEncode
-import com.fleeksoft.ksoup.ported.isCharsetSupported
 import com.fleeksoft.ksoup.readFile
 import com.fleeksoft.ksoup.readGzipFile
 import com.fleeksoft.ksoup.select.Elements
 import io.ktor.utils.io.charsets.*
 import okio.*
-import okio.Buffer
 import kotlin.random.Random
 
 /**
@@ -29,7 +26,6 @@ public object DataUtil {
         Regex("charset=\\s*['\"]?([^\\s,;'\"]*)", RegexOption.IGNORE_CASE)
     private val defaultCharsetName: String = Charsets.UTF_8.name // used if not found in header or meta charset
     private const val firstReadBufferSize: Long = (1024 * 5).toLong()
-    private const val bufferSize: Long = (1024 * 32).toLong()
     private val mimeBoundaryChars =
         "-_1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray()
     public const val boundaryLength: Int = 32
@@ -293,9 +289,6 @@ public object DataUtil {
         bufferReader: BufferReader,
         maxSize: Long,
     ): ByteArray {
-        require(maxSize >= 0) {
-            "maxSize must be 0 (unlimited) or larger"
-        }
         return if (maxSize == 0L) {
             bufferReader.readByteArray()
         } else {
@@ -310,7 +303,6 @@ public object DataUtil {
      * @param contentType e.g. "text/html; charset=EUC-JP"
      * @return "EUC-JP", or null if not found. Charset is trimmed and uppercased.
      */
-//    @Nullable
     internal fun getCharsetFromContentType(contentType: String?): String? {
         if (contentType == null) return null
         val matchResult: MatchResult? = charsetPattern.find(contentType)
@@ -348,26 +340,6 @@ public object DataUtil {
         }
         return StringUtil.releaseBuilder(mime)
     }
-
-    //    @Nullable
-    /*private fun detectCharsetFromBom(reader: Reader): BomCharset? {
-        val snapshot = okio.Buffer()
-        reader.copyTo(snapshot, 0, min(4, reader.size))
-        val bom = snapshot.readByteArray()
-        if (bom[0].toInt() == 0x00 && bom[1].toInt() == 0x00 && bom[2] == 0xFE.toByte() && bom[3] == 0xFF.toByte() || // BE
-            bom[0] == 0xFF.toByte() && bom[1] == 0xFE.toByte() && bom[2].toInt() == 0x00 && bom[3].toInt() == 0x00
-        ) { // LE
-            return BomCharset("UTF-32", false) // and I hope it's on your system
-        } else if (bom[0] == 0xFE.toByte() && bom[1] == 0xFF.toByte() || // BE
-            bom[0] == 0xFF.toByte() && bom[1] == 0xFE.toByte()
-        ) {
-            return BomCharset("UTF-16", false) // in all Javas
-        } else if (bom[0] == 0xEF.toByte() && bom[1] == 0xBB.toByte() && bom[2] == 0xBF.toByte()) {
-            return BomCharset("UTF-8", true) // in all Javas
-            // 16 and 32 decoders consume the BOM to determine be/le; utf-8 should be consumed here
-        }
-        return null
-    }*/
 
     private fun detectCharsetFromBom(firstByteArray: ByteArray): BomCharset? {
         // .mark and rewind used to return Buffer, now ByteBuffer, so cast for backward compat

@@ -4,21 +4,20 @@ import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.internal.Normalizer.lowerCase
 import com.fleeksoft.ksoup.internal.Normalizer.normalize
 import com.fleeksoft.ksoup.internal.StringUtil.normaliseWhitespace
-import com.fleeksoft.ksoup.nodes.Comment
-import com.fleeksoft.ksoup.nodes.Document
-import com.fleeksoft.ksoup.nodes.DocumentType
-import com.fleeksoft.ksoup.nodes.Element
-import com.fleeksoft.ksoup.nodes.Node
-import com.fleeksoft.ksoup.nodes.PseudoTextElement
-import com.fleeksoft.ksoup.nodes.TextNode
-import com.fleeksoft.ksoup.nodes.XmlDeclaration
+import com.fleeksoft.ksoup.nodes.*
 import com.fleeksoft.ksoup.parser.ParseSettings
-import kotlin.jvm.JvmOverloads
 
 /**
  * Evaluates that an element matches the selector.
  */
 internal abstract class Evaluator protected constructor() {
+    /**
+     * Provides a Predicate for this Evaluator, matching the test Element.
+     * @param root the root Element, for match evaluation
+     * @return a predicate that accepts an Element to test for matches with this Evaluator
+     */
+    fun asPredicate(root: Element): (Element) -> Boolean = { element -> matches(root, element) }
+
     /**
      * Test if the element meets the evaluator's requirements.
      *
@@ -175,7 +174,7 @@ internal abstract class Evaluator protected constructor() {
     /**
      * Evaluator for attribute name/value matching
      */
-    class AttributeWithValue(key: String?, value: String) : AttributeKeyPair(key, value) {
+    class AttributeWithValue(key: String, value: String) : AttributeKeyPair(key, value) {
         override fun matches(
             root: Element,
             element: Element,
@@ -236,7 +235,7 @@ internal abstract class Evaluator protected constructor() {
     /**
      * Evaluator for attribute name/value matching (value ending)
      */
-    class AttributeWithValueEnding(key: String?, value: String) :
+    class AttributeWithValueEnding(key: String, value: String) :
         AttributeKeyPair(key, value, false) {
         override fun matches(
             root: Element,
@@ -277,14 +276,8 @@ internal abstract class Evaluator protected constructor() {
     /**
      * Evaluator for attribute name/value matching (value regex matching)
      */
-    class AttributeWithValueMatching(key: String?, regex: Regex) : Evaluator() {
-        var key: String
-        var regex: Regex
-
-        init {
-            this.key = normalize(key)
-            this.regex = regex
-        }
+    internal class AttributeWithValueMatching(key: String?, var regex: Regex) : Evaluator() {
+        var key: String = normalize(key)
 
         override fun matches(
             root: Element,
@@ -306,36 +299,34 @@ internal abstract class Evaluator protected constructor() {
     /**
      * Abstract evaluator for attribute name/value matching
      */
-    abstract class AttributeKeyPair
-        @JvmOverloads
-        constructor(
-            key: String?,
-            value: String,
-            trimValue: Boolean = true,
-        ) : Evaluator() {
-            var key: String
-            var value: String
+    internal abstract class AttributeKeyPair(
+        key: String,
+        value: String,
+        trimValue: Boolean = true,
+    ) : Evaluator() {
+        var key: String
+        var value: String
 
-            init {
-                var resultValue = value
-                Validate.notEmpty(key)
-                Validate.notEmpty(resultValue)
-                this.key = normalize(key)
-                val isStringLiteral = (
-                    resultValue.startsWith("'") && resultValue.endsWith("'") ||
-                        resultValue.startsWith("\"") && resultValue.endsWith("\"")
-                )
-                if (isStringLiteral) {
-                    resultValue = resultValue.substring(1, resultValue.length - 1)
-                }
-                this.value = if (trimValue) normalize(resultValue) else normalize(resultValue, isStringLiteral)
+        init {
+            var resultValue = value
+            Validate.notEmpty(key)
+            Validate.notEmpty(resultValue)
+            this.key = normalize(key)
+            val isStringLiteral = (
+                resultValue.startsWith("'") && resultValue.endsWith("'") ||
+                    resultValue.startsWith("\"") && resultValue.endsWith("\"")
+            )
+            if (isStringLiteral) {
+                resultValue = resultValue.substring(1, resultValue.length - 1)
             }
+            this.value = if (trimValue) normalize(resultValue) else normalize(resultValue, isStringLiteral)
         }
+    }
 
     /**
      * Evaluator for any / all element matching
      */
-    class AllElements : Evaluator() {
+    internal class AllElements : Evaluator() {
         override fun matches(
             root: Element,
             element: Element,
@@ -355,12 +346,12 @@ internal abstract class Evaluator protected constructor() {
     /**
      * Evaluator for matching by sibling index number (e &lt; idx)
      */
-    class IndexLessThan(index: Int) : IndexEvaluator(index) {
+    internal class IndexLessThan(index: Int) : IndexEvaluator(index) {
         override fun matches(
             root: Element,
             element: Element,
         ): Boolean {
-            return root !== element && element.elementSiblingIndex() < index
+            return root != element && element.elementSiblingIndex() < index
         }
 
         override fun toString(): String {
@@ -371,7 +362,7 @@ internal abstract class Evaluator protected constructor() {
     /**
      * Evaluator for matching by sibling index number (e &gt; idx)
      */
-    class IndexGreaterThan(index: Int) : IndexEvaluator(index) {
+    internal class IndexGreaterThan(index: Int) : IndexEvaluator(index) {
         override fun matches(
             root: Element,
             element: Element,
@@ -387,7 +378,7 @@ internal abstract class Evaluator protected constructor() {
     /**
      * Evaluator for matching by sibling index number (e = idx)
      */
-    class IndexEquals(index: Int) : IndexEvaluator(index) {
+    internal class IndexEquals(index: Int) : IndexEvaluator(index) {
         override fun matches(
             root: Element,
             element: Element,
@@ -403,7 +394,7 @@ internal abstract class Evaluator protected constructor() {
     /**
      * Evaluator for matching the last sibling (css :last-child)
      */
-    class IsLastChild : Evaluator() {
+    internal class IsLastChild : Evaluator() {
         override fun matches(
             root: Element,
             element: Element,
@@ -473,7 +464,7 @@ internal abstract class Evaluator protected constructor() {
             return element.elementSiblingIndex() + 1
         }
 
-        protected override val pseudoClass: String = "nth-child"
+        override val pseudoClass: String = "nth-child"
     }
 
     /**
@@ -517,7 +508,7 @@ internal abstract class Evaluator protected constructor() {
             return pos
         }
 
-        protected override val pseudoClass: String = "nth-of-type"
+        override val pseudoClass: String = "nth-of-type"
     }
 
     open class IsNthLastOfType(a: Int, b: Int) : CssNthEvaluator(a, b) {
@@ -535,7 +526,7 @@ internal abstract class Evaluator protected constructor() {
             return pos
         }
 
-        protected override val pseudoClass: String = "nth-last-of-type"
+        override val pseudoClass: String = "nth-last-of-type"
     }
 
     /**

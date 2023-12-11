@@ -171,12 +171,12 @@ internal class CharacterReader {
     }
 
     /**
-     * Get a formatted string representing the current line and cursor positions. E.g. `5:10` indicating line
+     * Get a formatted string representing the current line and column positions. E.g. <code>5:10</code> indicating line
      * number 5 and column number 10.
      * @return line:col position
      * @see .trackNewlines
      */
-    fun cursorPos(): String {
+    fun posLineCol(): String {
         return lineNumber().toString() + ":" + columnNumber()
     }
 
@@ -431,22 +431,14 @@ internal class CharacterReader {
         val start = pos
         val remaining = bufLength
         val value = charBuf
+
         OUTER@ while (pos < remaining) {
             when (value!![pos]) {
                 '&', TokeniserState.nullChar -> break@OUTER
-                '\'' -> {
-                    if (single) break@OUTER
-                    if (!single) break@OUTER
-                    pos++
-                }
-
-                '"' -> {
-                    if (!single) break@OUTER
-                    pos++
-                }
-
-                else -> pos++
+                '\'' -> if (single) break@OUTER
+                '"' -> if (!single) break@OUTER
             }
+            pos++
         }
         bufPos = pos
         return if (pos > start) cacheString(charBuf, stringCache, start, pos - start) else ""

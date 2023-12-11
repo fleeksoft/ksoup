@@ -204,7 +204,7 @@ class TokeniserStateTest {
         val paddedSnippet = padding.concatToString() + triggeringSnippet
         val errorList = ParseErrorList.tracking(1)
         Parser.parseFragment(paddedSnippet, null, "", errorList)
-        assertEquals(CharacterReader.readAheadLimit - 1, errorList[0].position)
+        assertEquals(CharacterReader.readAheadLimit - 1, errorList[0].pos)
     }
 
     @Test
@@ -227,7 +227,7 @@ class TokeniserStateTest {
         val triggeringSnippet = "<html <"
         val errorList = ParseErrorList.tracking(1)
         Parser.parseFragment(triggeringSnippet, null, "", errorList)
-        assertEquals(6, errorList[0].position)
+        assertEquals(6, errorList[0].pos)
     }
 
     @Test
@@ -235,7 +235,7 @@ class TokeniserStateTest {
         val triggeringSnippet = "<html /ouch"
         val errorList = ParseErrorList.tracking(1)
         Parser.parseFragment(triggeringSnippet, null, "", errorList)
-        assertEquals(7, errorList[0].position)
+        assertEquals(7, errorList[0].pos)
     }
 
     @Test
@@ -243,7 +243,7 @@ class TokeniserStateTest {
         val triggeringSnippet = "<html<"
         val errorList = ParseErrorList.tracking(1)
         Parser.parseFragment(triggeringSnippet, null, "", errorList)
-        assertEquals(5, errorList[0].position)
+        assertEquals(5, errorList[0].pos)
     }
 
     @Test

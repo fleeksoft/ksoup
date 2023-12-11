@@ -2,23 +2,17 @@ package com.fleeksoft.ksoup.select
 
 import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.nodes.Element
-import com.fleeksoft.ksoup.nodes.Node
+import com.fleeksoft.ksoup.nodes.NodeIterator
 import com.fleeksoft.ksoup.ported.IdentityHashMap
 
 /**
  * Base structural evaluator.
  */
-internal abstract class StructuralEvaluator(evaluator: Evaluator) : Evaluator() {
-    val evaluator: Evaluator
-
+internal abstract class StructuralEvaluator(val evaluator: Evaluator) : Evaluator() {
     // Memoize inner matches, to save repeated re-evaluations of parent, sibling etc.
     // root + element: Boolean matches. ThreadLocal in case the Evaluator is compiled then reused across multi threads
     val threadMemo: IdentityHashMap<Element, IdentityHashMap<Element, Boolean>> =
         IdentityHashMap()
-
-    init {
-        this.evaluator = evaluator
-    }
 
     fun memoMatches(
         root: Element,
@@ -62,23 +56,19 @@ internal abstract class StructuralEvaluator(evaluator: Evaluator) : Evaluator() 
     }
 
     internal class Has(evaluator: Evaluator) : StructuralEvaluator(evaluator) {
-        val finder: Collector.FirstFinder
-
-        init {
-            finder = Collector.FirstFinder(evaluator)
-        }
+        val it: NodeIterator<Element> = NodeIterator(Element("html"), Element::class)
 
         override fun matches(
             root: Element,
             element: Element,
         ): Boolean {
             // for :has, we only want to match children (or below), not the input element. And we want to minimize GCs
-            for (i in 0 until element.childNodeSize()) {
-                val node: Node = element.childNode(i)
-                if (node is Element) {
-                    val match: Element? = finder.find(element, node)
-                    if (match != null) return true
-                }
+            it.restart(element)
+            while (it.hasNext()) {
+                val el = it.next()
+                if (el === element) continue // don't match self, only descendants
+
+                if (evaluator.matches(element, el)) return true
             }
             return false
         }

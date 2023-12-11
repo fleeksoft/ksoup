@@ -52,7 +52,7 @@ class ElementsTest {
 
     @Test
     fun hasAbsAttr() {
-        val doc = Ksoup.parse("<a id=1 href='/foo'>One</a> <a id=2 href='https://jsoup.org'>Two</a>")
+        val doc = Ksoup.parse("<a id=1 href='/foo'>One</a> <a id=2 href='https://ksoup.org'>Two</a>")
         val one = doc.select("#1")
         val two = doc.select("#2")
         val both = doc.select("a")
@@ -70,13 +70,13 @@ class ElementsTest {
 
     @Test
     fun absAttr() {
-        val doc = Ksoup.parse("<a id=1 href='/foo'>One</a> <a id=2 href='https://jsoup.org'>Two</a>")
+        val doc = Ksoup.parse("<a id=1 href='/foo'>One</a> <a id=2 href='https://ksoup.org'>Two</a>")
         val one = doc.select("#1")
         val two = doc.select("#2")
         val both = doc.select("a")
         assertEquals("", one.attr("abs:href"))
-        assertEquals("https://jsoup.org", two.attr("abs:href"))
-        assertEquals("https://jsoup.org", both.attr("abs:href"))
+        assertEquals("https://ksoup.org", two.attr("abs:href"))
+        assertEquals("https://ksoup.org", both.attr("abs:href"))
     }
 
     @Test

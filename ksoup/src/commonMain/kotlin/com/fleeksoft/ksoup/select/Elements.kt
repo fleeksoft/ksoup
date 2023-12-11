@@ -52,7 +52,7 @@ public class Elements(private val delegateList: MutableList<Element> = mutableLi
     /**
      * Get an attribute value from the first matched element that has the attribute.
      * @param attributeKey The attribute key.
-     * @return The attribute value from the first matched element that has the attribute.. If no elements were matched (isEmpty() == true),
+     * @return The attribute value from the first matched element that has the attribute. If no elements were matched (isEmpty() == true),
      * or if the no elements have the attribute, returns empty string.
      * @see .hasAttr
      */

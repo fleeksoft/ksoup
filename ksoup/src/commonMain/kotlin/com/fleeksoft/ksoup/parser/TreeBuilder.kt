@@ -1,10 +1,7 @@
 package com.fleeksoft.ksoup.parser
 
-import com.fleeksoft.ksoup.nodes.Attributes
-import com.fleeksoft.ksoup.nodes.Document
-import com.fleeksoft.ksoup.nodes.Element
-import com.fleeksoft.ksoup.nodes.Node
-import com.fleeksoft.ksoup.nodes.Range
+import com.fleeksoft.ksoup.internal.SharedConstants
+import com.fleeksoft.ksoup.nodes.*
 import com.fleeksoft.ksoup.parser.Parser.Companion.NamespaceHtml
 import com.fleeksoft.ksoup.ported.BufferReader
 
@@ -12,28 +9,36 @@ import com.fleeksoft.ksoup.ported.BufferReader
  * @author Sabeeh
  */
 internal abstract class TreeBuilder {
-    var parser: Parser? = null
+    lateinit var parser: Parser
+        internal set
     lateinit var reader: CharacterReader
+        private set
     var tokeniser: Tokeniser? = null
+        private set
+
     protected lateinit var doc: Document // current doc we are building into
-    lateinit var stack: ArrayList<Element?> // the stack of open elements
-    open var baseUri: String? = null // current base uri, for creating new elements
-    protected var currentToken: Token? = null // currentToken is used only for error tracking.
-    var settings: ParseSettings? = null
-    private var seenTags: MutableMap<String, Tag>? =
-        null // tags we've used in this parse; saves tag GC for custom tags.
-    private val start: Token.StartTag = Token.StartTag() // start tag to process
-    private val end: Token.EndTag = Token.EndTag()
+        private set
+
+    public lateinit var stack: ArrayList<Element?> // the stack of open elements
+    public open var baseUri: String? = null // current base uri, for creating new elements
+    public var currentToken: Token? = null // currentToken is used only for error tracking.
+    public var settings: ParseSettings? = null
+
+    // tags we've used in this parse; saves tag GC for custom tags.
+    protected var seenTags: MutableMap<String, Tag>? = null
+    private lateinit var start: Token.StartTag // start tag to process
+    private lateinit var end: Token.EndTag
 
     abstract fun defaultSettings(): ParseSettings?
 
-    private var trackSourceRange = false // optionally tracks the source range of nodes
+    public var trackSourceRange = false // optionally tracks the source range of nodes
 
-    protected open fun initialiseParse(
+    public open fun initialiseParse(
         input: BufferReader,
-        baseUri: String?,
+        baseUri: String,
         parser: Parser,
     ) {
+        end = Token.EndTag(this)
         doc = Document(parser.defaultNamespace(), baseUri)
         doc.parser(parser)
         this.parser = parser
@@ -43,16 +48,17 @@ internal abstract class TreeBuilder {
         reader.trackNewlines(
             parser.isTrackErrors() || trackSourceRange,
         ) // when tracking errors or source ranges, enable newline tracking for better legibility
-        currentToken = null
-        tokeniser = Tokeniser(reader, parser.getErrors())
+        tokeniser = Tokeniser(this)
         stack = ArrayList(32)
         seenTags = HashMap()
+        start = Token.StartTag(this)
+        currentToken = start // init current token to the virtual start token.
         this.baseUri = baseUri
     }
 
     fun parse(
         input: BufferReader,
-        baseUri: String?,
+        baseUri: String,
         parser: Parser,
     ): Document {
         initialiseParse(input, baseUri, parser)
@@ -80,35 +86,39 @@ internal abstract class TreeBuilder {
     ): List<Node>
 
     protected fun runParser() {
-        val tokeniser: Tokeniser? = tokeniser
-        val eof: Token.TokenType = Token.TokenType.EOF
+        val tokeniser = this.tokeniser!!
+        val eof = Token.TokenType.EOF
+
         while (true) {
-            val token: Token = tokeniser!!.read()
+            val token = tokeniser.read()
+            currentToken = token
             process(token)
-            token.reset()
             if (token.type === eof) break
+            token.reset()
         }
+
+        // once we hit the end, pop remaining items off the stack
+        while (!stack.isEmpty()) pop()
     }
 
-    abstract fun process(token: Token): Boolean
+    public abstract fun process(token: Token): Boolean
 
     fun processStartTag(name: String): Boolean {
         // these are "virtual" start tags (auto-created by the treebuilder), so not tracking the start position
-        val start: Token.StartTag = start
-        return if (currentToken === start) { // don't recycle an in-use token
-            process(Token.StartTag().name(name))
-        } else {
-            process(start.reset().name(name))
+        val start = this.start
+        if (currentToken === start) { // don't recycle an in-use token
+            return process(Token.StartTag(this).name(name))
         }
+        return process(start.reset().name(name))
     }
 
     fun processStartTag(
-        name: String?,
+        name: String,
         attrs: Attributes?,
     ): Boolean {
-        val start: Token.StartTag = start
+        val start = this.start
         if (currentToken === start) { // don't recycle an in-use token
-            return process(Token.StartTag().nameAttr(name, attrs))
+            return process(Token.StartTag(this).nameAttr(name, attrs))
         }
         start.reset()
         start.nameAttr(name, attrs)
@@ -116,11 +126,30 @@ internal abstract class TreeBuilder {
     }
 
     fun processEndTag(name: String): Boolean {
-        return if (currentToken === end) { // don't recycle an in-use token
-            process(Token.EndTag().name(name))
-        } else {
-            process(end.reset().name(name))
+        if (currentToken === end) { // don't recycle an in-use token
+            return process(Token.EndTag(this).name(name))
         }
+        return process(end.reset().name(name))
+    }
+
+    /**
+     * Removes the last Element from the stack, hits onNodeClosed, and then returns it.
+     * @return
+     */
+    fun pop(): Element {
+        val size = stack.size
+        val removed = stack.removeAt(size - 1)!!
+        onNodeClosed(removed)
+        return removed
+    }
+
+    /**
+     * Adds the specified Element to the end of the stack, and hits onNodeInserted.
+     * @param element
+     */
+    fun push(element: Element) {
+        stack.add(element)
+        onNodeInserted(element)
     }
 
     /**
@@ -168,7 +197,7 @@ internal abstract class TreeBuilder {
      * @param msg error message template
      */
     protected fun error(msg: String) {
-        val errors: ParseErrorList = parser!!.getErrors()
+        val errors: ParseErrorList = parser.getErrors()
         if (errors.canAddError()) errors.add(ParseError(reader, msg))
     }
 
@@ -213,49 +242,59 @@ internal abstract class TreeBuilder {
 
     /**
      * Called by implementing TreeBuilders when a node has been inserted. This implementation includes optionally tracking
-     * the source range of the node.
-     * @param node the node that was just inserted
-     * @param token the (optional) token that created this node
+     * the source range of the node.  @param node the node that was just inserted
      */
-    fun onNodeInserted(
-        node: Node,
-        token: Token?,
-    ) {
-        trackNodePosition(node, token, true)
+    fun onNodeInserted(node: Node) {
+        trackNodePosition(node, true)
     }
 
     /**
      * Called by implementing TreeBuilders when a node is explicitly closed. This implementation includes optionally
-     * tracking the closing source range of the node.
-     * @param node the node being closed
-     * @param token the end-tag token that closed this node
+     * tracking the closing source range of the node.  @param node the node being closed
      */
-    protected fun onNodeClosed(
-        node: Node,
-        token: Token?,
-    ) {
-        trackNodePosition(node, token, false)
+    fun onNodeClosed(node: Node) {
+        trackNodePosition(node, false)
     }
 
     private fun trackNodePosition(
         node: Node,
-        token: Token?,
-        start: Boolean,
+        isStart: Boolean,
     ) {
-        if (trackSourceRange && token != null) {
-            val startPos: Int = token.startPos()
-            if (startPos == Token.Unset) return // untracked, virtual token
-            val startRange: Range.Position =
-                Range.Position(
-                    startPos,
-                    reader.lineNumber(startPos),
-                    reader.columnNumber(startPos),
-                )
-            val endPos: Int = token.endPos()
-            val endRange: Range.Position =
-                Range.Position(endPos, reader.lineNumber(endPos), reader.columnNumber(endPos))
-            val range = Range(startRange, endRange)
-            range.track(node, start)
+        if (!trackSourceRange) return
+
+        val token = currentToken!!
+        var startPos = token.startPos()
+        var endPos = token.endPos()
+
+        // handle implicit element open / closes.
+        if (node is Element) {
+            val el = node
+            if (token.isEOF()) {
+                if (el.endSourceRange()
+                        .isTracked()
+                ) {
+                    return // /body and /html are left on stack until EOF, don't reset them
+                }
+
+                endPos = reader.pos()
+                startPos = endPos
+            } else if (isStart) { // opening tag
+                if (!token.isStartTag() || !el.normalName().equals(token.asStartTag().normalName)) {
+                    endPos = startPos
+                }
+            } else { // closing tag
+                if (!el.tag().isEmpty && !el.tag().isSelfClosing()) {
+                    if (!token.isEndTag() || !el.normalName().equals(token.asEndTag().normalName)) {
+                        endPos = startPos
+                    }
+                }
+            }
         }
+
+        val startPosition: Range.Position =
+            Range.Position(startPos, reader.lineNumber(startPos), reader.columnNumber(startPos))
+        val endPosition: Range.Position = Range.Position(endPos, reader.lineNumber(endPos), reader.columnNumber(endPos))
+        val range = Range(startPosition, endPosition)
+        node.attributes().userData(if (isStart) SharedConstants.RangeKey else SharedConstants.EndRangeKey, range)
     }
 }

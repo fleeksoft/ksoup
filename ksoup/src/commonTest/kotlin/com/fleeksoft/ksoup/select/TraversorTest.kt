@@ -2,12 +2,15 @@ package com.fleeksoft.ksoup.select
 
 import com.fleeksoft.ksoup.Ksoup
 import com.fleeksoft.ksoup.TextUtil
+import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.nodes.Element
 import com.fleeksoft.ksoup.nodes.Node
 import com.fleeksoft.ksoup.nodes.TextNode
+import com.fleeksoft.ksoup.ported.AtomicBoolean
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 class TraversorTest {
     // Note: NodeTraversor.traverse(new NodeVisitor) is tested in
@@ -235,11 +238,11 @@ class TraversorTest {
 
     @Test
     fun elementFunctionalTraverse() {
-        val doc = Ksoup.parse("<div><p>1<p>2<p>3")
+        val doc: Document = Ksoup.parse("<div><p>1<p>2<p>3")
         val body = doc.body()
 
-        var seenCount = 0
-        var deepest = 0
+        var seenCount: Int = 0
+        var deepest: Int = 0
         body.traverse { node, depth ->
             ++seenCount
             if (depth > deepest) deepest = depth
@@ -247,5 +250,15 @@ class TraversorTest {
 
         assertEquals(8, seenCount) // body and contents
         assertEquals(3, deepest)
+    }
+
+    @Test
+    fun seesDocRoot() {
+        val doc: Document = Ksoup.parse("<p>One")
+        val seen: AtomicBoolean = AtomicBoolean(false)
+        doc.traverse { node, depth ->
+            if (node == doc) seen.set(true)
+        }
+        assertTrue(seen.get())
     }
 }

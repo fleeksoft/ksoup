@@ -4,7 +4,7 @@ import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.nodes.Element
 import com.fleeksoft.ksoup.nodes.Node
 import com.fleeksoft.ksoup.ported.BufferReader
-import io.ktor.utils.io.core.toByteArray
+import io.ktor.utils.io.core.*
 
 /**
  * Parses HTML or XML into a [com.fleeksoft.ksoup.nodes.Document]. Generally, it is simpler to use one of the parse methods in
@@ -282,7 +282,9 @@ public class Parser {
             string: String,
             inAttribute: Boolean,
         ): String {
-            val tokeniser = Tokeniser(CharacterReader(string), ParseErrorList.noTracking())
+            val parser: Parser = htmlParser()
+            parser.treeBuilder.initialiseParse(BufferReader(string), "", parser)
+            val tokeniser = Tokeniser(parser.treeBuilder)
             return tokeniser.unescapeEntities(inAttribute)
         }
         // builders
