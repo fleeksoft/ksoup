@@ -17,8 +17,8 @@ Steps to reproduce the behavior:
 **Expected behavior**
 A clear and concise description of what you expected to happen.
 
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
+**Sample Code**
+If applicable, add sample code or snippets to help explain your problem.
 
 **Device (please complete the following information):**
  - Device: [e.g. iPhone6]
