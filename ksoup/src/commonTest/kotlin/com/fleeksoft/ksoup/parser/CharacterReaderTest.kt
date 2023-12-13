@@ -14,6 +14,16 @@ import kotlin.test.*
  */
 class CharacterReaderTest {
     @Test
+    fun testReadMixSpecialChar() {
+        val input = "ä<a>ä</a>"
+        val charReader = CharacterReader(BufferReader(input), 1)
+        input.forEachIndexed { index, char ->
+            assertEquals(index, charReader.pos())
+            assertEquals(char, charReader.consume())
+        }
+    }
+
+    @Test
     fun testSpecialCharacterReader() {
         val specialText1 = "Hello &amp;&lt;&gt; Å å π 新 there ¾ © »"
         val specialText2 = "Übergrößenträger"
@@ -111,17 +121,17 @@ class CharacterReaderTest {
 
     @Test
     fun consumeToEnd() {
-        val `in` = "one two three"
-        val r = CharacterReader(`in`)
+        val input = "one two three"
+        val r = CharacterReader(input)
         val toEnd = r.consumeToEnd()
-        assertEquals(`in`, toEnd)
+        assertEquals(input, toEnd)
         assertTrue(r.isEmpty())
     }
 
     @Test
     fun nextIndexOfChar() {
-        val `in` = "blah blah"
-        val r = CharacterReader(`in`)
+        val input = "blah blah"
+        val r = CharacterReader(input)
         assertEquals(-1, r.nextIndexOf('x'))
         assertEquals(3, r.nextIndexOf('h'))
         val pull = r.consumeTo('h')

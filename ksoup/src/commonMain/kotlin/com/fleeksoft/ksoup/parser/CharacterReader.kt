@@ -17,6 +17,7 @@ internal class CharacterReader {
     private var bufLength = 0
     private var bufSplitPoint = 0
     private var bufPos = 0
+    private var byteDiff = 0
     private var readerPos: Int = 0
     private var bufMark = -1
     private var close: Boolean = false
@@ -48,8 +49,8 @@ internal class CharacterReader {
         }
     }
 
-    private var readFully =
-        false // if the underlying stream has been completely read, no value in further buffering
+    // if the underlying stream has been completely read, no value in further buffering
+    private var readFully = false
 
     private fun bufferUp() {
 //        println("pre => bufSize: ${charBuf?.size} bufLength: $bufLength, readerPos: $readerPos, bufPos: $bufPos, bufSplitPoint: $bufSplitPoint")
@@ -62,30 +63,24 @@ internal class CharacterReader {
                 Pair(bufPos.toLong(), 0)
             }
 
-        source!!.skip(pos)
+        if (pos > 0) {
+            source!!.skip(pos + byteDiff)
+            byteDiff = 0
+        }
+
         val reader: BufferReader = source!!.peek()
         var read: Int = 0
         while (read <= minReadAheadLen) {
             val toReadSize = charBuf!!.size - read
-            val str =
-                if (toReadSize > 0) {
-                    reader.readString(toReadSize.toLong())
-                } else {
-                    ""
+            var readBytes = 0
+            val thisRead =
+                reader.readCharArray(charArray = charBuf!!, off = read, len = toReadSize) {
+                    readBytes = it
                 }
 
-            val thisRead = if (str.isEmpty() && reader.exhausted()) -1 else str.length
-
             if (thisRead > 0) {
-                str.toCharArray().copyInto(charBuf!!, destinationOffset = read)
+                byteDiff += (readBytes - thisRead)
             }
-
-            /*val readData = ByteArray(toReadSize)
-            val thisRead = reader.read(readData, 0, toReadSize) //read max 8192
-            if (thisRead > 0) {
-                readData.copyOfRange(0, thisRead).decodeToString()
-                    .toCharArray().copyInto(charBuf!!, destinationOffset = read)
-            }*/
 
             if (thisRead == -1) readFully = true
             if (thisRead <= 0) break
