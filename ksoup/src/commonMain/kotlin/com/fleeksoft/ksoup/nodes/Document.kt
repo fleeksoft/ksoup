@@ -20,7 +20,7 @@ import io.ktor.utils.io.charsets.*
 /**
  * Create a new, empty Document, in the specified namespace.
  * @param namespace the namespace of this Document's root node.
- * @param baseUri base URI of document
+ * @param location base URI of document
  * @see .createShell
  */
 public class Document(private val namespace: String, private val location: String?) :
@@ -77,7 +77,7 @@ public class Document(private val namespace: String, private val location: Strin
     private fun htmlEl(): Element {
         var el: Element? = firstElementChild()
         while (el != null) {
-            if (el.normalName() == "html") return el
+            if (el.nameIs("html")) return el
             el = el.nextElementSibling()
         }
         return appendElement("html")
@@ -96,7 +96,7 @@ public class Document(private val namespace: String, private val location: Strin
         val html: Element = htmlEl()
         var el: Element? = html.firstElementChild()
         while (el != null) {
-            if (el.normalName() == "head") return el
+            if (el.nameIs("head")) return el
             el = el.nextElementSibling()
         }
         return html.prependElement("head")
@@ -115,7 +115,7 @@ public class Document(private val namespace: String, private val location: Strin
         val html: Element = htmlEl()
         var el: Element? = html.firstElementChild()
         while (el != null) {
-            if ("body" == el.normalName() || "frameset" == el.normalName()) return el
+            if (el.nameIs("body") || el.nameIs("frameset")) return el
             el = el.nextElementSibling()
         }
         return html.appendElement("body")

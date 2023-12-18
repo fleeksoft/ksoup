@@ -399,7 +399,7 @@ internal enum class HtmlTreeBuilderState {
                     var i: Int = stack.size - 1
                     while (i > 0) {
                         el = stack[i]!!
-                        if (el.normalName() == "li") {
+                        if (el.nameIs("li")) {
                             tb.processEndTag("li")
                             break
                         }
@@ -440,7 +440,7 @@ internal enum class HtmlTreeBuilderState {
                 "body" -> {
                     tb.error(this)
                     stack = tb.stack
-                    if (stack.size == 1 || stack.size > 2 && stack[1]?.normalName() != "body" ||
+                    if (stack.size == 1 || stack.size > 2 && !stack[1]!!.nameIs("body") ||
                         tb.onStack("template")
                     ) {
                         // only in fragment case
@@ -465,7 +465,7 @@ internal enum class HtmlTreeBuilderState {
                 "frameset" -> {
                     tb.error(this)
                     stack = tb.stack
-                    if (stack.size == 1 || stack.size > 2 && stack[1]?.normalName() != "body") {
+                    if (stack.size == 1 || stack.size > 2 && !stack[1]!!.nameIs("body")) {
                         // only in fragment case
                         return false // ignore
                     } else if (!tb.framesetOk()) {
@@ -909,8 +909,8 @@ internal enum class HtmlTreeBuilderState {
             t: Token,
             tb: HtmlTreeBuilder,
         ): Boolean {
-            val name: String =
-                t.asEndTag().normalName!! // case insensitive search - goal is to preserve output case, not for the parse to be case sensitive
+            // case insensitive search - goal is to preserve output case, not for the parse to be case sensitive
+            val name: String = t.asEndTag().normalName!!
             val stack: ArrayList<Element> =
                 arrayListOf(
                     *tb.stack.mapNotNull { it }.toList()
@@ -925,7 +925,7 @@ internal enum class HtmlTreeBuilderState {
             }
             for (pos in stack.indices.reversed()) {
                 val node: Element = stack[pos]
-                if (node.normalName() == name) {
+                if (node.nameIs(name)) {
                     tb.generateImpliedEndTags(name)
                     if (!tb.currentElementIs(name)) tb.error(this)
                     tb.popStackToClose(name)
@@ -1609,8 +1609,7 @@ internal enum class HtmlTreeBuilderState {
                     when (name) {
                         "optgroup" -> {
                             if (tb.currentElementIs("option") &&
-                                tb.aboveOnStack(tb.currentElement()) != null &&
-                                tb.aboveOnStack(tb.currentElement())?.normalName() == "optgroup"
+                                tb.aboveOnStack(tb.currentElement())?.nameIs("optgroup") == true
                             ) {
                                 tb.processEndTag("option")
                             }
@@ -1995,9 +1994,9 @@ internal enum class HtmlTreeBuilderState {
                     if (stack.isEmpty()) Validate.wtf("Stack unexpectedly empty")
                     var i: Int = stack.size - 1
                     var el: Element = stack[i]
-                    if (el.normalName() != end.normalName) tb.error(this)
+                    if (!el.nameIs(end.normalName)) tb.error(this)
                     while (i != 0) {
-                        if (el.normalName() == end.normalName) {
+                        if (el.nameIs(end.normalName)) {
                             tb.popStackToCloseAnyNamespace(el.normalName())
                             return true
                         }

@@ -105,6 +105,7 @@ internal class CharacterReader {
 
     /**
      * Gets the position currently read to in the content. Starts at 0.
+     *
      * @return current position
      */
     fun pos(): Int {

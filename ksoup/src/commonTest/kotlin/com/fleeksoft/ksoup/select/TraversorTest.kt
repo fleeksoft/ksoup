@@ -161,10 +161,9 @@ class TraversorTest {
         val doc = Ksoup.parse(html)
         NodeTraversor.traverse({ node, depth ->
             if (node is Element) {
-                val el = node
-                if (el.normalName() == "i") {
-                    val u = Element("u").insertChildren(0, el.childNodes())
-                    el.replaceWith(u)
+                if (node.nameIs("i")) {
+                    val u = Element("u").insertChildren(0, node.childNodes())
+                    node.replaceWith(u)
                 }
             }
         }, doc)

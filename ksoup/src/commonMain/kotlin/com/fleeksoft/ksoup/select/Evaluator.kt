@@ -52,7 +52,7 @@ internal abstract class Evaluator protected constructor() {
             root: Element,
             element: Element,
         ): Boolean {
-            return element.normalName() == tagName
+            return element.nameIs(tagName)
         }
 
         override fun cost(): Int {
@@ -143,13 +143,8 @@ internal abstract class Evaluator protected constructor() {
     /**
      * Evaluator for attribute name prefix matching
      */
-    class AttributeStarting(keyPrefix: String?) : Evaluator() {
-        private val keyPrefix: String
-
-        init {
-            Validate.notEmpty(keyPrefix)
-            this.keyPrefix = lowerCase(keyPrefix)
-        }
+    class AttributeStarting(keyPrefix: String) : Evaluator() {
+        private val keyPrefix: String = lowerCase(keyPrefix)
 
         override fun matches(
             root: Element,

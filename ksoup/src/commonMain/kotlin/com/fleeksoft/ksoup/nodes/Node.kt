@@ -15,7 +15,7 @@ The base, abstract Node model. {@link Element}, {@link Document}, {@link Comment
 are instances of Node.
  */
 public abstract class Node protected constructor() : KCloneable<Node> {
-    internal var _parentNode: Node? = null // Nodes don't always have parents
+    internal var parentNode: Node? = null // Nodes don't always have parents
     internal var siblingIndex = 0
 
     /**
@@ -34,6 +34,40 @@ public abstract class Node protected constructor() : KCloneable<Node> {
     }
 
     /**
+     * Test if this node has the specified normalized name, in any namespace.
+     * @param normalName a normalized element name (e.g. `div`).
+     * @return true if the element's normal name matches exactly
+     */
+    public fun nameIs(normalName: String): Boolean {
+        return normalName() == normalName
+    }
+
+    /**
+     * Test if this node's parent has the specified normalized name.
+     * @param normalName a normalized name (e.g. `div`).
+     * @return true if the parent element's normal name matches exactly
+     */
+    public fun parentNameIs(normalName: String): Boolean {
+        return parentNode != null && parentNode!!.normalName() == normalName
+    }
+
+    /**
+     * Test if this node's parent is an Element with the specified normalized name and namespace.
+     * @param normalName a normalized element name (e.g. `div`).
+     * @param namespace the namespace
+     * @return true if the parent element's normal name matches exactly, and that element is in the specified namespace
+     */
+    public fun parentElementIs(
+        normalName: String,
+        namespace: String,
+    ): Boolean {
+        return (
+            parentNode != null && parentNode is Element &&
+                (parentNode as Element).elementIs(normalName, namespace)
+        )
+    }
+
+    /**
      * Check if this Node has an actual Attributes object.
      */
     public abstract fun hasAttributes(): Boolean
@@ -44,7 +78,7 @@ public abstract class Node protected constructor() : KCloneable<Node> {
      * @return if this node has a parent.
      */
     public fun hasParent(): Boolean {
-        return _parentNode != null
+        return parentNode != null
     }
 
     /**
@@ -269,13 +303,13 @@ public abstract class Node protected constructor() : KCloneable<Node> {
      * @return parent node; or null if no parent.
      * @see .hasParent
      */
-    public open fun parent(): Node? = _parentNode
+    public open fun parent(): Node? = parentNode
 
     /**
      * Gets this node's parent node. Not overridable by extending classes, so useful if you really just need the Node type.
      * @return parent node; or null if no parent.
      */
-    public fun parentNode(): Node? = _parentNode
+    public fun parentNode(): Node? = parentNode
 
     /**
      * Get this node's root node; that is, its topmost ancestor. If this node is the top ancestor, returns `this`.
@@ -283,7 +317,7 @@ public abstract class Node protected constructor() : KCloneable<Node> {
      */
     public open fun root(): Node {
         var node: Node = this
-        while (node._parentNode != null) node = node._parentNode!!
+        while (node.parentNode != null) node = node.parentNode!!
         return node
     }
 
@@ -301,7 +335,7 @@ public abstract class Node protected constructor() : KCloneable<Node> {
      * an orphan, nothing happens.
      */
     public fun remove() {
-        if (_parentNode != null) _parentNode!!.removeChild(this)
+        if (parentNode != null) parentNode!!.removeChild(this)
     }
 
     /**
@@ -358,12 +392,12 @@ public abstract class Node protected constructor() : KCloneable<Node> {
         index: Int,
         html: String,
     ) {
-        Validate.notNull(_parentNode)
+        Validate.notNull(parentNode)
         val context: Element? = if (parent() is Element) parent() as Element? else null
         val nodes: List<Node> =
             NodeUtils.parser(this)
                 .parseFragmentInput(html, context, baseUri())
-        _parentNode!!.addChildren(index, *nodes.toTypedArray())
+        parentNode!!.addChildren(index, *nodes.toTypedArray())
     }
 
     /**
@@ -378,7 +412,7 @@ public abstract class Node protected constructor() : KCloneable<Node> {
 
         // Parse context - parent (because wrapping), this, or null
         val context: Element =
-            if (_parentNode != null && _parentNode is Element) _parentNode as Element else (if (this is Element) this else null)!!
+            if (parentNode != null && parentNode is Element) parentNode as Element else (if (this is Element) this else null)!!
         val wrapChildren: List<Node> =
             NodeUtils.parser(this)
                 .parseFragmentInput(html, context, baseUri())
@@ -387,7 +421,7 @@ public abstract class Node protected constructor() : KCloneable<Node> {
                 ?: return this
         val wrap: Element = wrapNode
         val deepest: Element = getDeepChild(wrap)
-        if (_parentNode != null) _parentNode!!.replaceChild(this, wrap)
+        if (parentNode != null) parentNode!!.replaceChild(this, wrap)
         deepest.addChildren(this) // side effect of tricking wrapChildren to lose first
 
         // remainder (unbalanced wrap, like <div></div><p></p> -- The <p> is remainder
@@ -396,7 +430,7 @@ public abstract class Node protected constructor() : KCloneable<Node> {
                 val remainder = wrapChildren[i]
                 // if no parent, this could be the wrap node, so skip
                 if (wrap === remainder) continue
-                if (remainder._parentNode != null) remainder._parentNode!!.removeChild(remainder)
+                if (remainder.parentNode != null) remainder.parentNode!!.removeChild(remainder)
                 wrap.after(remainder)
             }
         }
@@ -422,9 +456,9 @@ public abstract class Node protected constructor() : KCloneable<Node> {
      * @see .wrap
      */
     public fun unwrap(): Node? {
-        Validate.notNull(_parentNode)
+        Validate.notNull(parentNode)
         val firstChild = firstChild()
-        _parentNode!!.addChildren(siblingIndex, *childNodesAsArray())
+        parentNode!!.addChildren(siblingIndex, *childNodesAsArray())
         this.remove()
         return firstChild
     }
@@ -448,35 +482,35 @@ public abstract class Node protected constructor() : KCloneable<Node> {
      * @param `in` the node that will replace the existing node.
      */
     public fun replaceWith(inNode: Node) {
-        Validate.notNull(_parentNode)
-        _parentNode!!.replaceChild(this, inNode)
+        Validate.notNull(parentNode)
+        parentNode!!.replaceChild(this, inNode)
     }
 
     private fun replaceChild(
         out: Node,
         inNode: Node,
     ) {
-        Validate.isTrue(out._parentNode === this)
+        Validate.isTrue(out.parentNode === this)
         if (out === inNode) return // no-op self replacement
-        if (inNode._parentNode != null) inNode._parentNode!!.removeChild(inNode)
+        if (inNode.parentNode != null) inNode.parentNode!!.removeChild(inNode)
         val index = out.siblingIndex
         ensureChildNodes()[index] = inNode
-        inNode._parentNode = this
+        inNode.parentNode = this
         inNode.siblingIndex = index
-        out._parentNode = null
+        out.parentNode = null
     }
 
     protected fun setParentNode(parentNode: Node) {
-        if (this._parentNode != null) this._parentNode!!.removeChild(this)
-        this._parentNode = parentNode
+        if (this.parentNode != null) this.parentNode!!.removeChild(this)
+        this.parentNode = parentNode
     }
 
     protected open fun removeChild(out: Node) {
-        Validate.isTrue(out._parentNode === this)
+        Validate.isTrue(out.parentNode === this)
         val index = out.siblingIndex
         ensureChildNodes().removeAt(index)
         reindexChildren(index)
-        out._parentNode = null
+        out.parentNode = null
     }
 
     public fun addChildren(vararg children: Node) {
@@ -517,7 +551,7 @@ public abstract class Node protected constructor() : KCloneable<Node> {
                 nodes.addAll(index, listOf(*children))
                 i = children.size
                 while (i-- > 0) {
-                    children[i]._parentNode = this
+                    children[i].parentNode = this
                 }
                 if (!(wasEmpty && children[0].siblingIndex == 0)) {
                     // skip reindexing if we just moved
@@ -552,8 +586,8 @@ public abstract class Node protected constructor() : KCloneable<Node> {
      * @return node siblings. If the node has no parent, returns an empty list.
      */
     public fun siblingNodes(): List<Node> {
-        if (_parentNode == null) return emptyList()
-        val nodes: List<Node> = _parentNode!!.ensureChildNodes()
+        if (parentNode == null) return emptyList()
+        val nodes: List<Node> = parentNode!!.ensureChildNodes()
         val siblings: MutableList<Node> = ArrayList<Node>(nodes.size - 1)
         for (node in nodes) if (node != this) siblings.add(node)
         return siblings
@@ -564,8 +598,8 @@ public abstract class Node protected constructor() : KCloneable<Node> {
      * @return next sibling, or {@code null} if this is the last sibling
      */
     public fun nextSibling(): Node? {
-        if (_parentNode == null) return null // root
-        val siblings: List<Node> = _parentNode!!.ensureChildNodes()
+        if (parentNode == null) return null // root
+        val siblings: List<Node> = parentNode!!.ensureChildNodes()
         val index = siblingIndex + 1
         return if (siblings.size > index) siblings[index] else null
     }
@@ -575,8 +609,8 @@ public abstract class Node protected constructor() : KCloneable<Node> {
      * @return the previous sibling, or @{code null} if this is the first sibling
      */
     public fun previousSibling(): Node? {
-        if (_parentNode == null) return null // root
-        return if (siblingIndex > 0) _parentNode!!.ensureChildNodes()[siblingIndex - 1] else null
+        if (parentNode == null) return null // root
+        return if (siblingIndex > 0) parentNode!!.ensureChildNodes()[siblingIndex - 1] else null
     }
 
     /**
@@ -723,11 +757,6 @@ public abstract class Node protected constructor() : KCloneable<Node> {
         return Range.of(this, true)
     }
 
-    /** Test if this node has the supplied normal name.  */
-    public fun isNode(normalName: String): Boolean {
-        return normalName() == normalName
-    }
-
     public fun isEffectivelyFirst(): Boolean {
         if (siblingIndex == 0) return true
         if (siblingIndex == 1) {
@@ -841,14 +870,14 @@ public abstract class Node protected constructor() : KCloneable<Node> {
      */
     protected open fun doClone(parent: Node?): Node {
         val clone: Node = this.createClone()
-        clone._parentNode = parent // can be null, to create an orphan split
+        clone.parentNode = parent // can be null, to create an orphan split
         clone.siblingIndex = if (parent == null) 0 else siblingIndex
         // if not keeping the parent, shallowClone the ownerDocument to preserve its settings
         if (parent == null && this !is Document) {
             val doc: Document? = ownerDocument()
             if (doc != null) {
                 val docClone: Document = doc.shallowClone()
-                clone._parentNode = docClone
+                clone.parentNode = docClone
                 docClone.ensureChildNodes().add(clone)
             }
         }
@@ -896,13 +925,5 @@ public abstract class Node protected constructor() : KCloneable<Node> {
     public companion object {
         public val EmptyNodes: MutableList<Node> = mutableListOf()
         public const val EmptyString: String = ""
-
-        /** Test if this node is not null and has the supplied normal name.  */
-        public fun isNode(
-            node: Node?,
-            normalName: String,
-        ): Boolean {
-            return node != null && node.normalName() == normalName
-        }
     }
 }

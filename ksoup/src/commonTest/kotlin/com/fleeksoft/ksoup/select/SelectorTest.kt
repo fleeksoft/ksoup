@@ -1168,6 +1168,33 @@ class SelectorTest {
         assertEquals(3, els.size)
     }
 
+    @Test
+    fun emptyAttributePrefix() {
+        // https://github.com/jhy/jsoup/issues/2079
+        // Discovered feature: [^] should find elements with any attribute (any prefix)
+        val html = "<p one>One<p one two>Two<p>Three"
+        val doc: Document = Ksoup.parse(html)
+
+        val els = doc.select("[^]")
+        assertSelectedOwnText(els, "One", "Two")
+
+        val emptyAttr = doc.select("p:not([^])")
+        assertSelectedOwnText(emptyAttr, "Three")
+    }
+
+    @Test
+    fun anyAttribute() {
+        // https://github.com/jhy/jsoup/issues/2079
+        val html = "<div id=1><p one>One<p one two>Two<p>Three"
+        val doc: Document = Ksoup.parse(html)
+
+        val els = doc.select("p[*]")
+        assertSelectedOwnText(els, "One", "Two")
+
+        val emptyAttr = doc.select("p:not([*])")
+        assertSelectedOwnText(emptyAttr, "Three")
+    }
+
     companion object {
         /** Test that the selected elements match exactly the specified IDs.  */
         fun assertSelectedIds(

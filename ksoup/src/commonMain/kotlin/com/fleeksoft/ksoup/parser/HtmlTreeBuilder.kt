@@ -160,7 +160,7 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
         }
         // If the adjusted current node is a MathML annotation-xml element and the token is a start tag whose tag name is "svg"
         if (Parser.NamespaceMathml == ns &&
-            el.normalName() == "annotation-xml" &&
+            el.nameIs("annotation-xml") &&
             token.isStartTag() && "svg" == token.asStartTag().normalName
         ) {
             return true
@@ -422,7 +422,7 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
         val upper = if (bottom >= maxQueueDepth) bottom - maxQueueDepth else 0
         for (pos in bottom downTo upper) {
             val next: Element? = stack[pos]
-            if (next?.normalName() == elName && NamespaceHtml == next?.tag()?.namespace()) {
+            if (next?.elementIs(elName, NamespaceHtml) == true) {
                 return next
             }
         }
@@ -446,7 +446,7 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
     fun popStackToClose(elName: String): Element? {
         for (pos in stack.size - 1 downTo 0) {
             val el: Element = pop()
-            if (el.normalName() == elName && NamespaceHtml == el.tag().namespace()) {
+            if (el.elementIs(elName, NamespaceHtml)) {
                 return el
             }
         }
@@ -458,7 +458,7 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
     fun popStackToCloseAnyNamespace(elName: String): Element? {
         for (pos in stack.size - 1 downTo 0) {
             val el: Element = pop()
-            if (el.normalName() == elName) {
+            if (el.nameIs(elName)) {
                 return el
             }
         }
@@ -493,7 +493,7 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
         for (pos in stack.size - 1 downTo 0) {
             val next: Element? = stack[pos]
             if (NamespaceHtml == next?.tag()?.namespace() &&
-                (StringUtil.isIn(next.normalName(), *nodeNames) || next.normalName() == "html")
+                (StringUtil.isIn(next.normalName(), *nodeNames) || next.nameIs("html"))
             ) {
                 break
             } else {
@@ -917,7 +917,7 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
             if (next == null) {
                 // scope marker
                 break
-            } else if (next.normalName() == nodeName) {
+            } else if (next.nameIs(nodeName)) {
                 return next
             }
         }
@@ -1150,9 +1150,7 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
             An SVG desc element
             An SVG title element
              */
-            if (Parser.NamespaceMathml == el.tag().namespace() &&
-                el.normalName() == "annotation-xml"
-            ) {
+            if (Parser.NamespaceMathml == el.tag().namespace() && el.nameIs("annotation-xml")) {
                 val encoding: String = Normalizer.normalize(el.attr("encoding"))
                 if (encoding == "text/html" || encoding == "application/xhtml+xml") return true
             }
