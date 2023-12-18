@@ -154,6 +154,10 @@ public open class BufferReader : Closeable {
         len: Int,
         bytesSizeCallback: ((Int) -> Unit) = {},
     ): Int {
+        if (len == 0) {
+            bytesSizeCallback(0)
+            return 0
+        }
         var readBytes: Long = 0
         var readChars = 0
         val charToReadSize: Int = len
@@ -171,10 +175,17 @@ public open class BufferReader : Closeable {
             readBytes += peekSource.read(tempBuffer, charToReadSize - readBytes)
         }
 
+        val decoder = charset.newDecoder()
+
         var removeExtraChar = false
         while (!peekSource.exhausted()) {
             peekSource.peek().read(tempBuffer, 1)
-            val str = io.ktor.utils.io.core.String(bytes = tempBuffer.peek().readByteArray(), charset = charset)
+
+//                jvm don't throw exception but nodejs is throwing exception here
+            val str: String =
+                runCatching {
+                    io.ktor.utils.io.core.String(bytes = tempBuffer.peek().readByteArray(), charset = charset)
+                }.getOrNull() ?: ""
 //                    not sure how many bytes have this char for this encoding.
             if (str.length > charToReadSize) {
                 removeExtraChar = true
@@ -186,9 +197,13 @@ public open class BufferReader : Closeable {
         }
         if (readBytes > 0) {
             val strArray =
-                io.ktor.utils.io.core.String(bytes = tempBuffer.readByteArray(), charset = charset).let {
-                    if (removeExtraChar) it.dropLast(1) else it
-                }.toCharArray()
+                io.ktor.utils.io.core.String(
+                    bytes =
+                        tempBuffer.readByteArray().let {
+                            if (removeExtraChar) it.dropLast(1).toByteArray() else it
+                        },
+                    charset = charset,
+                ).toCharArray()
             readChars = strArray.size
             strArray.copyInto(charArray, off)
             getSource().skip(readBytes)

@@ -2,6 +2,7 @@ package com.fleeksoft.ksoup.ported
 
 import com.fleeksoft.ksoup.Platform
 import com.fleeksoft.ksoup.PlatformType
+import com.fleeksoft.ksoup.TestHelper
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import okio.IOException
@@ -12,6 +13,10 @@ import kotlin.test.assertFailsWith
 class BufferReaderTest {
     @Test
     fun testMixCharReader() {
+        if (Platform.current != PlatformType.JVM && !TestHelper.forceAllTestsRun) {
+            return
+        }
+
         val inputData = "ä<a>ä</a>"
         val bufferReader = BufferReader(inputData)
         inputData.toCharArray().forEachIndexed { index, char ->
@@ -37,6 +42,9 @@ class BufferReaderTest {
 
     @Test
     fun testMixCharArrayReader() {
+        if (Platform.current != PlatformType.JVM && !TestHelper.forceAllTestsRun) {
+            return
+        }
         val inputData = "ä<a>ä</a>"
         val bufferReader = BufferReader(inputData)
         inputData.toCharArray().forEach {

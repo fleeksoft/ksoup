@@ -64,7 +64,9 @@ internal class CharacterReader {
             }
 
         if (pos > 0) {
-            source!!.skip(pos + byteDiff)
+//            source!!.skip(pos + byteDiff)
+//            skip issue with mix of unicode characters
+            source!!.readCharArray(CharArray(pos.toInt()), 0, pos.toInt())
             byteDiff = 0
         }
 

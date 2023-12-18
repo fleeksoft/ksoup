@@ -76,7 +76,7 @@ internal abstract class Token private constructor(var type: TokenType) {
         }
 
         override fun toString(): String {
-            return "<!doctype " + getName() + ">"
+            return "<!doctype ${getName()}>"
         }
     }
 
@@ -431,7 +431,7 @@ internal abstract class Token private constructor(var type: TokenType) {
         }
 
         override fun toString(): String {
-            return "<!--" + getData() + "-->"
+            return "<!--${getData()}-->"
         }
     }
 
@@ -451,7 +451,7 @@ internal abstract class Token private constructor(var type: TokenType) {
         }
 
         override fun toString(): String {
-            return data!!
+            return data.toString()
         }
 
         override fun clone(): Character {

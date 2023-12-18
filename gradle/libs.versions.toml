@@ -15,7 +15,6 @@ okio = "3.6.0"
 kotlinxDatetime = "0.5.0"
 kotlinx-io = "0.3.0"
 codepoints = "0.6.1"
-gson = "2.10.1"
 dokka = "1.9.10"
 vanniktect-publish = "0.25.3"
 
@@ -41,7 +40,6 @@ okio-nodefilesystem = { module = "com.squareup.okio:okio-nodefilesystem", versio
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }
 kotlinx-io = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version.ref = "kotlinx-io" }
 codepoints = { module = "de.cketti.unicode:kotlin-codepoints-deluxe", version.ref = "codepoints" }
-gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

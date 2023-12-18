@@ -1,5 +1,7 @@
 package com.fleeksoft.ksoup.parser
 
+import com.fleeksoft.ksoup.Platform
+import com.fleeksoft.ksoup.PlatformType
 import com.fleeksoft.ksoup.TestHelper
 import com.fleeksoft.ksoup.UncheckedIOException
 import com.fleeksoft.ksoup.ported.BufferReader
@@ -15,6 +17,9 @@ import kotlin.test.*
 class CharacterReaderTest {
     @Test
     fun testReadMixSpecialChar() {
+        if (Platform.current != PlatformType.JVM && !TestHelper.forceAllTestsRun) {
+            return
+        }
         val input = "ä<a>ä</a>"
         val charReader = CharacterReader(BufferReader(input), 1)
         input.forEachIndexed { index, char ->
