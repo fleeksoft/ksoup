@@ -8,6 +8,7 @@ import com.fleeksoft.ksoup.select.NodeFilter
 import com.fleeksoft.ksoup.select.NodeTraversor
 import com.fleeksoft.ksoup.select.NodeVisitor
 import okio.IOException
+import kotlin.js.JsName
 import kotlin.reflect.KClass
 
 /**
@@ -38,7 +39,8 @@ public abstract class Node protected constructor() : KCloneable<Node> {
      * @param normalName a normalized element name (e.g. `div`).
      * @return true if the element's normal name matches exactly
      */
-    public fun nameIs(normalName: String): Boolean {
+    @JsName("nameIs")
+    public fun nameIs(normalName: String?): Boolean {
         return normalName() == normalName
     }
 

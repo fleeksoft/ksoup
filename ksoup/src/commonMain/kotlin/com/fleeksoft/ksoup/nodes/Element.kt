@@ -16,6 +16,7 @@ import com.fleeksoft.ksoup.ported.Consumer
 import com.fleeksoft.ksoup.ported.PatternSyntaxException
 import com.fleeksoft.ksoup.select.*
 import okio.IOException
+import kotlin.js.JsName
 import kotlin.jvm.JvmOverloads
 
 /**
@@ -153,24 +154,16 @@ public open class Element : Node {
     }
 
     /**
-     * Test if this Element has the specified normalized name, in any namespace.
-     * @param normalName a normalized element name (e.g. `div`).
-     * @return true if the element's normal name matches exactly
-     */
-    public fun nameIs(normalName: String?): Boolean {
-        return tag.normalName() == normalName
-    }
-
-    /**
      * Test if this Element has the specified normalized name, and is in the specified namespace.
      * @param normalName a normalized element name (e.g. `div`).
      * @param namespace the namespace
      * @return true if the element's normal name matches exactly, and is in the specified namespace
      * @since 1.17.2
      */
+    @JsName("elementIs")
     public fun elementIs(
         normalName: String?,
-        namespace: String?,
+        namespace: String,
     ): Boolean {
         return tag.normalName() == normalName && tag.namespace() == namespace
     }
