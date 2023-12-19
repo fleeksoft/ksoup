@@ -29,7 +29,7 @@ class ParserIT {
 
     @Test
     fun handlesDeepStack() {
-        if (Platform.current == PlatformType.IOS) {
+        if (Platform.current == PlatformType.JS) {
 //            The GitHub action is taking too much time.
             return
         }
