@@ -8,7 +8,7 @@ plugins {
     id("signing")
 }
 
-group = "com.fleeksoft.ksoup"
+group = "com.fleeksoft.ksoup.network"
 version = libs.versions.libraryVersion.get()
 
 kotlin {
