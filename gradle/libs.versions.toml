@@ -4,11 +4,6 @@ kotlin = "1.9.21"
 compileSdk = "34"
 minSdk = "21"
 libraryVersion = "0.1.1"
-junitJupiter = "5.10.0"
-compose = "1.5.4"
-compose-compiler = "1.5.4"
-compose-material3 = "1.1.2"
-androidx-activityCompose = "1.8.1"
 ktor = "2.3.7"
 coroutines = "1.7.3"
 okio = "3.6.0"
@@ -16,18 +11,10 @@ kotlinxDatetime = "0.5.0"
 kotlinx-io = "0.3.0"
 codepoints = "0.6.1"
 dokka = "1.9.10"
-vanniktect-publish = "0.25.3"
 
 
 [libraries]
-junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junitJupiter" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
-androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activityCompose" }
-compose-ui = { module = "androidx.compose.ui:ui", version.ref = "compose" }
-compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "compose" }
-compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "compose" }
-compose-foundation = { module = "androidx.compose.foundation:foundation", version.ref = "compose" }
-compose-material3 = { module = "androidx.compose.material3:material3", version.ref = "compose-material3" }
 kotlinx-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
@@ -42,10 +29,6 @@ kotlinx-io = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version.ref = "
 codepoints = { module = "de.cketti.unicode:kotlin-codepoints-deluxe", version.ref = "codepoints" }
 
 [plugins]
-androidApplication = { id = "com.android.application", version.ref = "agp" }
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
-kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
-kotlinCocoapods = { id = "org.jetbrains.kotlin.native.cocoapods", version.ref = "kotlin" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
-vanniktectPublish = { id = "com.vanniktech.maven.publish.base", version.ref = "vanniktect-publish" }
