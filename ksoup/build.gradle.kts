@@ -198,7 +198,7 @@ val generateRootPathSource: Task by tasks.creating {
 }
 
 tasks.all {
-    if (name != "generateRootPathSource") {
+    if (name != "generateRootPathSource" && !name.contains("publish", ignoreCase = true)) {
         dependsOn("generateRootPathSource")
     }
 }
