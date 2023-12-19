@@ -1,5 +1,8 @@
 package com.fleeksoft.ksoup.nodes
 
+/**
+A node that does not hold any children. E.g.: {@link TextNode}, {@link DataNode}, {@link Comment}.
+ */
 public abstract class LeafNode : Node() {
     // either a string value, or an attribute map (in the rare case multiple attributes are set)
     internal var value: Any? = null

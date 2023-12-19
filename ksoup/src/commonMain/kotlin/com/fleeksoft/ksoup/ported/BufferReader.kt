@@ -148,6 +148,76 @@ public open class BufferReader : Closeable {
         return getSource().read(byteArray)
     }
 
+    public fun readCharArray(
+        charArray: CharArray,
+        off: Int = 0,
+        len: Int,
+        bytesSizeCallback: ((Int) -> Unit) = {},
+    ): Int {
+        if (len == 0) {
+            bytesSizeCallback(0)
+            return 0
+        }
+        var readBytes: Long = 0
+        var readChars = 0
+        val charToReadSize: Int = len
+
+        val charset: Charset =
+            if (_charset != null) {
+                _charset!!
+            } else {
+                Charsets.UTF_8
+            }
+        val peekSource = getSource().peek()
+        val tempBuffer = Buffer()
+//                read buffer until required size or exhausted
+        while (!peekSource.exhausted() && readBytes < charToReadSize) {
+            readBytes += peekSource.read(tempBuffer, charToReadSize - readBytes)
+        }
+
+        val decoder = charset.newDecoder()
+
+        var removeExtraChar = false
+        while (!peekSource.exhausted()) {
+            peekSource.peek().read(tempBuffer, 1)
+
+//                jvm don't throw exception but nodejs is throwing exception here
+            val str: String =
+                runCatching {
+                    io.ktor.utils.io.core.String(bytes = tempBuffer.peek().readByteArray(), charset = charset)
+                }.getOrNull() ?: ""
+//                    not sure how many bytes have this char for this encoding.
+            if (str.length > charToReadSize) {
+                removeExtraChar = true
+                break
+            } else {
+                peekSource.skip(1)
+                readBytes++
+            }
+        }
+        if (readBytes > 0) {
+            val strArray =
+                io.ktor.utils.io.core.String(
+                    bytes =
+                        tempBuffer.readByteArray().let {
+                            if (removeExtraChar) it.dropLast(1).toByteArray() else it
+                        },
+                    charset = charset,
+                ).toCharArray()
+            readChars = strArray.size
+            strArray.copyInto(charArray, off)
+            getSource().skip(readBytes)
+        }
+
+        if (charToReadSize > 0 && readBytes == 0L) {
+            bytesSizeCallback(0)
+            return -1
+        }
+
+        bytesSizeCallback(readBytes.toInt())
+        return readChars
+    }
+
     // TODO: need some improvements for unicode
     public fun readString(charCount: Long? = null): String {
         if (_charset != null && _charset != Charsets.UTF_8) {
@@ -176,13 +246,9 @@ public open class BufferReader : Closeable {
                         break
                     }
                 }
-                return if (_charset != null) {
-                    io.ktor.utils.io.core.String(bytes = bytes.toByteArray(), charset = _charset!!)
-                } else {
-                    bytes.toByteArray().decodeToString()
-                }
+                return io.ktor.utils.io.core.String(bytes = bytes.toByteArray(), charset = _charset!!)
             } else {
-                return getSource().readByteArray().decodeToString()
+                return io.ktor.utils.io.core.String(bytes = getSource().readByteArray(), charset = _charset!!)
             }
         } else {
             return if (charCount != null) {

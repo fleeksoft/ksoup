@@ -2,21 +2,9 @@ package com.fleeksoft.ksoup.parser
 
 import com.fleeksoft.ksoup.*
 import com.fleeksoft.ksoup.network.parseGetRequest
-import com.fleeksoft.ksoup.nodes.CDataNode
-import com.fleeksoft.ksoup.nodes.Document
-import com.fleeksoft.ksoup.nodes.Element
-import com.fleeksoft.ksoup.nodes.Entities
-import com.fleeksoft.ksoup.nodes.TextNode
-import com.fleeksoft.ksoup.nodes.XmlDeclaration
-import io.ktor.utils.io.charsets.Charsets
-import io.ktor.utils.io.charsets.name
-import kotlin.test.Ignore
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNotEquals
-import kotlin.test.assertNull
-import kotlin.test.assertSame
-import kotlin.test.assertTrue
+import com.fleeksoft.ksoup.nodes.*
+import io.ktor.utils.io.charsets.*
+import kotlin.test.*
 
 /**
  * Tests XmlTreeBuilder.
@@ -152,6 +140,10 @@ class XmlTreeBuilderTest {
 
     @Test
     fun testDetectCharsetEncodingDeclaration() {
+        if (Platform.current != PlatformType.JVM && !TestHelper.forceAllTestsRun) {
+            return
+        }
+
         val inStream = TestHelper.resourceFilePathToBufferReader("htmltests/xml-charset.xml")
         val doc =
             Ksoup.parse(

@@ -9,20 +9,22 @@ import de.cketti.codepoints.appendCodePoint
 /**
  * Readers the input stream into tokens.
  */
-internal class Tokeniser(private val reader: CharacterReader, private val errors: ParseErrorList) {
+internal class Tokeniser(private val treeBuilder: TreeBuilder) {
+    private val reader: CharacterReader = treeBuilder.reader
+    private val errors: ParseErrorList = treeBuilder.parser.getErrors()
     private var state = TokeniserState.Data
     private var emitPending: Token? = null
     private var isEmitPending = false
     private var charsString: String? = null
     private val charsBuilder = StringBuilder(1024)
-    var dataBuffer = StringBuilder(1024)
+    val dataBuffer = StringBuilder(1024)
 
-    private var startPending = Token.StartTag()
-    private var endPending = Token.EndTag()
+    private val startPending = Token.StartTag(treeBuilder)
+    private val endPending = Token.EndTag(treeBuilder)
     var tagPending: Token.Tag = startPending
-    private var charPending = Token.Character()
-    var doctypePending = Token.Doctype()
-    var commentPending = Token.Comment()
+    private val charPending = Token.Character()
+    val doctypePending = Token.Doctype()
+    val commentPending = Token.Comment()
     private var lastStartTag: String? = null
     private var lastStartCloseSeq: String? = null
     private var markupStartPos = Unset
@@ -179,9 +181,9 @@ internal class Tokeniser(private val reader: CharacterReader, private val errors
                     -1
                 }
 
-            if (charval == -1 || (charval in 0xD800..0xDFFF) || charval > 0x10FFFF) {
+            if (charval == -1 || charval > 0x10FFFF) {
                 characterReferenceError("character [$charval] outside of valid range")
-                codeRef[0] = replacementChar.code
+                codeRef[0] = Tokeniser.replacementChar.code
             } else {
                 if (charval >= win1252ExtensionsStart && charval < win1252ExtensionsStart + win1252Extensions.size) {
                     characterReferenceError("character [$charval] is not a valid unicode code point")
@@ -313,13 +315,6 @@ internal class Tokeniser(private val reader: CharacterReader, private val errors
         if (errors.canAddError()) errors.add(ParseError(reader, errorMsg))
     }
 
-    fun currentNodeInHtmlNS(): Boolean {
-        // todo: implement namespaces correctly
-        return true
-        // Element currentNode = currentNode();
-        // return currentNode != null && currentNode.namespace().equals("HTML");
-    }
-
     /**
      * Utility method to consume reader and unescape entities found within.
      * @param inAttribute if the text to be unescaped is in an attribute
@@ -362,5 +357,12 @@ internal class Tokeniser(private val reader: CharacterReader, private val errors
             )
 
         private const val Unset = -1
+
+        fun currentNodeInHtmlNS(): Boolean {
+            // todo: implement namespaces correctly
+            return true
+            // Element currentNode = currentNode();
+            // return currentNode != null && currentNode.namespace().equals("HTML");
+        }
     }
 }

@@ -129,7 +129,6 @@ public object Ksoup {
      * @return sane HTML
      * @throws IOException if the file could not be found or read.
      * @see .parse
-     * @since 1.15.1
      */
     @Throws(IOException::class)
     public fun parseFile(file: String): Document {
@@ -147,7 +146,6 @@ public object Ksoup {
      * @param parser alternate [parser][Parser.xmlParser] to use.
      * @return sane HTML
      * @throws IOException if the file could not be found, or read, or if the charsetName is invalid.
-     * @since 1.14.2
      */
     @Throws(IOException::class)
     public fun parseFile(
@@ -264,11 +262,11 @@ public object Ksoup {
      * cleaning the document.
      *
      * Example:
-     * <pre>`String sourceBodyHtml = "<p>5 is &lt; 6.</p>";
-     * String html = Jsoup.clean(sourceBodyHtml, Safelist.none());
+     * <pre>`val sourceBodyHtml = "<p>5 is &lt; 6.</p>";
+     * val html = Ksoup.clean(sourceBodyHtml, Safelist.none())
      *
-     * Cleaner cleaner = new Cleaner(Safelist.none());
-     * String text = cleaner.clean(Ksoup.parse(sourceBodyHtml)).text();
+     * val cleaner = Cleaner(Safelist.none());
+     * val text = cleaner.clean(Ksoup.parse(sourceBodyHtml)).text()
      *
      * // html is: 5 is &lt; 6.
      * // text is: 5 is < 6.
@@ -326,9 +324,9 @@ public object Ksoup {
      *
      *
      * Example:
-     * <pre>`Safelist safelist = Safelist.relaxed();
-     * boolean isValid = Jsoup.isValid(sourceBodyHtml, safelist);
-     * String normalizedHtml = Jsoup.clean(sourceBodyHtml, "https://example.com/", safelist);
+     * <pre>`val safelist = Safelist.relaxed()
+     * val isValid = Ksoup.isValid(sourceBodyHtml, safelist)
+     * val normalizedHtml = Ksoup.clean(sourceBodyHtml, "https://example.com/", safelist)
      `</pre> *
      *
      * Assumes the HTML is a body fragment (i.e. will be used in an existing HTML document body.)

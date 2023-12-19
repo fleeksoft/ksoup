@@ -10,53 +10,47 @@ import com.fleeksoft.ksoup.nodes.Attributes
 import com.fleeksoft.ksoup.nodes.Element
 
 /**
- * Safe-lists define what HTML (elements and attributes) to allow through the cleaner. Everything else is removed.
- *
- *
- * Start with one of the defaults:
- *
- *
- *  * [.none]
- *  * [.simpleText]
- *  * [.basic]
- *  * [.basicWithImages]
- *  * [.relaxed]
- *
- *
- *
- * If you need to allow more through (please be careful!), tweak a base safelist with:
- *
- *
- *  * [.addTags]
- *  * [.addAttributes]
- *  * [.addEnforcedAttribute]
- *  * [.addProtocols]
- *
- *
- *
- * You can remove any setting from an existing safelist with:
- *
- *
- *  * [.removeTags]
- *  * [.removeAttributes]
- *  * [.removeEnforcedAttribute]
- *  * [.removeProtocols]
- *
- *
- *
- *
- * The cleaner and these safelists assume that you want to clean a `body` fragment of HTML (to add user
- * supplied HTML into a templated page), and not to clean a full HTML document. If the latter is the case, either wrap the
- * document HTML around the cleaned body HTML, or create a safelist that allows `html` and `head`
- * elements as appropriate.
- *
- *
- *
- * If you are going to extend a safelist, please be very careful. Make sure you understand what attributes may lead to
- * XSS attack vectors. URL attributes are particularly vulnerable and require careful validation. See
- * the [XSS Filter Evasion Cheat Sheet](https://owasp.org/www-community/xss-filter-evasion-cheatsheet) for some
- * XSS attack examples (that com.fleeksoft.ksoup will safegaurd against the default Cleaner and Safelist configuration).
- *
+Safe-lists define what HTML (elements and attributes) to allow through the cleaner. Everything else is removed.
+<p>
+Start with one of the defaults:
+</p>
+<ul>
+<li>{@link #none}
+<li>{@link #simpleText}
+<li>{@link #basic}
+<li>{@link #basicWithImages}
+<li>{@link #relaxed}
+</ul>
+<p>
+If you need to allow more through (please be careful!), tweak a base safelist with:
+</p>
+<ul>
+<li>{@link #addTags(String... tagNames)}
+<li>{@link #addAttributes(String tagName, String... attributes)}
+<li>{@link #addEnforcedAttribute(String tagName, String attribute, String value)}
+<li>{@link #addProtocols(String tagName, String attribute, String... protocols)}
+</ul>
+<p>
+You can remove any setting from an existing safelist with:
+</p>
+<ul>
+<li>{@link #removeTags(String... tagNames)}
+<li>{@link #removeAttributes(String tagName, String... attributes)}
+<li>{@link #removeEnforcedAttribute(String tagName, String attribute)}
+<li>{@link #removeProtocols(String tagName, String attribute, String... removeProtocols)}
+</ul>
+
+<p>
+The cleaner and these safelists assume that you want to clean a <code>body</code> fragment of HTML (to add user
+supplied HTML into a templated page), and not to clean a full HTML document. If the latter is the case, you could wrap
+the templated document HTML around the cleaned body HTML.
+</p>
+<p>
+If you are going to extend a safelist, please be very careful. Make sure you understand what attributes may lead to
+XSS attack vectors. URL attributes are particularly vulnerable and require careful validation. See
+the <a href="https://owasp.org/www-community/xss-filter-evasion-cheatsheet">XSS Filter Evasion Cheat Sheet</a> for some
+XSS attack examples (that jsoup will safegaurd against the default Cleaner and Safelist configuration).
+</p>
  */
 public open class Safelist() {
     private val tagNames: MutableSet<TagName>
@@ -170,15 +164,17 @@ public open class Safelist() {
     ): Safelist {
         Validate.notEmpty(tag)
         Validate.isTrue(attributes.isNotEmpty(), "No attribute names supplied.")
-        val tagName = TagName.valueOf(tag)
-        tagNames.add(tagName)
+
+        addTags(tag)
+        val tagName: TagName = TagName.valueOf(tag)
         val attributeSet: MutableSet<AttributeKey> = HashSet<AttributeKey>()
         for (key in attributes) {
             Validate.notEmpty(key)
             attributeSet.add(AttributeKey.valueOf(key))
         }
         if (this.attributes.containsKey(tagName)) {
-            val currentSet: MutableSet<AttributeKey> = this.attributes[tagName]!!
+            val currentSet: MutableSet<AttributeKey> =
+                this.attributes[tagName]!!
             currentSet.addAll(attributeSet)
         } else {
             this.attributes[tagName] = attributeSet
@@ -515,7 +511,7 @@ public open class Safelist() {
     internal class TagName(value: String) : TypedValue(value) {
         companion object {
             fun valueOf(value: String): TagName {
-                return TagName(value)
+                return TagName(lowerCase(value))
             }
         }
     }
@@ -523,7 +519,7 @@ public open class Safelist() {
     internal class AttributeKey(value: String) : TypedValue(value) {
         companion object {
             fun valueOf(value: String): AttributeKey {
-                return AttributeKey(value)
+                return AttributeKey(lowerCase(value))
             }
         }
     }

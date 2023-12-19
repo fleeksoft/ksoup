@@ -4,13 +4,13 @@ import com.fleeksoft.ksoup.SerializationException
 import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.nodes.Document.OutputSettings.Syntax
-import com.fleeksoft.ksoup.ported.Cloneable
+import com.fleeksoft.ksoup.ported.KCloneable
 import okio.IOException
 
 /**
  * A single key + value attribute. (Only used for presentation.)
  */
-public open class Attribute : Map.Entry<String, String?>, Cloneable<Attribute> {
+public open class Attribute : Map.Entry<String, String?>, KCloneable<Attribute> {
     private var attributeKey: String
 
     private var attributeValue: String?
@@ -29,29 +29,60 @@ public open class Attribute : Map.Entry<String, String?>, Cloneable<Attribute> {
      * Get the attribute key.
      * @return the attribute key
      */
-    override val key: String
+    final override val key: String
         get() = attributeKey
+
+    /**
+     * Create a new attribute from unencoded (raw) key and value.
+     * @param key attribute key; case is preserved.
+     * @param value attribute value (may be null)
+     * @param parent the containing Attributes (this Attribute is not automatically added to said Attributes)
+     * @see .createFromEncoded
+     */
+    public constructor(
+        key: String,
+        value: String?,
+        parent: Attributes?,
+    ) {
+        var sKey = key
+        sKey = sKey.trim { it <= ' ' }
+        Validate.notEmpty(sKey) // trimming could potentially make empty, so validate here
+        this.attributeKey = sKey
+        this.attributeValue = value
+        this.parent = parent
+    }
 
     /**
      * Set the attribute key; case is preserved.
      * @param key the new key; must not be null
      */
     internal fun setKey(key: String) {
-        var sKey = key
-        sKey = sKey.trim { it <= ' ' }
-        Validate.notEmpty(sKey) // trimming could potentially make empty, so validate here
+        val trimmedKey = key.trim { it <= ' ' }
+        Validate.notEmpty(trimmedKey) // trimming could potentially make empty, so validate here
         if (parent != null) {
-            val i: Int = parent!!.indexOfKey(this.attributeKey)
-            if (i != Attributes.NotFound) parent!!.keys[i] = sKey
+            val i = parent!!.indexOfKey(this.key)
+            if (i != Attributes.NotFound) {
+                val oldKey = parent!!.keys[i]!!
+                parent!!.keys[i] = trimmedKey
+
+                // if tracking source positions, update the key in the range map
+                val ranges: MutableMap<String, Range.AttributeRange>? = parent!!.getRanges()
+                if (ranges != null) {
+                    val range: Range.AttributeRange? = ranges.remove(oldKey)
+                    if (range != null) {
+                        ranges[trimmedKey] = range
+                    }
+                }
+            }
         }
-        this.attributeKey = sKey
+        this.attributeKey = trimmedKey
     }
 
+    /**
+     * Get the attribute value. Will return an empty string if the value is not set.
+     * @return the attribute value
+     */
     override val value: String
-        /**
-         * Get the attribute value. Will return an empty string if the value is not set.
-         * @return the attribute value
-         */
         get() = Attributes.checkNotNull(attributeValue)
 
     /**
@@ -94,6 +125,23 @@ public open class Attribute : Map.Entry<String, String?>, Cloneable<Attribute> {
         return StringUtil.releaseBuilder(sb)
     }
 
+    /**
+     * Get the source ranges (start to end positions) in the original input source from which this attribute's **name**
+     * and **value** were parsed.
+     *
+     * Position tracking must be enabled prior to parsing the content.
+     * @return the ranges for the attribute's name and value, or `untracked` if the attribute does not exist or its range
+     * was not tracked.
+     * @see com.fleeksoft.ksoup.parser.Parser.setTrackPosition
+     * @see Attributes.sourceRange
+     * @see Node.sourceRange
+     * @see Element.endSourceRange
+     */
+    public fun sourceRange(): Range.AttributeRange {
+        if (parent == null) return Range.AttributeRange.UntrackedAttr
+        return parent!!.sourceRange(key)!!
+    }
+
     @Throws(IOException::class)
     protected fun html(
         accum: Appendable,
@@ -103,34 +151,12 @@ public open class Attribute : Map.Entry<String, String?>, Cloneable<Attribute> {
     }
 
     /**
-     * Create a new attribute from unencoded (raw) key and value.
-     * @param key attribute key; case is preserved.
-     * @param value attribute value (may be null)
-     * @param parent the containing Attributes (this Attribute is not automatically added to said Attributes)
-     * @see .createFromEncoded
-     */
-    public constructor(
-        key: String,
-        value: String?,
-        parent: Attributes?,
-    ) {
-        var sKey = key
-        sKey = sKey.trim { it <= ' ' }
-        Validate.notEmpty(sKey) // trimming could potentially make empty, so validate here
-        this.attributeKey = sKey
-        this.attributeValue = value
-        this.parent = parent
-    }
-
-    /**
      * Get the string representation of this attribute, implemented as [.html].
      * @return string
      */
     override fun toString(): String {
         return html()
     }
-
-    public fun isDataAttribute(): Boolean = isDataAttribute(attributeKey)
 
     /**
      * Collapsible if it's a boolean attribute and value is empty or same as name
@@ -160,6 +186,18 @@ public open class Attribute : Map.Entry<String, String?>, Cloneable<Attribute> {
         val attribute = Attribute(attributeKey, attributeValue)
         attribute.parent = this.parent
         return attribute
+    }
+
+    public fun isDataAttribute(): Boolean {
+        return isDataAttribute(key)
+    }
+
+    /**
+     * Is this an internal attribute? Internal attributes can be fetched by key, but are not serialized.
+     * @return if an internal attribute.
+     */
+    public fun isInternal(): Boolean {
+        return Attributes.isInternalKey(key)
     }
 
     internal companion object {
@@ -265,31 +303,6 @@ public open class Attribute : Map.Entry<String, String?>, Cloneable<Attribute> {
                 }
             }
         }
-
-        /*fun getValidKey(key: String?, syntax: Syntax): String? {
-            // we consider HTML attributes to always be valid. XML checks key validity
-            var key = key
-            if (syntax === Syntax.xml && !xmlKeyValid.matcher(key).matches()) {
-                key = xmlKeyReplace.matcher(key).replaceAll("")
-                return if (xmlKeyValid.matcher(key)
-                        .matches()
-                ) {
-                    key
-                } else {
-                    null // null if could not be coerced
-                }
-            } else if (syntax === Syntax.html && !htmlKeyValid.matcher(key).matches()) {
-                key = htmlKeyReplace.matcher(key).replaceAll("")
-                return if (htmlKeyValid.matcher(key)
-                        .matches()
-                ) {
-                    key
-                } else {
-                    null // null if could not be coerced
-                }
-            }
-            return key
-        }*/
 
         /**
          * Create a new Attribute from an unencoded key and a HTML attribute encoded value.

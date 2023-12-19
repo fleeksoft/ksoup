@@ -1,25 +1,23 @@
 package com.fleeksoft.ksoup.nodes
 
-import com.fleeksoft.ksoup.helper.Validate
+import com.fleeksoft.ksoup.internal.SharedConstants
 
 /**
  * A Range object tracks the character positions in the original input source where a Node starts or ends. If you want to
  * track these positions, tracking must be enabled in the Parser with
  * [com.fleeksoft.ksoup.parser.Parser.setTrackPosition].
  * @see Node.sourceRange
- * @since 1.15.2
- */
-internal class Range
-/**
+ *
  * Creates a new Range with start and end Positions. Called by TreeBuilder when position tracking is on.
  * @param start the start position
  * @param end the end position
- */(private val start: Position, private val end: Position) {
+ */
+public data class Range(private val start: Position, private val end: Position) {
     /**
      * Get the start position of this node.
      * @return the start position
      */
-    fun start(): Position {
+    public fun start(): Position {
         return start
     }
 
@@ -27,32 +25,41 @@ internal class Range
      * Get the end position of this node.
      * @return the end position
      */
-    fun end(): Position {
+    public fun end(): Position {
         return end
     }
 
-    fun isTracked(): Boolean = this !== Untracked
+    /**
+     * Get the starting cursor position of this range.
+     * @return the 0-based start cursor position.
+     */
+    public fun startPos(): Int {
+        return start.pos
+    }
 
     /**
-     * Internal com.fleeksoft.ksoup method, called by the TreeBuilder. Tracks a Range for a Node.
-     * @param node the node to associate this position to
-     * @param start if this is the starting range. `false` for Element end tags.
+     * Get the ending cursor position of this range.
+     * @return the 0-based ending cursor position.
      */
-    fun track(node: Node, start: Boolean) {
-        node.attributes().putUserData(if (start) RangeKey else EndRangeKey, this)
+    public fun endPos(): Int {
+        return end.pos
     }
 
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other == null || this::class != other::class) return false
-        val range = other as Range
-        return if (start != range.start) false else end == range.end
-    }
+    public fun isTracked(): Boolean = this != Untracked
 
-    override fun hashCode(): Int {
-        var result = start.hashCode()
-        result = 31 * result + end.hashCode()
-        return result
+    /**
+     * Checks if the range represents a node that was implicitly created / closed.
+     *
+     * For example, with HTML of `<p>One<p>Two`, both `p` elements will have an explicit
+     * [Element.sourceRange] but an implicit [Element.endSourceRange] marking the end position, as neither
+     * have closing `</p>` tags. The TextNodes will have explicit sourceRanges.
+     *
+     * A range is considered implicit if its start and end positions are the same.
+     * @return true if the range is tracked and its start and end positions are the same, false otherwise.
+     */
+    public fun isImplicit(): Boolean {
+        if (!isTracked()) return false
+        return start == end
     }
 
     /**
@@ -68,20 +75,19 @@ internal class Range
      * track these positions, tracking must be enabled in the Parser with
      * [com.fleeksoft.ksoup.parser.Parser.setTrackPosition].
      * @see Node.sourceRange
-     */
-    class Position
-    /**
+     *
      * Create a new Position object. Called by the TreeBuilder if source position tracking is on.
      * @param pos position index
      * @param lineNumber line number
      * @param columnNumber column number
-     */(private val pos: Int, private val lineNumber: Int, private val columnNumber: Int) {
+     */
+    public data class Position(internal val pos: Int, private val lineNumber: Int, private val columnNumber: Int) {
         /**
          * Gets the position index (0-based) of the original input source that this Position was read at. This tracks the
-         * total number of characters read into the source at this position, regardless of the number of preceeding lines.
+         * total number of characters read into the source at this position, regardless of the number of preceding lines.
          * @return the position, or `-1` if untracked.
          */
-        fun pos(): Int {
+        public fun pos(): Int {
             return pos
         }
 
@@ -89,7 +95,7 @@ internal class Range
          * Gets the line number (1-based) of the original input source that this Position was read at.
          * @return the line number, or `-1` if untracked.
          */
-        fun lineNumber(): Int {
+        public fun lineNumber(): Int {
             return lineNumber
         }
 
@@ -98,16 +104,11 @@ internal class Range
          * resets to 1 on every new line.
          * @return the cursor number, or `-1` if untracked.
          */
-        fun columnNumber(): Int {
+        public fun columnNumber(): Int {
             return columnNumber
         }
 
-        val isTracked: Boolean
-            /**
-             * Test if this position was tracked during parsing.
-             * @return true if this was tracked during parsing, false otherwise (and all fields will be `-1`).
-             */
-            get() = this !== UntrackedPos
+        public fun isTracked(): Boolean = this != UntrackedPos
 
         /**
          * Gets a String presentation of this Position, in the format `line,column:pos`.
@@ -116,27 +117,35 @@ internal class Range
         override fun toString(): String {
             return "$lineNumber,$columnNumber:$pos"
         }
+    }
 
-        override fun equals(other: Any?): Boolean {
-            if (this === other) return true
-            if (other == null || this::class != other::class) return false
-            val position = other as Position
-            if (pos != position.pos) return false
-            return if (lineNumber != position.lineNumber) false else columnNumber == position.columnNumber
+    public data class AttributeRange(private val nameRange: Range, private val valueRange: Range) {
+        /** Get the source range for the attribute's name.  */
+        public fun nameRange(): Range {
+            return nameRange
         }
 
-        override fun hashCode(): Int {
-            var result = pos
-            result = 31 * result + lineNumber
-            result = 31 * result + columnNumber
-            return result
+        /** Get the source range for the attribute's value.  */
+        public fun valueRange(): Range {
+            return valueRange
+        }
+
+        /** Get a String presentation of this Attribute range, in the form
+         * `line,column:pos-line,column:pos=line,column:pos-line,column:pos` (name start - name end = val start - val end).
+         * .  */
+        override fun toString(): String {
+            return "${nameRange()}=${valueRange()}"
+        }
+
+        public companion object {
+            public val UntrackedAttr: AttributeRange = AttributeRange(Untracked, Untracked)
         }
     }
 
-    companion object {
-        private val RangeKey: String = Attributes.internalKey("com.fleeksoft.ksoup.sourceRange")
-        private val EndRangeKey: String = Attributes.internalKey("com.fleeksoft.ksoup.endSourceRange")
+    public companion object {
         private val UntrackedPos = Position(-1, -1, -1)
+
+        /** An untracked source range. */
         private val Untracked = Range(UntrackedPos, UntrackedPos)
 
         /**
@@ -145,15 +154,14 @@ internal class Range
          * @param start if this is the starting range. `false` for Element end tags.
          * @return the Range, or the Untracked (-1) position if tracking is disabled.
          */
-        fun of(node: Node, start: Boolean): Range {
-            val key = if (start) RangeKey else EndRangeKey
-            return if (!node.hasAttr(key)) {
-                Untracked
-            } else {
-                Validate.ensureNotNull(
-                    node.attributes().getUserData(key),
-                ) as Range
-            }
+        public fun of(
+            node: Node,
+            start: Boolean,
+        ): Range {
+            val key: String = if (start) SharedConstants.RangeKey else SharedConstants.EndRangeKey
+            if (!node.hasAttributes()) return Untracked
+            val range = node.attributes().userData(key)
+            return if (range != null) range as Range else Untracked
         }
     }
 }

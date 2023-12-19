@@ -2,6 +2,7 @@ package com.fleeksoft.ksoup.ported
 
 import com.fleeksoft.ksoup.Platform
 import com.fleeksoft.ksoup.PlatformType
+import com.fleeksoft.ksoup.TestHelper
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import okio.IOException
@@ -10,6 +11,60 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
 class BufferReaderTest {
+    @Test
+    fun testMixCharReader() {
+        if (Platform.current != PlatformType.JVM && !TestHelper.forceAllTestsRun) {
+            return
+        }
+
+        val inputData = "ä<a>ä</a>"
+        val bufferReader = BufferReader(inputData)
+        inputData.toCharArray().forEachIndexed { index, char ->
+            val charArray = CharArray(1)
+            assertEquals(
+                1,
+                bufferReader.readCharArray(charArray, 0, 1) {
+                    val byteSize = if (index == 0 || index == 4) 2 else 1
+                    assertEquals(byteSize, it, "read bytes not matched")
+                },
+            )
+            assertEquals(char, charArray[0])
+        }
+        val charArray = CharArray(1) { ' ' }
+        assertEquals(
+            -1,
+            bufferReader.readCharArray(charArray, len = 1) {
+                assertEquals(0, it)
+            },
+        )
+        assertEquals(' ', charArray[0])
+    }
+
+    @Test
+    fun testMixCharArrayReader() {
+        if (Platform.current != PlatformType.JVM && !TestHelper.forceAllTestsRun) {
+            return
+        }
+        val inputData = "ä<a>ä</a>"
+        val bufferReader = BufferReader(inputData)
+        inputData.toCharArray().forEach {
+            val charArray = CharArray(1)
+            assertEquals(1, bufferReader.readCharArray(charArray = charArray, off = 0, len = 1))
+            assertEquals(it, charArray[0])
+        }
+        val charArray =
+            CharArray(1) {
+                ' '
+            }
+        assertEquals(
+            -1,
+            bufferReader.readCharArray(charArray, len = 1) {
+                assertEquals(0, it)
+            },
+        )
+        assertEquals(' ', charArray[0])
+    }
+
     @Test
     fun testSpecialCharsBufferReader() {
         if (Platform.current == PlatformType.JS || Platform.current == PlatformType.IOS) {
@@ -39,6 +94,26 @@ class BufferReaderTest {
                 charset = "iso-8859-1",
             ).readString(specialText2.length.toLong()),
         )
+
+        val charArray = CharArray(specialText2.length)
+        assertEquals(
+            specialText2.length,
+            BufferReader(
+                byteArray = specialText2.toByteArray(Charset.forName("iso-8859-1")),
+                charset = "iso-8859-1",
+            ).readCharArray(charArray, 0, specialText2.length),
+        )
+        assertEquals(specialText2, charArray.concatToString())
+
+        val charArray2 = CharArray(specialText3.length)
+        assertEquals(
+            specialText3.length,
+            BufferReader(
+                byteArray = specialText3.toByteArray(Charset.forName("euc-kr")),
+                charset = "euc-kr",
+            ).readCharArray(charArray2, 0, specialText3.length),
+        )
+        assertEquals(specialText3, charArray2.concatToString())
     }
 
     @Test

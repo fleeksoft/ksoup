@@ -3,15 +3,12 @@ package com.fleeksoft.ksoup.nodes
 import okio.IOException
 
 /**
+ * Create a new DataNode.
  * A data node, for contents of style, script tags etc, where contents should not show in text().
  *
- * @author Sabeeh, fleeksoft@gmail.com
+ * @param data data contents
  */
 public class DataNode(data: String) : LeafNode() {
-    /**
-     * Create a new DataNode.
-     * @param data data contents
-     */
     init {
         value = data
     }
@@ -38,14 +35,19 @@ public class DataNode(data: String) : LeafNode() {
         depth: Int,
         out: Document.OutputSettings,
     ) {
-        if (out.syntax() == Document.OutputSettings.Syntax.xml) {
-            // In XML mode, output data nodes as CDATA, so can parse as XML
-            accum
-                .append("<![CDATA[")
-                .append(getWholeData())
-                .append("]]>")
+        /* For XML output, escape the DataNode in a CData section. The data may contain pseudo-CData content if it was
+        parsed as HTML, so don't double up Cdata. Output in polygot HTML / XHTML / XML format. */
+        val data = getWholeData()
+        if (out.syntax() === Document.OutputSettings.Syntax.xml && !data.contains("<![CDATA[")) {
+            if (parentNameIs("script")) {
+                accum.append("//<![CDATA[\n").append(data).append("\n//]]>")
+            } else if (parentNameIs("style")) {
+                accum.append("/*<![CDATA[*/\n").append(data).append("\n/*]]>*/")
+            } else {
+                accum.append("<![CDATA[").append(data).append("]]>")
+            }
         } else {
-            // In HTML, data is not escaped in return from data nodes, so " in script, style is plain
+            // In HTML, data is not escaped in the output of data nodes, so < and & in script, style is OK
             accum.append(getWholeData())
         }
     }

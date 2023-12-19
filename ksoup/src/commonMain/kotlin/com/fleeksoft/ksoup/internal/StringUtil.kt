@@ -211,7 +211,7 @@ internal object StringUtil {
         return false
     }
 
-    fun inSorted(needle: String, haystack: Array<String>): Boolean {
+    fun inSorted(needle: String, haystack: Array<out String>): Boolean {
         return haystack.toList().binarySearch(needle) >= 0
     }
 
@@ -327,7 +327,6 @@ internal object StringUtil {
 
     /**
      * A StringJoiner allows incremental / filtered joining of a set of stringable objects.
-     * @since 1.14.1
      */
     class StringJoiner
     /**

@@ -14,7 +14,7 @@ import com.fleeksoft.ksoup.select.StructuralEvaluator.ImmediateParentRun
 internal class QueryParser private constructor(query: String) {
     private val tq: TokenQueue
     private val query: String
-    private val evals: MutableList<Evaluator> = ArrayList<Evaluator>()
+    private val evals: MutableList<Evaluator> = ArrayList()
 
     /**
      * Parse the query
@@ -124,18 +124,19 @@ internal class QueryParser private constructor(query: String) {
 
     private fun consumeSubQuery(): String {
         val sq: StringBuilder = StringUtil.borrowBuilder()
-        var seenNonCombinator = false // eat until we hit a combinator after eating something else
+        var seenClause = false // eat until we hit a combinator after eating something else
         while (!tq.isEmpty()) {
+            if (tq.matchesAny(*Combinators)) {
+                if (seenClause) break
+                sq.append(tq.consume())
+                continue
+            }
+            seenClause = true
             if (tq.matches("(")) {
-                sq.append("(").append(tq.chompBalanced('(', ')'))
-                    .append(")")
+                sq.append("(").append(tq.chompBalanced('(', ')')).append(")")
             } else if (tq.matches("[")) {
-                sq.append("[")
-                    .append(tq.chompBalanced('[', ']')).append("]")
-            } else if (tq.matchesAny(*Combinators)) {
-                if (seenNonCombinator) break else sq.append(tq.consume())
+                sq.append("[").append(tq.chompBalanced('[', ']')).append("]")
             } else {
-                seenNonCombinator = true
                 sq.append(tq.consume())
             }
         }
@@ -253,13 +254,15 @@ internal class QueryParser private constructor(query: String) {
             eval =
                 if (key.startsWith("^")) {
                     Evaluator.AttributeStarting(key.substring(1))
+                } else if (key == "*") {
+                    // any attribute
+                    Evaluator.AttributeStarting("")
                 } else {
                     Evaluator.Attribute(key)
                 }
         } else {
             if (cq.matchChomp("=")) {
-                eval =
-                    Evaluator.AttributeWithValue(key, cq.remainder())
+                eval = Evaluator.AttributeWithValue(key, cq.remainder())
             } else if (cq.matchChomp("!=")) {
                 eval = Evaluator.AttributeWithValueNot(key, cq.remainder())
             } else if (cq.matchChomp("^=")) {
@@ -267,11 +270,7 @@ internal class QueryParser private constructor(query: String) {
             } else if (cq.matchChomp("$=")) {
                 eval = Evaluator.AttributeWithValueEnding(key, cq.remainder())
             } else if (cq.matchChomp("*=")) {
-                eval =
-                    Evaluator.AttributeWithValueContaining(
-                        key,
-                        cq.remainder(),
-                    )
+                eval = Evaluator.AttributeWithValueContaining(key, cq.remainder())
             } else if (cq.matchChomp("~=")) {
                 eval = Evaluator.AttributeWithValueMatching(key, jsSupportedRegex(cq.remainder()))
             } else {

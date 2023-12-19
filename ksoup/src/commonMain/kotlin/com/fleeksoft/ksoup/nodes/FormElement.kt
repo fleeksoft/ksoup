@@ -6,16 +6,13 @@ import com.fleeksoft.ksoup.select.Elements
 /**
  * A HTML Form Element provides ready access to the form fields/controls that are associated with it. It also allows a
  * form to easily be submitted.
- */
-public class FormElement
-/**
  * Create a new, standalone form element.
  *
  * @param tag        tag of this element
  * @param baseUri    the base URI
  * @param attributes initial attributes
  */
-(tag: Tag, baseUri: String?, attributes: Attributes?) : Element(tag, baseUri, attributes) {
+public class FormElement(tag: Tag, baseUri: String?, attributes: Attributes?) : Element(tag, baseUri, attributes) {
     private val elements: Elements = Elements()
 
     /**

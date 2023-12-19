@@ -2,8 +2,8 @@ package com.fleeksoft.ksoup.parser
 
 import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.internal.Normalizer
-import com.fleeksoft.ksoup.ported.Cloneable
 import com.fleeksoft.ksoup.ported.Consumer
+import com.fleeksoft.ksoup.ported.KCloneable
 import kotlin.jvm.JvmOverloads
 
 /**
@@ -19,7 +19,7 @@ public data class Tag(
      */
     var name: String,
     private var namespace: String,
-) : Cloneable<Tag> {
+) : KCloneable<Tag> {
     private val normalName: String = Normalizer.lowerCase(name)
 
     /**

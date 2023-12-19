@@ -14,15 +14,9 @@ import com.fleeksoft.ksoup.ported.AtomicBoolean
 import com.fleeksoft.ksoup.ported.Collections
 import com.fleeksoft.ksoup.ported.Consumer
 import com.fleeksoft.ksoup.ported.PatternSyntaxException
-import com.fleeksoft.ksoup.select.Collector
-import com.fleeksoft.ksoup.select.Elements
-import com.fleeksoft.ksoup.select.Evaluator
-import com.fleeksoft.ksoup.select.NodeFilter
-import com.fleeksoft.ksoup.select.NodeTraversor
-import com.fleeksoft.ksoup.select.NodeVisitor
-import com.fleeksoft.ksoup.select.QueryParser
-import com.fleeksoft.ksoup.select.Selector
+import com.fleeksoft.ksoup.select.*
 import okio.IOException
+import kotlin.js.JsName
 import kotlin.jvm.JvmOverloads
 
 /**
@@ -160,6 +154,21 @@ public open class Element : Node {
     }
 
     /**
+     * Test if this Element has the specified normalized name, and is in the specified namespace.
+     * @param normalName a normalized element name (e.g. `div`).
+     * @param namespace the namespace
+     * @return true if the element's normal name matches exactly, and is in the specified namespace
+     * @since 1.17.2
+     */
+    @JsName("elementIs")
+    public fun elementIs(
+        normalName: String?,
+        namespace: String,
+    ): Boolean {
+        return tag.normalName() == normalName && tag.namespace() == namespace
+    }
+
+    /**
      * Change (rename) the tag of this element. For example, convert a `<span>` to a `<div>` with
      * `el.tagName("div");`.
      *
@@ -256,6 +265,16 @@ public open class Element : Node {
     }
 
     /**
+     * Get an Attribute by key. Changes made via [Attribute.setKey], [Attribute.setValue] etc
+     * will cascade back to this Element.
+     * @param key the (case-sensitive) attribute key
+     * @return the Attribute for this key, or null if not present.
+     */
+    public fun attribute(key: String?): Attribute? {
+        return if (hasAttributes()) attributes().attribute(key) else null
+    }
+
+    /**
      * Get this element's HTML5 custom data attributes. Each attribute in the element that has a key
      * starting with "data-" is included the dataset.
      *
@@ -276,7 +295,7 @@ public open class Element : Node {
     }
 
     override fun parent(): Element? {
-        return _parentNode as? Element
+        return parentNode as? Element
     }
 
     /**
@@ -286,7 +305,7 @@ public open class Element : Node {
     public fun parents(): Elements {
         val parents = Elements()
         var parent = parent()
-        while (parent != null && !parent.isNode("#root")) {
+        while (parent != null && !parent.nameIs("#root")) {
             parents.add(parent)
             parent = parent.parent()
         }
@@ -366,6 +385,15 @@ public open class Element : Node {
     override fun nodelistChanged() {
         super.nodelistChanged()
         shadowChildrenRef = null
+    }
+
+    /**
+     * Returns a Stream of this Element and all of its descendant Elements. The stream has document order.
+     * @return a stream of this element and its descendants.
+     * @see .nodeStream
+     */
+    public fun stream(): Sequence<Element> {
+        return NodeUtils.stream(this, Element::class)
     }
 
     /**
@@ -481,7 +509,6 @@ public open class Element : Node {
      * @param cssQuery a [Selector] CSS-like query
      * @return the first matching element
      * @throws IllegalArgumentException if no match is found
-     * @since 1.15.2
      */
     public fun expectFirst(cssQuery: String): Element {
         return Validate.ensureNotNull(
@@ -646,25 +673,19 @@ public open class Element : Node {
     }
 
     /**
-     * Create a new element by tag name, and add it as the last child.
+     * Create a new element by tag name and namespace, add it as this Element's last child.
      *
      * @param tagName the name of the tag (e.g. `div`).
-     * @return the new element, to allow you to add content to it, e.g.:
-     * `parent.appendElement("h1").attr("id", "header").text("Welcome");`
+     * @param namespace the namespace of the tag (e.g. [Parser.NamespaceHtml])
+     * @return the new element, in the specified namespace
      */
-    @JvmOverloads
     public fun appendElement(
         tagName: String,
         namespace: String = tag.namespace(),
     ): Element {
         val child =
             Element(
-                Tag.valueOf(
-                    tagName,
-                    namespace,
-                    NodeUtils.parser(this)
-                        .settings(),
-                ),
+                Tag.valueOf(tagName, namespace, NodeUtils.parser(this).settings()),
                 baseUri(),
             )
         appendChild(child)
@@ -672,11 +693,11 @@ public open class Element : Node {
     }
 
     /**
-     * Create a new element by tag name, and add it as the first child.
+     * Create a new element by tag name and namespace, and add it as this Element's first child.
      *
-     * @param tagName the name of the tag (e.g. `div`).
-     * @return the new element, to allow you to add content to it, e.g.:
-     * `parent.prependElement("h1").attr("id", "header").text("Welcome");`
+     * @param tagName the name of the tag (e.g. {@code div}).
+     * @param namespace the namespace of the tag (e.g. {@link Parser#NamespaceHtml})
+     * @return the new element, in the specified namespace
      */
     @JvmOverloads
     public fun prependElement(
@@ -685,12 +706,7 @@ public open class Element : Node {
     ): Element {
         val child =
             Element(
-                Tag.valueOf(
-                    tagName,
-                    namespace,
-                    NodeUtils.parser(this)
-                        .settings(),
-                ),
+                Tag.valueOf(tagName, namespace, NodeUtils.parser(this).settings()),
                 baseUri(),
             )
         prependChild(child)
@@ -795,7 +811,7 @@ public open class Element : Node {
     override fun empty(): Element {
         // Detach each of the children -> parent links:
         for (child in childNodes) {
-            child._parentNode = null
+            child.parentNode = null
         }
         childNodes.clear()
         return this
@@ -874,10 +890,10 @@ public open class Element : Node {
      * @return sibling elements
      */
     public fun siblingElements(): Elements {
-        if (_parentNode == null) return Elements()
-        val elements = (_parentNode as Element).childElementsList()
+        if (parentNode == null) return Elements()
+        val elements = (parentNode as Element).childElementsList()
         val siblings = Elements()
-        for (el in elements) if (el !== this) siblings.add(el)
+        for (el in elements) if (el != this) siblings.add(el)
         return siblings
     }
 
@@ -934,7 +950,7 @@ public open class Element : Node {
 
     private fun nextElementSiblings(next: Boolean): Elements {
         val els = Elements()
-        if (_parentNode == null) return els
+        if (parentNode == null) return els
         els.add(this)
         return if (next) els.nextAll() else els.prevAll()
     }
@@ -987,9 +1003,7 @@ public open class Element : Node {
      * @return the first Element child node, or null.
      * @see .firstChild
      * @see .lastElementChild
-     * @since 1.15.2
      */
-//    @Nullable
     public fun firstElementChild(): Element? {
         var child: Node? = firstChild()
         while (child != null) {
@@ -1004,9 +1018,7 @@ public open class Element : Node {
      * @return the last Element child node, or null.
      * @see .lastChild
      * @see .firstElementChild
-     * @since 1.15.2
      */
-//    @Nullable
     public fun lastElementChild(): Element? {
         var child: Node? = lastChild()
         while (child != null) {
@@ -1316,13 +1328,7 @@ public open class Element : Node {
         return StringUtil.releaseBuilder(accum).trim()
     }
 
-    private class TextAccumulator(accum: StringBuilder) : NodeVisitor {
-        private val accum: StringBuilder
-
-        init {
-            this.accum = accum
-        }
-
+    private class TextAccumulator(private val accum: StringBuilder) : NodeVisitor {
         override fun head(
             node: Node,
             depth: Int,
@@ -1331,7 +1337,7 @@ public open class Element : Node {
                 appendNormalisedText(accum, node)
             } else if (node is Element) {
                 if (accum.isNotEmpty() &&
-                    (node.isBlock() || node.isNode("br")) &&
+                    (node.isBlock() || node.nameIs("br")) &&
                     !lastCharIsWhitespace(accum)
                 ) {
                     accum.append(' ')
@@ -1366,21 +1372,17 @@ public open class Element : Node {
      */
     public fun wholeText(): String {
         val accum: StringBuilder = StringUtil.borrowBuilder()
-        NodeTraversor.traverse(
-            { node, depth -> appendWholeText(node, accum) },
-            this,
-        )
+        nodeStream().forEach { node -> appendWholeText(node, accum) }
         return StringUtil.releaseBuilder(accum)
     }
 
     /**
-     * Get the non-normalized, decoded text of this element, **not including** any child elements, including only any
+     * Get the non-normalized, decoded text of this element, <b>not including</b> any child elements, including any
      * newlines and spaces present in the original source.
      * @return decoded, non-normalized text that is a direct child of this Element
      * @see .text
      * @see .wholeText
      * @see .ownText
-     * @since 1.15.1
      */
     public fun wholeOwnText(): String {
         val accum: StringBuilder = StringUtil.borrowBuilder()
@@ -1415,7 +1417,7 @@ public open class Element : Node {
             val child: Node = childNodes[i]
             if (child is TextNode) {
                 appendNormalisedText(accum, child)
-            } else if (child.isNode("br") && !lastCharIsWhitespace(accum)) {
+            } else if (child.nameIs("br") && !lastCharIsWhitespace(accum)) {
                 accum.append(" ")
             }
         }
@@ -1635,7 +1637,7 @@ public open class Element : Node {
      * @return the value of the form element, or empty string if not set.
      */
     public fun value(): String {
-        return if (normalName() == "textarea") text() else attr("value")
+        return if (elementIs("textarea", Parser.NamespaceHtml)) text() else attr("value")
     }
 
     /**
@@ -1644,18 +1646,17 @@ public open class Element : Node {
      * @return this element (for chaining)
      */
     public fun value(value: String): Element {
-        if (normalName() == "textarea") text(value) else attr("value", value)
+        if (elementIs("textarea", Parser.NamespaceHtml)) text(value) else attr("value", value)
         return this
     }
 
     /**
      * Get the source range (start and end positions) of the end (closing) tag for this Element. Position tracking must be
      * enabled prior to parsing the content.
-     * @return the range of the closing tag for this element, if it was explicitly closed in the source. `Untracked`
-     * otherwise.
-     * @see com.fleeksoft.ksoup.parser.Parser.setTrackPosition
-     * @see Node.sourceRange
-     * @since 1.15.2
+     * @return the range of the closing tag for this element, or {@code untracked} if its range was not tracked.
+     * @see com.fleeksoft.ksoup.parser.Parser#setTrackPosition(boolean)
+     * @see Node#sourceRange()
+     * @see Range#isImplicit()
      */
     internal fun endSourceRange(): Range {
         return Range.of(this, false)
@@ -1664,7 +1665,7 @@ public open class Element : Node {
     public fun shouldIndent(out: Document.OutputSettings): Boolean {
         return out.prettyPrint() && isFormatAsBlock(out) && !isInlineable(out) &&
             !preserveWhitespace(
-                _parentNode,
+                parentNode,
             )
     }
 
@@ -1706,7 +1707,7 @@ public open class Element : Node {
     ) {
         if (!(childNodes.isEmpty() && tag.isSelfClosing())) {
             if (out.prettyPrint() && childNodes.isNotEmpty() && (
-                    tag.formatAsBlock() && !preserveWhitespace(_parentNode) || out.outline() &&
+                    tag.formatAsBlock() && !preserveWhitespace(parentNode) || out.outline() &&
                         (childNodes.size > 1 || childNodes.size == 1 && childNodes[0] is Element)
                 )
             ) {
@@ -1742,7 +1743,7 @@ public open class Element : Node {
         element.shadowChildrenRef = this.shadowChildrenRef
         element.childNodes = this.childNodes.toMutableList()
         element.attributes = this.attributes?.clone()
-        element._parentNode = this._parentNode?.clone()
+        element.parentNode = this.parentNode?.clone()
 
         return element
     }
@@ -1773,7 +1774,8 @@ public open class Element : Node {
 
     override fun shallowClone(): Element {
         // simpler than implementing a clone version with no child copy
-        return Element(tag, baseUri(), attributes?.clone())
+        val baseUri = baseUri()
+        return Element(tag, if (baseUri.isEmpty()) null else baseUri, attributes?.clone())
     }
 
     protected override fun doClone(parent: Node?): Element {
@@ -1787,9 +1789,10 @@ public open class Element : Node {
     // overrides of Node for call chaining
     override fun clearAttributes(): Element {
         if (attributes != null) {
-            super.clearAttributes()
-            attributes = null
+            super.clearAttributes() // keeps internal attributes via iterator
+            if (attributes!!.isEmpty()) attributes = null // only remove entirely if no internal attributes
         }
+
         return this
     }
 
@@ -1816,11 +1819,8 @@ public open class Element : Node {
      * @return this Element, for chaining
      * @see Node.forEachNode
      */
-    public fun forEach(action: Consumer<in Element?>): Element {
-        NodeTraversor.traverse(
-            { node, depth -> if (node is Element) action.accept(node) },
-            this,
-        )
+    public fun forEach(action: Consumer<in Element>): Element {
+        stream().forEach { node -> action.accept(node) }
         return this
     }
 
@@ -1849,7 +1849,7 @@ public open class Element : Node {
                 (parent() == null || parent()!!.isBlock()) &&
                     !isEffectivelyFirst() &&
                     !out.outline() &&
-                    !isNode("br")
+                    !nameIs("br")
             )
         }
     }
@@ -1888,7 +1888,7 @@ public open class Element : Node {
         ) {
             if (node is TextNode) {
                 accum.append(node.getWholeText())
-            } else if (node!!.isNode("br")) {
+            } else if (node!!.nameIs("br")) {
                 accum.append("\n")
             }
         }
@@ -1898,7 +1898,7 @@ public open class Element : Node {
             textNode: TextNode,
         ) {
             val text: String = textNode.getWholeText()
-            if (preserveWhitespace(textNode._parentNode) || textNode is CDataNode) {
+            if (preserveWhitespace(textNode.parentNode) || textNode is CDataNode) {
                 accum.append(text)
             } else {
                 StringUtil.appendNormalisedWhitespace(

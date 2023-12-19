@@ -1,11 +1,11 @@
 package com.fleeksoft.ksoup.select
 
 import com.fleeksoft.ksoup.Ksoup
+import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.nodes.Element
 import com.fleeksoft.ksoup.parser.Parser
 import de.cketti.codepoints.deluxe.toCodePoint
 import kotlin.test.*
-import kotlin.test.Test
 
 /**
  * Tests that the selector selects correctly.
@@ -645,7 +645,7 @@ class SelectorTest {
     fun testMatches() {
         val doc =
             Ksoup.parse("<p id=1>The <i>Rain</i></p> <p id=2>There are 99 bottles.</p> <p id=3>Harder (this)</p> <p id=4>Rain</p>")
-        val p1 = doc.select("p:matches(The rain)") // no match, case sensitive
+        val p1 = doc.select("p:matches(The rain)") // no match, case-sensitive
         assertEquals(0, p1.size)
         val p2 = doc.select("p:matches((?i)the rain)") // case insense. should include root, html, body
         assertEquals(1, p2.size)
@@ -1151,6 +1151,48 @@ class SelectorTest {
         val query = "div :is(h1, h2)"
         val parse = QueryParser.parse(query)
         assertEquals(query, parse.toString())
+    }
+
+    @Test
+    fun orAfterClass() {
+        // see also QueryParserTest#parsesOrAfterAttribute
+        // https://github.com/jhy/jsoup/issues/2073
+        val doc: Document =
+            Ksoup.parse("<div id=parent><span class=child></span><span class=child></span><span class=child></span></div>")
+        val q = "#parent [class*=child], .some-other-selector .nested"
+        assertEquals(
+            "(Or (And (Parent (Id '#parent'))(AttributeWithValueContaining '[class*=child]'))(And (Class '.nested')(Parent (Class '.some-other-selector'))))",
+            EvaluatorDebug.sexpr(q),
+        )
+        val els: Elements = doc.select(q)
+        assertEquals(3, els.size)
+    }
+
+    @Test
+    fun emptyAttributePrefix() {
+        // https://github.com/jhy/jsoup/issues/2079
+        // Discovered feature: [^] should find elements with any attribute (any prefix)
+        val html = "<p one>One<p one two>Two<p>Three"
+        val doc: Document = Ksoup.parse(html)
+
+        val els = doc.select("[^]")
+        assertSelectedOwnText(els, "One", "Two")
+
+        val emptyAttr = doc.select("p:not([^])")
+        assertSelectedOwnText(emptyAttr, "Three")
+    }
+
+    @Test
+    fun anyAttribute() {
+        // https://github.com/jhy/jsoup/issues/2079
+        val html = "<div id=1><p one>One<p one two>Two<p>Three"
+        val doc: Document = Ksoup.parse(html)
+
+        val els = doc.select("p[*]")
+        assertSelectedOwnText(els, "One", "Two")
+
+        val emptyAttr = doc.select("p:not([*])")
+        assertSelectedOwnText(emptyAttr, "Three")
     }
 
     companion object {

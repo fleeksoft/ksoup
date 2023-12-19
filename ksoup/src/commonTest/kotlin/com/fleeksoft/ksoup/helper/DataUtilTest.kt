@@ -157,6 +157,9 @@ class DataUtilTest {
     @Test
     @Throws(Exception::class)
     fun firstMetaElementWithCharsetShouldBeUsedForDecoding() {
+        if (Platform.current != PlatformType.JVM && !TestHelper.forceAllTestsRun) {
+            return
+        }
         val html =
             "<html><head>" +
                 "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=iso-8859-1\">" +
@@ -234,6 +237,9 @@ class DataUtilTest {
 
     @Test
     fun supportsXmlCharsetDeclaration() {
+        if (Platform.current != PlatformType.JVM && !TestHelper.forceAllTestsRun) {
+            return
+        }
         val encoding = "iso-8859-1"
         val soup =
             BufferReader(

@@ -9,17 +9,7 @@ import com.fleeksoft.ksoup.select.Elements
 import com.fleeksoft.ksoup.select.NodeFilter
 import com.fleeksoft.ksoup.select.NodeVisitor
 import com.fleeksoft.ksoup.select.QueryParser
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertFalse
-import kotlin.test.assertNotEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertNotSame
-import kotlin.test.assertNull
-import kotlin.test.assertSame
-import kotlin.test.assertTrue
-import kotlin.test.fail
+import kotlin.test.*
 
 /**
  * Tests for Element (DOM stuff mostly).
@@ -182,6 +172,19 @@ class ElementTest {
         assertEquals("Hello  \n  there", doc.wholeText())
         doc = Ksoup.parse("<p>Hello  <div>\n  there</div></p>")
         assertEquals("Hello  \n  there", doc.wholeText())
+    }
+
+    @Test
+    fun wholeTextRuns() {
+        val doc: Document = Ksoup.parse("<div><p id=1></p><p id=2> </p><p id=3>.  </p>")
+
+        val p1 = doc.expectFirst("#1")
+        val p2 = doc.expectFirst("#2")
+        val p3 = doc.expectFirst("#3")
+
+        assertEquals("", p1.wholeText())
+        assertEquals(" ", p2.wholeText())
+        assertEquals(".  ", p3.wholeText())
     }
 
     @Test
@@ -962,9 +965,9 @@ class ElementTest {
         val doc = Ksoup.parse("<div><p>One<p><span>Two</div>")
         val p = doc.select("p")[1]
         val clone = p.clone()
-        assertNotNull(clone._parentNode) // should be a cloned document just containing this clone
-        assertEquals(1, clone._parentNode!!.childNodeSize())
-        assertSame(clone.ownerDocument(), clone._parentNode)
+        assertNotNull(clone.parentNode) // should be a cloned document just containing this clone
+        assertEquals(1, clone.parentNode!!.childNodeSize())
+        assertSame(clone.ownerDocument(), clone.parentNode)
         assertEquals(0, clone.siblingIndex)
         assertEquals(1, p.siblingIndex)
         assertNotNull(p.parent())
@@ -1110,7 +1113,7 @@ class ElementTest {
         try {
             div.child(3)
             fail("Should throw index out of bounds")
-        } catch (e: IndexOutOfBoundsException) {
+        } catch (_: IndexOutOfBoundsException) {
         }
     }
 
@@ -1146,12 +1149,12 @@ class ElementTest {
         try {
             div2.insertChildren(6, children)
             fail()
-        } catch (e: IllegalArgumentException) {
+        } catch (_: IllegalArgumentException) {
         }
         try {
             div2.insertChildren(-5, children)
             fail()
-        } catch (e: IllegalArgumentException) {
+        } catch (_: IllegalArgumentException) {
         }
     }
 
@@ -2854,23 +2857,79 @@ Three
     @Test
     fun datanodesOutputCdataInXhtml() {
         val html = "<p><script>1 && 2</script><style>3 && 4</style> 5 &amp;&amp; 6</p>"
-        val doc = Ksoup.parse(html) // parsed as HTML
-        val out: String = TextUtil.normalizeSpaces(doc.body().html())
+        val doc: Document = Ksoup.parse(html) // parsed as HTML
+        val out = TextUtil.normalizeSpaces(doc.body().html())
         assertEquals(html, out)
         val scriptEl = doc.expectFirst("script")
         val scriptDataNode = scriptEl.childNode(0) as DataNode
         assertEquals("1 && 2", scriptDataNode.getWholeData())
+
         doc.outputSettings().syntax(Document.OutputSettings.Syntax.xml)
-        val xml = doc.body().html()
+        val p = doc.expectFirst("p")
+        val xml = p.html()
         assertEquals(
-            "<p><script><![CDATA[1 && 2]]></script><style><![CDATA[3 && 4]]></style> 5 &amp;&amp; 6</p>",
-            TextUtil.normalizeSpaces(xml),
+            "<script>//<![CDATA[\n" +
+                "1 && 2\n" +
+                "//]]></script>\n" +
+                "<style>/*<![CDATA[*/\n" +
+                "3 && 4\n" +
+                "/*]]>*/</style> 5 &amp;&amp; 6",
+            xml,
         )
-        val xmlDoc = Ksoup.parse(xml, Parser.xmlParser())
+
+        val xmlDoc: Document = Ksoup.parse(xml, Parser.xmlParser())
         assertEquals(xml, xmlDoc.html())
         val scriptXmlEl = xmlDoc.expectFirst("script")
-        val scriptCdata = scriptXmlEl.childNode(0) as CDataNode
-        assertEquals(scriptCdata.text(), scriptDataNode.getWholeData())
+        val scriptText = scriptXmlEl.childNode(0) as TextNode
+        assertEquals("//", scriptText.getWholeText())
+        val scriptCdata = scriptXmlEl.childNode(1) as CDataNode
+        assertEquals("\n1 && 2\n//", scriptCdata.text())
+    }
+
+    @Test
+    fun datanodesOutputExistingCdataInXhtml() {
+        val html =
+            "<p><script>//<![CDATA[\n1 && 2\n//]]></script><style>\n/*<![CDATA[*/3 && 4\n/*]]>*/</style> 5 &amp;&amp; 6</p>"
+
+        val doc: Document = Ksoup.parse(html) // parsed as HTML
+        val out = TextUtil.normalizeSpaces(doc.body().html())
+        assertEquals(
+            "<p><script>//<![CDATA[1 && 2//]]></script><style>/*<![CDATA[*/3 && 4/*]]>*/</style> 5 &amp;&amp; 6</p>",
+            out,
+        )
+        val scriptEl = doc.expectFirst("script")
+        val scriptDataNode = scriptEl.childNode(0) as DataNode
+        assertEquals(
+            (
+                "//<![CDATA[\n" +
+                    "1 && 2\n" +
+                    "//]]>"
+            ),
+            scriptDataNode.getWholeData(),
+        )
+
+        doc.outputSettings().syntax(Document.OutputSettings.Syntax.xml)
+        val p = doc.expectFirst("p")
+        val xml = p.html()
+        assertEquals(
+            (
+                "<script>//<![CDATA[\n" +
+                    "1 && 2\n" +
+                    "//]]></script>\n" +
+                    "<style>\n" +
+                    "/*<![CDATA[*/3 && 4\n" +
+                    "/*]]>*/</style> 5 &amp;&amp; 6"
+            ),
+            xml,
+        )
+
+        val xmlDoc: Document = Ksoup.parse(xml, Parser.xmlParser())
+        assertEquals(xml, xmlDoc.html())
+        val scriptXmlEl = xmlDoc.expectFirst("script")
+        val scriptText = scriptXmlEl.childNode(0) as TextNode
+        assertEquals("//", scriptText.getWholeText())
+        val scriptCdata = scriptXmlEl.childNode(1) as CDataNode
+        assertEquals("\n1 && 2\n//", scriptCdata.text())
     }
 
     //    StringBuffer adding \n in start but not when using StringBuilder
@@ -2932,7 +2991,7 @@ Three
         assertEquals(0, div.childNodeSize())
         assertEquals(3, childNodes.size) // copied before removing
         for (childNode in childNodes) {
-            assertNull(childNode._parentNode)
+            assertNull(childNode.parentNode)
         }
         val p = childNodes[0] as Element
         assertEquals(
@@ -2985,6 +3044,26 @@ Three
             "Foo&nbsp;&succ;",
             doc.body().html(),
         ) // succ is alias for Succeeds, and first hit in entities
+    }
+
+    @Test
+    fun attribute() {
+        val html = "<p CLASS='yes'>One</p>"
+        val doc: Document = Ksoup.parse(html)
+        val p = doc.expectFirst("p")
+        val attr = p.attribute("class") // HTML parse lower-cases names
+        assertNotNull(attr)
+        assertEquals("class", attr.key)
+        assertEquals("yes", attr.value)
+        assertFalse(attr.sourceRange().nameRange().start().isTracked()) // tracking disabled
+
+        assertNull(p.attribute("CLASS")) // no such key
+
+        attr.setKey("CLASS") // set preserves input case
+        attr.setValue("YES")
+
+        assertEquals("<p CLASS=\"YES\">One</p>", p.outerHtml())
+        assertEquals("CLASS=\"YES\"", attr.html())
     }
 
     companion object {

@@ -5,7 +5,7 @@ import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.parser.ParseSettings
 import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.parser.Tag
-import com.fleeksoft.ksoup.ported.Cloneable
+import com.fleeksoft.ksoup.ported.KCloneable
 import com.fleeksoft.ksoup.select.Elements
 import com.fleeksoft.ksoup.select.Evaluator
 import com.fleeksoft.ksoup.select.Selector
@@ -20,7 +20,7 @@ import io.ktor.utils.io.charsets.*
 /**
  * Create a new, empty Document, in the specified namespace.
  * @param namespace the namespace of this Document's root node.
- * @param baseUri base URI of document
+ * @param location base URI of document
  * @see .createShell
  */
 public class Document(private val namespace: String, private val location: String?) :
@@ -77,7 +77,7 @@ public class Document(private val namespace: String, private val location: Strin
     private fun htmlEl(): Element {
         var el: Element? = firstElementChild()
         while (el != null) {
-            if (el.normalName() == "html") return el
+            if (el.nameIs("html")) return el
             el = el.nextElementSibling()
         }
         return appendElement("html")
@@ -96,7 +96,7 @@ public class Document(private val namespace: String, private val location: Strin
         val html: Element = htmlEl()
         var el: Element? = html.firstElementChild()
         while (el != null) {
-            if (el.normalName() == "head") return el
+            if (el.nameIs("head")) return el
             el = el.nextElementSibling()
         }
         return html.prependElement("head")
@@ -115,7 +115,7 @@ public class Document(private val namespace: String, private val location: Strin
         val html: Element = htmlEl()
         var el: Element? = html.firstElementChild()
         while (el != null) {
-            if ("body" == el.normalName() || "frameset" == el.normalName()) return el
+            if (el.nameIs("body") || el.nameIs("frameset")) return el
             el = el.nextElementSibling()
         }
         return html.appendElement("body")
@@ -126,7 +126,6 @@ public class Document(private val namespace: String, private val location: Strin
      * @return a List of FormElement objects, which will be empty if there are none.
      * @see Elements.forms
      * @see FormElement.elements
-     * @since 1.15.4
      */
     public fun forms(): List<FormElement> {
         return select("form").forms()
@@ -138,7 +137,6 @@ public class Document(private val namespace: String, private val location: Strin
      * @param cssQuery a [Selector] CSS query
      * @return the first matching `<form>` element
      * @throws IllegalArgumentException if no match is found
-     * @since 1.15.4
      */
     public fun expectForm(cssQuery: String): FormElement? {
         val els: Elements = select(cssQuery)
@@ -362,7 +360,7 @@ public class Document(private val namespace: String, private val location: Strin
         private var indentAmount: Int = 1,
         private var maxPaddingWidth: Int = 30,
         private var syntax: Syntax = Syntax.html,
-    ) : Cloneable<OutputSettings> {
+    ) : KCloneable<OutputSettings> {
         private var charsetEncoder: CharsetEncoder? = null
 
         /**

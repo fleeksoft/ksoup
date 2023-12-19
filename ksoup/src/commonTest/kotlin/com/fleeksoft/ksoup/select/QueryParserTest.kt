@@ -1,11 +1,10 @@
 package com.fleeksoft.ksoup.select
 
-import com.fleeksoft.ksoup.Ksoup.parse
-import com.fleeksoft.ksoup.select.StructuralEvaluator.ImmediateParentRun
+import com.fleeksoft.ksoup.Ksoup
+import com.fleeksoft.ksoup.nodes.Document
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
-import kotlin.test.assertTrue
 
 /**
  * Tests for the Selector Query Parser.
@@ -15,18 +14,15 @@ import kotlin.test.assertTrue
 class QueryParserTest {
     @Test
     fun testConsumeSubQuery() {
-        val doc =
-            parse(
+        val doc: Document =
+            Ksoup.parse(
                 "<html><head>h</head><body>" +
                     "<li><strong>l1</strong></li>" +
                     "<a><li><strong>l2</strong></li></a>" +
                     "<p><strong>yes</strong></p>" +
                     "</body></html>",
             )
-        assertEquals(
-            "l1 yes",
-            doc.body().select(">p>strong,>li>strong").text(),
-        ) // selecting immediate from body
+        assertEquals("l1 yes", doc.body().select(">p>strong,>li>strong").text()) // selecting immediate from body
         assertEquals("l2 yes", doc.select("body>p>strong,body>*>li>strong").text())
         assertEquals("l2 yes", doc.select("body>*>li>strong,body>p>strong").text())
         assertEquals("l2 yes", doc.select("body>p>strong,body>*>li>strong").text())
@@ -35,45 +31,91 @@ class QueryParserTest {
     @Test
     fun testImmediateParentRun() {
         val query = "div > p > bold.brass"
-        val eval1 = QueryParser.parse(query)
-        assertEquals(query, eval1.toString())
-        val run = eval1 as ImmediateParentRun
-        assertTrue(run.evaluators[0] is Evaluator.Tag)
-        assertTrue(run.evaluators[1] is Evaluator.Tag)
-        assertTrue(run.evaluators[2] is CombiningEvaluator.And)
+        assertEquals(
+            "(ImmediateParentRun (Tag 'div')(Tag 'p')(And (Tag 'bold')(Class '.brass')))",
+            EvaluatorDebug.sexpr(query),
+        )
+
+        /*
+        <ImmediateParentRun css="div > p > bold.brass" cost="11">
+          <Tag css="div" cost="1"></Tag>
+          <Tag css="p" cost="1"></Tag>
+          <And css="bold.brass" cost="7">
+            <Tag css="bold" cost="1"></Tag>
+            <Class css=".brass" cost="6"></Class>
+          </And>
+        </ImmediateParentRun>
+         */
     }
 
     @Test
     fun testOrGetsCorrectPrecedence() {
         // tests that a selector "a b, c d, e f" evals to (a AND b) OR (c AND d) OR (e AND f)"
         // top level or, three child ands
-        val eval = QueryParser.parse("a b, c d, e f")
-        assertTrue(eval is CombiningEvaluator.Or)
-        assertEquals(3, eval.evaluators.size)
-        for (innerEval in eval.evaluators) {
-            assertTrue(innerEval is CombiningEvaluator.And)
-            assertEquals(2, innerEval.evaluators.size)
-            assertTrue(innerEval.evaluators[0] is StructuralEvaluator.Parent)
-            assertTrue(innerEval.evaluators[1] is Evaluator.Tag)
-        }
+        val query = "a b, c d, e f"
+        val parsed: String = EvaluatorDebug.sexpr(query)
+        assertEquals(
+            "(Or (And (Tag 'b')(Parent (Tag 'a')))(And (Tag 'd')(Parent (Tag 'c')))(And (Tag 'f')(Parent (Tag 'e'))))",
+            parsed,
+        )
+
+        /*
+        <Or css="a b, c d, e f" cost="9">
+          <And css="a b" cost="3">
+            <Tag css="b" cost="1"></Tag>
+            <Parent css="a " cost="2">
+              <Tag css="a" cost="1"></Tag>
+            </Parent>
+          </And>
+          <And css="c d" cost="3">
+            <Tag css="d" cost="1"></Tag>
+            <Parent css="c " cost="2">
+              <Tag css="c" cost="1"></Tag>
+            </Parent>
+          </And>
+          <And css="e f" cost="3">
+            <Tag css="f" cost="1"></Tag>
+            <Parent css="e " cost="2">
+              <Tag css="e" cost="1"></Tag>
+            </Parent>
+          </And>
+        </Or>
+         */
     }
 
     @Test
     fun testParsesMultiCorrectly() {
-        val query = ".foo.qux > ol.bar, ol > li + li"
-        val eval = QueryParser.parse(query)
-        assertTrue(eval is CombiningEvaluator.Or)
-        assertEquals(2, eval.evaluators.size)
-        val run = eval.evaluators[0] as ImmediateParentRun
-        val andRight = eval.evaluators[1] as CombiningEvaluator.And
-        assertEquals(".foo.qux > ol.bar", run.toString())
-        assertEquals(2, run.evaluators.size)
-        val runAnd = run.evaluators[0]
-        assertTrue(runAnd is CombiningEvaluator.And)
-        assertEquals(".foo.qux", runAnd.toString())
-        assertEquals("ol > li + li", andRight.toString())
-        assertEquals(2, andRight.evaluators.size)
-        assertEquals(query, eval.toString())
+        val query = ".foo.qux[attr=bar] > ol.bar, ol > li + li"
+        val parsed: String = EvaluatorDebug.sexpr(query)
+        assertEquals(
+            "(Or (And (Tag 'li')(ImmediatePreviousSibling (ImmediateParentRun (Tag 'ol')(Tag 'li'))))(ImmediateParentRun (And (AttributeWithValue '[attr=bar]')(Class '.foo')(Class '.qux'))(And (Tag 'ol')(Class '.bar'))))",
+            parsed,
+        )
+
+        /*
+        <Or css=".foo.qux[attr=bar] > ol.bar, ol > li + li" cost="31">
+          <And css="ol > li + li" cost="7">
+            <Tag css="li" cost="1"></Tag>
+            <ImmediatePreviousSibling css="ol > li + " cost="6">
+              <ImmediateParentRun css="ol > li" cost="4">
+                <Tag css="ol" cost="1"></Tag>
+                <Tag css="li" cost="1"></Tag>
+              </ImmediateParentRun>
+            </ImmediatePreviousSibling>
+          </And>
+          <ImmediateParentRun css=".foo.qux[attr=bar] > ol.bar" cost="24">
+            <And css=".foo.qux[attr=bar]" cost="15">
+              <AttributeWithValue css="[attr=bar]" cost="3"></AttributeWithValue>
+              <Class css=".foo" cost="6"></Class>
+              <Class css=".qux" cost="6"></Class>
+            </And>
+            <And css="ol.bar" cost="7">
+              <Tag css="ol" cost="1"></Tag>
+              <Class css=".bar" cost="6"></Class>
+            </And>
+          </ImmediateParentRun>
+        </Or>
+         */
     }
 
     @Test
@@ -102,5 +144,34 @@ class QueryParserTest {
         val q = "a:not(:has(span.foo)) b d > e + f ~ g"
         val parse = QueryParser.parse(q)
         assertEquals(q, parse.toString())
+        val parsed: String = EvaluatorDebug.sexpr(q)
+        assertEquals(
+            "(And (Tag 'g')(PreviousSibling (And (Tag 'f')(ImmediatePreviousSibling (ImmediateParentRun (And (Tag 'd')(Parent (And (Tag 'b')(Parent (And (Tag 'a')(Not (Has (And (Tag 'span')(Class '.foo')))))))))(Tag 'e'))))))",
+            parsed,
+        )
+    }
+
+    @Test
+    fun parsesOrAfterAttribute() {
+        // https://github.com/jhy/jsoup/issues/2073
+        val q = "#parent [class*=child], .some-other-selector .nested"
+        val parsed: String = EvaluatorDebug.sexpr(q)
+        assertEquals(
+            "(Or (And (Parent (Id '#parent'))(AttributeWithValueContaining '[class*=child]'))(And (Class '.nested')(Parent (Class '.some-other-selector'))))",
+            parsed,
+        )
+
+        assertEquals(
+            "(Or (Class '.some-other-selector')(And (Parent (Id '#parent'))(AttributeWithValueContaining '[class*=child]')))",
+            EvaluatorDebug.sexpr("#parent [class*=child], .some-other-selector"),
+        )
+        assertEquals(
+            "(Or (Class '.some-other-selector')(And (Id '#el')(AttributeWithValueContaining '[class*=child]')))",
+            EvaluatorDebug.sexpr("#el[class*=child], .some-other-selector"),
+        )
+        assertEquals(
+            "(Or (And (Parent (Id '#parent'))(AttributeWithValueContaining '[class*=child]'))(And (Class '.nested')(Parent (Class '.some-other-selector'))))",
+            EvaluatorDebug.sexpr("#parent [class*=child], .some-other-selector .nested"),
+        )
     }
 }

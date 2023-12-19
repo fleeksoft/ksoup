@@ -1,10 +1,10 @@
 package com.fleeksoft.ksoup.nodes
 
 import com.fleeksoft.ksoup.Ksoup
+import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.parser.Tag
 import com.fleeksoft.ksoup.select.NodeVisitor
 import kotlin.test.*
-import kotlin.test.Test
 
 /**
  * Tests Nodes
@@ -464,10 +464,43 @@ class NodeTest {
         assertEquals("DIV", div.tagName())
         assertEquals("DIV", div.nodeName())
         assertEquals("div", div.normalName())
-        assertTrue(div.isNode("div"))
-        assertTrue(Node.isNode(div, "div"))
+        assertTrue(div.nameIs("div"))
+
         val text = TextNode("Some Text")
         assertEquals("#text", text.nodeName())
         assertEquals("#text", text.normalName())
+    }
+
+    @Test
+    fun elementIs() {
+        val html = "<div><p>One</p>"
+        val doc: Document = Ksoup.parse(html)
+
+        val p = doc.expectFirst("p")
+        val text = p.childNode(0) as TextNode
+
+        assertTrue(text.parentElementIs("p", Parser.NamespaceHtml))
+        assertFalse(text.parentElementIs("div", Parser.NamespaceHtml))
+        assertFalse(text.parentElementIs("p", Parser.NamespaceXml))
+
+        assertTrue(p.parentElementIs("div", Parser.NamespaceHtml))
+        assertTrue(p.elementIs("p", Parser.NamespaceHtml))
+        assertTrue(p.nameIs("p"))
+        assertFalse(p.nameIs("P"))
+    }
+
+    @Test
+    fun svgElementIs() {
+        val html = "<div><svg><path>1,2,3</path></svg></div>"
+        val doc: Document = Ksoup.parse(html)
+
+        val svg = doc.expectFirst("svg")
+        assertTrue(svg.nameIs("svg"))
+        assertFalse(svg.elementIs("svg", Parser.NamespaceHtml))
+        assertTrue(svg.elementIs("svg", Parser.NamespaceSvg))
+
+        val data = svg.childNode(0).childNode(0) as TextNode
+        assertTrue(data.parentElementIs("path", Parser.NamespaceSvg))
+        assertTrue(data.parentNameIs("path"))
     }
 }

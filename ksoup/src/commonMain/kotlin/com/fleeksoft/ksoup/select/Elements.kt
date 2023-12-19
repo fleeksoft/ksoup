@@ -52,7 +52,7 @@ public class Elements(private val delegateList: MutableList<Element> = mutableLi
     /**
      * Get an attribute value from the first matched element that has the attribute.
      * @param attributeKey The attribute key.
-     * @return The attribute value from the first matched element that has the attribute.. If no elements were matched (isEmpty() == true),
+     * @return The attribute value from the first matched element that has the attribute. If no elements were matched (isEmpty() == true),
      * or if the no elements have the attribute, returns empty string.
      * @see .hasAttr
      */
@@ -708,7 +708,6 @@ public class Elements(private val delegateList: MutableList<Element> = mutableLi
      * @param index index of the element to replace
      * @param element element to be stored at the specified position
      * @return the old Element at this index
-     * @since 1.17.1
      */
     override operator fun set(
         index: Int,
@@ -723,7 +722,6 @@ public class Elements(private val delegateList: MutableList<Element> = mutableLi
      * Remove the Element at the specified index in this ist, and from the DOM.
      * @param index the index of the element to be removed
      * @return the old element at this index
-     * @since 1.17.1
      */
 
     override fun removeAt(index: Int): Element {
@@ -734,7 +732,6 @@ public class Elements(private val delegateList: MutableList<Element> = mutableLi
      * Remove the specified Element from this list, and from th DOM
      * @param element element to be removed from this list, if present
      * @return if this list contained the Element
-     * @since 1.17.1
      */
     override fun remove(element: Element): Boolean {
         val index: Int = this.indexOf(element)
@@ -748,7 +745,6 @@ public class Elements(private val delegateList: MutableList<Element> = mutableLi
 
     /**
      * Removes all the elements from this list, and each of them from the DOM.
-     * @since 1.17.1
      * @see .remove
      */
     override fun clear() {
@@ -761,7 +757,6 @@ public class Elements(private val delegateList: MutableList<Element> = mutableLi
      * are in this list.
      * @param c collection containing elements to be removed from this list
      * @return `true` if elements were removed from this list
-     * @since 1.17.1
      */
 
     override fun removeAll(elements: Collection<Element>): Boolean {
@@ -779,7 +774,6 @@ public class Elements(private val delegateList: MutableList<Element> = mutableLi
      * collection.
      * @param c collection containing elements to be retained in this list
      * @return `true` if elements were removed from this list
-     * @since 1.17.1
      */
     override fun retainAll(elements: Collection<Element>): Boolean {
         val toRemoveEls: MutableList<Element> = mutableListOf()
@@ -799,7 +793,6 @@ public class Elements(private val delegateList: MutableList<Element> = mutableLi
      * Remove from the list, and from the DOM, all elements in this list that mach the given filter.
      * @param filter a predicate which returns `true` for elements to be removed
      * @return `true` if elements were removed from this list
-     * @since 1.17.1
      */
 
     public fun removeIf(predicate: (element: Element) -> Boolean): Boolean {
@@ -818,7 +811,6 @@ public class Elements(private val delegateList: MutableList<Element> = mutableLi
     /**
      * Replace each element in this list with the result of the operator, and update the DOM.
      * @param operator the operator to apply to each element
-     * @since 1.17.1
      */
     public fun replaceAll(operator: (element: Element) -> Element) {
         for (i in this.indices) {
