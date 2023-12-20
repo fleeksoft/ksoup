@@ -10,7 +10,7 @@ class GithubIssuesTests {
     @Test
     fun testIssue20DuplicateElements() {
         //    https://github.com/fleeksoft/ksoup/issues/20
-        Ksoup.parse(TestHelper.getFileAsString(TestHelper.getResourceAbsolutePath("htmltests/issue20.html").toPath()))
+        Ksoup.parse(TestHelper.getFileAsString(TestHelper.getResourceAbsolutePath("htmltests/issue20.html.gz").toPath()))
             .apply {
                 body().select("div[class=firs l]")
                     .firstOrNull()?.let { element ->

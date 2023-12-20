@@ -5,6 +5,7 @@ import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.ported.BufferReader
 import io.ktor.utils.io.charsets.*
+import okio.gzip
 import okio.source
 import java.io.*
 import java.nio.charset.StandardCharsets
@@ -53,7 +54,7 @@ class DataUtilTestJvm {
 
     @Test
     fun testHandlesChunkedInputStream() {
-        val file = File(TestHelper.getResourceAbsolutePath("htmltests/large.html"))
+        val file = File(TestHelper.getResourceAbsolutePath("htmltests/large.html.gz"))
         val input = getFileAsString(file)
         val expected =
             Ksoup.parse(
@@ -62,14 +63,14 @@ class DataUtilTestJvm {
             )
         val doc: Document =
             Ksoup.parse(
-                bufferReader = BufferReader(FileInputStream(file).source()),
+                bufferReader = BufferReader(FileInputStream(file).source().gzip()),
                 charsetName = null,
                 baseUri = "https://example.com",
             )
 
         val doc2: Document =
             Ksoup.parseInputStream(
-                inputStream = FileInputStream(file),
+                inputStream = GZIPInputStream(FileInputStream(file)),
                 charsetName = null,
                 baseUri = "https://example.com",
             )
@@ -81,7 +82,7 @@ class DataUtilTestJvm {
 
     @Test
     fun testHandlesUnlimitedRead() {
-        val file = File(TestHelper.getResourceAbsolutePath("htmltests/large.html"))
+        val file = File(TestHelper.getResourceAbsolutePath("htmltests/large.html.gz"))
         val input: String = getFileAsString(file)
 
         //        VaryingReadInputStream stream = new VaryingReadInputStream(ParseTest.inputStreamFrom(input));
@@ -94,13 +95,13 @@ class DataUtilTestJvm {
             )
         val doc2: Document =
             Ksoup.parseInputStream(
-                inputStream = FileInputStream(file),
+                inputStream = GZIPInputStream(FileInputStream(file)),
                 charsetName = null,
                 baseUri = "https://example.com",
             )
         val docThree: Document =
             Ksoup.parse(
-                bufferReader = BufferReader(FileInputStream(file).source()),
+                bufferReader = BufferReader(FileInputStream(file).source().gzip()),
                 charsetName = null,
                 baseUri = "https://example.com",
             )

@@ -14,7 +14,7 @@ class GithubIssue19 {
 
     @Test
     fun testAttributeIncorrectMixCharsetIssue() {
-        val document: Document = Ksoup.parseFile(TestHelper.getResourceAbsolutePath("htmltests/issue19.html"))
+        val document: Document = Ksoup.parseFile(TestHelper.getResourceAbsolutePath("htmltests/issue19.html.gz"))
         val imagesEls: Elements = document.select("img")
         for (imagesEl in imagesEls) {
             val attr: String = imagesEl.attr("src")

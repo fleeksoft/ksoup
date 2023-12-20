@@ -522,7 +522,7 @@ class CharacterReaderTest {
     fun linenumbersAgreeWithEditor() {
         val content: String =
             TestHelper.getFileAsString(
-                TestHelper.getResourceAbsolutePath("htmltests/large.html").toPath(),
+                TestHelper.getResourceAbsolutePath("htmltests/large.html.gz").toPath(),
             )
         val reader = CharacterReader(content)
         reader.trackNewlines(true)
