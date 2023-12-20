@@ -283,7 +283,7 @@ class DataUtilTest {
 
     @Test
     fun handlesChunkedInputStream() {
-        val inputFile: String = TestHelper.getResourceAbsolutePath("htmltests/large.html")
+        val inputFile: String = TestHelper.getResourceAbsolutePath("htmltests/large.html.gz")
         val input: String = TestHelper.getFileAsString(inputFile.toPath())
 //        val stream = VaryingBufferReader(BufferReader(input))
         val expected = Ksoup.parse(input, "https://example.com")
@@ -295,7 +295,7 @@ class DataUtilTest {
 
     @Test
     fun handlesUnlimitedRead() {
-        val inputFile: String = TestHelper.getResourceAbsolutePath("htmltests/large.html")
+        val inputFile: String = TestHelper.getResourceAbsolutePath("htmltests/large.html.gz")
         val input: String = TestHelper.getFileAsString(inputFile.toPath())
         val byteBuffer: ByteArray = DataUtil.readToByteBuffer(BufferReader(input.toBuffer()), 0)
         val read = byteBuffer.decodeToString()
