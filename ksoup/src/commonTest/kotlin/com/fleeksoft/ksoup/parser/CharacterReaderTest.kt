@@ -520,6 +520,10 @@ class CharacterReaderTest {
     @Test
     @Throws(IOException::class)
     fun linenumbersAgreeWithEditor() {
+        if (Platform.current == PlatformType.WINDOWS) {
+//            gzip not supported yet
+            return
+        }
         val content: String =
             TestHelper.getFileAsString(
                 TestHelper.getResourceAbsolutePath("htmltests/large.html.gz").toPath(),

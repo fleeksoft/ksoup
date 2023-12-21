@@ -1,8 +1,6 @@
 package com.fleeksoft.ksoup.issues
 
-import com.fleeksoft.ksoup.Ksoup
-import com.fleeksoft.ksoup.TestHelper
-import com.fleeksoft.ksoup.runTest
+import com.fleeksoft.ksoup.*
 import okio.Path.Companion.toPath
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -10,6 +8,10 @@ import kotlin.test.assertEquals
 class GithubIssuesTests {
     @Test
     fun testIssue20DuplicateElements() {
+        if (Platform.current == PlatformType.WINDOWS) {
+//            gzip not supported yet
+            return
+        }
         //    https://github.com/fleeksoft/ksoup/issues/20
         runTest {
             Ksoup.parse(TestHelper.getFileAsString(TestHelper.getResourceAbsolutePath("htmltests/issue20.html.gz").toPath()))

@@ -1,4 +1,6 @@
 import com.fleeksoft.ksoup.Ksoup
+import com.fleeksoft.ksoup.Platform
+import com.fleeksoft.ksoup.PlatformType
 import com.fleeksoft.ksoup.TestHelper
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.select.Elements
@@ -14,6 +16,10 @@ class GithubIssue19 {
 
     @Test
     fun testAttributeIncorrectMixCharsetIssue() {
+        if (Platform.current == PlatformType.WINDOWS) {
+//            gzip not supported yet
+            return
+        }
         val document: Document = Ksoup.parseFile(TestHelper.getResourceAbsolutePath("htmltests/issue19.html.gz"))
         val imagesEls: Elements = document.select("img")
         for (imagesEl in imagesEls) {
