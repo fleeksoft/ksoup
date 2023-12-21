@@ -2749,7 +2749,7 @@ Three
                     "\\x",
                 )
             }
-        if (Platform.current == PlatformType.IOS) {
+        if (Platform.current == PlatformType.IOS || Platform.current == PlatformType.WINDOWS) {
             assertEquals("Invalid hexadecimal escape sequence near index: 0\n\\x\n^", ex.message)
         } else {
             assertEquals("Illegal hexadecimal escape sequence near index 2\n\\x", ex.message)
@@ -2793,7 +2793,7 @@ Three
         val ex: Throwable =
             assertFailsWith<IllegalArgumentException> { doc.getElementsMatchingText("\\x") }
 
-        if (Platform.current == PlatformType.IOS) {
+        if (Platform.current == PlatformType.IOS || Platform.current == PlatformType.WINDOWS) {
             assertEquals("Invalid hexadecimal escape sequence near index: 0\n\\x\n^", ex.message)
         } else {
             assertEquals("Illegal hexadecimal escape sequence near index 2\n\\x", ex.message)
@@ -2828,7 +2828,7 @@ Three
         val ex: Throwable =
             assertFailsWith<IllegalArgumentException> { doc.getElementsMatchingOwnText("\\x") }
 
-        if (Platform.current == PlatformType.IOS) {
+        if (Platform.current == PlatformType.IOS || Platform.current == PlatformType.WINDOWS) {
             assertEquals("Invalid hexadecimal escape sequence near index: 0\n\\x\n^", ex.message)
         } else {
             assertEquals("Illegal hexadecimal escape sequence near index 2\n\\x", ex.message)

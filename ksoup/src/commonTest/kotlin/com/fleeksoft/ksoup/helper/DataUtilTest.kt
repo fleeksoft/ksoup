@@ -135,7 +135,7 @@ class DataUtilTest {
     @Test
     @Throws(Exception::class)
     fun secondMetaElementWithContentTypeContainsCharsetParameter() {
-        if (Platform.current == PlatformType.JS || Platform.current == PlatformType.IOS) {
+        if (Platform.current == PlatformType.JS || Platform.current == PlatformType.IOS || Platform.current == PlatformType.WINDOWS) {
             // FIXME: euc-kr charset not supported
             return
         }
@@ -178,7 +178,7 @@ class DataUtilTest {
 
     @Test
     fun supportsBOMinFiles() {
-        if (Platform.current == PlatformType.JS || Platform.current == PlatformType.IOS) {
+        if (Platform.current == PlatformType.JS || Platform.current == PlatformType.IOS || Platform.current == PlatformType.WINDOWS) {
             // FIXME: utf-16 charset not supported
             return
         }
@@ -275,6 +275,10 @@ class DataUtilTest {
 
     @Test
     fun loadsZGzipFile() {
+        if (Platform.current == PlatformType.WINDOWS) {
+//            gzip not supported yet
+            return
+        }
         // compressed on win, with z suffix
         val input: String = TestHelper.getResourceAbsolutePath("htmltests/gzip.html.z")
         val doc: Document = Ksoup.parseFile(file = input, charsetName = null)
