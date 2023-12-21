@@ -23,6 +23,11 @@ kotlin {
     linuxX64()
     linuxArm64()
 
+    macosX64()
+    macosArm64()
+
+    mingwX64()
+
     androidTarget {
         compilations.all {
             kotlinOptions {
@@ -72,7 +77,7 @@ kotlin {
             }
         }
 
-        iosMain {
+        appleMain {
             dependsOn(nonJsMain)
             dependencies {
                 implementation(libs.ktor.client.darwin)
@@ -88,6 +93,12 @@ kotlin {
 
         jsMain.dependencies {
             implementation(libs.ktor.client.js)
+        }
+
+        mingwMain {
+            dependencies {
+                implementation(libs.ktor.client.win)
+            }
         }
     }
 }

@@ -86,8 +86,9 @@ To report any issues, visit our [GitHub issues](https://github.com/fleeksoft/kso
 | iOS            | Alpha        | Does not support few charsets.                |
 | Linux          | Experimental | Does not support gzip files and few charsets. |
 | JS             | Alpha        | Does not support few charsets.                |
-| Native MacOS   | Coming Soon  |                                               |
-| Native Windows | Coming Soon  |                                               |
+| Native MacOS   | Alpha        |                                               |
+| Native Windows | Experimental | Does not support gzip file.                   |
+| Wasm           | Coming Soon  |                                               |
 
 
 

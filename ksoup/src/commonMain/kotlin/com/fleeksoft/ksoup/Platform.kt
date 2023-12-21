@@ -23,6 +23,8 @@ public enum class PlatformType {
     IOS,
     LINUX,
     JS,
+    MAC,
+    WINDOWS,
 }
 
 public expect object Platform {

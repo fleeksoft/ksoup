@@ -25,6 +25,11 @@ kotlin {
     linuxX64()
     linuxArm64()
 
+    macosX64()
+    macosArm64()
+
+    mingwX64()
+
     androidTarget {
         compilations.all {
             kotlinOptions {
@@ -70,7 +75,7 @@ kotlin {
         androidMain.dependencies {
         }
 
-        iosMain.dependencies {
+        appleMain.dependencies {
         }
 
         jsMain.dependencies {

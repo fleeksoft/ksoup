@@ -1,25 +1,11 @@
-@file:OptIn(ExperimentalForeignApi::class, ExperimentalForeignApi::class)
+@file:OptIn(ExperimentalForeignApi::class)
 
 package com.fleeksoft.ksoup
 
-import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.cinterop.addressOf
-import kotlinx.cinterop.alloc
-import kotlinx.cinterop.allocArray
-import kotlinx.cinterop.memScoped
-import kotlinx.cinterop.ptr
-import kotlinx.cinterop.reinterpret
-import kotlinx.cinterop.usePinned
+import kotlinx.cinterop.*
 import platform.darwin.ByteVar
 import platform.posix.memcpy
-import platform.zlib.MAX_WBITS
-import platform.zlib.Z_NO_FLUSH
-import platform.zlib.Z_OK
-import platform.zlib.Z_STREAM_END
-import platform.zlib.inflate
-import platform.zlib.inflateEnd
-import platform.zlib.inflateInit2
-import platform.zlib.z_stream
+import platform.zlib.*
 
 internal fun decompressGzip(input: ByteArray): ByteArray {
     val inputSize = input.size.toULong()
