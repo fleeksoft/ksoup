@@ -175,8 +175,6 @@ public open class BufferReader : Closeable {
             readBytes += peekSource.read(tempBuffer, charToReadSize - readBytes)
         }
 
-        val decoder = charset.newDecoder()
-
         var removeExtraChar = false
         while (!peekSource.exhausted()) {
             peekSource.peek().read(tempBuffer, 1)
