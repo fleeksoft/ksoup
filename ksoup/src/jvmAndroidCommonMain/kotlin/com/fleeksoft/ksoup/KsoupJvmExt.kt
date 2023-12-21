@@ -16,7 +16,6 @@ import java.io.InputStream
  * @return sane HTML
  */
 
-// TODO: create common module for android and jvm
 public fun Ksoup.parseInputStream(
     inputStream: InputStream,
     baseUri: String,
