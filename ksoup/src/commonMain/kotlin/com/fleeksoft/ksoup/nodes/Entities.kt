@@ -14,7 +14,7 @@ import com.fleeksoft.ksoup.ported.Character
 import com.fleeksoft.ksoup.ported.canEncode
 import de.cketti.codepoints.deluxe.CodePoint
 import de.cketti.codepoints.deluxe.codePointAt
-import io.ktor.utils.io.charsets.CharsetEncoder
+import io.ktor.utils.io.charsets.*
 import okio.IOException
 
 /**
@@ -309,7 +309,7 @@ public object Entities {
     ): Boolean {
         // todo add more charset tests if impacted by Android's bad perf in canEncode
         return when (charset) {
-            CoreCharset.ascii -> c.code < 0x80
+            CoreCharset.ascii -> c.code <= 0xFF // ISO-8859-1 range from 0x00 to 0xFF
             CoreCharset.utf -> true // real is:!(Character.isLowSurrogate(c) || Character.isHighSurrogate(c)); - but already check above
             else -> fallback.canEncode(c) // TODO: disable for now
         }

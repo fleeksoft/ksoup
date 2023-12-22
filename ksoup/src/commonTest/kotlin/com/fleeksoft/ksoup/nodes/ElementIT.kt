@@ -1,5 +1,6 @@
 package com.fleeksoft.ksoup.nodes
 
+import com.fleeksoft.ksoup.BuildConfig
 import com.fleeksoft.ksoup.Ksoup.parse
 import com.fleeksoft.ksoup.Platform
 import com.fleeksoft.ksoup.PlatformType
@@ -10,7 +11,7 @@ import kotlin.test.Test
 class ElementIT {
     @Test
     fun testFastReparent() {
-        if (Platform.current == PlatformType.JS) {
+        if (Platform.current == PlatformType.JS && BuildConfig.isGithubActions) {
 //            failing on github action
             return
         }
@@ -43,7 +44,7 @@ class ElementIT {
 
     @Test
     fun testFastReparentExistingContent() {
-        if (Platform.current == PlatformType.JS) {
+        if (Platform.current == PlatformType.JS && BuildConfig.isGithubActions) {
 //            failing on github action
             return
         }

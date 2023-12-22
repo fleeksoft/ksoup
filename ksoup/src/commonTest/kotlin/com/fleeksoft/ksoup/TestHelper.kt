@@ -5,26 +5,11 @@ import okio.Path
 import okio.Path.Companion.toPath
 
 object TestHelper {
-//    some tests ignored for specific platform
+    //    some tests ignored for specific platform
     const val forceAllTestsRun = false
 
     fun getResourceAbsolutePath(resourceName: String): String {
         return "${BuildConfig.PROJECT_ROOT}/ksoup/src/commonTest/resources/$resourceName"
-        /*return when (Platform.current) {
-            PlatformType.JVM, PlatformType.ANDROID -> {
-                "src/commonTest/resources/$resourceName"
-            }
-
-            PlatformType.JS -> {
-                "../../../../ksoup/src/commonTest/resources/$resourceName"
-            }
-
-            PlatformType.IOS -> {
-                "/Users/runner/work/ksoup/ksoup/ksoup/src/commonTest/resources/$resourceName"
-            }
-
-            else -> "src/commonTest/resources/$resourceName"
-        }*/
     }
 
     fun getFileAsString(file: Path): String {

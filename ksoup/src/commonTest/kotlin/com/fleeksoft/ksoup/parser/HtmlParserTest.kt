@@ -1190,17 +1190,12 @@ class HtmlParserTest {
 
     @Test
     fun relaxedBaseEntityMatchAndStrictExtendedMatch() {
-        if (Platform.current == PlatformType.JS) {
-            // FIXME: ascii charset not supported for js
-            return
-        }
-
         // extended entities need a ; at the end to match, base does not
         val html = "&amp &quot &reg &icy &hopf &icy; &hopf;"
         val doc = Ksoup.parse(html)
         doc.outputSettings().escapeMode(Entities.EscapeMode.extended)
-            .charset("ascii") // modifies output only to clarify test
-        assertEquals("&amp; \" &reg; &amp;icy &amp;hopf &icy; &hopf;", doc.body().html())
+            .charset("ISO-8859-1") // modifies output only to clarify test
+        assertEquals("&amp; \" ® &amp;icy &amp;hopf &icy; &hopf;", doc.body().html())
     }
 
     @Test
@@ -2276,11 +2271,6 @@ class HtmlParserTest {
 
     @Test
     fun parseEmojiFromMultipointEncoded() {
-        if (Platform.current == PlatformType.JS) {
-            // FIXME: ascii charset not supported for js
-            return
-        }
-
         val html = "<img multi='&#55357;&#56495;' single='&#128175;' hexsingle='&#x1f4af;'>"
         val document: Document = Ksoup.parse(html)
         val img = document.expectFirst("img")
@@ -2290,7 +2280,7 @@ class HtmlParserTest {
 
         assertEquals("<img multi=\"\uD83D\uDCAF\" single=\"\uD83D\uDCAF\" hexsingle=\"\uD83D\uDCAF\">", img.outerHtml())
 
-        img.ownerDocument()!!.outputSettings().charset("ascii")
+        img.ownerDocument()!!.outputSettings().charset("ISO-8859-1")
         assertEquals("<img multi=\"&#x1f4af;\" single=\"&#x1f4af;\" hexsingle=\"&#x1f4af;\">", img.outerHtml())
     }
 

@@ -188,8 +188,8 @@ signing {
 project.tasks.withType(AbstractPublishToMaven::class.java).configureEach {
     dependsOn(project.tasks.withType(Sign::class.java))
 }
-
-val generateRootPathSource: Task by tasks.creating {
+val isGithubActions: Boolean = System.getenv("GITHUB_ACTIONS")?.toBoolean() == true
+val generateBuildConfigFile: Task by tasks.creating {
     group = "build setup"
     val file = layout.buildDirectory.file("$rootPath/BuildConfig.kt")
     outputs.file(file)
@@ -201,6 +201,7 @@ val generateRootPathSource: Task by tasks.creating {
 
             object BuildConfig {
                 const val PROJECT_ROOT: String = "${rootProject.rootDir.absolutePath.replace("\\", "\\\\")}"
+                const val isGithubActions: Boolean = $isGithubActions
             }
             """.trimIndent()
         file.get().asFile.writeText(content)
@@ -208,7 +209,7 @@ val generateRootPathSource: Task by tasks.creating {
 }
 
 tasks.all {
-    if (name != "generateRootPathSource" && !name.contains("publish", ignoreCase = true)) {
-        dependsOn("generateRootPathSource")
+    if (name != generateBuildConfigFile.name && !name.contains("publish", ignoreCase = true)) {
+        dependsOn(generateBuildConfigFile.name)
     }
 }
