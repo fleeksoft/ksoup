@@ -8,12 +8,12 @@ import platform.posix.memcpy
 import platform.zlib.*
 
 internal fun decompressGzip(input: ByteArray): ByteArray {
-    val inputSize = input.size.toULong()
+    val inputSize = input.size
 
     memScoped {
-        val inputPtr = allocArray<ByteVar>(inputSize.toInt())
+        val inputPtr = allocArray<ByteVar>(inputSize)
         input.usePinned { pinned ->
-            memcpy(inputPtr, pinned.addressOf(0), inputSize)
+            memcpy(inputPtr, pinned.addressOf(0), inputSize.toULong())
         }
 
         val strm = alloc<z_stream>()

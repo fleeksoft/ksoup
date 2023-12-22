@@ -45,7 +45,7 @@ kotlin {
         tvosArm64(),
         tvosSimulatorArm64(),
         watchosX64(),
-        watchosArm32(),
+        watchosArm64(),
         watchosSimulatorArm64(),
     ).forEach {
         it.binaries.framework {
