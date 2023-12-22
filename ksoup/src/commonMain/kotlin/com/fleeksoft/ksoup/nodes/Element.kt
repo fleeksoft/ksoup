@@ -867,7 +867,6 @@ public open class Element : Node {
         val tagName: String = escapeCssIdentifier(tagName()).replace("\\:", "|")
         val selector: StringBuilder = StringUtil.borrowBuilder().append(tagName)
         // String classes = StringUtil.join(classNames().stream().map(TokenQueue::escapeCssIdentifier).iterator(), ".");
-        // todo - replace with ^^ in 1.16.1 when we enable Android support for stream etc
         val escapedClasses: StringUtil.StringJoiner = StringUtil.StringJoiner(".")
         for (name in classNames()) escapedClasses.add(escapeCssIdentifier(name))
         val classes: String = escapedClasses.complete()

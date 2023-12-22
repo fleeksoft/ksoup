@@ -244,7 +244,6 @@ public object DataUtil {
         }
         if (doc == null) {
             if (effectiveCharsetName == null) effectiveCharsetName = defaultCharsetName
-            // TODO: bufferSize not used here because not supported yet
             bufferReader.setCharSet(effectiveCharsetName)
 
             if (bomCharset != null && bomCharset.offset) { // creating the buffered inputReader ignores the input pos, so must skip here

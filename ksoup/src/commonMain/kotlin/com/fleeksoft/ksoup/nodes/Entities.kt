@@ -311,7 +311,7 @@ public object Entities {
         return when (charset) {
             CoreCharset.asciiExt -> c.code <= 0xFF // ISO-8859-1 range from 0x00 to 0xFF
             CoreCharset.utf -> true // real is:!(Character.isLowSurrogate(c) || Character.isHighSurrogate(c)); - but already check above
-            else -> fallback.canEncode(c) // TODO: disable for now
+            else -> fallback.canEncode(c)
         }
     }
 

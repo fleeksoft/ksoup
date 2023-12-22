@@ -8,8 +8,6 @@ import okio.Closeable
 import okio.EOFException
 
 public open class BufferReader : Closeable {
-    // TODO: optimize it may be using single bytearray
-    // TODO: buffer reader size limit
     private val _source: BufferedSource
     private var closed: Boolean = false
     private var _charset: Charset? = null
