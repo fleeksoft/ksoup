@@ -309,7 +309,7 @@ public object Entities {
     ): Boolean {
         // todo add more charset tests if impacted by Android's bad perf in canEncode
         return when (charset) {
-            CoreCharset.ascii -> c.code <= 0xFF // ISO-8859-1 range from 0x00 to 0xFF
+            CoreCharset.asciiExt -> c.code <= 0xFF // ISO-8859-1 range from 0x00 to 0xFF
             CoreCharset.utf -> true // real is:!(Character.isLowSurrogate(c) || Character.isHighSurrogate(c)); - but already check above
             else -> fallback.canEncode(c) // TODO: disable for now
         }
@@ -410,14 +410,14 @@ public object Entities {
     }
 
     public enum class CoreCharset {
-        ascii,
+        asciiExt, // ISO-8859-1
         utf,
         fallback,
         ;
 
         public companion object {
             public fun byName(name: String): CoreCharset {
-                if (name == "US-ASCII") return ascii
+                if (name.uppercase() == "US-ASCII" || name.uppercase() == "ASCII" || name.uppercase() == "ISO-8859-1") return asciiExt
                 return if (name.startsWith("UTF-")) utf else fallback
             }
         }
