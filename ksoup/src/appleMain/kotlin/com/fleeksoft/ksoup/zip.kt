@@ -1,20 +1,23 @@
-@file:OptIn(ExperimentalForeignApi::class)
+@file:OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
 
 package com.fleeksoft.ksoup
 
 import kotlinx.cinterop.*
 import platform.darwin.ByteVar
-import platform.posix.memcpy
 import platform.zlib.*
+import kotlin.experimental.ExperimentalNativeApi
 
 internal fun decompressGzip(input: ByteArray): ByteArray {
     val inputSize = input.size
 
     memScoped {
         val inputPtr = allocArray<ByteVar>(inputSize)
-        input.usePinned { pinned ->
-            memcpy(inputPtr, pinned.addressOf(0), inputSize.toULong())
+        for (i in 0 until inputSize) {
+            inputPtr[i] = input.getUByteAt(i)
         }
+        /*input.usePinned { pinned ->
+            memcpy(inputPtr, pinned.addressOf(0), inputSize.toULong())
+        }*/
 
         val strm = alloc<z_stream>()
         strm.next_in = inputPtr
