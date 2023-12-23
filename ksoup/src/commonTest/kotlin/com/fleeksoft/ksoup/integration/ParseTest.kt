@@ -5,6 +5,7 @@ import com.fleeksoft.ksoup.Ksoup.parseFile
 import com.fleeksoft.ksoup.Platform
 import com.fleeksoft.ksoup.PlatformType
 import com.fleeksoft.ksoup.TestHelper
+import com.fleeksoft.ksoup.isApple
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.ported.BufferReader
@@ -23,7 +24,7 @@ import kotlin.test.assertTrue
 class ParseTest {
     @Test
     fun testHtml5Charset() {
-        if (Platform.current == PlatformType.JS || Platform.current == PlatformType.IOS || Platform.current == PlatformType.WINDOWS) {
+        if (Platform.current == PlatformType.JS || Platform.isApple() || Platform.current == PlatformType.WINDOWS) {
             // FIXME: gb2312 charset not supported
             return
         }

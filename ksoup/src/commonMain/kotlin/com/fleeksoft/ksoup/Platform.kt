@@ -29,3 +29,7 @@ public enum class PlatformType {
 public expect object Platform {
     public val current: PlatformType
 }
+
+public fun Platform.isApple(): Boolean = this.current == PlatformType.IOS || this.current == PlatformType.MAC
+
+public fun Platform.isJvm(): Boolean = this.current == PlatformType.JVM

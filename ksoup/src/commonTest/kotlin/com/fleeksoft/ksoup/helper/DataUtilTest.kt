@@ -1,9 +1,6 @@
 package com.fleeksoft.ksoup.helper
 
-import com.fleeksoft.ksoup.Ksoup
-import com.fleeksoft.ksoup.Platform
-import com.fleeksoft.ksoup.PlatformType
-import com.fleeksoft.ksoup.TestHelper
+import com.fleeksoft.ksoup.*
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.ported.BufferReader
@@ -135,7 +132,7 @@ class DataUtilTest {
     @Test
     @Throws(Exception::class)
     fun secondMetaElementWithContentTypeContainsCharsetParameter() {
-        if (Platform.current == PlatformType.JS || Platform.current == PlatformType.IOS || Platform.current == PlatformType.WINDOWS) {
+        if (Platform.current == PlatformType.JS || Platform.isApple() || Platform.current == PlatformType.WINDOWS) {
             // FIXME: euc-kr charset not supported
             return
         }
@@ -178,7 +175,7 @@ class DataUtilTest {
 
     @Test
     fun supportsBOMinFiles() {
-        if (Platform.current == PlatformType.JS || Platform.current == PlatformType.IOS || Platform.current == PlatformType.WINDOWS) {
+        if (Platform.current == PlatformType.JS) {
             // FIXME: utf-16 charset not supported
             return
         }
