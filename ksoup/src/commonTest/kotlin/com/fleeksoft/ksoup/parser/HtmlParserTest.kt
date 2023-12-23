@@ -1577,7 +1577,7 @@ class HtmlParserTest {
         assertEquals("UTF-8", doc.charset().name.uppercase())
         assertEquals("One", doc.text())
         val html = doc.outerHtml()
-        if (Platform.current == PlatformType.JS || Platform.current == PlatformType.IOS || Platform.current == PlatformType.WINDOWS) {
+        if (Platform.current == PlatformType.JS || Platform.current == PlatformType.IOS) {
 //            ISO-2022-CN not supported so it will use UTF-8 by default
             assertEquals(
                 "<html><head><meta charset=\"ISO-2022-CN\"></head><body>One</body></html>",
