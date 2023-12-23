@@ -31,7 +31,7 @@ class ParserIT {
 
     @Test
     fun handlesDeepStack() {
-        if (Platform.current == PlatformType.JS && Platform.isWindows() && BuildConfig.isGithubActions) {
+        if ((Platform.current == PlatformType.JS || Platform.isWindows()) && BuildConfig.isGithubActions) {
 //            The GitHub action is taking too much time.
             return
         }
