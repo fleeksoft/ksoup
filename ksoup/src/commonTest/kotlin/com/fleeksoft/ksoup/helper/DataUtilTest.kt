@@ -132,7 +132,7 @@ class DataUtilTest {
     @Test
     @Throws(Exception::class)
     fun secondMetaElementWithContentTypeContainsCharsetParameter() {
-        if (Platform.current == PlatformType.JS || Platform.isApple() || Platform.current == PlatformType.WINDOWS) {
+        if (Platform.current == PlatformType.JS || Platform.isApple() || Platform.isWindows()) {
             // FIXME: euc-kr charset not supported
             return
         }
@@ -175,7 +175,7 @@ class DataUtilTest {
 
     @Test
     fun supportsBOMinFiles() {
-        if (Platform.current == PlatformType.JS) {
+        if (Platform.current == PlatformType.JS || Platform.isWindows()) {
             // FIXME: utf-16 charset not supported
             return
         }
@@ -218,7 +218,7 @@ class DataUtilTest {
 
     @Test
     fun supportsZippedUTF8BOM() {
-        if (Platform.current == PlatformType.WINDOWS) {
+        if (Platform.isWindows()) {
 //            gzip not supported yet
             return
         }
@@ -259,7 +259,7 @@ class DataUtilTest {
 
     @Test
     fun lLoadsGzipFile() {
-        if (Platform.current == PlatformType.WINDOWS) {
+        if (Platform.isWindows()) {
 //            gzip not supported yet
             return
         }
@@ -272,7 +272,7 @@ class DataUtilTest {
 
     @Test
     fun loadsZGzipFile() {
-        if (Platform.current == PlatformType.WINDOWS) {
+        if (Platform.isWindows()) {
 //            gzip not supported yet
             return
         }
@@ -285,7 +285,7 @@ class DataUtilTest {
 
     @Test
     fun handlesFakeGzipFile() {
-        if (Platform.current == PlatformType.WINDOWS) {
+        if (Platform.isWindows()) {
 //            gzip not supported yet
             return
         }
@@ -297,7 +297,7 @@ class DataUtilTest {
 
     @Test
     fun handlesChunkedInputStream() {
-        if (Platform.current == PlatformType.WINDOWS) {
+        if (Platform.isWindows()) {
 //            gzip not supported yet
             return
         }
@@ -313,7 +313,7 @@ class DataUtilTest {
 
     @Test
     fun handlesUnlimitedRead() {
-        if (Platform.current == PlatformType.WINDOWS) {
+        if (Platform.isWindows()) {
 //            gzip not supported yet
             return
         }

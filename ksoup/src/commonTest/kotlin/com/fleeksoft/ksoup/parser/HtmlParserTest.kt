@@ -1574,14 +1574,14 @@ class HtmlParserTest {
         // that charset can't be encoded, so make sure we flip to utf
         val input = "<html><meta charset=\"ISO-2022-CN\"/>One</html>"
         val doc = Ksoup.parse(bufferReader = BufferReader(input.toByteArray()), baseUri = "", charsetName = null)
-        if (Platform.current == PlatformType.WINDOWS) {
+        if (Platform.isWindows()) {
             assertEquals("ISO-2022-CN", doc.charset().name.uppercase())
         } else {
             assertEquals("UTF-8", doc.charset().name.uppercase())
         }
         assertEquals("One", doc.text())
         val html = doc.outerHtml()
-        if (Platform.current == PlatformType.JS || Platform.isApple() || Platform.current == PlatformType.WINDOWS) {
+        if (Platform.current == PlatformType.JS || Platform.isApple() || Platform.isWindows()) {
 //            ISO-2022-CN not supported so it will use UTF-8 by default
             assertEquals(
                 "<html><head><meta charset=\"ISO-2022-CN\"></head><body>One</body></html>",
@@ -1598,7 +1598,7 @@ class HtmlParserTest {
     @Test
     @Throws(IOException::class)
     fun characterReaderBuffer() {
-        if (Platform.current == PlatformType.WINDOWS) {
+        if (Platform.isWindows()) {
 //            gzip not supported yet
             return
         }

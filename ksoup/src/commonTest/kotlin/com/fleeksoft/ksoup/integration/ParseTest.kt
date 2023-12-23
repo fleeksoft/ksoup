@@ -1,11 +1,8 @@
 package com.fleeksoft.ksoup.integration
 
+import com.fleeksoft.ksoup.*
 import com.fleeksoft.ksoup.Ksoup.parse
 import com.fleeksoft.ksoup.Ksoup.parseFile
-import com.fleeksoft.ksoup.Platform
-import com.fleeksoft.ksoup.PlatformType
-import com.fleeksoft.ksoup.TestHelper
-import com.fleeksoft.ksoup.isApple
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.ported.BufferReader
@@ -24,7 +21,7 @@ import kotlin.test.assertTrue
 class ParseTest {
     @Test
     fun testHtml5Charset() {
-        if (Platform.current == PlatformType.JS || Platform.isApple() || Platform.current == PlatformType.WINDOWS) {
+        if (Platform.current == PlatformType.JS || Platform.isApple() || Platform.isWindows()) {
             // FIXME: gb2312 charset not supported
             return
         }
@@ -89,7 +86,7 @@ class ParseTest {
 
     @Test
     fun testXwiki() {
-        if (Platform.current == PlatformType.WINDOWS) {
+        if (Platform.isWindows()) {
 //            gzip not supported yet
             return
         }
@@ -113,7 +110,7 @@ class ParseTest {
 
     @Test
     fun testXwikiExpanded() {
-        if (Platform.current == PlatformType.WINDOWS) {
+        if (Platform.isWindows()) {
 //            gzip not supported yet
             return
         }
@@ -142,7 +139,7 @@ class ParseTest {
 
     @Test
     fun testWikiExpandedFromString() {
-        if (Platform.current == PlatformType.WINDOWS) {
+        if (Platform.isWindows()) {
 //            gzip not supported yet
             return
         }
@@ -157,7 +154,7 @@ class ParseTest {
 
     @Test
     fun testWikiFromString() {
-        if (Platform.current == PlatformType.WINDOWS) {
+        if (Platform.isWindows()) {
 //            gzip not supported yet
             return
         }
@@ -172,7 +169,7 @@ class ParseTest {
 
     @Test
     fun testFileParseNoCharsetMethod() {
-        if (Platform.current == PlatformType.WINDOWS) {
+        if (Platform.isWindows()) {
 //            gzip not supported yet
             return
         }

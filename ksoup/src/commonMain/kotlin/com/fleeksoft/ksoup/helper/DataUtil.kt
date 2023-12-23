@@ -347,25 +347,25 @@ public object DataUtil {
                 ByteArray(4)
             }
         if (bom[0].toInt() == 0x00 && bom[1].toInt() == 0x00 && bom[2] == 0xFE.toByte() && bom[3] == 0xFF.toByte()) { // BE
-            return if (Platform.isJvm()) {
+            return if (Platform.isJvmOrAndroid()) {
                 BomCharset("UTF-32", false) // and I hope it's on your system
             } else {
                 BomCharset("UTF-32BE", false) // and I hope it's on your system
             }
         } else if (bom[0] == 0xFF.toByte() && bom[1] == 0xFE.toByte() && bom[2].toInt() == 0x00 && bom[3].toInt() == 0x00) { // LE
-            return if (Platform.isJvm()) {
+            return if (Platform.isJvmOrAndroid()) {
                 BomCharset("UTF-32", false) // and I hope it's on your system
             } else {
                 return BomCharset("UTF-32LE", false) // and I hope it's on your system
             }
         } else if (bom[0] == 0xFE.toByte() && bom[1] == 0xFF.toByte()) { // BE
-            return if (Platform.isJvm()) {
+            return if (Platform.isJvmOrAndroid()) {
                 BomCharset("UTF-16", false) // in all Javas
             } else {
                 BomCharset("UTF-16BE", true) // in all Javas
             }
         } else if (bom[0] == 0xFF.toByte() && bom[1] == 0xFE.toByte()) { // LE
-            return if (Platform.isJvm()) {
+            return if (Platform.isJvmOrAndroid()) {
                 BomCharset("UTF-16", false) // in all Javas
             } else {
                 BomCharset("UTF-16LE", true) // in all Javas

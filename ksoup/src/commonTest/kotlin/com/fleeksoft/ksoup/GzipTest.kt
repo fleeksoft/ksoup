@@ -7,7 +7,7 @@ import kotlin.test.assertEquals
 class GzipTest {
     @Test
     fun testReadGzipFile() {
-        if (Platform.current == PlatformType.WINDOWS) {
+        if (Platform.isWindows()) {
 //            gzip not supported yet
             return
         }

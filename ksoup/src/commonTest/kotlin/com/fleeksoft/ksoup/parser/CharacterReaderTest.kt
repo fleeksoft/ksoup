@@ -1,9 +1,6 @@
 package com.fleeksoft.ksoup.parser
 
-import com.fleeksoft.ksoup.Platform
-import com.fleeksoft.ksoup.PlatformType
-import com.fleeksoft.ksoup.TestHelper
-import com.fleeksoft.ksoup.UncheckedIOException
+import com.fleeksoft.ksoup.*
 import com.fleeksoft.ksoup.ported.BufferReader
 import okio.IOException
 import okio.Path.Companion.toPath
@@ -520,7 +517,7 @@ class CharacterReaderTest {
     @Test
     @Throws(IOException::class)
     fun linenumbersAgreeWithEditor() {
-        if (Platform.current == PlatformType.WINDOWS) {
+        if (Platform.isWindows()) {
 //            gzip not supported yet
             return
         }
