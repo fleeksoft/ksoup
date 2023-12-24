@@ -1,9 +1,6 @@
 package com.fleeksoft.ksoup.ported
 
-import com.fleeksoft.ksoup.Platform
-import com.fleeksoft.ksoup.PlatformType
-import com.fleeksoft.ksoup.TestHelper
-import com.fleeksoft.ksoup.isApple
+import com.fleeksoft.ksoup.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import okio.IOException
@@ -68,7 +65,7 @@ class BufferReaderTest {
 
     @Test
     fun testSpecialCharsBufferReader() {
-        if (Platform.current == PlatformType.JS || Platform.isApple()) {
+        if (Platform.isJS() || Platform.isApple()) {
             // FIXME: euc-kr charset not supported
             return
         }

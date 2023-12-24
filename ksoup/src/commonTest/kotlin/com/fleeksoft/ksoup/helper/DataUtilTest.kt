@@ -132,7 +132,7 @@ class DataUtilTest {
     @Test
     @Throws(Exception::class)
     fun secondMetaElementWithContentTypeContainsCharsetParameter() {
-        if (Platform.current == PlatformType.JS || Platform.isApple() || Platform.isWindows()) {
+        if (Platform.isJS() || Platform.isApple() || Platform.isWindows()) {
             // FIXME: euc-kr charset not supported
             return
         }
@@ -175,7 +175,7 @@ class DataUtilTest {
 
     @Test
     fun supportsBOMinFiles() {
-        if (Platform.current == PlatformType.JS || Platform.isWindows() || Platform.isApple()) {
+        if (Platform.isJS() || Platform.isWindows() || Platform.isApple()) {
             // FIXME: utf-16 charset not supported
             // FIXME: failing for iosX64˚
             return

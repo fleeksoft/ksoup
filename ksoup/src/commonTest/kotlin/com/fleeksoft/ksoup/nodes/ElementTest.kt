@@ -2629,7 +2629,7 @@ Three
 
     @Test
     fun cssSelectorDoesntStackOverflow() {
-        if (Platform.current == PlatformType.JS) {
+        if (Platform.isJS()) {
             // FIXME: timeout error for js
             return
         }
@@ -2732,7 +2732,7 @@ Three
 
     @Test
     fun getElementsByAttributeValueMatchingValidation() {
-        if (Platform.current == PlatformType.JS) {
+        if (Platform.isJS()) {
 //     always fail for js because js use double slash for escape character and it return different exception
             return
         }
@@ -2780,7 +2780,7 @@ Three
 
     @Test
     fun getElementsMatchingTextValidation() {
-        if (Platform.current == PlatformType.JS) {
+        if (Platform.isJS()) {
 //     always fail for js because js use double slash for escape character and it return different exception
             return
         }
@@ -2815,7 +2815,7 @@ Three
 
     @Test
     fun getElementsMatchingOwnTextValidation() {
-        if (Platform.current == PlatformType.JS) {
+        if (Platform.isJS()) {
 //     always fail for js because js use double slash for escape character and it return different exception
             return
         }

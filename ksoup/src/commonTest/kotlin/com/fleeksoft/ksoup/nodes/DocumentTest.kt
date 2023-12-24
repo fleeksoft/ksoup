@@ -1,9 +1,6 @@
 package com.fleeksoft.ksoup.nodes
 
-import com.fleeksoft.ksoup.Ksoup
-import com.fleeksoft.ksoup.Platform
-import com.fleeksoft.ksoup.PlatformType
-import com.fleeksoft.ksoup.TestHelper
+import com.fleeksoft.ksoup.*
 import com.fleeksoft.ksoup.parser.ParseSettings
 import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.ported.BufferReader
@@ -222,7 +219,7 @@ class DocumentTest {
 
     @Test
     fun testOverflowClone() {
-        if (Platform.current == PlatformType.JS) {
+        if (Platform.isJS()) {
             // FIXME: timeout error for js
             return
         }
