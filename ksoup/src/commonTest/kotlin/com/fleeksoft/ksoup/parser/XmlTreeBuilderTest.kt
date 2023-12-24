@@ -1,7 +1,6 @@
 package com.fleeksoft.ksoup.parser
 
 import com.fleeksoft.ksoup.*
-import com.fleeksoft.ksoup.network.parseGetRequest
 import com.fleeksoft.ksoup.nodes.*
 import io.ktor.utils.io.charsets.*
 import kotlin.test.*
@@ -55,29 +54,6 @@ class XmlTreeBuilderTest {
             "<doc><val>One<val>Two</val>Three</val></doc>",
             TextUtil.stripNewlines(doc.html()),
         )
-    }
-
-    @Ignore
-    @Test
-    fun testSupplyParserToConnection() {
-        runTest {
-            val xmlUrl = "http://direct.infohound.net/tools/jsoup-xml-test.xml"
-
-            // parse with both xml and html parser, ensure different
-            val xmlDoc: Document = Ksoup.parseGetRequest(xmlUrl, parser = Parser.xmlParser())
-            val htmlDoc: Document = Ksoup.parseGetRequest(xmlUrl, parser = Parser.htmlParser())
-            val autoXmlDoc: Document =
-                Ksoup.parseGetRequest(xmlUrl) // check connection auto detects xml, uses xml parser
-            assertEquals(
-                "<doc><val>One<val>Two</val>Three</val></doc>",
-                TextUtil.stripNewlines(xmlDoc.html()),
-            )
-            assertNotEquals(htmlDoc, xmlDoc)
-            assertEquals(xmlDoc, autoXmlDoc)
-            assertEquals(1, htmlDoc.select("head").size) // html parser normalises
-            assertEquals(0, xmlDoc.select("head").size) // xml parser does not
-            assertEquals(0, autoXmlDoc.select("head").size) // xml parser does not
-        }
     }
 
     @Test

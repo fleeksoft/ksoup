@@ -67,7 +67,6 @@ kotlin {
             this.kotlin.srcDir(layout.buildDirectory.file(rootPath))
             dependencies {
                 implementation(libs.kotlin.test)
-                implementation(projects.ksoupNetwork)
             }
         }
 
