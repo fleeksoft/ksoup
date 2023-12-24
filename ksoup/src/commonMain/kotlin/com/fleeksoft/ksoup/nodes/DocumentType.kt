@@ -6,18 +6,14 @@ import okio.IOException
 
 /**
  * A `<!DOCTYPE>` node.
+ * Create a new doctype element.
+ * @param name the doctype's name
+ * @param publicId the doctype's public ID
+ * @param systemId the doctype's system ID
  */
-/*Validate.notNull(name)
-        Validate.notNull(publicId)
-        Validate.notNull(systemId)*/
-public class DocumentType(private val name: String, private val publicId: String, private val systemId: String) : LeafNode() {
+public class DocumentType(private val name: String, private val publicId: String, private val systemId: String) :
+    LeafNode() {
     // todo: quirk mode from publicId and systemId
-    /**
-     * Create a new doctype element.
-     * @param name the doctype's name
-     * @param publicId the doctype's public ID
-     * @param systemId the doctype's system ID
-     */
     init {
         attr(NAME, name)
         attr(PUBLIC_ID, publicId)

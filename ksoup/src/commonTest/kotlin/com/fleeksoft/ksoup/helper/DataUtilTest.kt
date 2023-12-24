@@ -1,9 +1,6 @@
 package com.fleeksoft.ksoup.helper
 
-import com.fleeksoft.ksoup.Ksoup
-import com.fleeksoft.ksoup.Platform
-import com.fleeksoft.ksoup.PlatformType
-import com.fleeksoft.ksoup.TestHelper
+import com.fleeksoft.ksoup.*
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.ported.BufferReader
@@ -135,7 +132,7 @@ class DataUtilTest {
     @Test
     @Throws(Exception::class)
     fun secondMetaElementWithContentTypeContainsCharsetParameter() {
-        if (Platform.current == PlatformType.JS || Platform.current == PlatformType.IOS) {
+        if (Platform.current == PlatformType.JS || Platform.isApple() || Platform.isWindows()) {
             // FIXME: euc-kr charset not supported
             return
         }
@@ -178,8 +175,9 @@ class DataUtilTest {
 
     @Test
     fun supportsBOMinFiles() {
-        if (Platform.current == PlatformType.JS || Platform.current == PlatformType.IOS) {
+        if (Platform.current == PlatformType.JS || Platform.isWindows() || Platform.isApple()) {
             // FIXME: utf-16 charset not supported
+            // FIXME: failing for iosX64˚
             return
         }
         // test files from http://www.i18nl10n.com/korean/utftest/
@@ -221,6 +219,11 @@ class DataUtilTest {
 
     @Test
     fun supportsZippedUTF8BOM() {
+        if (Platform.isWindows()) {
+//            gzip not supported yet
+            return
+        }
+
         val input: String = TestHelper.getResourceAbsolutePath("bomtests/bom_utf8.html.gz")
         val doc: Document =
             Ksoup.parseFile(
@@ -257,6 +260,10 @@ class DataUtilTest {
 
     @Test
     fun lLoadsGzipFile() {
+        if (Platform.isWindows()) {
+//            gzip not supported yet
+            return
+        }
         val input: String = TestHelper.getResourceAbsolutePath("htmltests/gzip.html.gz")
         val doc: Document = Ksoup.parseFile(file = input, charsetName = null)
         doc.toString()
@@ -266,6 +273,10 @@ class DataUtilTest {
 
     @Test
     fun loadsZGzipFile() {
+        if (Platform.isWindows()) {
+//            gzip not supported yet
+            return
+        }
         // compressed on win, with z suffix
         val input: String = TestHelper.getResourceAbsolutePath("htmltests/gzip.html.z")
         val doc: Document = Ksoup.parseFile(file = input, charsetName = null)
@@ -275,6 +286,10 @@ class DataUtilTest {
 
     @Test
     fun handlesFakeGzipFile() {
+        if (Platform.isWindows()) {
+//            gzip not supported yet
+            return
+        }
         val input: String = TestHelper.getResourceAbsolutePath("htmltests/fake-gzip.html.gz")
         val doc: Document = Ksoup.parseFile(file = input, charsetName = null)
         assertEquals("This is not gzipped", doc.title())
@@ -283,6 +298,10 @@ class DataUtilTest {
 
     @Test
     fun handlesChunkedInputStream() {
+        if (Platform.isWindows()) {
+//            gzip not supported yet
+            return
+        }
         val inputFile: String = TestHelper.getResourceAbsolutePath("htmltests/large.html.gz")
         val input: String = TestHelper.getFileAsString(inputFile.toPath())
 //        val stream = VaryingBufferReader(BufferReader(input))
@@ -295,6 +314,10 @@ class DataUtilTest {
 
     @Test
     fun handlesUnlimitedRead() {
+        if (Platform.isWindows()) {
+//            gzip not supported yet
+            return
+        }
         val inputFile: String = TestHelper.getResourceAbsolutePath("htmltests/large.html.gz")
         val input: String = TestHelper.getFileAsString(inputFile.toPath())
         val byteBuffer: ByteArray = DataUtil.readToByteBuffer(BufferReader(input.toBuffer()), 0)

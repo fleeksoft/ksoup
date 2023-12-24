@@ -1,10 +1,6 @@
 package com.fleeksoft.ksoup
 
-import okio.Buffer
-import okio.BufferedSource
-import okio.FileSystem
-import okio.Path
-import okio.buffer
+import okio.*
 
 internal actual fun readGzipFile(file: Path): BufferedSource {
     // TODO: optimize for BufferedSource without reading all bytes

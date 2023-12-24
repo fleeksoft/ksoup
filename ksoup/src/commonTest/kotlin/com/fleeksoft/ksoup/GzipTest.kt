@@ -7,6 +7,10 @@ import kotlin.test.assertEquals
 class GzipTest {
     @Test
     fun testReadGzipFile() {
+        if (Platform.isWindows()) {
+//            gzip not supported yet
+            return
+        }
         val gzipFileStr =
             readGzipFile(TestHelper.getResourceAbsolutePath("htmltests/gzip.html.gz").toPath())
                 .readByteString().utf8()

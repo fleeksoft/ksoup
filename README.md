@@ -2,7 +2,7 @@
 
 **Ksoup** is a Kotlin Multiplatform library for working with real-world HTML and XML. It's a port of the renowned Java library, **jsoup**, and offers an easy-to-use API for URL fetching, data parsing, extraction, and manipulation using DOM and CSS selectors.
 
-[![Kotlin](https://img.shields.io/badge/Kotlin-1.9.21-blue.svg?style=flat&logo=kotlin)](https://kotlinlang.org)
+[![Kotlin](https://img.shields.io/badge/Kotlin-1.9.22-blue.svg?style=flat&logo=kotlin)](https://kotlinlang.org)
 [![Maven Central](https://img.shields.io/maven-central/v/com.fleeksoft.ksoup/ksoup.svg)](https://mvnrepository.com/artifact/com.fleeksoft.ksoup)
 
 ![badge-android](http://img.shields.io/badge/platform-android-6EDB8D.svg?style=flat)
@@ -86,8 +86,9 @@ To report any issues, visit our [GitHub issues](https://github.com/fleeksoft/kso
 | iOS            | Alpha        | Does not support few charsets.                |
 | Linux          | Experimental | Does not support gzip files and few charsets. |
 | JS             | Alpha        | Does not support few charsets.                |
-| Native MacOS   | Coming Soon  |                                               |
-| Native Windows | Coming Soon  |                                               |
+| Native MacOS   | Alpha        |                                               |
+| Native Windows | Experimental | Does not support gzip file.                   |
+| Wasm           | Coming Soon  |                                               |
 
 
 

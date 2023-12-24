@@ -1,12 +1,12 @@
 [versions]
-agp = "8.1.3"
-kotlin = "1.9.21"
+agp = "8.2.0"
+kotlin = "1.9.22"
 compileSdk = "34"
 minSdk = "21"
-libraryVersion = "0.1.1"
+libraryVersion = "0.1.2"
 ktor = "2.3.7"
 coroutines = "1.7.3"
-okio = "3.6.0"
+okio = "3.7.0"
 kotlinxDatetime = "0.5.0"
 kotlinx-io = "0.3.0"
 codepoints = "0.6.1"
@@ -22,6 +22,7 @@ ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "kto
 ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
 ktor-client-js = { module = "io.ktor:ktor-client-js", version.ref = "ktor" }
+ktor-client-win = { module = "io.ktor:ktor-client-winhttp", version.ref = "ktor" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 okio-nodefilesystem = { module = "com.squareup.okio:okio-nodefilesystem", version.ref = "okio" }
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }

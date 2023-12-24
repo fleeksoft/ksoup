@@ -1657,17 +1657,13 @@ class ElementTest {
 
     @Test
     fun testNormalizesInvisiblesInText() {
-        if (Platform.current == PlatformType.JS) {
-            // FIXME: ascii charset not supported
-            return
-        }
-        val escaped = "This&shy;is&#x200b;one&shy;long&shy;word"
+        val escaped = "This\u00ADis&#x200b;one\u00ADlong\u00ADword"
         val decoded =
             "This\u00ADis\u200Bone\u00ADlong\u00ADword" // browser would not display those soft hyphens / other chars, so we don't want them in the text
         val doc = Ksoup.parse("<p>$escaped")
         val p = doc.select("p").first()
         doc.outputSettings()
-            .charset("ascii") // so that the outer html is easier to see with escaped invisibles
+            .charset("ISO-8859-1") // so that the outer html is easier to see with escaped invisibles
         assertEquals("Thisisonelongword", p!!.text()) // text is normalized
         assertEquals("<p>$escaped</p>", p.outerHtml()) // html / whole text keeps &shy etc;
         assertEquals(decoded, p.textNodes()[0].getWholeText())
@@ -2749,7 +2745,7 @@ Three
                     "\\x",
                 )
             }
-        if (Platform.current == PlatformType.IOS) {
+        if (Platform.isApple() || Platform.isWindows()) {
             assertEquals("Invalid hexadecimal escape sequence near index: 0\n\\x\n^", ex.message)
         } else {
             assertEquals("Illegal hexadecimal escape sequence near index 2\n\\x", ex.message)
@@ -2793,7 +2789,7 @@ Three
         val ex: Throwable =
             assertFailsWith<IllegalArgumentException> { doc.getElementsMatchingText("\\x") }
 
-        if (Platform.current == PlatformType.IOS) {
+        if (Platform.isApple() || Platform.isWindows()) {
             assertEquals("Invalid hexadecimal escape sequence near index: 0\n\\x\n^", ex.message)
         } else {
             assertEquals("Illegal hexadecimal escape sequence near index 2\n\\x", ex.message)
@@ -2828,7 +2824,7 @@ Three
         val ex: Throwable =
             assertFailsWith<IllegalArgumentException> { doc.getElementsMatchingOwnText("\\x") }
 
-        if (Platform.current == PlatformType.IOS) {
+        if (Platform.isApple() || Platform.isWindows()) {
             assertEquals("Invalid hexadecimal escape sequence near index: 0\n\\x\n^", ex.message)
         } else {
             assertEquals("Illegal hexadecimal escape sequence near index 2\n\\x", ex.message)
@@ -3026,13 +3022,9 @@ Three
 
     @Test
     fun xmlSyntaxSetsEscapeMode() {
-        if (Platform.current == PlatformType.JS) {
-            // FIXME: ascii charset not supported
-            return
-        }
         val html = "Foo&nbsp;&Succeeds;"
         val doc = Ksoup.parse(html)
-        doc.outputSettings().charset("ascii") // so we can see the zws
+        doc.outputSettings().charset("ISO-8859-1") // so we can see the zws
         assertEquals("Foo&nbsp;&#x227b;", doc.body().html())
         doc.outputSettings().syntax(Document.OutputSettings.Syntax.xml)
         val out = doc.body().html()

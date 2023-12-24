@@ -1,6 +1,6 @@
 package com.fleeksoft.ksoup.helper
 
-import com.fleeksoft.ksoup.UncheckedIOException
+import com.fleeksoft.ksoup.*
 import com.fleeksoft.ksoup.internal.ConstrainableSource
 import com.fleeksoft.ksoup.internal.Normalizer
 import com.fleeksoft.ksoup.internal.StringUtil
@@ -10,8 +10,6 @@ import com.fleeksoft.ksoup.nodes.Node
 import com.fleeksoft.ksoup.nodes.XmlDeclaration
 import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.ported.*
-import com.fleeksoft.ksoup.readFile
-import com.fleeksoft.ksoup.readGzipFile
 import com.fleeksoft.ksoup.select.Elements
 import io.ktor.utils.io.charsets.*
 import okio.*
@@ -244,7 +242,6 @@ public object DataUtil {
         }
         if (doc == null) {
             if (effectiveCharsetName == null) effectiveCharsetName = defaultCharsetName
-            // TODO: bufferSize not used here because not supported yet
             bufferReader.setCharSet(effectiveCharsetName)
 
             if (bomCharset != null && bomCharset.offset) { // creating the buffered inputReader ignores the input pos, so must skip here
@@ -349,14 +346,30 @@ public object DataUtil {
             } else {
                 ByteArray(4)
             }
-        if (bom[0].toInt() == 0x00 && bom[1].toInt() == 0x00 && bom[2] == 0xFE.toByte() && bom[3] == 0xFF.toByte() || // BE
-            bom[0] == 0xFF.toByte() && bom[1] == 0xFE.toByte() && bom[2].toInt() == 0x00 && bom[3].toInt() == 0x00
-        ) { // LE
-            return BomCharset("UTF-32", false) // and I hope it's on your system
-        } else if (bom[0] == 0xFE.toByte() && bom[1] == 0xFF.toByte() || // BE
-            bom[0] == 0xFF.toByte() && bom[1] == 0xFE.toByte()
-        ) {
-            return BomCharset("UTF-16", false) // in all Javas
+        if (bom[0].toInt() == 0x00 && bom[1].toInt() == 0x00 && bom[2] == 0xFE.toByte() && bom[3] == 0xFF.toByte()) { // BE
+            return if (Platform.isJvmOrAndroid()) {
+                BomCharset("UTF-32", false) // and I hope it's on your system
+            } else {
+                BomCharset("UTF-32BE", false) // and I hope it's on your system
+            }
+        } else if (bom[0] == 0xFF.toByte() && bom[1] == 0xFE.toByte() && bom[2].toInt() == 0x00 && bom[3].toInt() == 0x00) { // LE
+            return if (Platform.isJvmOrAndroid()) {
+                BomCharset("UTF-32", false) // and I hope it's on your system
+            } else {
+                return BomCharset("UTF-32LE", false) // and I hope it's on your system
+            }
+        } else if (bom[0] == 0xFE.toByte() && bom[1] == 0xFF.toByte()) { // BE
+            return if (Platform.isJvmOrAndroid()) {
+                BomCharset("UTF-16", false) // in all Javas
+            } else {
+                BomCharset("UTF-16BE", true) // in all Javas
+            }
+        } else if (bom[0] == 0xFF.toByte() && bom[1] == 0xFE.toByte()) { // LE
+            return if (Platform.isJvmOrAndroid()) {
+                BomCharset("UTF-16", false) // in all Javas
+            } else {
+                BomCharset("UTF-16LE", true) // in all Javas
+            }
         } else if (bom[0] == 0xEF.toByte() && bom[1] == 0xBB.toByte() && bom[2] == 0xBF.toByte()) {
             return BomCharset("UTF-8", true) // in all Javas
             // 16 and 32 decoders consume the BOM to determine be/le; utf-8 should be consumed here

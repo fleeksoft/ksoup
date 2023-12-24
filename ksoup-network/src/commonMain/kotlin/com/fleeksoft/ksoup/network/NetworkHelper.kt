@@ -1,13 +1,10 @@
 package com.fleeksoft.ksoup.network
 
-import io.ktor.client.HttpClient
-import io.ktor.client.plugins.*
-import io.ktor.client.plugins.observer.*
+import io.ktor.client.*
 import io.ktor.client.request.*
-import io.ktor.client.request.forms.submitForm
-import io.ktor.client.statement.HttpResponse
-import io.ktor.http.parameters
-import io.ktor.utils.io.core.*
+import io.ktor.client.request.forms.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
 
 internal class NetworkHelper(private val client: HttpClient) {
     companion object {
@@ -15,9 +12,6 @@ internal class NetworkHelper(private val client: HttpClient) {
             NetworkHelper(
                 HttpClient(provideHttpClientEngine()) {
                     this.followRedirects = true
-            /*this.ResponseObserver {
-                println("headers => ${it.headers}")
-            }*/
                 },
             )
     }

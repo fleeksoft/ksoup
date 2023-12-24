@@ -316,16 +316,11 @@ class CleanerTest {
 
     @Test
     fun supplyOutputSettings() {
-        if (Platform.current == PlatformType.JS) {
-            // FIXME: ascii charset not supported for js
-            return
-        }
-
         // test that one can override the default document output settings
         val os = Document.OutputSettings()
         os.prettyPrint(false)
         os.escapeMode(Entities.EscapeMode.extended)
-        os.charset("ascii")
+        os.charset("ISO-8859-1")
         val html = "<div><p>&bernou;</p></div>"
         val customOut = Ksoup.clean(html, "http://foo.com/", Safelist.relaxed(), os)
         val defaultOut = Ksoup.clean(html, "http://foo.com/", Safelist.relaxed())
@@ -337,7 +332,7 @@ class CleanerTest {
 </div>""",
             defaultOut,
         )
-        os.charset("ASCII")
+        os.charset("ISO-8859-1")
         os.escapeMode(Entities.EscapeMode.base)
         val customOut2 = Ksoup.clean(html, "http://foo.com/", Safelist.relaxed(), os)
         assertEquals("<div><p>&#x212c;</p></div>", customOut2)

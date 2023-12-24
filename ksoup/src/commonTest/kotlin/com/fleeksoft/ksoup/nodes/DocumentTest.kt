@@ -7,9 +7,8 @@ import com.fleeksoft.ksoup.TestHelper
 import com.fleeksoft.ksoup.parser.ParseSettings
 import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.ported.BufferReader
-import io.ktor.utils.io.charsets.Charset
-import io.ktor.utils.io.charsets.name
-import io.ktor.utils.io.core.toByteArray
+import io.ktor.utils.io.charsets.*
+import io.ktor.utils.io.core.*
 import okio.IOException
 import kotlin.test.*
 
@@ -46,15 +45,11 @@ class DocumentTest {
 
     @Test
     fun testOutputEncoding() {
-        if (Platform.current == PlatformType.JS) {
-            // FIXME: ascii charset not supported for js
-            return
-        }
         val doc = Ksoup.parse("<p title=π>π & < > </p>")
         // default is utf-8
         assertEquals("<p title=\"π\">π &amp; &lt; &gt;</p>", doc.body().html())
         assertEquals("UTF-8", doc.outputSettings().charset().name.uppercase())
-        doc.outputSettings().charset("ascii")
+        doc.outputSettings().charset("ISO-8859-1")
         assertEquals(Entities.EscapeMode.base, doc.outputSettings().escapeMode())
         assertEquals("<p title=\"&#x3c0;\">&#x3c0; &amp; &lt; &gt;</p>", doc.body().html())
         doc.outputSettings().escapeMode(Entities.EscapeMode.extended)

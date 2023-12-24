@@ -1,34 +1,23 @@
-@file:OptIn(ExperimentalForeignApi::class, ExperimentalForeignApi::class)
+@file:OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
 
 package com.fleeksoft.ksoup
 
-import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.cinterop.addressOf
-import kotlinx.cinterop.alloc
-import kotlinx.cinterop.allocArray
-import kotlinx.cinterop.memScoped
-import kotlinx.cinterop.ptr
-import kotlinx.cinterop.reinterpret
-import kotlinx.cinterop.usePinned
+import kotlinx.cinterop.*
 import platform.darwin.ByteVar
-import platform.posix.memcpy
-import platform.zlib.MAX_WBITS
-import platform.zlib.Z_NO_FLUSH
-import platform.zlib.Z_OK
-import platform.zlib.Z_STREAM_END
-import platform.zlib.inflate
-import platform.zlib.inflateEnd
-import platform.zlib.inflateInit2
-import platform.zlib.z_stream
+import platform.zlib.*
+import kotlin.experimental.ExperimentalNativeApi
 
 internal fun decompressGzip(input: ByteArray): ByteArray {
-    val inputSize = input.size.toULong()
+    val inputSize = input.size
 
     memScoped {
-        val inputPtr = allocArray<ByteVar>(inputSize.toInt())
-        input.usePinned { pinned ->
-            memcpy(inputPtr, pinned.addressOf(0), inputSize)
+        val inputPtr = allocArray<ByteVar>(inputSize)
+        for (i in 0 until inputSize) {
+            inputPtr[i] = input.getUByteAt(i)
         }
+        /*input.usePinned { pinned ->
+            memcpy(inputPtr, pinned.addressOf(0), inputSize.toULong())
+        }*/
 
         val strm = alloc<z_stream>()
         strm.next_in = inputPtr

@@ -8,9 +8,8 @@ internal expect fun readGzipFile(file: Path): BufferedSource
 internal expect fun readFile(file: Path): BufferedSource
 
 // js don't support ?i
-// TODO: may be check this for js only and replace it
 internal fun jsSupportedRegex(regex: String): Regex {
-    return if (regex.contains("(?i)")) {
+    return if (Platform.current == PlatformType.JS && regex.contains("(?i)")) {
         Regex(regex.replace("(?i)", ""), RegexOption.IGNORE_CASE)
     } else {
         Regex(regex)
@@ -23,8 +22,18 @@ public enum class PlatformType {
     IOS,
     LINUX,
     JS,
+    MAC,
+    WINDOWS,
 }
 
 public expect object Platform {
     public val current: PlatformType
 }
+
+public fun Platform.isApple(): Boolean = this.current == PlatformType.IOS || this.current == PlatformType.MAC
+
+public fun Platform.isWindows(): Boolean = this.current == PlatformType.WINDOWS
+
+public fun Platform.isJvmOrAndroid(): Boolean = this.current == PlatformType.JVM || this.current == PlatformType.ANDROID
+
+public fun Platform.isJvm(): Boolean = this.current == PlatformType.JVM

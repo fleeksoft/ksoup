@@ -8,7 +8,7 @@ plugins {
     id("signing")
 }
 
-group = "com.fleeksoft.ksoup.network"
+group = "com.fleeksoft.ksoup"
 version = libs.versions.libraryVersion.get()
 
 kotlin {
@@ -23,6 +23,11 @@ kotlin {
     linuxX64()
     linuxArm64()
 
+    macosX64()
+    macosArm64()
+
+    mingwX64()
+
     androidTarget {
         compilations.all {
             kotlinOptions {
@@ -35,6 +40,14 @@ kotlin {
         iosX64(),
         iosArm64(),
         iosSimulatorArm64(),
+        macosX64(),
+        macosArm64(),
+        tvosX64(),
+        tvosArm64(),
+        tvosSimulatorArm64(),
+        watchosX64(),
+        watchosArm64(),
+        watchosSimulatorArm64(),
     ).forEach {
         it.binaries.framework {
             baseName = "ksoup-network"
@@ -72,7 +85,7 @@ kotlin {
             }
         }
 
-        iosMain {
+        appleMain {
             dependsOn(nonJsMain)
             dependencies {
                 implementation(libs.ktor.client.darwin)
@@ -88,6 +101,12 @@ kotlin {
 
         jsMain.dependencies {
             implementation(libs.ktor.client.js)
+        }
+
+        mingwMain {
+            dependencies {
+                implementation(libs.ktor.client.win)
+            }
         }
     }
 }

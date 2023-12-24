@@ -321,17 +321,12 @@ class XmlTreeBuilderTest {
 
     @Test
     fun xmlSyntaxEscapesLtInAttributes() {
-        if (Platform.current == PlatformType.JS) {
-            // FIXME: ascii charset not supported for js
-            return
-        }
-
         // Regardless of the entity escape mode, make sure < is escaped in attributes when in XML
         val doc = Ksoup.parse("<p one='&lt;two&gt;&copy'>Three</p>", "", Parser.xmlParser())
         doc.outputSettings().escapeMode(Entities.EscapeMode.extended)
-        doc.outputSettings().charset("ascii") // to make sure &copy; is output
+        doc.outputSettings().charset("ISO-8859-1") // to make sure &copy; is output
         assertEquals(doc.outputSettings().syntax(), Document.OutputSettings.Syntax.xml)
-        assertEquals("<p one=\"&lt;two>&copy;\">Three</p>", doc.html())
+        assertEquals("<p one=\"&lt;two>©\">Three</p>", doc.html())
     }
 
     @Test

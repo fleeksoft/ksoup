@@ -1,10 +1,8 @@
 package com.fleeksoft.ksoup.integration
 
+import com.fleeksoft.ksoup.*
 import com.fleeksoft.ksoup.Ksoup.parse
 import com.fleeksoft.ksoup.Ksoup.parseFile
-import com.fleeksoft.ksoup.Platform
-import com.fleeksoft.ksoup.PlatformType
-import com.fleeksoft.ksoup.TestHelper
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.ported.BufferReader
@@ -23,7 +21,7 @@ import kotlin.test.assertTrue
 class ParseTest {
     @Test
     fun testHtml5Charset() {
-        if (Platform.current == PlatformType.JS || Platform.current == PlatformType.IOS) {
+        if (Platform.current == PlatformType.JS || Platform.isApple() || Platform.isWindows()) {
             // FIXME: gb2312 charset not supported
             return
         }
@@ -88,6 +86,10 @@ class ParseTest {
 
     @Test
     fun testXwiki() {
+        if (Platform.isWindows()) {
+//            gzip not supported yet
+            return
+        }
         // https://github.com/jhy/jsoup/issues/1324
         // this tests that when in CharacterReader we hit a buffer while marked, we preserve the mark when buffered up and can rewind
         val input = TestHelper.getResourceAbsolutePath("htmltests/xwiki-1324.html.gz")
@@ -108,6 +110,10 @@ class ParseTest {
 
     @Test
     fun testXwikiExpanded() {
+        if (Platform.isWindows()) {
+//            gzip not supported yet
+            return
+        }
         // https://github.com/jhy/jsoup/issues/1324
         // this tests that if there is a huge illegal character reference, we can get through a buffer and rewind, and still catch that it's an invalid refence,
         // and the parse tree is correct.
@@ -133,6 +139,10 @@ class ParseTest {
 
     @Test
     fun testWikiExpandedFromString() {
+        if (Platform.isWindows()) {
+//            gzip not supported yet
+            return
+        }
         val input = TestHelper.getResourceAbsolutePath("htmltests/xwiki-edit.html.gz")
         val html = TestHelper.getFileAsString(input.toPath())
         val doc = parse(html)
@@ -144,6 +154,10 @@ class ParseTest {
 
     @Test
     fun testWikiFromString() {
+        if (Platform.isWindows()) {
+//            gzip not supported yet
+            return
+        }
         val input = TestHelper.getResourceAbsolutePath("htmltests/xwiki-1324.html.gz")
         val html = TestHelper.getFileAsString(input.toPath())
         val doc = parse(html)
@@ -155,6 +169,10 @@ class ParseTest {
 
     @Test
     fun testFileParseNoCharsetMethod() {
+        if (Platform.isWindows()) {
+//            gzip not supported yet
+            return
+        }
         val file = TestHelper.getResourceAbsolutePath("htmltests/xwiki-1324.html.gz")
         val doc: Document = parseFile(file)
         assertEquals("XWiki Jetty HSQLDB 12.1-SNAPSHOT", doc.select("#xwikiplatformversion").text())

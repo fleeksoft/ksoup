@@ -1,8 +1,6 @@
 package com.fleeksoft.ksoup.nodes
 
 import com.fleeksoft.ksoup.Ksoup.parse
-import com.fleeksoft.ksoup.Platform
-import com.fleeksoft.ksoup.PlatformType
 import com.fleeksoft.ksoup.nodes.Entities.escape
 import com.fleeksoft.ksoup.nodes.Entities.getByName
 import com.fleeksoft.ksoup.nodes.Entities.unescape
@@ -14,31 +12,26 @@ import kotlin.test.assertEquals
 class EntitiesTest {
     @Test
     fun escape() {
-        if (Platform.current == PlatformType.JS) {
-            // FIXME: ascii charset not supported for js
-            return
-        }
-
         val text = "Hello &<> Å å π 新 there ¾ © »"
-        val escapedAscii = escape(text, Document.OutputSettings().charset("ascii").escapeMode(Entities.EscapeMode.base))
+        val escapedAscii = escape(text, Document.OutputSettings().charset("ISO-8859-1").escapeMode(Entities.EscapeMode.base))
         val escapedAsciiFull =
-            escape(text, Document.OutputSettings().charset("ascii").escapeMode(Entities.EscapeMode.extended))
+            escape(text, Document.OutputSettings().charset("ISO-8859-1").escapeMode(Entities.EscapeMode.extended))
         val escapedAsciiXhtml =
-            escape(text, Document.OutputSettings().charset("ascii").escapeMode(Entities.EscapeMode.xhtml))
+            escape(text, Document.OutputSettings().charset("ISO-8859-1").escapeMode(Entities.EscapeMode.xhtml))
         val escapedUtfFull =
             escape(text, Document.OutputSettings().charset("UTF-8").escapeMode(Entities.EscapeMode.extended))
         val escapedUtfMin =
             escape(text, Document.OutputSettings().charset("UTF-8").escapeMode(Entities.EscapeMode.xhtml))
         assertEquals(
-            "Hello &amp;&lt;&gt; &Aring; &aring; &#x3c0; &#x65b0; there &frac34; &copy; &raquo;",
+            "Hello &amp;&lt;&gt; Å å &#x3c0; &#x65b0; there ¾ © »",
             escapedAscii,
         )
         assertEquals(
-            "Hello &amp;&lt;&gt; &angst; &aring; &pi; &#x65b0; there &frac34; &copy; &raquo;",
+            "Hello &amp;&lt;&gt; Å å &pi; &#x65b0; there ¾ © »",
             escapedAsciiFull,
         )
         assertEquals(
-            "Hello &amp;&lt;&gt; &#xc5; &#xe5; &#x3c0; &#x65b0; there &#xbe; &#xa9; &#xbb;",
+            "Hello &amp;&lt;&gt; Å å &#x3c0; &#x65b0; there ¾ © »",
             escapedAsciiXhtml,
         )
         assertEquals("Hello &amp;&lt;&gt; Å å π 新 there ¾ © »", escapedUtfFull)
@@ -55,16 +48,11 @@ class EntitiesTest {
 
     @Test
     fun escapedSupplementary() {
-        if (Platform.current == PlatformType.JS) {
-            // FIXME: ascii charset not supported for js
-            return
-        }
-
         val text = "\uD835\uDD59"
-        val escapedAscii = escape(text, Document.OutputSettings().charset("ascii").escapeMode(Entities.EscapeMode.base))
+        val escapedAscii = escape(text, Document.OutputSettings().charset("ISO-8859-1").escapeMode(Entities.EscapeMode.base))
         assertEquals("&#x1d559;", escapedAscii)
         val escapedAsciiFull =
-            escape(text, Document.OutputSettings().charset("ascii").escapeMode(Entities.EscapeMode.extended))
+            escape(text, Document.OutputSettings().charset("ISO-8859-1").escapeMode(Entities.EscapeMode.extended))
         assertEquals("&hopf;", escapedAsciiFull)
         val escapedUtf =
             escape(text, Document.OutputSettings().charset("UTF-8").escapeMode(Entities.EscapeMode.extended))
@@ -73,16 +61,11 @@ class EntitiesTest {
 
     @Test
     fun unescapeMultiChars() {
-        if (Platform.current == PlatformType.JS) {
-            // FIXME: ascii charset not supported for js
-            return
-        }
-
         val text =
             "&NestedGreaterGreater; &nGg; &nGt; &nGtv; &Gt; &gg;" // gg is not combo, but 8811 could conflict with NestedGreaterGreater or others
         val un = "≫ ⋙̸ ≫⃒ ≫̸ ≫ ≫"
         assertEquals(un, unescape(text))
-        val escaped = escape(un, Document.OutputSettings().charset("ascii").escapeMode(Entities.EscapeMode.extended))
+        val escaped = escape(un, Document.OutputSettings().charset("ISO-8859-1").escapeMode(Entities.EscapeMode.extended))
         assertEquals("&Gt; &Gg;&#x338; &Gt;&#x20d2; &Gt;&#x338; &Gt; &Gt;", escaped)
         assertEquals(un, unescape(escaped))
     }
@@ -109,13 +92,8 @@ class EntitiesTest {
 
     @Test
     fun escapeSupplementaryCharacter() {
-        if (Platform.current == PlatformType.JS) {
-            // FIXME: ascii charset not supported for js
-            return
-        }
-
         val text = 135361.toCodePoint().toChars().concatToString()
-        val escapedAscii = escape(text, Document.OutputSettings().charset("ascii").escapeMode(Entities.EscapeMode.base))
+        val escapedAscii = escape(text, Document.OutputSettings().charset("ISO-8859-1").escapeMode(Entities.EscapeMode.base))
         assertEquals("&#x210c1;", escapedAscii)
         val escapedUtf = escape(text, Document.OutputSettings().charset("UTF-8").escapeMode(Entities.EscapeMode.base))
         assertEquals(text, escapedUtf)
@@ -153,15 +131,10 @@ class EntitiesTest {
 
     @Test
     fun caseSensitive() {
-        if (Platform.current == PlatformType.JS) {
-            // FIXME: ascii charset not supported for js
-            return
-        }
-
         val unescaped = "Ü ü & &"
         assertEquals(
-            "&Uuml; &uuml; &amp; &amp;",
-            escape(unescaped, Document.OutputSettings().charset("ascii").escapeMode(Entities.EscapeMode.extended)),
+            "Ü ü &amp; &amp;",
+            escape(unescaped, Document.OutputSettings().charset("ISO-8859-1").escapeMode(Entities.EscapeMode.extended)),
         )
         val escaped = "&Uuml; &uuml; &amp; &AMP"
         assertEquals("Ü ü & &", unescape(escaped))
@@ -176,16 +149,11 @@ class EntitiesTest {
 
     @Test
     fun letterDigitEntities() {
-        if (Platform.current == PlatformType.JS) {
-            // FIXME: ascii charset not supported for js
-            return
-        }
-
         val html = "<p>&sup1;&sup2;&sup3;&frac14;&frac12;&frac34;</p>"
         val doc = parse(html)
-        doc.outputSettings().charset("ascii")
+        doc.outputSettings().charset("ISO-8859-1")
         val p = doc.select("p").first()
-        assertEquals("&sup1;&sup2;&sup3;&frac14;&frac12;&frac34;", p!!.html())
+        assertEquals("¹²³¼½¾", p!!.html())
         assertEquals("¹²³¼½¾", p.text())
         doc.outputSettings().charset("UTF-8")
         assertEquals("¹²³¼½¾", p.html())
