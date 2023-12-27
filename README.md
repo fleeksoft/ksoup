@@ -92,7 +92,7 @@ To report any issues, visit our [GitHub issues](https://github.com/fleeksoft/kso
 
 
 
-## Licence
+## License
 
     Copyright 2023 Sabeeh Ul Hussnain
 
