@@ -119,19 +119,10 @@ class StringUtilTest {
     @Test
     fun resolvesRelativeUrls() {
         assertEquals("http://example.com/one/two?three", StringUtil.resolve("http://example.com", "./one/two?three"))
-        assertEquals(
-            "http://example.com/one/two?three",
-            StringUtil.resolve("http://example.com?one", "./one/two?three"),
-        )
-        assertEquals(
-            "http://example.com/one/two?three#four",
-            StringUtil.resolve("http://example.com", "./one/two?three#four"),
-        )
+        assertEquals("http://example.com/one/two?three", StringUtil.resolve("http://example.com?one", "./one/two?three"))
+        assertEquals("http://example.com/one/two?three#four", StringUtil.resolve("http://example.com", "./one/two?three#four"))
         assertEquals("https://example.com/one", StringUtil.resolve("http://example.com/", "https://example.com/one"))
-        assertEquals(
-            "http://example.com/one/two.html",
-            StringUtil.resolve("http://example.com/two/", "../one/two.html"),
-        )
+        assertEquals("http://example.com/one/two.html", StringUtil.resolve("http://example.com/two/", "../one/two.html"))
         assertEquals("https://example2.com/one", StringUtil.resolve("https://example.com/", "//example2.com/one"))
         assertEquals("https://example.com:8080/one", StringUtil.resolve("https://example.com:8080", "./one"))
         assertEquals("https://example2.com/one", StringUtil.resolve("http://example.com/", "https://example2.com/one"))
@@ -166,8 +157,7 @@ class StringUtilTest {
 
     @Test
     fun stripsControlCharsFromUrls() {
-        // in java URL return exception when URL(URL(https://example.com), "foo:bar)
-        assertEquals("https://example.com/foo:bar", StringUtil.resolve("\nhttps://\texample.com/", "\r\nfo\to:ba\br"))
+        assertEquals("foo:bar", StringUtil.resolve("\nhttps://\texample.com/", "\r\nfo\to:ba\br"))
     }
 
     @Test
