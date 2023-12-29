@@ -131,18 +131,7 @@ internal fun String.isValidResourceUrl() =
         this.startsWith("file:/", ignoreCase = true) ||
         this.startsWith("//")
 
-internal fun String.isAbsResource() =
-    this.startsWith("mailto:", ignoreCase = true) || this.startsWith("tel:", ignoreCase = true) ||
-        this.startsWith("geo:", ignoreCase = true) ||
-        this.startsWith("about:", ignoreCase = true) ||
-        this.startsWith("sms:", ignoreCase = true) ||
-        this.startsWith("smsto:", ignoreCase = true) ||
-        this.startsWith("data:", ignoreCase = true) ||
-        this.startsWith("market:", ignoreCase = true) ||
-        this.startsWith("magnet:", ignoreCase = true) ||
-        this.startsWith("sip:", ignoreCase = true) ||
-        this.startsWith("sips:", ignoreCase = true) ||
-        this.startsWith("javascript:", ignoreCase = true)
+internal fun String.isAbsResource(): Boolean = Regex("\\w+:").containsMatchIn(this)
 
 internal fun IntArray.codePointsToString(): String {
     return if (this.isNotEmpty()) {
