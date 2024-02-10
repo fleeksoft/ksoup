@@ -20,7 +20,7 @@ kotlin {
 
     js(IR) {
         nodejs()
-        browser()
+//        browser()
     }
 
 //    linuxX64()
