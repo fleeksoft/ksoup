@@ -37,7 +37,7 @@ jobs:
 
       - name: Test ${{ matrix.config.target }} targets
         continue-on-error: ${{ matrix.config.continueOnError }}
-        run: ./gradlew ${{ matrix.config.tasks }}
+        run: ./gradlew ${{ matrix.config.tasks }} --info
         working-directory: ${{ github.workspace }}
 
   release:

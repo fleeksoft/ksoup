@@ -45,6 +45,9 @@ kotlin {
         tvosX64(),
         tvosArm64(),
         tvosSimulatorArm64(),
+        watchosX64(),
+        watchosArm64(),
+        watchosSimulatorArm64(),
     ).forEach {
         it.binaries.framework {
             baseName = "ksoup"
