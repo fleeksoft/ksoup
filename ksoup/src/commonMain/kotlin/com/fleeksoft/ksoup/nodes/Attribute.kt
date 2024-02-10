@@ -5,7 +5,7 @@ import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.nodes.Document.OutputSettings.Syntax
 import com.fleeksoft.ksoup.ported.KCloneable
-import okio.IOException
+import korlibs.io.lang.IOException
 
 /**
  * A single key + value attribute. (Only used for presentation.)
@@ -139,7 +139,7 @@ public open class Attribute : Map.Entry<String, String?>, KCloneable<Attribute> 
      */
     public fun sourceRange(): Range.AttributeRange {
         if (parent == null) return Range.AttributeRange.UntrackedAttr
-        return parent!!.sourceRange(key)!!
+        return parent!!.sourceRange(key)
     }
 
     @Throws(IOException::class)

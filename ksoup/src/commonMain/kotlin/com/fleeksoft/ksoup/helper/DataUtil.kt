@@ -1,20 +1,29 @@
 package com.fleeksoft.ksoup.helper
 
 import com.fleeksoft.ksoup.UncheckedIOException
-import com.fleeksoft.ksoup.internal.ConstrainableSource
 import com.fleeksoft.ksoup.internal.Normalizer
+import com.fleeksoft.ksoup.internal.SharedConstants
 import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.nodes.Comment
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.nodes.Node
 import com.fleeksoft.ksoup.nodes.XmlDeclaration
 import com.fleeksoft.ksoup.parser.Parser
-import com.fleeksoft.ksoup.ported.*
+import com.fleeksoft.ksoup.ported.IllegalCharsetNameException
+import com.fleeksoft.ksoup.ported.canEncode
+import com.fleeksoft.ksoup.ported.isCharsetSupported
+import com.fleeksoft.ksoup.ported.toStreamCharReader
 import com.fleeksoft.ksoup.readFile
 import com.fleeksoft.ksoup.readGzipFile
 import com.fleeksoft.ksoup.select.Elements
-import io.ktor.utils.io.charsets.*
-import okio.*
+import korlibs.io.file.fullName
+import korlibs.io.file.std.uniVfs
+import korlibs.io.lang.Charset
+import korlibs.io.lang.Charsets
+import korlibs.io.lang.use
+import korlibs.io.stream.SyncStream
+import korlibs.io.stream.readAll
+import korlibs.io.stream.readBytes
 import kotlin.random.Random
 
 /**
@@ -24,7 +33,7 @@ import kotlin.random.Random
 public object DataUtil {
     private val charsetPattern: Regex =
         Regex("charset=\\s*['\"]?([^\\s,;'\"]*)", RegexOption.IGNORE_CASE)
-    private val defaultCharsetName: String = Charsets.UTF_8.name // used if not found in header or meta charset
+    private val defaultCharsetName: String = Charsets.UTF8.name // used if not found in header or meta charset
     private const val firstReadBufferSize: Long = (1024 * 5).toLong()
     private val mimeBoundaryChars =
         "-_1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray()
@@ -34,20 +43,18 @@ public object DataUtil {
      * Loads and parses a file to a Document, with the HtmlParser. Files that are compressed with gzip (and end in `.gz` or `.z`)
      * are supported in addition to uncompressed files.
      *
-     * @param path file to load
+     * @param filePath file to load
      * @param charsetName (optional) character set of input; specify `null` to attempt to autodetect. A BOM in
      * the file will always override this setting.
      * @param baseUri base URI of document, to resolve relative links against
      * @return Document
-     * @throws IOException on IO error
      */
-    @Throws(IOException::class)
-    public fun load(
-        path: Path,
+    public suspend fun load(
+        filePath: String,
         charsetName: String?,
         baseUri: String,
     ): Document {
-        return load(path, charsetName, baseUri, Parser.htmlParser())
+        return load(filePath, charsetName, baseUri, Parser.htmlParser())
     }
 
     /**
@@ -61,44 +68,39 @@ public object DataUtil {
      * @param parser alternate [parser][Parser.xmlParser] to use.
      *
      * @return Document
-     * @throws IOException on IO error
      */
-    @Throws(IOException::class)
-    public fun load(
-        filePath: Path,
+    public suspend fun load(
+        filePath: String,
         charsetName: String?,
         baseUri: String,
         parser: Parser,
     ): Document {
-        val name: String = Normalizer.lowerCase(filePath.name)
+        val name: String = Normalizer.lowerCase(filePath.uniVfs.fullName)
 
         val source = readFile(filePath)
         return source.use { bufferedSource ->
-            val bufferReader: BufferReader =
+            val syncStream: SyncStream =
                 if (name.endsWith(".gz") || name.endsWith(".z")) {
+                    bufferedSource.mark(SharedConstants.DefaultBufferSize)
                     val zipped: Boolean =
                         runCatching {
-                            bufferedSource.peek().use { peekSource ->
-//                    In Kotlin, a Byte is signed and ranges from -128 to 127. In contrast, in Java, a byte is an unsigned type and ranges from 0 to 255.
-//                    in kotlin use readUByte to get unsigned byte
-                                peekSource.readByte().toUByte().toInt() == 0x1f && peekSource.readByte()
-                                    .toUByte().toInt() == 0x8b // gzip magic bytes  0x1f == 31 & 0x8b = 139
-                            }
+                            bufferedSource.read() == 0x1f && bufferedSource.read() == 0x8b // gzip magic bytes  0x1f == 31 & 0x8b = 139
                         }.getOrNull() ?: false
-
+                    bufferedSource.reset()
                     if (zipped) {
-                        BufferReader(readGzipFile(filePath))
+                        bufferedSource.close()
+                        readGzipFile(filePath)
                     } else {
-                        BufferReader(bufferedSource)
+                        bufferedSource
                     }
                 } else {
-                    BufferReader(bufferedSource)
+                    bufferedSource
                 }
 
-//            val charset = charsetName?.let { Charset.forName(it) } ?: Charsets.UTF_8
+//            val charset = charsetName?.let { Charset.forName(it) } ?: Charsets.UTF8
 //            val inputData = bufferedSource.readString()
             parseInputSource(
-                bufferReader,
+                syncStream,
                 charsetName,
                 baseUri,
                 parser,
@@ -108,62 +110,43 @@ public object DataUtil {
 
     /**
      * Parses a Document from an input steam.
-     * @param bufferReader buffer reader to parse. The stream will be closed after reading.
+     * @param syncStream buffer reader to parse. The stream will be closed after reading.
      * @param charsetName character set of input (optional)
      * @param baseUri base URI of document, to resolve relative links against
      * @return Document
-     * @throws IOException on IO error
      */
-    @Throws(IOException::class)
     public fun load(
-        bufferReader: BufferReader,
+        syncStream: SyncStream,
         charsetName: String?,
         baseUri: String,
     ): Document {
-        return parseInputSource(bufferReader, charsetName, baseUri, Parser.htmlParser())
+        return parseInputSource(syncStream, charsetName, baseUri, Parser.htmlParser())
     }
 
     /**
      * Parses a Document from an input steam, using the provided Parser.
-     * @param bufferReader buffer reader to parse. The stream will be closed after reading.
+     * @param syncStream buffer reader to parse. The stream will be closed after reading.
      * @param charsetName character set of input (optional)
      * @param baseUri base URI of document, to resolve relative links against
      * @param parser alternate [parser][Parser.xmlParser] to use.
      * @return Document
-     * @throws IOException on IO error
      */
-    @Throws(IOException::class)
     public fun load(
-        bufferReader: BufferReader,
+        syncStream: SyncStream,
         charsetName: String?,
         baseUri: String,
         parser: Parser,
     ): Document {
-        return parseInputSource(bufferReader, charsetName, baseUri, parser)
+        return parseInputSource(syncStream, charsetName, baseUri, parser)
     }
 
-    /**
-     * Writes the input stream to the output stream. Doesn't close them.
-     * @param bufferReader buffer reader to read from
-     * @param outSource output stream to write to
-     * @throws IOException on IO error
-     */
-    @Throws(IOException::class)
-    public fun crossStreams(
-        source: ByteArray,
-        outSource: Buffer,
-    ) {
-        outSource.write(source)
-    }
-
-    @Throws(IOException::class)
     public fun parseInputSource(
-        bufferReader: BufferReader?,
+        syncStream: SyncStream?,
         charsetName: String?,
         baseUri: String,
         parser: Parser,
     ): Document {
-        if (bufferReader == null) {
+        if (syncStream == null) {
             // empty body
             return Document(baseUri)
         }
@@ -174,11 +157,11 @@ public object DataUtil {
 
         // read the start of the stream and look for a BOM or meta charset
 
-        val peekedBuffer = bufferReader.peek()
+        syncStream.mark(SharedConstants.DefaultBufferSize)
         // -1 because we read one more to see if completed. First read is < buffer size, so can't be invalid.
-        val firstBytes: ByteArray = readToByteBuffer(peekedBuffer, firstReadBufferSize - 1)
-        val fullyRead = peekedBuffer.exhausted()
-        peekedBuffer.close()
+        val firstBytes: ByteArray = readToByteBuffer(syncStream, firstReadBufferSize - 1)
+        val fullyRead = syncStream.availableRead <= 0
+        syncStream.reset()
 
         // look for BOM - overrides any other header or input
         val bomCharset: BomCharset? = detectCharsetFromBom(firstBytes)
@@ -192,17 +175,14 @@ public object DataUtil {
                 }
 
             // look for <meta http-equiv="Content-Type" content="text/html;charset=gb2312"> or HTML5 <meta charset="gb2312">
-            val metaElements: Elements =
-                doc!!.select("meta[http-equiv=content-type], meta[charset]")
+            val metaElements: Elements = doc!!.select("meta[http-equiv=content-type], meta[charset]")
             var foundCharset: String? = null // if not found, will keep utf-8 as best attempt
             for (meta in metaElements) {
                 if (meta.hasAttr("http-equiv")) {
-                    foundCharset =
-                        getCharsetFromContentType(meta.attr("content"))
+                    foundCharset = getCharsetFromContentType(meta.attr("content"))
                 }
                 if (foundCharset == null && meta.hasAttr("charset")) {
-                    foundCharset =
-                        meta.attr("charset")
+                    foundCharset = meta.attr("charset")
                 }
                 if (foundCharset != null) break
             }
@@ -244,22 +224,21 @@ public object DataUtil {
         }
         if (doc == null) {
             if (effectiveCharsetName == null) effectiveCharsetName = defaultCharsetName
-            bufferReader.setCharSet(effectiveCharsetName)
-
+            val syncCharReader = syncStream.toStreamCharReader(charset = Charset.forName(effectiveCharsetName))
             if (bomCharset != null && bomCharset.offset) { // creating the buffered inputReader ignores the input pos, so must skip here
 //                skip first char which can be 2-4
-                bufferReader.skipFirstUnicodeChar(1)
+                syncCharReader.skip(1)
             }
             doc =
                 try {
-                    parser.parseInput(bufferReader, baseUri)
+                    parser.parseInput(syncCharReader, baseUri)
                 } catch (e: UncheckedIOException) {
                     // io exception when parsing (not seen before because reading the stream as we go)
                     throw e
                 }
             val charset: Charset =
                 if (effectiveCharsetName == defaultCharsetName) {
-                    Charsets.UTF_8
+                    Charsets.UTF8
                 } else {
                     Charset.forName(
                         effectiveCharsetName,
@@ -268,7 +247,7 @@ public object DataUtil {
             doc!!.outputSettings().charset(charset)
             if (!charset.canEncode()) {
                 // some charsets can read but not encode; switch to an encodable charset and update the meta el
-                doc.charset(Charsets.UTF_8)
+                doc.charset(Charsets.UTF8)
             }
         }
 
@@ -278,21 +257,19 @@ public object DataUtil {
     /**
      * Read the input stream into a byte buffer. To deal with slow input streams, you may interrupt the thread this
      * method is executing on. The data read until being interrupted will be available.
-     * @param bufferReader the input stream to read from
+     * @param syncStream the input stream to read from
      * @param maxSize the maximum size in bytes to read from the stream. Set to 0 to be unlimited.
      * @return the filled byte buffer
-     * @throws IOException if an exception occurs whilst reading from the input stream.
      */
-    @Throws(IOException::class)
     public fun readToByteBuffer(
-        bufferReader: BufferReader,
+        syncStream: SyncStream,
         maxSize: Long,
     ): ByteArray {
         return if (maxSize == 0L) {
-            bufferReader.readByteArray()
+            syncStream.readAll()
         } else {
-            ConstrainableSource.wrap(BufferReader(bufferReader), maxSize.toInt()).readToByteBuffer(maxSize.toInt())
-                .readByteArray()
+            val size = if (syncStream.availableRead > 0) minOf(maxSize, syncStream.available) else maxSize
+            syncStream.readBytes(size.toInt())
         }
     }
 
@@ -348,14 +325,14 @@ public object DataUtil {
             } else {
                 ByteArray(4)
             }
-        if (bom[0].toInt() == 0x00 && bom[1].toInt() == 0x00 && bom[2] == 0xFE.toByte() && bom[3] == 0xFF.toByte() || // BE
-            bom[0] == 0xFF.toByte() && bom[1] == 0xFE.toByte() && bom[2].toInt() == 0x00 && bom[3].toInt() == 0x00
-        ) { // LE
-            return BomCharset("UTF-32", false) // and I hope it's on your system
-        } else if (bom[0] == 0xFE.toByte() && bom[1] == 0xFF.toByte() || // BE
-            bom[0] == 0xFF.toByte() && bom[1] == 0xFE.toByte()
-        ) {
-            return BomCharset("UTF-16", false) // in all Javas
+        if (bom[0].toInt() == 0x00 && bom[1].toInt() == 0x00 && bom[2] == 0xFE.toByte() && bom[3] == 0xFF.toByte()) { // BE
+            return BomCharset("UTF-32BE", false) // and I hope it's on your system
+        } else if (bom[0] == 0xFF.toByte() && bom[1] == 0xFE.toByte() && bom[2].toInt() == 0x00 && bom[3].toInt() == 0x00) { // LE
+            return BomCharset("UTF-32LE", false) // and I hope it's on your system
+        } else if (bom[0] == 0xFE.toByte() && bom[1] == 0xFF.toByte()) { // BE
+            return BomCharset("UTF-16BE", true) // in all Javas
+        } else if (bom[0] == 0xFF.toByte() && bom[1] == 0xFE.toByte()) { // LE
+            return BomCharset("UTF-16LE", true) // in all Javas
         } else if (bom[0] == 0xEF.toByte() && bom[1] == 0xBB.toByte() && bom[2] == 0xBF.toByte()) {
             return BomCharset("UTF-8", true) // in all Javas
             // 16 and 32 decoders consume the BOM to determine be/le; utf-8 should be consumed here

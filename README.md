@@ -1,19 +1,27 @@
 # Ksoup: Kotlin Multiplatform HTML & XML Parser
 
-**Ksoup** is a Kotlin Multiplatform library for working with real-world HTML and XML. It's a port of the renowned Java library, **jsoup**, and offers an easy-to-use API for URL fetching, data parsing, extraction, and manipulation using DOM and CSS selectors.
+**Ksoup** is a Kotlin Multiplatform library for working with real-world HTML and XML. It's a port of the renowned Java
+library, **jsoup**, and offers an easy-to-use API for URL fetching, data parsing, extraction, and manipulation using DOM
+and CSS selectors.
 
 [![Kotlin](https://img.shields.io/badge/Kotlin-1.9.22-blue.svg?style=flat&logo=kotlin)](https://kotlinlang.org)
 [![Maven Central](https://img.shields.io/maven-central/v/com.fleeksoft.ksoup/ksoup.svg)](https://mvnrepository.com/artifact/com.fleeksoft.ksoup)
 
 ![badge-android](http://img.shields.io/badge/platform-android-6EDB8D.svg?style=flat)
 ![badge-ios](http://img.shields.io/badge/platform-ios-CDCDCD.svg?style=flat)
+![badge-mac](http://img.shields.io/badge/platform-macos-111111.svg?style=flat)
+![badge-watchos](http://img.shields.io/badge/platform-watchos-C0C0C0.svg?style=flat)
+![badge-tvos](http://img.shields.io/badge/platform-tvos-808080.svg?style=flat)
 ![badge-jvm](http://img.shields.io/badge/platform-jvm-DB413D.svg?style=flat)
 ![badge-linux](http://img.shields.io/badge/platform-linux-2D3F6C.svg?style=flat)
+![badge-windows](http://img.shields.io/badge/platform-windows-4D76CD.svg?style=flat)
 ![badge-nodejs](https://img.shields.io/badge/platform-jsNode-F8DB5D.svg?style=flat)
 
-Ksoup implements the [WHATWG HTML5](https://html.spec.whatwg.org/multipage/) specification, parsing HTML to the same DOM as modern browsers do, but with support for Android, JVM, and native platforms.
+Ksoup implements the [WHATWG HTML5](https://html.spec.whatwg.org/multipage/) specification, parsing HTML to the same DOM
+as modern browsers do, but with support for Android, JVM, and native platforms.
 
 ## Features
+
 - Scrape and parse HTML from a URL, file, or string
 - Find and extract data using DOM traversal or CSS selectors
 - Manipulate HTML elements, attributes, and text
@@ -23,8 +31,12 @@ Ksoup implements the [WHATWG HTML5](https://html.spec.whatwg.org/multipage/) spe
 Ksoup is adept at handling all varieties of HTML found in the wild.
 
 ## Getting started
+
 ### Ksoup is published on Maven Central
-Include the dependency in `commonMain`. Latest version [![Maven Central](https://img.shields.io/maven-central/v/com.fleeksoft.ksoup/ksoup.svg)](https://mvnrepository.com/artifact/com.fleeksoft.ksoup)
+
+Include the dependency in `commonMain`. Latest
+version [![Maven Central](https://img.shields.io/maven-central/v/com.fleeksoft.ksoup/ksoup.svg)](https://mvnrepository.com/artifact/com.fleeksoft.ksoup)
+
 ```Kotlin
 commonMain.dependencies {
     implementation("com.fleeksoft.ksoup:ksoup:<version>")
@@ -36,6 +48,7 @@ commonMain.dependencies {
 ```
 
 ### Parsing HTML from a String with Ksoup
+
 ```kotlin
 val html = "<html><head><title>One</title></head><body>Two</body></html>"
 val doc: Document = Ksoup.parse(html = html)
@@ -43,9 +56,11 @@ val doc: Document = Ksoup.parse(html = html)
 println("title => ${doc.title()}") // One
 println("bodyText => ${doc.body().text()}") // Two
 ```
+
 This snippet demonstrates how to use `Ksoup.parse` for parsing an HTML string and extracting the title and body text.
 
 ### Fetching and Parsing HTML from a URL using Ksoup
+
 ```kotlin
 //Please note that the com.fleeksoft.ksoup:ksoup-network library is required for Ksoup.parseGetRequest.
 val doc: Document = Ksoup.parseGetRequest(url = "https://en.wikipedia.org/") // suspend function
@@ -62,20 +77,26 @@ headlines.forEach { headline: Element ->
     println("$headlineTitle => $headlineLink")
 }
 ```
-In this example, `Ksoup.parseGetRequest` fetches and parses HTML content from Wikipedia, extracting and printing news headlines and their corresponding links.
+
+In this example, `Ksoup.parseGetRequest` fetches and parses HTML content from Wikipedia, extracting and printing news
+headlines and their corresponding links.
 
 #### For further documentation, please check here: [Ksoup](https://fleeksoft.github.io/ksoup/)
 
 ## Open source
-Ksoup is an open source project, a Kotlin Multiplatform port of jsoup, distributed under the Apache License, Version 2.0. The source code of Ksoup is available on [GitHub](https://github.com/fleeksoft/ksoup).
 
+Ksoup is an open source project, a Kotlin Multiplatform port of jsoup, distributed under the Apache License, Version
+2.0. The source code of Ksoup is available on [GitHub](https://github.com/fleeksoft/ksoup).
 
 ## Development and Support
-For questions about usage and general inquiries, please refer to [GitHub Discussions](https://github.com/fleeksoft/ksoup/discussions).
+
+For questions about usage and general inquiries, please refer
+to [GitHub Discussions](https://github.com/fleeksoft/ksoup/discussions).
 
 If you wish to contribute, please read the [Contributing Guidelines](CONTRIBUTING.md).
 
-To report any issues, visit our [GitHub issues](https://github.com/fleeksoft/ksoup/issues), Please ensure to check for duplicates before submitting a new issue.
+To report any issues, visit our [GitHub issues](https://github.com/fleeksoft/ksoup/issues), Please ensure to check for
+duplicates before submitting a new issue.
 
 ## Library Status
 
@@ -89,8 +110,6 @@ To report any issues, visit our [GitHub issues](https://github.com/fleeksoft/kso
 | Native MacOS   | Alpha        |                                               |
 | Native Windows | Experimental | Does not support gzip file.                   |
 | Wasm           | Coming Soon  |                                               |
-
-
 
 ## Licence
 

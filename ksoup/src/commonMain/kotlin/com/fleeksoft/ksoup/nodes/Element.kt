@@ -15,7 +15,7 @@ import com.fleeksoft.ksoup.ported.Collections
 import com.fleeksoft.ksoup.ported.Consumer
 import com.fleeksoft.ksoup.ported.PatternSyntaxException
 import com.fleeksoft.ksoup.select.*
-import okio.IOException
+import korlibs.io.lang.IOException
 import kotlin.js.JsName
 import kotlin.jvm.JvmOverloads
 

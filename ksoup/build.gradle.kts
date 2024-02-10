@@ -20,6 +20,7 @@ kotlin {
 
     js(IR) {
         nodejs()
+        browser()
     }
 
     linuxX64()
@@ -44,9 +45,6 @@ kotlin {
         tvosX64(),
         tvosArm64(),
         tvosSimulatorArm64(),
-        watchosX64(),
-        watchosArm64(),
-        watchosSimulatorArm64(),
     ).forEach {
         it.binaries.framework {
             baseName = "ksoup"
@@ -58,16 +56,15 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            implementation(libs.ktor.client.core)
             implementation(libs.kotlinx.datetime)
             implementation(libs.codepoints)
-            api(libs.okio)
+            implementation(libs.korio)
         }
         commonTest {
             this.kotlin.srcDir(layout.buildDirectory.file(rootPath))
             dependencies {
                 implementation(libs.kotlin.test)
-                implementation(projects.ksoupNetwork)
+                compileOnly(projects.ksoupNetwork)
             }
         }
 
@@ -84,7 +81,6 @@ kotlin {
         }
 
         jsMain.dependencies {
-            implementation(libs.okio.nodefilesystem)
         }
 
         val jvmAndroidCommonMain by creating {

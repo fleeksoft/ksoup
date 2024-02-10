@@ -3,12 +3,10 @@ package com.fleeksoft.ksoup.parser
 import com.fleeksoft.ksoup.*
 import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.nodes.*
-import com.fleeksoft.ksoup.ported.BufferReader
 import com.fleeksoft.ksoup.ported.System
 import com.fleeksoft.ksoup.safety.Safelist
-import io.ktor.utils.io.charsets.*
-import io.ktor.utils.io.core.*
-import okio.IOException
+import korlibs.io.lang.IOException
+import korlibs.io.stream.openSync
 import kotlin.test.*
 
 /**
@@ -1306,18 +1304,18 @@ class HtmlParserTest {
     }
 
     @Test
-    @Throws(IOException::class)
-    fun testInvalidTableContents() {
-        val input: String = TestHelper.getResourceAbsolutePath("htmltests/table-invalid-elements.html")
-        val doc: Document = Ksoup.parseFile(input, "UTF-8")
-        doc.outputSettings().prettyPrint(true)
-        val rendered = doc.toString()
-        val endOfEmail = rendered.indexOf("Comment")
-        val guarantee = rendered.indexOf("Why am I here?")
-        assertTrue(endOfEmail > -1, "Comment not found")
-        assertTrue(guarantee > -1, "Search text not found")
-        assertTrue(guarantee > endOfEmail, "Search text did not come after comment")
-    }
+    fun testInvalidTableContents() =
+        runTest {
+            val input: String = TestHelper.getResourceAbsolutePath("htmltests/table-invalid-elements.html")
+            val doc: Document = Ksoup.parseFile(input, "UTF-8")
+            doc.outputSettings().prettyPrint(true)
+            val rendered = doc.toString()
+            val endOfEmail = rendered.indexOf("Comment")
+            val guarantee = rendered.indexOf("Why am I here?")
+            assertTrue(endOfEmail > -1, "Comment not found")
+            assertTrue(guarantee > -1, "Search text not found")
+            assertTrue(guarantee > endOfEmail, "Search text did not come after comment")
+        }
 
     @Test
     fun testNormalisesIsIndex() {
@@ -1520,15 +1518,16 @@ class HtmlParserTest {
 
     @Test
     @Throws(IOException::class)
-    fun testTemplateInsideTable() {
-        val input: String = TestHelper.getResourceAbsolutePath("htmltests/table-polymer-template.html")
-        val doc: Document = Ksoup.parseFile(input, "UTF-8")
-        doc.outputSettings().prettyPrint(true)
-        val templates = doc.body().getElementsByTag("template")
-        for (template in templates) {
-            assertTrue(template.childNodes().size > 1)
+    fun testTemplateInsideTable() =
+        runTest {
+            val input: String = TestHelper.getResourceAbsolutePath("htmltests/table-polymer-template.html")
+            val doc: Document = Ksoup.parseFile(input, "UTF-8")
+            doc.outputSettings().prettyPrint(true)
+            val templates = doc.body().getElementsByTag("template")
+            for (template in templates) {
+                assertTrue(template.childNodes().size > 1)
+            }
         }
-    }
 
     @Test
     fun testHandlesDeepSpans() {
@@ -1557,58 +1556,48 @@ class HtmlParserTest {
     }
 
     @Test
-    @Throws(IOException::class)
-    fun handlesXmlDeclAndCommentsBeforeDoctype() {
-        val `in`: String = TestHelper.getResourceAbsolutePath("htmltests/comments.html")
-        val doc: Document = Ksoup.parseFile(`in`, "UTF-8")
-        assertEquals(
-            "<!--?xml version=\"1.0\" encoding=\"utf-8\"?--><!-- so --> <!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\"><!-- what --> <html xml:lang=\"en\" lang=\"en\" xmlns=\"http://www.w3.org/1999/xhtml\"> <!-- now --> <head> <!-- then --> <meta http-equiv=\"Content-type\" content=\"text/html; charset=utf-8\"> <title>A Certain Kind of Test</title> </head> <body> <h1>Hello</h1>h1&gt; (There is a UTF8 hidden BOM at the top of this file.) </body> </html>",
-            StringUtil.normaliseWhitespace(doc.html()),
-        )
-        assertEquals("A Certain Kind of Test", doc.head().select("title").text())
-    }
+    fun handlesXmlDeclAndCommentsBeforeDoctype() =
+        runTest {
+            val `in`: String = TestHelper.getResourceAbsolutePath("htmltests/comments.html")
+            val doc: Document = Ksoup.parseFile(`in`, "UTF-8")
+            assertEquals(
+                "<!--?xml version=\"1.0\" encoding=\"utf-8\"?--><!-- so --> <!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\"><!-- what --> <html xml:lang=\"en\" lang=\"en\" xmlns=\"http://www.w3.org/1999/xhtml\"> <!-- now --> <head> <!-- then --> <meta http-equiv=\"Content-type\" content=\"text/html; charset=utf-8\"> <title>A Certain Kind of Test</title> </head> <body> <h1>Hello</h1>h1&gt; (There is a UTF8 hidden BOM at the top of this file.) </body> </html>",
+                StringUtil.normaliseWhitespace(doc.html()),
+            )
+            assertEquals("A Certain Kind of Test", doc.head().select("title").text())
+        }
 
     @Test
     @Throws(IOException::class)
     fun fallbackToUtfIfCantEncode() {
         // that charset can't be encoded, so make sure we flip to utf
         val input = "<html><meta charset=\"ISO-2022-CN\"/>One</html>"
-        val doc = Ksoup.parse(bufferReader = BufferReader(input.toByteArray()), baseUri = "", charsetName = null)
+        val doc = Ksoup.parse(syncStream = input.encodeToByteArray().openSync(), baseUri = "", charsetName = null)
         assertEquals("UTF-8", doc.charset().name.uppercase())
         assertEquals("One", doc.text())
         val html = doc.outerHtml()
-        if (Platform.current == PlatformType.JS || Platform.current == PlatformType.IOS || Platform.current == PlatformType.WINDOWS) {
-//            ISO-2022-CN not supported so it will use UTF-8 by default
-            assertEquals(
-                "<html><head><meta charset=\"ISO-2022-CN\"></head><body>One</body></html>",
-                TextUtil.stripNewlines(html),
-            )
-        } else {
-            assertEquals(
-                "<html><head><meta charset=\"UTF-8\"></head><body>One</body></html>",
-                TextUtil.stripNewlines(html),
-            )
-        }
+
+        //            ISO-2022-CN not supported so it will use UTF-8 by default
+        assertEquals(
+            "<html><head><meta charset=\"ISO-2022-CN\"></head><body>One</body></html>",
+            TextUtil.stripNewlines(html),
+        )
     }
 
     @Test
-    @Throws(IOException::class)
-    fun characterReaderBuffer() {
-        if (Platform.current == PlatformType.WINDOWS) {
-//            gzip not supported yet
-            return
+    fun characterReaderBuffer() =
+        runTest {
+            val input: String = TestHelper.getResourceAbsolutePath("htmltests/character-reader-buffer.html.gz")
+            val doc: Document = Ksoup.parseFile(input, "UTF-8")
+            val expectedHref = "http://www.domain.com/path?param_one=value&param_two=value"
+            val links = doc.select("a")
+            assertEquals(2, links.size)
+            assertEquals(expectedHref, links[0].attr("href")) // passes
+            assertEquals(
+                expectedHref,
+                links[1].attr("href"),
+            ) // fails, "but was:<...ath?param_one=value&[]_two-value>"
         }
-        val input: String = TestHelper.getResourceAbsolutePath("htmltests/character-reader-buffer.html.gz")
-        val doc: Document = Ksoup.parseFile(input, "UTF-8")
-        val expectedHref = "http://www.domain.com/path?param_one=value&param_two=value"
-        val links = doc.select("a")
-        assertEquals(2, links.size)
-        assertEquals(expectedHref, links[0].attr("href")) // passes
-        assertEquals(
-            expectedHref,
-            links[1].attr("href"),
-        ) // fails, "but was:<...ath?param_one=value&[]_two-value>"
-    }
 
     @Test
     fun selfClosingTextAreaDoesntLeaveDroppings() {
@@ -2127,7 +2116,7 @@ class HtmlParserTest {
     }
 
     @Test
-    fun NoErrorOnEofIfBodyOpen() {
+    fun testNoErrorOnEofIfBodyOpen() {
         val html = "<body>"
         val parser = Parser.htmlParser()
         parser.setTrackErrors(10)

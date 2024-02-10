@@ -3,7 +3,7 @@ package com.fleeksoft.ksoup.parser
 import com.fleeksoft.ksoup.internal.SharedConstants
 import com.fleeksoft.ksoup.nodes.*
 import com.fleeksoft.ksoup.parser.Parser.Companion.NamespaceHtml
-import com.fleeksoft.ksoup.ported.BufferReader
+import com.fleeksoft.ksoup.ported.StreamCharReader
 
 /**
  * @author Sabeeh
@@ -34,7 +34,7 @@ internal abstract class TreeBuilder {
     public var trackSourceRange = false // optionally tracks the source range of nodes
 
     public open fun initialiseParse(
-        input: BufferReader,
+        input: StreamCharReader,
         baseUri: String,
         parser: Parser,
     ) {
@@ -57,7 +57,7 @@ internal abstract class TreeBuilder {
     }
 
     fun parse(
-        input: BufferReader,
+        input: StreamCharReader,
         baseUri: String,
         parser: Parser,
     ): Document {

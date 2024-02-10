@@ -1,6 +1,6 @@
 package com.fleeksoft.ksoup.nodes
 
-import okio.IOException
+import korlibs.io.lang.IOException
 
 /**
  * Create a new DataNode.

@@ -1,10 +1,13 @@
 package com.fleeksoft.ksoup.parser
 
 import com.fleeksoft.ksoup.UncheckedIOException
-import com.fleeksoft.ksoup.ported.BufferReader
+import com.fleeksoft.ksoup.ported.StreamCharReader
 import com.fleeksoft.ksoup.ported.buildString
-import io.ktor.utils.io.core.*
-import okio.IOException
+import com.fleeksoft.ksoup.ported.toStreamCharReader
+import korlibs.io.lang.Charset
+import korlibs.io.lang.Charsets
+import korlibs.io.lang.IOException
+import korlibs.io.stream.*
 import kotlin.math.abs
 import kotlin.math.min
 
@@ -13,11 +16,10 @@ import kotlin.math.min
  */
 internal class CharacterReader {
     private var charBuf: CharArray?
-    private var source: BufferReader?
+    private var charReader: StreamCharReader? = null
     private var bufLength = 0
     private var bufSplitPoint = 0
     private var bufPos = 0
-    private var byteDiff = 0
     private var readerPos: Int = 0
     private var bufMark = -1
     private var close: Boolean = false
@@ -28,10 +30,14 @@ internal class CharacterReader {
     private var newlinePositions: ArrayList<Int>? = null
     private var lineNumberOffset = 1 // line numbers start at 1; += newlinePosition[indexof(pos)]
 
-    constructor(input: String) : this(BufferReader(input), input.toByteArray().size)
+    constructor(input: String, charset: Charset = Charsets.UTF8) : this(
+        charReader = input.openSync().toStreamCharReader(),
+        charset = charset,
+        input.length,
+    )
 
-    constructor(input: BufferReader, sz: Int = maxBufferLen) {
-        source = input
+    constructor(charReader: StreamCharReader, charset: Charset = Charsets.UTF8, sz: Int = maxBufferLen) {
+        this.charReader = charReader
         charBuf = CharArray(min(sz, maxBufferLen))
         bufferUp()
     }
@@ -41,7 +47,7 @@ internal class CharacterReader {
     fun close() {
         close = true
         try {
-            source = null
+            charReader = null
         } catch (ignored: IOException) {
         } finally {
             charBuf = null
@@ -53,7 +59,7 @@ internal class CharacterReader {
     private var readFully = false
 
     private fun bufferUp() {
-//        println("pre => bufSize: ${charBuf?.size} bufLength: $bufLength, readerPos: $readerPos, bufPos: $bufPos, bufSplitPoint: $bufSplitPoint")
+        //        println("pre => bufSize: ${charBuf?.size} bufLength: $bufLength, readerPos: $readerPos, bufPos: $bufPos, bufSplitPoint: $bufSplitPoint")
         if (readFully || bufPos < bufSplitPoint) return
 
         val (pos, offset) =
@@ -64,30 +70,24 @@ internal class CharacterReader {
             }
 
         if (pos > 0) {
-//            source!!.skip(pos + byteDiff)
-//            skip issue with mix of unicode characters
-            source!!.readCharArray(CharArray(pos.toInt()), 0, pos.toInt())
-            byteDiff = 0
+            charReader!!.skip(pos.toInt())
         }
 
-        val reader: BufferReader = source!!.peek()
+        charReader!!.mark(maxBufferLen)
         var read: Int = 0
         while (read <= minReadAheadLen) {
+            var thisRead = 0
             val toReadSize = charBuf!!.size - read
-            var readBytes = 0
-            val thisRead =
-                reader.readCharArray(charArray = charBuf!!, off = read, len = toReadSize) {
-                    readBytes = it
-                }
+            thisRead = charReader!!.readCharArray(charBuf!!, offset = read, count = toReadSize)
+//            charReader!!.read(1)
 
-            if (thisRead > 0) {
-                byteDiff += (readBytes - thisRead)
-            }
+//            println("bufferUp thisRead: $thisRead");
 
             if (thisRead == -1) readFully = true
             if (thisRead <= 0) break
             read += thisRead
         }
+        charReader!!.reset()
 
         if (read > 0) {
             bufLength = read
@@ -97,7 +97,7 @@ internal class CharacterReader {
             bufSplitPoint = minOf(bufLength, readAheadLimit)
         }
 
-//            println("post => bufSize: ${charBuf?.size} bufLength: $bufLength, readerPos: $readerPos, bufPos: $bufPos, bufSplitPoint: $bufSplitPoint")
+        //            println("post => bufSize: ${charBuf?.size} bufLength: $bufLength, readerPos: $readerPos, bufPos: $bufPos, bufSplitPoint: $bufSplitPoint")
 
         scanBufferForNewlines() // if enabled, we index newline positions for line number tracking
         lastIcSeq = null // cache for last containsIgnoreCase(seq)
@@ -105,7 +105,6 @@ internal class CharacterReader {
 
     /**
      * Gets the position currently read to in the content. Starts at 0.
-     *
      * @return current position
      */
     fun pos(): Int {

@@ -1,15 +1,21 @@
 package com.fleeksoft.ksoup
 
-import okio.BufferedSource
-import okio.Path
+import korlibs.io.compression.deflate.GZIP
+import korlibs.io.compression.uncompress
+import korlibs.io.file.std.uniVfs
+import korlibs.io.stream.*
 
-internal expect fun readGzipFile(file: Path): BufferedSource
+internal suspend fun readGzipFile(filePath: String): SyncStream {
+    return filePath.uniVfs.readAsSyncStream().readAll().uncompress(GZIP).openSync()
+}
 
-internal expect fun readFile(file: Path): BufferedSource
+internal suspend fun readFile(filePath: String): SyncStream {
+    return filePath.uniVfs.readAsSyncStream()
+}
 
 // js don't support ?i
 internal fun jsSupportedRegex(regex: String): Regex {
-    return if (Platform.current == PlatformType.JS && regex.contains("(?i)")) {
+    return if (Platform.isJS() && regex.contains("(?i)")) {
         Regex(regex.replace("(?i)", ""), RegexOption.IGNORE_CASE)
     } else {
         Regex(regex)
@@ -29,3 +35,13 @@ public enum class PlatformType {
 public expect object Platform {
     public val current: PlatformType
 }
+
+public fun Platform.isApple(): Boolean = this.current == PlatformType.IOS || this.current == PlatformType.MAC
+
+public fun Platform.isWindows(): Boolean = this.current == PlatformType.WINDOWS
+
+public fun Platform.isJvmOrAndroid(): Boolean = this.current == PlatformType.JVM || this.current == PlatformType.ANDROID
+
+public fun Platform.isJvm(): Boolean = this.current == PlatformType.JVM
+
+public fun Platform.isJS(): Boolean = this.current == PlatformType.JS

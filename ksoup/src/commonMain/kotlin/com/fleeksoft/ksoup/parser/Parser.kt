@@ -3,8 +3,9 @@ package com.fleeksoft.ksoup.parser
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.nodes.Element
 import com.fleeksoft.ksoup.nodes.Node
-import com.fleeksoft.ksoup.ported.BufferReader
-import io.ktor.utils.io.core.*
+import com.fleeksoft.ksoup.ported.StreamCharReader
+import com.fleeksoft.ksoup.ported.toStreamCharReader
+import korlibs.io.stream.openSync
 
 /**
  * Parses HTML or XML into a [com.fleeksoft.ksoup.nodes.Document]. Generally, it is simpler to use one of the parse methods in
@@ -54,18 +55,18 @@ public class Parser {
         htmlBytes: ByteArray,
         baseUri: String,
     ): Document {
-        return treeBuilder.parse(BufferReader(htmlBytes), baseUri, this)
+        return treeBuilder.parse(htmlBytes.openSync().toStreamCharReader(), baseUri, this)
     }
 
     public fun parseInput(
         html: String,
         baseUri: String,
     ): Document {
-        return treeBuilder.parse(BufferReader(html), baseUri, this)
+        return treeBuilder.parse(html.openSync().toStreamCharReader(), baseUri, this)
     }
 
     public fun parseInput(
-        inputHtml: BufferReader,
+        inputHtml: StreamCharReader,
         baseUri: String,
     ): Document {
         return treeBuilder.parse(inputHtml, baseUri, this)
@@ -183,7 +184,7 @@ public class Parser {
         ): Document {
             val treeBuilder: TreeBuilder = HtmlTreeBuilder()
             return treeBuilder.parse(
-                BufferReader(html.toByteArray()),
+                html.openSync().toStreamCharReader(),
                 baseUri,
                 Parser(treeBuilder),
             )
@@ -283,7 +284,7 @@ public class Parser {
             inAttribute: Boolean,
         ): String {
             val parser: Parser = htmlParser()
-            parser.treeBuilder.initialiseParse(BufferReader(string), "", parser)
+            parser.treeBuilder.initialiseParse(string.openSync().toStreamCharReader(), "", parser)
             val tokeniser = Tokeniser(parser.treeBuilder)
             return tokeniser.unescapeEntities(inAttribute)
         }

@@ -1,8 +1,10 @@
 package com.fleeksoft.ksoup
 
-import com.fleeksoft.ksoup.ported.BufferReader
-import okio.Path
-import okio.Path.Companion.toPath
+import korlibs.io.file.VfsFile
+import korlibs.io.file.fullName
+import korlibs.io.file.std.uniVfs
+import korlibs.io.stream.SyncStream
+import korlibs.io.stream.readAll
 
 object TestHelper {
     //    some tests ignored for specific platform
@@ -12,26 +14,26 @@ object TestHelper {
         return "${BuildConfig.PROJECT_ROOT}/ksoup/src/commonTest/resources/$resourceName"
     }
 
-    fun getFileAsString(file: Path): String {
+    suspend fun getFileAsString(file: VfsFile): String {
         val bytes: ByteArray =
-            if (file.name.endsWith(".gz")) {
-                readGzipFile(file).readByteArray()
+            if (file.fullName.endsWith(".gz")) {
+                readGzipFile(file.absolutePath).readAll()
             } else {
-                readFile(file).readByteArray()
+                readFile(file.absolutePath).readAll()
             }
         return bytes.decodeToString()
     }
 
-    fun resourceFilePathToBufferReader(path: String): BufferReader {
+    suspend fun resourceFilePathToStream(path: String): SyncStream {
         val file = this.getResourceAbsolutePath(path)
-        return pathToBufferReader(file.toPath())
+        return pathToStream(file.uniVfs)
     }
 
-    fun pathToBufferReader(file: Path): BufferReader {
-        return if (file.name.endsWith(".gz")) {
-            BufferReader(readGzipFile(file))
+    suspend fun pathToStream(file: VfsFile): SyncStream {
+        return if (file.fullName.endsWith(".gz")) {
+            readGzipFile(file.absolutePath)
         } else {
-            BufferReader(readFile(file))
+            readFile(file.absolutePath)
         }
     }
 }

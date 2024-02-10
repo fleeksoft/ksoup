@@ -1,20 +1,18 @@
 package com.fleeksoft.ksoup.issues
 
-import com.fleeksoft.ksoup.*
-import okio.Path.Companion.toPath
+import com.fleeksoft.ksoup.Ksoup
+import com.fleeksoft.ksoup.TestHelper
+import com.fleeksoft.ksoup.runTest
+import korlibs.io.file.std.uniVfs
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class GithubIssuesTests {
     @Test
     fun testIssue20DuplicateElements() {
-        if (Platform.current == PlatformType.WINDOWS) {
-//            gzip not supported yet
-            return
-        }
         //    https://github.com/fleeksoft/ksoup/issues/20
         runTest {
-            Ksoup.parse(TestHelper.getFileAsString(TestHelper.getResourceAbsolutePath("htmltests/issue20.html.gz").toPath()))
+            Ksoup.parse(TestHelper.getFileAsString(TestHelper.getResourceAbsolutePath("htmltests/issue20.html.gz").uniVfs))
 //            Ksoup.parseGetRequest("https://www.dm530w.org/")
                 .apply {
                     body().select("div[class=firs l]")

@@ -1,15 +1,11 @@
 package com.fleeksoft.ksoup.nodes
 
-import com.fleeksoft.ksoup.Ksoup
-import com.fleeksoft.ksoup.Platform
-import com.fleeksoft.ksoup.PlatformType
-import com.fleeksoft.ksoup.TestHelper
+import com.fleeksoft.ksoup.*
 import com.fleeksoft.ksoup.parser.ParseSettings
 import com.fleeksoft.ksoup.parser.Parser
-import com.fleeksoft.ksoup.ported.BufferReader
-import io.ktor.utils.io.charsets.*
-import io.ktor.utils.io.core.*
-import okio.IOException
+import korlibs.io.lang.Charset
+import korlibs.io.lang.toByteArray
+import korlibs.io.stream.openSync
 import kotlin.test.*
 
 /**
@@ -49,9 +45,11 @@ class DocumentTest {
         // default is utf-8
         assertEquals("<p title=\"π\">π &amp; &lt; &gt;</p>", doc.body().html())
         assertEquals("UTF-8", doc.outputSettings().charset().name.uppercase())
+
         doc.outputSettings().charset("ISO-8859-1")
         assertEquals(Entities.EscapeMode.base, doc.outputSettings().escapeMode())
         assertEquals("<p title=\"&#x3c0;\">&#x3c0; &amp; &lt; &gt;</p>", doc.body().html())
+
         doc.outputSettings().escapeMode(Entities.EscapeMode.extended)
         assertEquals("<p title=\"&pi;\">&pi; &amp; &lt; &gt;</p>", doc.body().html())
     }
@@ -147,26 +145,26 @@ class DocumentTest {
     }
 
     @Test
-    @Throws(IOException::class)
-    fun testLocation() {
-        // tests location vs base href
-        val `in`: String = TestHelper.getResourceAbsolutePath("htmltests/basehref.html")
-        val doc: Document =
-            Ksoup.parseFile(
-                file = `in`,
-                baseUri = "http://example.com/",
-                charsetName = "UTF-8",
+    fun testLocation() =
+        runTest {
+            // tests location vs base href
+            val `in`: String = TestHelper.getResourceAbsolutePath("htmltests/basehref.html")
+            val doc: Document =
+                Ksoup.parseFile(
+                    filePath = `in`,
+                    baseUri = "http://example.com/",
+                    charsetName = "UTF-8",
+                )
+            val location = doc.location()
+            val baseUri = doc.baseUri()
+            assertEquals("http://example.com/", location)
+            assertEquals("https://example.com/path/file.html?query", baseUri)
+            assertEquals("./anotherfile.html", doc.expectFirst("a").attr("href"))
+            assertEquals(
+                "https://example.com/path/anotherfile.html",
+                doc.expectFirst("a").attr("abs:href"),
             )
-        val location = doc.location()
-        val baseUri = doc.baseUri()
-        assertEquals("http://example.com/", location)
-        assertEquals("https://example.com/path/file.html?query", baseUri)
-        assertEquals("./anotherfile.html", doc.expectFirst("a").attr("href"))
-        assertEquals(
-            "https://example.com/path/anotherfile.html",
-            doc.expectFirst("a").attr("abs:href"),
-        )
-    }
+        }
 
     @Test
     fun testLocationFromString() {
@@ -222,7 +220,7 @@ class DocumentTest {
 
     @Test
     fun testOverflowClone() {
-        if (Platform.current == PlatformType.JS) {
+        if (Platform.isJS()) {
             // FIXME: timeout error for js
             return
         }
@@ -242,7 +240,7 @@ class DocumentTest {
     }
 
     @Test
-    fun DocumentsWithSameContentAreEqual() {
+    fun testDocumentsWithSameContentAreEqual() {
         val docA = Ksoup.parse("<div/>One")
         val docB = Ksoup.parse("<div/>One")
         val docC = Ksoup.parse("<div/>Two")
@@ -253,7 +251,7 @@ class DocumentTest {
     }
 
     @Test
-    fun DocumentsWithSameContentAreVerifiable() {
+    fun testDocumentsWithSameContentAreVerifiable() {
         val docA = Ksoup.parse("<div/>One")
         val docB = Ksoup.parse("<div/>One")
         val docC = Ksoup.parse("<div/>Two")
@@ -468,8 +466,11 @@ class DocumentTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun testShiftJisRoundtrip() {
+        if (Platform.isJS()) {
+            // Shift_JIS not supported
+            return
+        }
         val input = (
             "<html>" +
                 "<head>" +
@@ -480,8 +481,8 @@ class DocumentTest {
                 "</body>" +
                 "</html>"
         )
-        val `is`: BufferReader = BufferReader(input.toByteArray())
-        val doc: Document = Ksoup.parse(bufferReader = `is`, baseUri = "http://example.com", charsetName = null)
+        val inputStream = input.encodeToByteArray().openSync()
+        val doc: Document = Ksoup.parse(syncStream = inputStream, baseUri = "http://example.com", charsetName = null)
         doc.outputSettings().escapeMode(Entities.EscapeMode.xhtml)
         val output = doc.html().toByteArray(doc.outputSettings().charset()).decodeToString()
         assertFalse(output.contains("?"), "Should not have contained a '?'.")

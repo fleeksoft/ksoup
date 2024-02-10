@@ -2629,7 +2629,7 @@ Three
 
     @Test
     fun cssSelectorDoesntStackOverflow() {
-        if (Platform.current == PlatformType.JS) {
+        if (Platform.isJS()) {
             // FIXME: timeout error for js
             return
         }
@@ -2732,7 +2732,7 @@ Three
 
     @Test
     fun getElementsByAttributeValueMatchingValidation() {
-        if (Platform.current == PlatformType.JS) {
+        if (Platform.isJS()) {
 //     always fail for js because js use double slash for escape character and it return different exception
             return
         }
@@ -2745,7 +2745,7 @@ Three
                     "\\x",
                 )
             }
-        if (Platform.current == PlatformType.IOS || Platform.current == PlatformType.WINDOWS) {
+        if (Platform.isApple() || Platform.isWindows()) {
             assertEquals("Invalid hexadecimal escape sequence near index: 0\n\\x\n^", ex.message)
         } else {
             assertEquals("Illegal hexadecimal escape sequence near index 2\n\\x", ex.message)
@@ -2780,7 +2780,7 @@ Three
 
     @Test
     fun getElementsMatchingTextValidation() {
-        if (Platform.current == PlatformType.JS) {
+        if (Platform.isJS()) {
 //     always fail for js because js use double slash for escape character and it return different exception
             return
         }
@@ -2789,7 +2789,7 @@ Three
         val ex: Throwable =
             assertFailsWith<IllegalArgumentException> { doc.getElementsMatchingText("\\x") }
 
-        if (Platform.current == PlatformType.IOS || Platform.current == PlatformType.WINDOWS) {
+        if (Platform.isApple() || Platform.isWindows()) {
             assertEquals("Invalid hexadecimal escape sequence near index: 0\n\\x\n^", ex.message)
         } else {
             assertEquals("Illegal hexadecimal escape sequence near index 2\n\\x", ex.message)
@@ -2815,7 +2815,7 @@ Three
 
     @Test
     fun getElementsMatchingOwnTextValidation() {
-        if (Platform.current == PlatformType.JS) {
+        if (Platform.isJS()) {
 //     always fail for js because js use double slash for escape character and it return different exception
             return
         }
@@ -2824,7 +2824,7 @@ Three
         val ex: Throwable =
             assertFailsWith<IllegalArgumentException> { doc.getElementsMatchingOwnText("\\x") }
 
-        if (Platform.current == PlatformType.IOS || Platform.current == PlatformType.WINDOWS) {
+        if (Platform.isApple() || Platform.isWindows()) {
             assertEquals("Invalid hexadecimal escape sequence near index: 0\n\\x\n^", ex.message)
         } else {
             assertEquals("Illegal hexadecimal escape sequence near index 2\n\\x", ex.message)

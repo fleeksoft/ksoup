@@ -2,9 +2,9 @@ package com.fleeksoft.ksoup.parser
 
 import com.fleeksoft.ksoup.Ksoup.parse
 import com.fleeksoft.ksoup.nodes.Document
-import com.fleeksoft.ksoup.ported.BufferReader
-import io.ktor.utils.io.charsets.Charsets
-import io.ktor.utils.io.core.toByteArray
+import korlibs.io.lang.Charsets
+import korlibs.io.lang.toByteArray
+import korlibs.io.stream.openSync
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -30,7 +30,7 @@ class ParserTest {
         // testcase for https://github.com/jhy/jsoup/issues/1557. no repro.
         val parsed: Document =
             parse(
-                bufferReader = BufferReader(byteArray = "<p>H\u00E9llo, w\u00F6rld!".toByteArray(Charsets.UTF_8)),
+                syncStream = "<p>H\u00E9llo, w\u00F6rld!".toByteArray(Charsets.UTF8).openSync(),
                 baseUri = "",
                 charsetName = null,
             )

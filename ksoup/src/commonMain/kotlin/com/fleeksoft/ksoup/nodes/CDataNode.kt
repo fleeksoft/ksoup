@@ -1,6 +1,6 @@
 package com.fleeksoft.ksoup.nodes
 
-import okio.IOException
+import korlibs.io.lang.IOException
 
 /**
  * A Character Data node, to support CDATA sections.

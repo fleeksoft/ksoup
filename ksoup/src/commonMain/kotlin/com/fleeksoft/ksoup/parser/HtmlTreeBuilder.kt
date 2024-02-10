@@ -7,8 +7,10 @@ import com.fleeksoft.ksoup.nodes.*
 import com.fleeksoft.ksoup.parser.HtmlTreeBuilderState.Constants.InTableFoster
 import com.fleeksoft.ksoup.parser.HtmlTreeBuilderState.ForeignContent
 import com.fleeksoft.ksoup.parser.Parser.Companion.NamespaceHtml
-import com.fleeksoft.ksoup.ported.BufferReader
+import com.fleeksoft.ksoup.ported.StreamCharReader
 import com.fleeksoft.ksoup.ported.assert
+import com.fleeksoft.ksoup.ported.toStreamCharReader
+import korlibs.io.stream.openSync
 import kotlin.jvm.JvmOverloads
 
 /**
@@ -46,7 +48,7 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
     }
 
     override fun initialiseParse(
-        input: BufferReader,
+        input: StreamCharReader,
         baseUri: String,
         parser: Parser,
     ) {
@@ -76,7 +78,7 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
     ): List<Node> {
         // context may be null
         state = HtmlTreeBuilderState.Initial
-        initialiseParse(BufferReader(inputFragment), baseUri ?: "", parser)
+        initialiseParse(inputFragment.openSync().toStreamCharReader(), baseUri ?: "", parser)
         contextElement = context
         isFragmentParsing = true
         var root: Element? = null

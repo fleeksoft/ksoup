@@ -1,9 +1,11 @@
 package com.fleeksoft.ksoup.parser
 
-import com.fleeksoft.ksoup.*
-import com.fleeksoft.ksoup.network.parseGetRequest
+import com.fleeksoft.ksoup.Ksoup
+import com.fleeksoft.ksoup.TestHelper
+import com.fleeksoft.ksoup.TextUtil
 import com.fleeksoft.ksoup.nodes.*
-import io.ktor.utils.io.charsets.*
+import com.fleeksoft.ksoup.runTest
+import korlibs.io.lang.Charsets
 import kotlin.test.*
 
 /**
@@ -57,45 +59,23 @@ class XmlTreeBuilderTest {
         )
     }
 
-    @Ignore
     @Test
-    fun testSupplyParserToConnection() {
+    fun testSupplyParserToDataStream() =
         runTest {
-            val xmlUrl = "http://direct.infohound.net/tools/jsoup-xml-test.xml"
-
-            // parse with both xml and html parser, ensure different
-            val xmlDoc: Document = Ksoup.parseGetRequest(xmlUrl, parser = Parser.xmlParser())
-            val htmlDoc: Document = Ksoup.parseGetRequest(xmlUrl, parser = Parser.htmlParser())
-            val autoXmlDoc: Document =
-                Ksoup.parseGetRequest(xmlUrl) // check connection auto detects xml, uses xml parser
+//
+            val inStream = TestHelper.resourceFilePathToStream("htmltests/xml-test.xml")
+            val doc =
+                Ksoup.parse(
+                    syncStream = inStream,
+                    baseUri = "http://foo.com",
+                    charsetName = null,
+                    parser = Parser.xmlParser(),
+                )
             assertEquals(
                 "<doc><val>One<val>Two</val>Three</val></doc>",
-                TextUtil.stripNewlines(xmlDoc.html()),
+                TextUtil.stripNewlines(doc.html()),
             )
-            assertNotEquals(htmlDoc, xmlDoc)
-            assertEquals(xmlDoc, autoXmlDoc)
-            assertEquals(1, htmlDoc.select("head").size) // html parser normalises
-            assertEquals(0, xmlDoc.select("head").size) // xml parser does not
-            assertEquals(0, autoXmlDoc.select("head").size) // xml parser does not
         }
-    }
-
-    @Test
-    fun testSupplyParserToDataStream() {
-//
-        val inStream = TestHelper.resourceFilePathToBufferReader("htmltests/xml-test.xml")
-        val doc =
-            Ksoup.parse(
-                bufferReader = inStream,
-                baseUri = "http://foo.com",
-                charsetName = null,
-                parser = Parser.xmlParser(),
-            )
-        assertEquals(
-            "<doc><val>One<val>Two</val>Three</val></doc>",
-            TextUtil.stripNewlines(doc.html()),
-        )
-    }
 
     @Test
     fun testDoesNotForceSelfClosingKnownTags() {
@@ -139,25 +119,22 @@ class XmlTreeBuilderTest {
     }
 
     @Test
-    fun testDetectCharsetEncodingDeclaration() {
-        if (Platform.current != PlatformType.JVM && !TestHelper.forceAllTestsRun) {
-            return
-        }
-
-        val inStream = TestHelper.resourceFilePathToBufferReader("htmltests/xml-charset.xml")
-        val doc =
-            Ksoup.parse(
-                bufferReader = inStream,
-                baseUri = "http://example.com/",
-                charsetName = null,
-                parser = Parser.xmlParser(),
+    fun testDetectCharsetEncodingDeclaration() =
+        runTest {
+            val inStream = TestHelper.resourceFilePathToStream("htmltests/xml-charset.xml")
+            val doc =
+                Ksoup.parse(
+                    syncStream = inStream,
+                    baseUri = "http://example.com/",
+                    charsetName = null,
+                    parser = Parser.xmlParser(),
+                )
+            assertEquals("ISO-8859-1", doc.charset().name.uppercase())
+            assertEquals(
+                "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><data>äöåéü</data>",
+                TextUtil.stripNewlines(doc.html()),
             )
-        assertEquals("ISO-8859-1", doc.charset().name.uppercase())
-        assertEquals(
-            "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><data>äöåéü</data>",
-            TextUtil.stripNewlines(doc.html()),
-        )
-    }
+        }
 
     @Test
     fun testParseDeclarationAttributes() {
@@ -196,7 +173,7 @@ class XmlTreeBuilderTest {
     fun testCreatesValidProlog() {
         val document = Document.createShell("")
         document.outputSettings().syntax(Document.OutputSettings.Syntax.xml)
-        document.charset(Charsets.UTF_8)
+        document.charset(Charsets.UTF8)
         assertEquals(
             """<?xml version="1.0" encoding="UTF-8"?>
 <html>

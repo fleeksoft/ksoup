@@ -2,7 +2,7 @@ package com.fleeksoft.ksoup.nodes
 
 import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.internal.StringUtil
-import okio.IOException
+import korlibs.io.lang.IOException
 
 /**
  * A text node.

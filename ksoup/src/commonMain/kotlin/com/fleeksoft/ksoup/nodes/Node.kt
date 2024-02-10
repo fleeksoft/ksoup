@@ -7,7 +7,7 @@ import com.fleeksoft.ksoup.ported.*
 import com.fleeksoft.ksoup.select.NodeFilter
 import com.fleeksoft.ksoup.select.NodeTraversor
 import com.fleeksoft.ksoup.select.NodeVisitor
-import okio.IOException
+import korlibs.io.lang.IOException
 import kotlin.js.JsName
 import kotlin.reflect.KClass
 
@@ -896,7 +896,6 @@ public abstract class Node protected constructor() : KCloneable<Node> {
         init {
             this.accum = accum
             this.out = out
-            out.prepareEncoder()
         }
 
         override fun head(

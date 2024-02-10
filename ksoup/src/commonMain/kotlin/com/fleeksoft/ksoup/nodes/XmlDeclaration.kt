@@ -2,7 +2,7 @@ package com.fleeksoft.ksoup.nodes
 
 import com.fleeksoft.ksoup.SerializationException
 import com.fleeksoft.ksoup.internal.StringUtil
-import okio.IOException
+import korlibs.io.lang.IOException
 
 /**
  * An XML Declaration.

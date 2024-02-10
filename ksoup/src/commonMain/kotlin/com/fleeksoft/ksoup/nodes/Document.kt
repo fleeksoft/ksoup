@@ -1,5 +1,7 @@
 package com.fleeksoft.ksoup.nodes
 
+import com.fleeksoft.ksoup.Platform
+import com.fleeksoft.ksoup.PlatformType
 import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.parser.ParseSettings
@@ -9,7 +11,8 @@ import com.fleeksoft.ksoup.ported.KCloneable
 import com.fleeksoft.ksoup.select.Elements
 import com.fleeksoft.ksoup.select.Evaluator
 import com.fleeksoft.ksoup.select.Selector
-import io.ktor.utils.io.charsets.*
+import korlibs.io.lang.Charset
+import korlibs.io.lang.Charsets
 
 /**
  * A HTML Document.
@@ -326,7 +329,7 @@ public class Document(private val namespace: String, private val location: Strin
                 }
                 select("meta[name=charset]").remove() // Remove obsolete elements
             } else if (syntax == OutputSettings.Syntax.xml) {
-                val node: Node = ensureChildNodes().get(0)
+                val node: Node = ensureChildNodes()[0]
                 if (node is XmlDeclaration) {
                     var decl: XmlDeclaration = node
                     if (decl.name() == "xml") {
@@ -353,7 +356,7 @@ public class Document(private val namespace: String, private val location: Strin
      */
     public data class OutputSettings(
         private var escapeMode: Entities.EscapeMode = Entities.EscapeMode.base,
-        private var charset: Charset = Charsets.UTF_8,
+        private var charset: Charset = Charsets.UTF8,
         var coreCharset: Entities.CoreCharset = Entities.CoreCharset.byName(charset.name), // fast encoders for ascii and utf8
         private var prettyPrint: Boolean = true,
         private var outline: Boolean = false,
@@ -361,8 +364,6 @@ public class Document(private val namespace: String, private val location: Strin
         private var maxPaddingWidth: Int = 30,
         private var syntax: Syntax = Syntax.html,
     ) : KCloneable<OutputSettings> {
-        private var charsetEncoder: CharsetEncoder? = null
-
         /**
          * The output serialization syntax.
          */
@@ -425,18 +426,17 @@ public class Document(private val namespace: String, private val location: Strin
          * @return the document's output settings, for chaining
          */
         public fun charset(charset: String): OutputSettings {
-            charset(Charset.forName(charset))
+            if (Platform.current != PlatformType.JVM && (charset.lowercase() == "ascii" || charset.lowercase() == "us-ascii")) {
+                // FIXME: ascii not supported on some targest fallback to ISO-8859-1
+                charset(Charset.forName("ISO-8859-1"))
+            } else {
+                charset(Charset.forName(charset))
+            }
             return this
         }
 
-        public fun prepareEncoder(): CharsetEncoder {
-            // created at start of OuterHtmlVisitor so each pass has own encoder, so OutputSettings can be shared among threads
-            charsetEncoder = charset.newEncoder()
-            return charsetEncoder!!
-        }
-
-        public fun encoder(): CharsetEncoder {
-            return charsetEncoder ?: prepareEncoder()
+        public fun encoder(): Charset {
+            return charset
         }
 
         /**

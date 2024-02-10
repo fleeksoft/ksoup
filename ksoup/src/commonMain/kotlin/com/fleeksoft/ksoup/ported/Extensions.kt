@@ -1,101 +1,21 @@
 package com.fleeksoft.ksoup.ported
 
+import com.fleeksoft.ksoup.internal.SharedConstants
 import de.cketti.codepoints.appendCodePoint
-import io.ktor.http.*
-import io.ktor.utils.io.charsets.*
-import okio.Buffer
+import korlibs.io.lang.Charset
+import korlibs.io.lang.Charsets
+import korlibs.io.stream.*
+import korlibs.memory.ByteArrayBuilder
 
 internal fun String.isCharsetSupported(): Boolean {
     val result = runCatching { Charset.forName(this) }.getOrNull()
     return result != null
 }
 
-internal fun URLBuilder.appendRelativePath(relativePath: String): URLBuilder {
-    val segments = this.encodedPathSegments.toMutableList()
-
-    val isLastSlash = segments.isNotEmpty() && segments.last() == ""
-
-    //    clear / its already joining with /
-    segments.removeAll { it.isEmpty() }
-
-    val relativePathParts: MutableList<String> =
-        if (relativePath.contains("?")) {
-            handleQueryParams(relativePath, "?")
-        } else if (relativePath.contains("#")) {
-            handleQueryParams(relativePath, "#")
-        } else {
-            relativePath.split("/").toMutableList()
-        }
-
-    if (relativePathParts.size > 1 && relativePathParts.last() == "/") {
-        relativePathParts.removeLast()
-    }
-
-    if (relativePathParts.isNotEmpty() && segments.isNotEmpty() && !isLastSlash &&
-        relativePathParts.first().startsWith("?")
-    ) {
-        segments.add("${segments.removeLast()}${relativePathParts.removeFirst()}")
-    }
-
-//    in files when file://etc/var/message + /var/message = file://var/message
-//    etc considered as host
-
-    if (this.protocol == URLProtocol.createOrDefault("file")) {
-        if (relativePathParts.size > 1 && relativePathParts.firstOrNull() == "") {
-            segments.clear()
-            // remove first / space
-            relativePathParts.removeFirst()
-            this.host = relativePathParts.removeFirst()
-        }
-    }
-
-    var isNewPathAdded = false
-    relativePathParts.forEachIndexed { index, path ->
-        when (path) {
-            "" -> {
-                if (index == 0) {
-                    segments.clear()
-                } else {
-                    segments.add("")
-                }
-            }
-
-            "." -> {
-//                if its last part and . then append / example: .com/b/c/d + ./g/. = .com/b/c/d/g/
-                if (index == relativePathParts.size - 1 && segments[index] != "") {
-                    segments.add("")
-                } else if (!isLastSlash && !isNewPathAdded) {
-//                    isNewPathAdded use to avoid /b/c/d + g/./h     here . will not remove last path because its already added new
-                    segments.removeLastOrNull()
-                }
-            }
-
-            ".." -> {
-                // Clean up last path if exist
-                if (index == 0 && !isLastSlash) {
-                    segments.removeLastOrNull()
-                }
-                if (segments.isNotEmpty()) {
-                    segments.removeLast()
-                }
-            }
-
-            else -> {
-//                remove last trailing path if not query or fragment  g.com/a/b to g.com/a
-                if (index == 0 && segments.isNotEmpty() &&
-                    !isLastSlash && !path.startsWith("?") && !path.startsWith("#")
-                ) {
-                    segments.removeLast()
-                }
-                isNewPathAdded = true
-                segments.add(path)
-            }
-        }
-    }
-    this.encodedPathSegments = segments
-
-    return this
-}
+internal fun SyncStream.toStreamCharReader(
+    charset: Charset = Charsets.UTF8,
+    chunkSize: Int = SharedConstants.DefaultBufferSize,
+): StreamCharReader = StreamCharReaderImpl(stream = this, charset = charset, chunkSize = chunkSize)
 
 private fun handleQueryParams(
     relativePath: String,
@@ -113,36 +33,23 @@ private fun handleQueryParams(
 }
 
 // TODO: handle it better
-internal fun Charset.canEncode(): Boolean = runCatching { this.newEncoder() }.getOrNull() != null
 
-internal fun CharsetEncoder.canEncode(c: Char): Boolean {
-    // TODO: check this
-    return kotlin.runCatching { this.encode("$c") }.isSuccess
+// some charsets can read but not encode; switch to an encodable charset and update the meta el
+internal fun Charset.canEncode(): Boolean = runCatching { true }.getOrNull() != null
+
+internal fun Charset.canEncode(c: Char): Boolean {
+    return this.canEncode("$c")
 }
 
-internal fun CharsetEncoder.canEncode(s: String): Boolean {
+internal fun Charset.canEncode(s: String): Boolean {
+//    return true
     // TODO: check this
-    return kotlin.runCatching { this.encode(s) }.isSuccess
+    return kotlin.runCatching { this.encode(ByteArrayBuilder(s.length * 8), s) }
+        .onFailure {
+            println("encodingErrro: $this")
+            it.printStackTrace()
+        }.isSuccess
 }
-
-internal fun String.isValidResourceUrl() =
-    this.startsWith("http", ignoreCase = true) || this.startsWith("ftp://", ignoreCase = true) ||
-        this.startsWith("ftps://", ignoreCase = true) ||
-        this.startsWith("file:/", ignoreCase = true) ||
-        this.startsWith("//")
-
-internal fun String.isAbsResource() =
-    this.startsWith("mailto:", ignoreCase = true) || this.startsWith("tel:", ignoreCase = true) ||
-        this.startsWith("geo:", ignoreCase = true) ||
-        this.startsWith("about:", ignoreCase = true) ||
-        this.startsWith("sms:", ignoreCase = true) ||
-        this.startsWith("smsto:", ignoreCase = true) ||
-        this.startsWith("data:", ignoreCase = true) ||
-        this.startsWith("market:", ignoreCase = true) ||
-        this.startsWith("magnet:", ignoreCase = true) ||
-        this.startsWith("sip:", ignoreCase = true) ||
-        this.startsWith("sips:", ignoreCase = true) ||
-        this.startsWith("javascript:", ignoreCase = true)
 
 internal fun IntArray.codePointsToString(): String {
     return if (this.isNotEmpty()) {
@@ -154,8 +61,4 @@ internal fun IntArray.codePointsToString(): String {
     } else {
         ""
     }
-}
-
-internal fun String.toBuffer(): Buffer {
-    return Buffer().apply { writeUtf8(this@toBuffer) }
 }

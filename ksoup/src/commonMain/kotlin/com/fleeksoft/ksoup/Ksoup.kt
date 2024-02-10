@@ -4,11 +4,10 @@ import com.fleeksoft.ksoup.helper.DataUtil
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.nodes.Element
 import com.fleeksoft.ksoup.parser.Parser
-import com.fleeksoft.ksoup.ported.BufferReader
 import com.fleeksoft.ksoup.safety.Cleaner
 import com.fleeksoft.ksoup.safety.Safelist
-import okio.IOException
-import okio.Path.Companion.toPath
+import korlibs.io.file.std.uniVfs
+import korlibs.io.stream.SyncStream
 
 /**
  * The core public access point to the com.fleeksoft.ksoup functionality.
@@ -81,40 +80,34 @@ public object Ksoup {
     /**
      * Parse the contents of a file as HTML.
      *
-     * @param file    file to load HTML from. Supports gzipped files (ending in .z or .gz).
+     * @param filePath file to load HTML from. Supports gzipped files (ending in .z or .gz).
      * @param charsetName (optional) character set of file contents. Set to `null` to determine from `http-equiv` meta tag, if
      * present, or fall back to `UTF-8` (which is often safe to do).
      * @param baseUri     The URL where the HTML was retrieved from, to resolve relative links against.
      * @return sane HTML
-     * @throws IOException if the file could not be found, or read, or if the charsetName is invalid.
      */
-    @Throws(IOException::class)
-    public fun parseFile(
-        file: String,
+    public suspend fun parseFile(
+        filePath: String,
         baseUri: String,
         charsetName: String? = null,
     ): Document {
-        val filePath = file.toPath()
         return DataUtil.load(filePath, charsetName, baseUri)
     }
 
     /**
      * Parse the contents of a file as HTML. The location of the file is used as the base URI to qualify relative URLs.
      *
-     * @param file        file to load HTML from. Supports gzipped files (ending in .z or .gz).
+     * @param filePath file to load HTML from. Supports gzipped files (ending in .z or .gz).
      * @param charsetName (optional) character set of file contents. Set to `null` to determine from `http-equiv` meta tag, if
      * present, or fall back to `UTF-8` (which is often safe to do).
      * @return sane HTML
-     * @throws IOException if the file could not be found, or read, or if the charsetName is invalid.
      * @see .parse
      */
-    @Throws(IOException::class)
-    public fun parseFile(
-        file: String,
+    public suspend fun parseFile(
+        filePath: String,
         charsetName: String? = null,
     ): Document {
-        val filePath = file.toPath()
-        return DataUtil.load(filePath, charsetName, filePath.toString())
+        return DataUtil.load(filePath, charsetName, filePath.uniVfs.absolutePath)
     }
 
     /**
@@ -125,77 +118,68 @@ public object Ksoup {
      *
      * This is the equivalent of calling [parse(file, null)][.parse]
      *
-     * @param file the file to load HTML from. Supports gzipped files (ending in .z or .gz).
+     * @param filePath the file to load HTML from. Supports gzipped files (ending in .z or .gz).
      * @return sane HTML
-     * @throws IOException if the file could not be found or read.
      * @see .parse
      */
-    @Throws(IOException::class)
-    public fun parseFile(file: String): Document {
-        val filePath = file.toPath()
-        return DataUtil.load(filePath, null, filePath.toString())
+    public suspend fun parseFile(filePath: String): Document {
+        return DataUtil.load(filePath, null, filePath.uniVfs.absolutePath)
     }
 
     /**
      * Parse the contents of a file as HTML.
      *
-     * @param file          file to load HTML from. Supports gzipped files (ending in .z or .gz).
-     * @param baseUri     The URL where the HTML was retrieved from, to resolve relative links against.
+     * @param filePath file to load HTML from. Supports gzipped files (ending in .z or .gz).
+     * @param baseUri The URL where the HTML was retrieved from, to resolve relative links against.
      * @param charsetName (optional) character set of file contents. Set to `null` to determine from `http-equiv` meta tag, if
      * present, or fall back to `UTF-8` (which is often safe to do).
      * @param parser alternate [parser][Parser.xmlParser] to use.
      * @return sane HTML
-     * @throws IOException if the file could not be found, or read, or if the charsetName is invalid.
      */
-    @Throws(IOException::class)
-    public fun parseFile(
-        file: String,
+    public suspend fun parseFile(
+        filePath: String,
         baseUri: String,
         charsetName: String?,
         parser: Parser,
     ): Document {
-        return DataUtil.load(file.toPath(), charsetName, baseUri, parser)
+        return DataUtil.load(filePath, charsetName, baseUri, parser)
     }
 
     /**
      * Read an buffer reader, and parse it to a Document.
      *
-     * @param bufferReader buffer reader to read. The stream will be closed after reading.
+     * @param syncStream buffer reader to read. The stream will be closed after reading.
      * @param baseUri     The URL where the HTML was retrieved from, to resolve relative links against.
      * @param charsetName (optional) character set of file contents. Set to `null` to determine from `http-equiv` meta tag, if
      * present, or fall back to `UTF-8` (which is often safe to do).
      * @return sane HTML
-     * @throws IOException if the file could not be found, or read, or if the charsetName is invalid.
      */
-    @Throws(IOException::class)
     public fun parse(
-        bufferReader: BufferReader,
+        syncStream: SyncStream,
         baseUri: String,
         charsetName: String?,
     ): Document {
-        return DataUtil.load(bufferReader, charsetName, baseUri)
+        return DataUtil.load(syncStream, charsetName, baseUri)
     }
 
     /**
      * Read an buffer reader, and parse it to a Document. You can provide an alternate parser, such as a simple XML
      * (non-HTML) parser.
      *
-     * @param bufferReader buffer reader to read. Make sure to close it after parsing.
+     * @param syncStream buffer reader to read. Make sure to close it after parsing.
      * @param baseUri     The URL where the HTML was retrieved from, to resolve relative links against.
      * @param charsetName (optional) character set of file contents. Set to `null` to determine from `http-equiv` meta tag, if
      * present, or fall back to `UTF-8` (which is often safe to do).
      * @param parser alternate [parser][Parser.xmlParser] to use.
      * @return sane HTML
-     * @throws IOException if the file could not be found, or read, or if the charsetName is invalid.
      */
-    @Throws(IOException::class)
     public fun parse(
-        bufferReader: BufferReader,
+        syncStream: SyncStream,
         baseUri: String,
         charsetName: String?,
         parser: Parser,
     ): Document {
-        return DataUtil.load(bufferReader, charsetName, baseUri, parser)
+        return DataUtil.load(syncStream, charsetName, baseUri, parser)
     }
 
     /**

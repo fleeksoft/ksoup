@@ -3,13 +3,12 @@ package com.fleeksoft.ksoup
 import com.fleeksoft.ksoup.helper.DataUtil
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parser.Parser
-import com.fleeksoft.ksoup.ported.BufferReader
-import io.ktor.utils.io.charsets.*
-import okio.gzip
-import okio.source
+import korlibs.io.lang.Charsets
+import korlibs.io.lang.toByteArray
+import korlibs.io.stream.SyncStream
+import korlibs.io.stream.openSync
+import korlibs.io.stream.readAll
 import java.io.*
-import java.nio.charset.StandardCharsets
-import java.nio.file.Files
 import java.util.zip.GZIPInputStream
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -17,31 +16,32 @@ import kotlin.test.assertTrue
 
 class DataUtilTestJvm {
     private fun inputStream(data: String): ByteArrayInputStream {
-        return ByteArrayInputStream(data.toByteArray())
+        return ByteArrayInputStream(data.encodeToByteArray())
     }
 
     @Test
-    fun testParseSequenceBufferReader() {
-        // https://github.com/jhy/jsoup/pull/1671
-        val bufferReader: BufferReader = TestHelper.resourceFilePathToBufferReader("htmltests/medium.html")
-        val fileContent = String(bufferReader.readByteArray())
-        val halfLength = fileContent.length / 2
-        val firstPart: String = fileContent.substring(0, halfLength)
-        val secondPart = fileContent.substring(halfLength)
-        val sequenceStream =
-            SequenceInputStream(
-                inputStream(firstPart),
-                inputStream(secondPart),
-            )
-        val doc: Document =
-            DataUtil.parseInputSource(
-                BufferReader(sequenceStream.source()),
-                null,
-                "",
-                Parser.htmlParser(),
-            )
-        assertEquals(fileContent, doc.outerHtml())
-    }
+    fun testParseSequenceBufferReader() =
+        runTest {
+            // https://github.com/jhy/jsoup/pull/1671
+            val stream: SyncStream = TestHelper.resourceFilePathToStream("htmltests/medium.html")
+            val fileContent = String(stream.readAll())
+            val halfLength = fileContent.length / 2
+            val firstPart: String = fileContent.substring(0, halfLength)
+            val secondPart = fileContent.substring(halfLength)
+            val sequenceStream =
+                SequenceInputStream(
+                    inputStream(firstPart),
+                    inputStream(secondPart),
+                )
+            val doc: Document =
+                DataUtil.parseInputSource(
+                    syncStream = sequenceStream.readAllBytes().openSync(),
+                    charsetName = null,
+                    baseUri = "",
+                    parser = Parser.htmlParser(),
+                )
+            assertEquals(fileContent, doc.outerHtml())
+        }
 
     @Test
     fun testLowercaseUtf8CharsetWithInputStream() {
@@ -63,7 +63,7 @@ class DataUtilTestJvm {
             )
         val doc: Document =
             Ksoup.parse(
-                bufferReader = BufferReader(FileInputStream(file).source().gzip()),
+                syncStream = GZIPInputStream(FileInputStream(file)).readAllBytes().openSync(),
                 charsetName = null,
                 baseUri = "https://example.com",
             )
@@ -101,7 +101,7 @@ class DataUtilTestJvm {
             )
         val docThree: Document =
             Ksoup.parse(
-                bufferReader = BufferReader(FileInputStream(file).source().gzip()),
+                syncStream = GZIPInputStream(FileInputStream(file)).readAllBytes().openSync(),
                 charsetName = null,
                 baseUri = "https://example.com",
             )
@@ -116,16 +116,16 @@ class DataUtilTestJvm {
             val bytes: ByteArray =
                 if (file.getName().endsWith(".gz")) {
                     val stream: InputStream = GZIPInputStream(FileInputStream(file))
-                    val byteBuffer: ByteArray = DataUtil.readToByteBuffer(BufferReader(stream.source()), 0)
+                    val byteBuffer: ByteArray = DataUtil.readToByteBuffer(stream.readAllBytes().openSync(), 0)
                     byteBuffer
                 } else {
-                    Files.readAllBytes(file.toPath())
+                    file.readBytes()
                 }
             return String(bytes)
         }
 
         fun inputStreamFrom(s: String): InputStream {
-            return ByteArrayInputStream(s.toByteArray(StandardCharsets.UTF_8))
+            return ByteArrayInputStream(s.toByteArray(Charsets.UTF8))
         }
     }
 }

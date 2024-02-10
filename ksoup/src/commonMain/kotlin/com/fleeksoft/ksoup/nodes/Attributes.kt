@@ -9,7 +9,7 @@ import com.fleeksoft.ksoup.nodes.Range.AttributeRange.Companion.UntrackedAttr
 import com.fleeksoft.ksoup.parser.ParseSettings
 import com.fleeksoft.ksoup.ported.Collections
 import com.fleeksoft.ksoup.ported.KCloneable
-import okio.IOException
+import korlibs.io.lang.IOException
 
 /**
  * The attributes of an Element.

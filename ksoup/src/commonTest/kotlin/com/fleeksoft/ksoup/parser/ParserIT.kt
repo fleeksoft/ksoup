@@ -2,7 +2,7 @@ package com.fleeksoft.ksoup.parser
 
 import com.fleeksoft.ksoup.BuildConfig
 import com.fleeksoft.ksoup.Platform
-import com.fleeksoft.ksoup.PlatformType
+import com.fleeksoft.ksoup.isJS
 import com.fleeksoft.ksoup.ported.System
 import kotlin.test.Ignore
 import kotlin.test.Test
@@ -30,7 +30,7 @@ class ParserIT {
 
     @Test
     fun handlesDeepStack() {
-        if (Platform.current == PlatformType.JS && BuildConfig.isGithubActions) {
+        if (Platform.isJS() && BuildConfig.isGithubActions) {
 //            The GitHub action is taking too much time.
             return
         }

@@ -1,16 +1,17 @@
 [versions]
-agp = "8.2.0"
+agp = "8.2.2"
 kotlin = "1.9.22"
 compileSdk = "34"
 minSdk = "21"
 libraryVersion = "0.1.1"
-ktor = "2.3.7"
+ktor = "2.3.8"
 coroutines = "1.7.3"
 okio = "3.7.0"
 kotlinxDatetime = "0.5.0"
-kotlinx-io = "0.3.0"
+kotlinx-io = "0.3.1"
 codepoints = "0.6.1"
 dokka = "1.9.10"
+korio = "5.3.1" # 999.0.0.999 is local version
 
 
 [libraries]
@@ -28,6 +29,7 @@ okio-nodefilesystem = { module = "com.squareup.okio:okio-nodefilesystem", versio
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }
 kotlinx-io = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version.ref = "kotlinx-io" }
 codepoints = { module = "de.cketti.unicode:kotlin-codepoints-deluxe", version.ref = "codepoints" }
+korio = { module = "com.soywiz.korge:korge-core", version.ref = "korio" }
 
 [plugins]
 androidLibrary = { id = "com.android.library", version.ref = "agp" }

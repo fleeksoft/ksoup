@@ -5,6 +5,7 @@ import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parser.Parser
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
+import korlibs.io.net.http.HttpClient
 
 /**
  * Use to fetch and parse a HTML page.
@@ -26,6 +27,18 @@ public suspend fun Ksoup.parseGetRequest(
 //        url can be changed after redirection
     val finalUrl = httpResponse.request.url.toString()
     val response = httpResponse.bodyAsText()
+    return parse(html = response, parser = parser, baseUri = finalUrl)
+}
+
+public suspend fun Ksoup.parseGetRequestKorio(
+    url: String,
+    httpRequestBuilder: HttpRequestBuilder.() -> Unit = {},
+    parser: Parser = Parser.htmlParser(),
+): Document {
+    val httpResponse = NetworkHelperKorio.instance.get(url, requestConfig = HttpClient.RequestConfig.DEFAULT.copy())
+//        url can be changed after redirection
+    val finalUrl = httpResponse.headers["location"] ?: url
+    val response = httpResponse.readAllString()
     return parse(html = response, parser = parser, baseUri = finalUrl)
 }
 

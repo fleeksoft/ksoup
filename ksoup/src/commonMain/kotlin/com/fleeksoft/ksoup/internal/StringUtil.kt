@@ -1,13 +1,13 @@
 package com.fleeksoft.ksoup.internal
 
 import com.fleeksoft.ksoup.ported.Character
-import com.fleeksoft.ksoup.ported.appendRelativePath
-import com.fleeksoft.ksoup.ported.isAbsResource
-import com.fleeksoft.ksoup.ported.isValidResourceUrl
 import de.cketti.codepoints.deluxe.CodePoint
 import de.cketti.codepoints.deluxe.appendCodePoint
 import de.cketti.codepoints.deluxe.codePointAt
-import io.ktor.http.*
+import korlibs.datastructure.iterators.fastForEachWithIndex
+import korlibs.io.file.PathInfo
+import korlibs.io.file.pathInfo
+import korlibs.io.net.URL
 import kotlin.math.min
 
 /**
@@ -72,12 +72,6 @@ internal object StringUtil {
     }
 
 
-    /**
-     * Returns space padding, up to a max of maxPaddingWidth.
-     * @param width amount of padding desired
-     * @param maxPaddingWidth maximum padding to apply. Set to `-1` for unlimited.
-     * @return string of spaces * width
-     */
     /**
      * Returns space padding (up to the default max of 30). Use [.padding] to specify a different limit.
      * @param width amount of padding desired
@@ -230,29 +224,6 @@ internal object StringUtil {
         return true
     }
 
-    fun resolve(base: Url, relUrl: String): Url {
-        val cleanedRelUrl = stripControlChars(relUrl)
-
-        if (cleanedRelUrl.isEmpty()) {
-            return base
-        }
-
-        if (cleanedRelUrl.isValidResourceUrl()) {
-            return URLBuilder(cleanedRelUrl).apply {
-                if (cleanedRelUrl.startsWith("//")) {
-                    protocol = base.protocol
-                }
-            }.build()
-        }
-
-        return URLBuilder(
-            protocol = base.protocol,
-            host = base.host,
-            port = base.port,
-            pathSegments = base.pathSegments
-        ).appendRelativePath(cleanedRelUrl).build()
-    }
-
     /**
      * Create a new absolute URL, from a provided existing absolute URL and a relative URL component.
      * @param baseUrl the existing absolute base URL
@@ -260,24 +231,12 @@ internal object StringUtil {
      * @return an absolute URL if one was able to be generated, or the empty string if not
      */
     fun resolve(baseUrl: String, relUrl: String): String {
-        // workaround: java will allow control chars in a path URL and may treat as relative, but Chrome / Firefox will strip and may see as a scheme. Normalize to browser's view.
+        // if access url is relative protocol then copy it
         val cleanedBaseUrl = stripControlChars(baseUrl)
         val cleanedRelUrl = stripControlChars(relUrl)
-
-//        mailto, tel, geo, about etc..
-        if (cleanedRelUrl.isAbsResource()) {
-            return cleanedRelUrl
-        }
-        return if (cleanedBaseUrl.isValidResourceUrl()) {
-            resolve(Url(cleanedBaseUrl), cleanedRelUrl).toString()
-        } else if (cleanedRelUrl.isValidResourceUrl()) {
-            Url(cleanedRelUrl).toString()
-        } else {
-            if (validUriScheme.matches(cleanedRelUrl)) cleanedRelUrl else ""
-        }
+        return URL.resolveOrNull(cleanedBaseUrl, cleanedRelUrl) ?: ""
     }
 
-    private val validUriScheme: Regex = "^[a-zA-Z][a-zA-Z0-9+-.]*:".toRegex()
     private val controlChars: Regex =
         Regex("[\\x00-\\x1f]*") // matches ascii 0 - 31, to strip from url
 

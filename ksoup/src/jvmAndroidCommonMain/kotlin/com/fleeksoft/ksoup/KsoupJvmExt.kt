@@ -2,8 +2,7 @@ package com.fleeksoft.ksoup
 
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parser.Parser
-import com.fleeksoft.ksoup.ported.BufferReader
-import okio.source
+import korlibs.io.stream.openSync
 import java.io.InputStream
 
 /**
@@ -23,7 +22,8 @@ public fun Ksoup.parseInputStream(
     parser: Parser = Parser.htmlParser(),
 ): Document {
     return parse(
-        bufferReader = BufferReader(source = inputStream.source()),
+        // TODO: use syncstream without reading bytes
+        syncStream = inputStream.readAllBytes().openSync(),
         charsetName = charsetName,
         baseUri = baseUri,
         parser = parser,

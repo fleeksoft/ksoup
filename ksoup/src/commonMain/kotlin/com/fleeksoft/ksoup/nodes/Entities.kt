@@ -14,8 +14,8 @@ import com.fleeksoft.ksoup.ported.Character
 import com.fleeksoft.ksoup.ported.canEncode
 import de.cketti.codepoints.deluxe.CodePoint
 import de.cketti.codepoints.deluxe.codePointAt
-import io.ktor.utils.io.charsets.*
-import okio.IOException
+import korlibs.io.lang.Charset
+import korlibs.io.lang.IOException
 
 /**
  * HTML entities, and escape routines. Source: [W3C
@@ -143,7 +143,7 @@ public object Entities {
         var lastWasWhite = false
         var reachedNonWhite = false
         val escapeMode: EscapeMode = out!!.escapeMode()
-        val encoder: CharsetEncoder = out.encoder()
+        val encoder: Charset = out.encoder()
         val coreCharset: CoreCharset = out.coreCharset // init in out.prepareEncoder()
         val length = string.length
         var codePoint: CodePoint
@@ -180,7 +180,7 @@ public object Entities {
                 }
             }
             // surrogate pairs, split implementation for efficiency on single char common case (saves creating strings, char[]):
-            if (codePoint.value < Character.MIN_SUPPLEMENTARY_CODE_POINT) {
+            if (codePoint.value < Character.MIN_SUPPLEMENTARY_CODE_POINT || encoder.name.uppercase() == "ASCII" || encoder.name.uppercase() == "US-ASCII" || encoder.name.uppercase() == "ISO-8859-1") {
                 val c = codePoint.value.toChar()
                 when {
                     c == '&' -> {
@@ -255,11 +255,7 @@ public object Entities {
             accum.append("&#x")
                 .append(
                     codePoint.toHexString(
-                        HexFormat {
-                            number {
-                                removeLeadingZeros = true
-                            }
-                        },
+                        HexFormat { number { removeLeadingZeros = true } },
                     ),
                 ).append(';')
         }
@@ -305,7 +301,7 @@ public object Entities {
     private fun canEncode(
         charset: CoreCharset,
         c: Char,
-        fallback: CharsetEncoder,
+        fallback: Charset,
     ): Boolean {
         // todo add more charset tests if impacted by Android's bad perf in canEncode
         return when (charset) {

@@ -1,12 +1,14 @@
 package com.fleeksoft.ksoup.parser
 
-import com.fleeksoft.ksoup.Platform
-import com.fleeksoft.ksoup.PlatformType
 import com.fleeksoft.ksoup.TestHelper
 import com.fleeksoft.ksoup.UncheckedIOException
-import com.fleeksoft.ksoup.ported.BufferReader
-import okio.IOException
-import okio.Path.Companion.toPath
+import com.fleeksoft.ksoup.ported.toStreamCharReader
+import com.fleeksoft.ksoup.readFile
+import com.fleeksoft.ksoup.runTest
+import korlibs.io.file.std.uniVfs
+import korlibs.io.lang.Charset
+import korlibs.io.lang.substr
+import korlibs.io.stream.openSync
 import kotlin.test.*
 
 /**
@@ -16,12 +18,39 @@ import kotlin.test.*
  */
 class CharacterReaderTest {
     @Test
-    fun testReadMixSpecialChar() {
-        if (Platform.current != PlatformType.JVM && !TestHelper.forceAllTestsRun) {
-            return
+    fun testUtf16BE() =
+        runTest {
+            val firstLine = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">"""
+            val input =
+                readFile(
+                    TestHelper.getResourceAbsolutePath("bomtests/bom_utf16be.html"),
+                ).toStreamCharReader(charset = Charset.forName("UTF-16BE"))
+
+//            ignore first char (ZWNBSP)\uFEFF:65279
+            val actualReadLine = input.read(firstLine.length + 1)
+            assertEquals(firstLine.length, actualReadLine.length - 1)
+            assertEquals(firstLine, actualReadLine.substr(1))
         }
+
+    @Test
+    fun testUtf16LE() =
+        runTest {
+            val firstLine = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">"""
+            val input =
+                readFile(
+                    TestHelper.getResourceAbsolutePath("bomtests/bom_utf16le.html"),
+                ).toStreamCharReader(charset = Charset.forName("UTF-16LE"))
+
+            //            ignore first char (ZWNBSP)\uFEFF:65279
+            val actualReadLine = input.read(firstLine.length + 1)
+            assertEquals(firstLine.length, actualReadLine.length - 1)
+            assertEquals(firstLine, actualReadLine.substr(1))
+        }
+
+    @Test
+    fun testReadMixSpecialChar() {
         val input = "ä<a>ä</a>"
-        val charReader = CharacterReader(BufferReader(input), 1)
+        val charReader = CharacterReader(input.openSync().toStreamCharReader(), sz = 1)
         input.forEachIndexed { index, char ->
             assertEquals(index, charReader.pos())
             assertEquals(char, charReader.consume())
@@ -390,7 +419,7 @@ class CharacterReaderTest {
 
     @Test
     fun notEmptyAtBufferSplitPoint() {
-        val r = CharacterReader(BufferReader("How about now"), 3)
+        val r = CharacterReader("How about now".openSync().toStreamCharReader(), sz = 3)
         assertEquals("How", r.consumeTo(' '))
         assertFalse(r.isEmpty(), "Should not be empty")
         assertEquals(' ', r.consume())
@@ -443,14 +472,13 @@ class CharacterReaderTest {
     fun canTrackNewlines() {
         val builder = StringBuilder()
         builder.append("<foo>\n<bar>\n<qux>\n")
-        while (builder.length < maxBufferLen) builder.append("Lorem ipsum dolor sit amet, consectetur adipiscing elit.")
+        while (builder.length < maxBufferLen) {
+            builder.append("Lorem ipsum dolor sit amet, consectetur adipiscing elit.")
+        }
         builder.append("[foo]\n[bar]")
-        val content = builder.toString()
+        val content = builder.toString() // 32789
         val noTrack = CharacterReader(content)
         assertFalse(noTrack.isTrackNewlines())
-        val track = CharacterReader(content)
-        track.trackNewlines(true)
-        assertTrue(track.isTrackNewlines())
 
         // check that no tracking works as expected (pos is 0 indexed, line number stays at 1, col is pos+1)
         assertEquals(0, noTrack.pos())
@@ -467,6 +495,10 @@ class CharacterReaderTest {
         assertEquals(1, noTrack.lineNumber())
         assertEquals(noTrack.pos() + 1, noTrack.columnNumber())
         assertEquals("1:32779", noTrack.posLineCol())
+
+        val track = CharacterReader(content)
+        track.trackNewlines(true)
+        assertTrue(track.isTrackNewlines())
 
         // and the line numbers: "<foo>\n<bar>\n<qux>\n"
         assertEquals(0, track.pos())
@@ -518,27 +550,23 @@ class CharacterReaderTest {
     }
 
     @Test
-    @Throws(IOException::class)
-    fun linenumbersAgreeWithEditor() {
-        if (Platform.current == PlatformType.WINDOWS) {
-//            gzip not supported yet
-            return
+    fun linenumbersAgreeWithEditor() =
+        runTest {
+            val content: String =
+                TestHelper.getFileAsString(
+                    TestHelper.getResourceAbsolutePath("htmltests/large.html.gz").uniVfs,
+                )
+            val reader = CharacterReader(content)
+            reader.trackNewlines(true)
+            val scan = "<p>VESTIBULUM" // near the end of the file
+            while (!reader.matches(scan)) reader.consumeTo(scan)
+            assertEquals(280218, reader.pos())
+            assertEquals(1002, reader.lineNumber())
+            assertEquals(1, reader.columnNumber())
+            reader.consumeTo(' ')
+            assertEquals(1002, reader.lineNumber())
+            assertEquals(14, reader.columnNumber())
         }
-        val content: String =
-            TestHelper.getFileAsString(
-                TestHelper.getResourceAbsolutePath("htmltests/large.html.gz").toPath(),
-            )
-        val reader = CharacterReader(content)
-        reader.trackNewlines(true)
-        val scan = "<p>VESTIBULUM" // near the end of the file
-        while (!reader.matches(scan)) reader.consumeTo(scan)
-        assertEquals(280218, reader.pos())
-        assertEquals(1002, reader.lineNumber())
-        assertEquals(1, reader.columnNumber())
-        reader.consumeTo(' ')
-        assertEquals(1002, reader.lineNumber())
-        assertEquals(14, reader.columnNumber())
-    }
 
     @Test
     fun consumeDoubleQuotedAttributeConsumesThruSingleQuote() {

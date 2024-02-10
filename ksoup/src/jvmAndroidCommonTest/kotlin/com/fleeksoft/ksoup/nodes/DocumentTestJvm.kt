@@ -1,7 +1,10 @@
 package com.fleeksoft.ksoup.nodes
 
 import com.fleeksoft.ksoup.Ksoup
-import com.fleeksoft.ksoup.ported.BufferReader
+import korlibs.io.lang.toByteArray
+import korlibs.io.lang.toString
+import korlibs.io.stream.SyncStream
+import korlibs.io.stream.openSync
 import java.io.StringWriter
 import java.nio.charset.StandardCharsets
 import kotlin.test.*
@@ -27,7 +30,8 @@ class DocumentTestJvm {
     @Test
     fun parseAndHtmlOnDifferentThreads() {
         val html = "<p>Alrighty then it's not \uD83D\uDCA9. <span>Next</span></p>" // 💩
-        val asci = "<p>Alrighty then it's not &#x1f4a9;. <span>Next</span></p>"
+//        val asci = "<p>Alrighty then it's not &#x1f4a9;. <span>Next</span></p>"
+        val asci = "<p>Alrighty then it's not &#x1f4a9;. <span>Next</span></p>" // its decoded?
         val doc = Ksoup.parse(html)
         val out = arrayOfNulls<String>(1)
         val p = doc.select("p")
@@ -40,7 +44,7 @@ class DocumentTestJvm {
         thread.start()
         thread.join()
         assertEquals(html, out[0])
-        assertEquals(StandardCharsets.US_ASCII, doc.outputSettings().charset())
+        assertEquals(StandardCharsets.US_ASCII.name(), doc.outputSettings().charset().name)
         assertEquals(asci, p.outerHtml())
     }
 
@@ -57,14 +61,11 @@ class DocumentTestJvm {
                 "</body>" +
                 "</html>"
         )
-        val buffer: BufferReader = BufferReader(input.toByteArray(StandardCharsets.US_ASCII))
-        val doc: Document = Ksoup.parse(bufferReader = buffer, baseUri = "http://example.com", charsetName = null)
+        val buffer: SyncStream = input.toByteArray(StandardCharsets.US_ASCII).openSync()
+        val doc: Document = Ksoup.parse(syncStream = buffer, baseUri = "http://example.com", charsetName = null)
         doc.outputSettings().escapeMode(Entities.EscapeMode.xhtml)
         val output =
-            String(
-                doc.html().toByteArray(doc.outputSettings().charset()),
-                doc.outputSettings().charset(),
-            )
+            doc.html().toByteArray(doc.outputSettings().charset()).toString(charset = doc.outputSettings().charset())
         assertFalse(output.contains("?"), "Should not have contained a '?'.")
         assertTrue(
             output.contains("&#xa0;") || output.contains("&nbsp;"),

@@ -13,7 +13,8 @@ class EntitiesTest {
     @Test
     fun escape() {
         val text = "Hello &<> Å å π 新 there ¾ © »"
-        val escapedAscii = escape(text, Document.OutputSettings().charset("ISO-8859-1").escapeMode(Entities.EscapeMode.base))
+        val escapedAscii =
+            escape(text, Document.OutputSettings().charset("ISO-8859-1").escapeMode(Entities.EscapeMode.base))
         val escapedAsciiFull =
             escape(text, Document.OutputSettings().charset("ISO-8859-1").escapeMode(Entities.EscapeMode.extended))
         val escapedAsciiXhtml =
@@ -49,7 +50,8 @@ class EntitiesTest {
     @Test
     fun escapedSupplementary() {
         val text = "\uD835\uDD59"
-        val escapedAscii = escape(text, Document.OutputSettings().charset("ISO-8859-1").escapeMode(Entities.EscapeMode.base))
+        val escapedAscii =
+            escape(text, Document.OutputSettings().charset("ISO-8859-1").escapeMode(Entities.EscapeMode.base))
         assertEquals("&#x1d559;", escapedAscii)
         val escapedAsciiFull =
             escape(text, Document.OutputSettings().charset("ISO-8859-1").escapeMode(Entities.EscapeMode.extended))
@@ -65,7 +67,8 @@ class EntitiesTest {
             "&NestedGreaterGreater; &nGg; &nGt; &nGtv; &Gt; &gg;" // gg is not combo, but 8811 could conflict with NestedGreaterGreater or others
         val un = "≫ ⋙̸ ≫⃒ ≫̸ ≫ ≫"
         assertEquals(un, unescape(text))
-        val escaped = escape(un, Document.OutputSettings().charset("ISO-8859-1").escapeMode(Entities.EscapeMode.extended))
+        val escaped =
+            escape(un, Document.OutputSettings().charset("ISO-8859-1").escapeMode(Entities.EscapeMode.extended))
         assertEquals("&Gt; &Gg;&#x338; &Gt;&#x20d2; &Gt;&#x338; &Gt; &Gt;", escaped)
         assertEquals(un, unescape(escaped))
     }
@@ -93,7 +96,8 @@ class EntitiesTest {
     @Test
     fun escapeSupplementaryCharacter() {
         val text = 135361.toCodePoint().toChars().concatToString()
-        val escapedAscii = escape(text, Document.OutputSettings().charset("ISO-8859-1").escapeMode(Entities.EscapeMode.base))
+        val escapedAscii =
+            escape(text, Document.OutputSettings().charset("ISO-8859-1").escapeMode(Entities.EscapeMode.base))
         assertEquals("&#x210c1;", escapedAscii)
         val escapedUtf = escape(text, Document.OutputSettings().charset("UTF-8").escapeMode(Entities.EscapeMode.base))
         assertEquals(text, escapedUtf)

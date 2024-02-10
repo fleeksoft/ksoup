@@ -7,9 +7,9 @@ class PlatformTest {
     @Test
     fun testJsSupportedRegex() {
         val regex2 = jsSupportedRegex("img[src~=(?i)\\.(png|jpe?g)]")
-        val expected2 = if (Platform.current == PlatformType.JS) """img[src~=\.(png|jpe?g)]""" else """img[src~=(?i)\.(png|jpe?g)]"""
+        val expected2 = if (Platform.isJS()) """img[src~=\.(png|jpe?g)]""" else """img[src~=(?i)\.(png|jpe?g)]"""
         assertEquals(expected2, regex2.pattern)
-        if (Platform.current == PlatformType.JS) {
+        if (Platform.isJS()) {
             assertEquals(RegexOption.IGNORE_CASE, regex2.options.first())
         }
     }
