@@ -20,10 +20,10 @@ kotlin {
         nodejs()
     }
 
-    linuxX64()
-    linuxArm64()
+//    linuxX64()
+//    linuxArm64()
 
-    mingwX64()
+//    mingwX64()
 
     androidTarget {
         compilations.all {
@@ -37,8 +37,8 @@ kotlin {
         iosX64(),
         iosArm64(),
         iosSimulatorArm64(),
-        macosX64(),
-        macosArm64(),
+//        macosX64(),
+//        macosArm64(),
         tvosX64(),
         tvosArm64(),
         tvosSimulatorArm64(),
@@ -173,8 +173,8 @@ publishing {
 
 signing {
     useInMemoryPgpKeys(
-        File(rootDir, "gpg/private.key").readText(),
-//        gradleLocalProperties(rootDir).getProperty("gpgKeySecret"),
+//        File(rootDir, "gpg/private.key").readText(),
+        gradleLocalProperties(rootDir).getProperty("gpgKeySecret"),
         gradleLocalProperties(rootDir).getProperty("gpgKeyPassword"),
     )
     sign(publishing.publications)
