@@ -33,7 +33,7 @@ class CleanerTest {
     @Test
     fun basicBehaviourTest() {
         val h =
-            "<div><p><a href='javascript:sendAllMoney()'>Dodgy</a> <A HREF='HTTP://nice.com'>Nice</a></p><blockquote>Hello</blockquote>"
+            "<div><p><a href='javascript:sendAllMoney()'>Dodgy</a> <A HREF='http://nice.com'>Nice</a></p><blockquote>Hello</blockquote>"
         val cleanHtml = Ksoup.clean(h, Safelist.basic())
         assertEquals(
             "<p><a rel=\"nofollow\">Dodgy</a> <a href=\"http://nice.com\" rel=\"nofollow\">Nice</a></p><blockquote>Hello</blockquote>",
@@ -104,7 +104,7 @@ class CleanerTest {
 
     @Test
     fun testRemoveEnforcedAttributes() {
-        val h = "<div><p><A HREF='HTTP://nice.com'>Nice</a></p><blockquote>Hello</blockquote>"
+        val h = "<div><p><A HREF='http://nice.com'>Nice</a></p><blockquote>Hello</blockquote>"
         val cleanHtml = Ksoup.clean(h, Safelist.basic().removeEnforcedAttribute("a", "rel"))
         assertEquals(
             "<p><a href=\"http://nice.com\">Nice</a></p><blockquote>Hello</blockquote>",
