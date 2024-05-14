@@ -1,16 +1,16 @@
 [versions]
-agp = "8.2.0"
-kotlin = "1.9.22"
+agp = "8.2.0" #kmp max gradle support 8.2 right now
+kotlin = "1.9.24"
 compileSdk = "34"
 minSdk = "21"
 libraryVersion = "0.1.2"
-ktor = "2.3.7"
-coroutines = "1.7.3"
-okio = "3.7.0"
-kotlinxDatetime = "0.5.0"
+ktor = "2.3.11"
+coroutines = "1.8.1"
+okio = "3.9.0"
+kotlinxDatetime = "0.6.0"
 kotlinx-io = "0.3.0"
 codepoints = "0.6.1"
-dokka = "1.9.10"
+dokka = "1.9.20"
 
 
 [libraries]
