@@ -1,7 +1,6 @@
 package com.fleeksoft.ksoup
 
 import com.fleeksoft.ksoup.nodes.Document
-import io.ktor.utils.io.charsets.*
 import java.io.FileInputStream
 import kotlin.test.Test
 import kotlin.test.assertEquals
