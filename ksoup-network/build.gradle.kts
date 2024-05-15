@@ -18,13 +18,15 @@ kotlin {
 
     js(IR) {
         nodejs()
-//        browser()
     }
 
-//    linuxX64()
-//    linuxArm64()
+    linuxX64()
+    linuxArm64()
 
-//    mingwX64()
+    macosX64()
+    macosArm64()
+
+    mingwX64()
 
     androidTarget {
         compilations.all {
@@ -38,11 +40,14 @@ kotlin {
         iosX64(),
         iosArm64(),
         iosSimulatorArm64(),
-//        macosX64(),
-//        macosArm64(),
+        macosX64(),
+        macosArm64(),
         tvosX64(),
         tvosArm64(),
         tvosSimulatorArm64(),
+//        watchosX64(),
+        watchosArm64(),
+        watchosSimulatorArm64(),
     ).forEach {
         it.binaries.framework {
             baseName = "ksoup-network"
