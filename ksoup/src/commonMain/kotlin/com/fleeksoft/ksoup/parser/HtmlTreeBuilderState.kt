@@ -1757,8 +1757,6 @@ internal enum class HtmlTreeBuilderState {
                         true
                     }
                 }
-
-                null -> {}
             }
             return true
         }
@@ -2009,7 +2007,6 @@ internal enum class HtmlTreeBuilderState {
                 }
 
                 Token.TokenType.EOF -> {}
-                null -> {}
             }
             return true
         }

@@ -4,8 +4,8 @@ import com.fleeksoft.ksoup.Ksoup
 import com.fleeksoft.ksoup.TestHelper
 import com.fleeksoft.ksoup.TextUtil
 import com.fleeksoft.ksoup.nodes.*
-import com.fleeksoft.ksoup.runTest
 import korlibs.io.lang.Charsets
+import kotlinx.coroutines.test.runTest
 import kotlin.test.*
 
 /**
@@ -60,22 +60,21 @@ class XmlTreeBuilderTest {
     }
 
     @Test
-    fun testSupplyParserToDataStream() =
-        runTest {
+    fun testSupplyParserToDataStream() = runTest {
 //
-            val inStream = TestHelper.resourceFilePathToStream("htmltests/xml-test.xml")
-            val doc =
-                Ksoup.parse(
-                    syncStream = inStream,
-                    baseUri = "http://foo.com",
-                    charsetName = null,
-                    parser = Parser.xmlParser(),
-                )
-            assertEquals(
-                "<doc><val>One<val>Two</val>Three</val></doc>",
-                TextUtil.stripNewlines(doc.html()),
+        val inStream = TestHelper.resourceFilePathToStream("htmltests/xml-test.xml")
+        val doc =
+            Ksoup.parse(
+                syncStream = inStream,
+                baseUri = "http://foo.com",
+                charsetName = null,
+                parser = Parser.xmlParser(),
             )
-        }
+        assertEquals(
+            "<doc><val>One<val>Two</val>Three</val></doc>",
+            TextUtil.stripNewlines(doc.html()),
+        )
+    }
 
     @Test
     fun testDoesNotForceSelfClosingKnownTags() {
@@ -119,22 +118,21 @@ class XmlTreeBuilderTest {
     }
 
     @Test
-    fun testDetectCharsetEncodingDeclaration() =
-        runTest {
-            val inStream = TestHelper.resourceFilePathToStream("htmltests/xml-charset.xml")
-            val doc =
-                Ksoup.parse(
-                    syncStream = inStream,
-                    baseUri = "http://example.com/",
-                    charsetName = null,
-                    parser = Parser.xmlParser(),
-                )
-            assertEquals("ISO-8859-1", doc.charset().name.uppercase())
-            assertEquals(
-                "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><data>äöåéü</data>",
-                TextUtil.stripNewlines(doc.html()),
+    fun testDetectCharsetEncodingDeclaration() = runTest {
+        val inStream = TestHelper.resourceFilePathToStream("htmltests/xml-charset.xml")
+        val doc =
+            Ksoup.parse(
+                syncStream = inStream,
+                baseUri = "http://example.com/",
+                charsetName = null,
+                parser = Parser.xmlParser(),
             )
-        }
+        assertEquals("ISO-8859-1", doc.charset().name.uppercase())
+        assertEquals(
+            "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><data>äöåéü</data>",
+            TextUtil.stripNewlines(doc.html()),
+        )
+    }
 
     @Test
     fun testParseDeclarationAttributes() {

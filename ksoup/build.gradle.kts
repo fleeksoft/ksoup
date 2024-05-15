@@ -67,6 +67,7 @@ kotlin {
             this.kotlin.srcDir(layout.buildDirectory.file(rootPath))
             dependencies {
                 implementation(libs.kotlin.test)
+                implementation(libs.kotlinx.coroutines.test)
                 compileOnly(projects.ksoupNetwork)
             }
         }

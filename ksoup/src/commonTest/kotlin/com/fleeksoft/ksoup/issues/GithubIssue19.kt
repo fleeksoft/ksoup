@@ -1,6 +1,7 @@
 import com.fleeksoft.ksoup.*
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.select.Elements
+import kotlinx.coroutines.test.runTest
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 import kotlin.test.Test
@@ -12,24 +13,23 @@ class GithubIssue19 {
     //    https://github.com/fleeksoft/ksoup/issues/19
 
     @Test
-    fun testAttributeIncorrectMixCharsetIssue() =
-        runTest {
-            val document: Document = Ksoup.parseFile(TestHelper.getResourceAbsolutePath("htmltests/issue19.html.gz"))
-            val imagesEls: Elements = document.select("img")
-            for (imagesEl in imagesEls) {
-                val attr: String = imagesEl.attr("src")
-                if (!attr.startsWith(PNG_BASE64_HEADER)) {
-                    continue
-                }
-                val src = attr.replaceFirst(PNG_BASE64_HEADER.toRegex(), "")
-                if (src.length % 4 != 0) {
-                    throw Exception("Base64 string length is not a multiple of 4.")
-                }
+    fun testAttributeIncorrectMixCharsetIssue() = runTest {
+        val document: Document = Ksoup.parseFile(TestHelper.getResourceAbsolutePath("htmltests/issue19.html.gz"))
+        val imagesEls: Elements = document.select("img")
+        for (imagesEl in imagesEls) {
+            val attr: String = imagesEl.attr("src")
+            if (!attr.startsWith(PNG_BASE64_HEADER)) {
+                continue
             }
+            val src = attr.replaceFirst(PNG_BASE64_HEADER.toRegex(), "")
+            if (src.length % 4 != 0) {
+                throw Exception("Base64 string length is not a multiple of 4.")
+            }
+        }
         /*
         val doc = Ksoup.parseFile(TestHelper.getResourceAbsolutePath("htmltests/issue19.html"))
         resolveFolderChildInfos(doc)*/
-        }
+    }
 
     fun resolveFolderChildInfos(doc: Document) {
         val body = doc.select("body")

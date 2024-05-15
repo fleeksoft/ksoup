@@ -7,6 +7,7 @@ import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parser.Parser
 import korlibs.io.file.std.uniVfs
 import korlibs.io.stream.openSync
+import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
@@ -19,51 +20,50 @@ import kotlin.test.assertTrue
  */
 class ParseTest {
     @Test
-    fun testHtml5Charset() =
-        runTest {
-            if (Platform.isApple()) {
+    fun testHtml5Charset() = runTest {
+        if (Platform.isApple()) {
 //            apple don't support gb2312 or gbk
-                return@runTest
-            }
-            // test that <meta charset="gb2312"> works
-            var input = TestHelper.getResourceAbsolutePath("htmltests/meta-charset-1.html")
-            var doc: Document =
-                parseFile(
-                    filePath = input,
-                    baseUri = "http://example.com/",
-                    charsetName = null,
-                ) // gb2312, has html5 <meta charset>
-            if (Platform.isJS()) {
-                // FIXME: on js it is returning GBK
-                assertEquals("GBK", doc.outputSettings().charset().name.uppercase())
-            } else {
-                assertEquals("GB2312", doc.outputSettings().charset().name.uppercase())
-            }
-
-            assertEquals("新", doc.text())
-
-            // double check, no charset, falls back to utf8 which is incorrect
-            input = TestHelper.getResourceAbsolutePath("htmltests/meta-charset-2.html") //
-            doc =
-                parseFile(
-                    filePath = input,
-                    baseUri = "http://example.com",
-                    charsetName = null,
-                ) // gb2312, no charset
-            assertEquals("UTF-8", doc.outputSettings().charset().name.uppercase())
-            assertNotEquals("新", doc.text())
-
-            // confirm fallback to utf8
-            input = TestHelper.getResourceAbsolutePath("htmltests/meta-charset-3.html")
-            doc =
-                parseFile(
-                    filePath = input,
-                    baseUri = "http://example.com/",
-                    charsetName = null,
-                ) // utf8, no charset
-            assertEquals("UTF-8", doc.outputSettings().charset().name.uppercase())
-            assertEquals("新", doc.text())
+            return@runTest
         }
+        // test that <meta charset="gb2312"> works
+        var input = TestHelper.getResourceAbsolutePath("htmltests/meta-charset-1.html")
+        var doc: Document =
+            parseFile(
+                filePath = input,
+                baseUri = "http://example.com/",
+                charsetName = null,
+            ) // gb2312, has html5 <meta charset>
+        if (Platform.isJS()) {
+            // FIXME: on js it is returning GBK
+            assertEquals("GBK", doc.outputSettings().charset().name.uppercase())
+        } else {
+            assertEquals("GB2312", doc.outputSettings().charset().name.uppercase())
+        }
+
+        assertEquals("新", doc.text())
+
+        // double check, no charset, falls back to utf8 which is incorrect
+        input = TestHelper.getResourceAbsolutePath("htmltests/meta-charset-2.html") //
+        doc =
+            parseFile(
+                filePath = input,
+                baseUri = "http://example.com",
+                charsetName = null,
+            ) // gb2312, no charset
+        assertEquals("UTF-8", doc.outputSettings().charset().name.uppercase())
+        assertNotEquals("新", doc.text())
+
+        // confirm fallback to utf8
+        input = TestHelper.getResourceAbsolutePath("htmltests/meta-charset-3.html")
+        doc =
+            parseFile(
+                filePath = input,
+                baseUri = "http://example.com/",
+                charsetName = null,
+            ) // utf8, no charset
+        assertEquals("UTF-8", doc.outputSettings().charset().name.uppercase())
+        assertEquals("新", doc.text())
+    }
 
     @Test
     fun testBrokenHtml5CharsetWithASingleDoubleQuote() {
@@ -80,94 +80,84 @@ class ParseTest {
     }
 
     @Test
-    fun testLowercaseUtf8Charset() =
-        runTest {
-            val input = TestHelper.getResourceAbsolutePath("htmltests/lowercase-charset-test.html")
-            val doc: Document = parseFile(filePath = input, charsetName = null)
-            val form = doc.select("#form").first()
-            assertEquals(2, form!!.children().size)
-            assertEquals("UTF-8", doc.outputSettings().charset().name.uppercase())
-        }
+    fun testLowercaseUtf8Charset() = runTest {
+        val input = TestHelper.getResourceAbsolutePath("htmltests/lowercase-charset-test.html")
+        val doc: Document = parseFile(filePath = input, charsetName = null)
+        val form = doc.select("#form").first()
+        assertEquals(2, form!!.children().size)
+        assertEquals("UTF-8", doc.outputSettings().charset().name.uppercase())
+    }
 
     @Test
-    fun testXwiki() =
-        runTest {
-            // https://github.com/jhy/jsoup/issues/1324
-            // this tests that when in CharacterReader we hit a buffer while marked, we preserve the mark when buffered up and can rewind
-            val input = TestHelper.getResourceAbsolutePath("htmltests/xwiki-1324.html.gz")
-            val doc: Document =
-                parseFile(
-                    filePath = input,
-                    baseUri = "https://localhost/",
-                    charsetName = null,
-                )
-            assertEquals("XWiki Jetty HSQLDB 12.1-SNAPSHOT", doc.select("#xwikiplatformversion").text())
+    fun testXwiki() = runTest {
+        // https://github.com/jhy/jsoup/issues/1324
+        // this tests that when in CharacterReader we hit a buffer while marked, we preserve the mark when buffered up and can rewind
+        val input = TestHelper.getResourceAbsolutePath("htmltests/xwiki-1324.html.gz")
+        val doc: Document =
+            parseFile(
+                filePath = input,
+                baseUri = "https://localhost/",
+                charsetName = null,
+            )
+        assertEquals("XWiki Jetty HSQLDB 12.1-SNAPSHOT", doc.select("#xwikiplatformversion").text())
 
-            // was getting busted at =userdirectory, because it hit the bufferup point but the mark was then lost. so
-            // updated to preserve the mark.
-            val wantHtml =
-                "<a class=\"list-group-item\" data-id=\"userdirectory\" href=\"/xwiki/bin/admin/XWiki/XWikiPreferences?editor=globaladmin&amp;section=userdirectory\" title=\"Customize the user directory live table.\">User Directory</a>"
-            assertEquals(wantHtml, doc.select("[data-id=userdirectory]").outerHtml())
-        }
+        // was getting busted at =userdirectory, because it hit the bufferup point but the mark was then lost. so
+        // updated to preserve the mark.
+        val wantHtml =
+            "<a class=\"list-group-item\" data-id=\"userdirectory\" href=\"/xwiki/bin/admin/XWiki/XWikiPreferences?editor=globaladmin&amp;section=userdirectory\" title=\"Customize the user directory live table.\">User Directory</a>"
+        assertEquals(wantHtml, doc.select("[data-id=userdirectory]").outerHtml())
+    }
 
     @Test
-    fun testXwikiExpanded() {
+    fun testXwikiExpanded() = runTest {
         // https://github.com/jhy/jsoup/issues/1324
         // this tests that if there is a huge illegal character reference, we can get through a buffer and rewind, and still catch that it's an invalid refence,
         // and the parse tree is correct.
+        val parser = Parser.htmlParser()
+        val doc =
+            parse(
+                syncStream = TestHelper.resourceFilePathToStream("htmltests/xwiki-edit.html.gz"),
+                baseUri = "https://localhost/",
+                charsetName = "UTF-8",
+                parser = parser.setTrackErrors(100),
+            )
+        val errors = parser.getErrors()
+        assertEquals("XWiki Jetty HSQLDB 12.1-SNAPSHOT", doc.select("#xwikiplatformversion").text())
+        assertEquals(0, errors.size) // not an invalid reference because did not look legit
 
-        runTest {
-            val parser = Parser.htmlParser()
-            val doc =
-                parse(
-                    syncStream = TestHelper.resourceFilePathToStream("htmltests/xwiki-edit.html.gz"),
-                    baseUri = "https://localhost/",
-                    charsetName = "UTF-8",
-                    parser = parser.setTrackErrors(100),
-                )
-            val errors = parser.getErrors()
-            assertEquals("XWiki Jetty HSQLDB 12.1-SNAPSHOT", doc.select("#xwikiplatformversion").text())
-            assertEquals(0, errors.size) // not an invalid reference because did not look legit
-
-            // was getting busted at =userdirectory, because it hit the bufferup point but the mark was then lost. so
-            // updated to preserve the mark.
-            val wantHtml =
-                "<a class=\"list-group-item\" data-id=\"userdirectory\" href=\"/xwiki/bin/admin/XWiki/XWikiPreferences?editor=globaladmin&amp;RIGHTHERERIGHTHERERIGHTHERERIGHTHERE"
-            assertTrue(doc.select("[data-id=userdirectory]").outerHtml().startsWith(wantHtml))
-        }
+        // was getting busted at =userdirectory, because it hit the bufferup point but the mark was then lost. so
+        // updated to preserve the mark.
+        val wantHtml =
+            "<a class=\"list-group-item\" data-id=\"userdirectory\" href=\"/xwiki/bin/admin/XWiki/XWikiPreferences?editor=globaladmin&amp;RIGHTHERERIGHTHERERIGHTHERERIGHTHERE"
+        assertTrue(doc.select("[data-id=userdirectory]").outerHtml().startsWith(wantHtml))
     }
 
     @Test
-    fun testWikiExpandedFromString() {
-        runTest {
-            val input = TestHelper.getResourceAbsolutePath("htmltests/xwiki-edit.html.gz")
-            val html = TestHelper.getFileAsString(input.uniVfs)
-            val doc = parse(html)
-            assertEquals("XWiki Jetty HSQLDB 12.1-SNAPSHOT", doc.select("#xwikiplatformversion").text())
-            val wantHtml =
-                "<a class=\"list-group-item\" data-id=\"userdirectory\" href=\"/xwiki/bin/admin/XWiki/XWikiPreferences?editor=globaladmin&amp;RIGHTHERERIGHTHERERIGHTHERERIGHTHERE"
-            assertTrue(doc.select("[data-id=userdirectory]").outerHtml().startsWith(wantHtml))
-        }
+    fun testWikiExpandedFromString() = runTest {
+        val input = TestHelper.getResourceAbsolutePath("htmltests/xwiki-edit.html.gz")
+        val html = TestHelper.getFileAsString(input.uniVfs)
+        val doc = parse(html)
+        assertEquals("XWiki Jetty HSQLDB 12.1-SNAPSHOT", doc.select("#xwikiplatformversion").text())
+        val wantHtml =
+            "<a class=\"list-group-item\" data-id=\"userdirectory\" href=\"/xwiki/bin/admin/XWiki/XWikiPreferences?editor=globaladmin&amp;RIGHTHERERIGHTHERERIGHTHERERIGHTHERE"
+        assertTrue(doc.select("[data-id=userdirectory]").outerHtml().startsWith(wantHtml))
     }
 
     @Test
-    fun testWikiFromString() {
-        runTest {
-            val input = TestHelper.getResourceAbsolutePath("htmltests/xwiki-1324.html.gz")
-            val html = TestHelper.getFileAsString(input.uniVfs)
-            val doc = parse(html)
-            assertEquals("XWiki Jetty HSQLDB 12.1-SNAPSHOT", doc.select("#xwikiplatformversion").text())
-            val wantHtml =
-                "<a class=\"list-group-item\" data-id=\"userdirectory\" href=\"/xwiki/bin/admin/XWiki/XWikiPreferences?editor=globaladmin&amp;section=userdirectory\" title=\"Customize the user directory live table.\">User Directory</a>"
-            assertEquals(wantHtml, doc.select("[data-id=userdirectory]").outerHtml())
-        }
+    fun testWikiFromString() = runTest {
+        val input = TestHelper.getResourceAbsolutePath("htmltests/xwiki-1324.html.gz")
+        val html = TestHelper.getFileAsString(input.uniVfs)
+        val doc = parse(html)
+        assertEquals("XWiki Jetty HSQLDB 12.1-SNAPSHOT", doc.select("#xwikiplatformversion").text())
+        val wantHtml =
+            "<a class=\"list-group-item\" data-id=\"userdirectory\" href=\"/xwiki/bin/admin/XWiki/XWikiPreferences?editor=globaladmin&amp;section=userdirectory\" title=\"Customize the user directory live table.\">User Directory</a>"
+        assertEquals(wantHtml, doc.select("[data-id=userdirectory]").outerHtml())
     }
 
     @Test
-    fun testFileParseNoCharsetMethod() =
-        runTest {
-            val file = TestHelper.getResourceAbsolutePath("htmltests/xwiki-1324.html.gz")
-            val doc: Document = parseFile(file)
-            assertEquals("XWiki Jetty HSQLDB 12.1-SNAPSHOT", doc.select("#xwikiplatformversion").text())
-        }
+    fun testFileParseNoCharsetMethod() = runTest {
+        val file = TestHelper.getResourceAbsolutePath("htmltests/xwiki-1324.html.gz")
+        val doc: Document = parseFile(file)
+        assertEquals("XWiki Jetty HSQLDB 12.1-SNAPSHOT", doc.select("#xwikiplatformversion").text())
+    }
 }

@@ -6,6 +6,7 @@ import com.fleeksoft.ksoup.parser.Parser
 import korlibs.io.lang.Charset
 import korlibs.io.lang.toByteArray
 import korlibs.io.stream.openSync
+import kotlinx.coroutines.test.runTest
 import kotlin.test.*
 
 /**
@@ -145,26 +146,25 @@ class DocumentTest {
     }
 
     @Test
-    fun testLocation() =
-        runTest {
-            // tests location vs base href
-            val `in`: String = TestHelper.getResourceAbsolutePath("htmltests/basehref.html")
-            val doc: Document =
-                Ksoup.parseFile(
-                    filePath = `in`,
-                    baseUri = "http://example.com/",
-                    charsetName = "UTF-8",
-                )
-            val location = doc.location()
-            val baseUri = doc.baseUri()
-            assertEquals("http://example.com/", location)
-            assertEquals("https://example.com/path/file.html?query", baseUri)
-            assertEquals("./anotherfile.html", doc.expectFirst("a").attr("href"))
-            assertEquals(
-                "https://example.com/path/anotherfile.html",
-                doc.expectFirst("a").attr("abs:href"),
+    fun testLocation() = runTest {
+        // tests location vs base href
+        val `in`: String = TestHelper.getResourceAbsolutePath("htmltests/basehref.html")
+        val doc: Document =
+            Ksoup.parseFile(
+                filePath = `in`,
+                baseUri = "http://example.com/",
+                charsetName = "UTF-8",
             )
-        }
+        val location = doc.location()
+        val baseUri = doc.baseUri()
+        assertEquals("http://example.com/", location)
+        assertEquals("https://example.com/path/file.html?query", baseUri)
+        assertEquals("./anotherfile.html", doc.expectFirst("a").attr("href"))
+        assertEquals(
+            "https://example.com/path/anotherfile.html",
+            doc.expectFirst("a").attr("abs:href"),
+        )
+    }
 
     @Test
     fun testLocationFromString() {
@@ -472,15 +472,15 @@ class DocumentTest {
             return
         }
         val input = (
-            "<html>" +
-                "<head>" +
-                "<meta http-equiv=\"content-type\" content=\"text/html; charset=Shift_JIS\" />" +
-                "</head>" +
-                "<body>" +
-                "before&nbsp;after" +
-                "</body>" +
-                "</html>"
-        )
+                "<html>" +
+                        "<head>" +
+                        "<meta http-equiv=\"content-type\" content=\"text/html; charset=Shift_JIS\" />" +
+                        "</head>" +
+                        "<body>" +
+                        "before&nbsp;after" +
+                        "</body>" +
+                        "</html>"
+                )
         val inputStream = input.encodeToByteArray().openSync()
         val doc: Document = Ksoup.parse(syncStream = inputStream, baseUri = "http://example.com", charsetName = null)
         doc.outputSettings().escapeMode(Entities.EscapeMode.xhtml)

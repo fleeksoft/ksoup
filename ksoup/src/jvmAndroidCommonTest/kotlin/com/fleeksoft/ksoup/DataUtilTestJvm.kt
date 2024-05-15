@@ -8,6 +8,7 @@ import korlibs.io.lang.toByteArray
 import korlibs.io.stream.SyncStream
 import korlibs.io.stream.openSync
 import korlibs.io.stream.readAll
+import kotlinx.coroutines.test.runTest
 import java.io.*
 import java.util.zip.GZIPInputStream
 import kotlin.test.Test
@@ -20,28 +21,27 @@ class DataUtilTestJvm {
     }
 
     @Test
-    fun testParseSequenceBufferReader() =
-        runTest {
-            // https://github.com/jhy/jsoup/pull/1671
-            val stream: SyncStream = TestHelper.resourceFilePathToStream("htmltests/medium.html")
-            val fileContent = String(stream.readAll())
-            val halfLength = fileContent.length / 2
-            val firstPart: String = fileContent.substring(0, halfLength)
-            val secondPart = fileContent.substring(halfLength)
-            val sequenceStream =
-                SequenceInputStream(
-                    inputStream(firstPart),
-                    inputStream(secondPart),
-                )
-            val doc: Document =
-                DataUtil.parseInputSource(
-                    syncStream = sequenceStream.readAllBytes().openSync(),
-                    charsetName = null,
-                    baseUri = "",
-                    parser = Parser.htmlParser(),
-                )
-            assertEquals(fileContent, doc.outerHtml())
-        }
+    fun testParseSequenceBufferReader() = runTest {
+        // https://github.com/jhy/jsoup/pull/1671
+        val stream: SyncStream = TestHelper.resourceFilePathToStream("htmltests/medium.html")
+        val fileContent = String(stream.readAll())
+        val halfLength = fileContent.length / 2
+        val firstPart: String = fileContent.substring(0, halfLength)
+        val secondPart = fileContent.substring(halfLength)
+        val sequenceStream =
+            SequenceInputStream(
+                inputStream(firstPart),
+                inputStream(secondPart),
+            )
+        val doc: Document =
+            DataUtil.parseInputSource(
+                syncStream = sequenceStream.readAllBytes().openSync(),
+                charsetName = null,
+                baseUri = "",
+                parser = Parser.htmlParser(),
+            )
+        assertEquals(fileContent, doc.outerHtml())
+    }
 
     @Test
     fun testLowercaseUtf8CharsetWithInputStream() {

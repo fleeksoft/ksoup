@@ -4,11 +4,11 @@ import com.fleeksoft.ksoup.TestHelper
 import com.fleeksoft.ksoup.UncheckedIOException
 import com.fleeksoft.ksoup.ported.toStreamCharReader
 import com.fleeksoft.ksoup.readFile
-import com.fleeksoft.ksoup.runTest
 import korlibs.io.file.std.uniVfs
 import korlibs.io.lang.Charset
 import korlibs.io.lang.substr
 import korlibs.io.stream.openSync
+import kotlinx.coroutines.test.runTest
 import kotlin.test.*
 
 /**
@@ -18,34 +18,32 @@ import kotlin.test.*
  */
 class CharacterReaderTest {
     @Test
-    fun testUtf16BE() =
-        runTest {
-            val firstLine = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">"""
-            val input =
-                readFile(
-                    TestHelper.getResourceAbsolutePath("bomtests/bom_utf16be.html"),
-                ).toStreamCharReader(charset = Charset.forName("UTF-16BE"))
+    fun testUtf16BE() = runTest {
+        val firstLine = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">"""
+        val input =
+            readFile(
+                TestHelper.getResourceAbsolutePath("bomtests/bom_utf16be.html"),
+            ).toStreamCharReader(charset = Charset.forName("UTF-16BE"))
 
 //            ignore first char (ZWNBSP)\uFEFF:65279
-            val actualReadLine = input.read(firstLine.length + 1)
-            assertEquals(firstLine.length, actualReadLine.length - 1)
-            assertEquals(firstLine, actualReadLine.substr(1))
-        }
+        val actualReadLine = input.read(firstLine.length + 1)
+        assertEquals(firstLine.length, actualReadLine.length - 1)
+        assertEquals(firstLine, actualReadLine.substr(1))
+    }
 
     @Test
-    fun testUtf16LE() =
-        runTest {
-            val firstLine = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">"""
-            val input =
-                readFile(
-                    TestHelper.getResourceAbsolutePath("bomtests/bom_utf16le.html"),
-                ).toStreamCharReader(charset = Charset.forName("UTF-16LE"))
+    fun testUtf16LE() = runTest {
+        val firstLine = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">"""
+        val input =
+            readFile(
+                TestHelper.getResourceAbsolutePath("bomtests/bom_utf16le.html"),
+            ).toStreamCharReader(charset = Charset.forName("UTF-16LE"))
 
-            //            ignore first char (ZWNBSP)\uFEFF:65279
-            val actualReadLine = input.read(firstLine.length + 1)
-            assertEquals(firstLine.length, actualReadLine.length - 1)
-            assertEquals(firstLine, actualReadLine.substr(1))
-        }
+        //            ignore first char (ZWNBSP)\uFEFF:65279
+        val actualReadLine = input.read(firstLine.length + 1)
+        assertEquals(firstLine.length, actualReadLine.length - 1)
+        assertEquals(firstLine, actualReadLine.substr(1))
+    }
 
     @Test
     fun testReadMixSpecialChar() {
@@ -550,23 +548,22 @@ class CharacterReaderTest {
     }
 
     @Test
-    fun linenumbersAgreeWithEditor() =
-        runTest {
-            val content: String =
-                TestHelper.getFileAsString(
-                    TestHelper.getResourceAbsolutePath("htmltests/large.html.gz").uniVfs,
-                )
-            val reader = CharacterReader(content)
-            reader.trackNewlines(true)
-            val scan = "<p>VESTIBULUM" // near the end of the file
-            while (!reader.matches(scan)) reader.consumeTo(scan)
-            assertEquals(280218, reader.pos())
-            assertEquals(1002, reader.lineNumber())
-            assertEquals(1, reader.columnNumber())
-            reader.consumeTo(' ')
-            assertEquals(1002, reader.lineNumber())
-            assertEquals(14, reader.columnNumber())
-        }
+    fun linenumbersAgreeWithEditor() = runTest {
+        val content: String =
+            TestHelper.getFileAsString(
+                TestHelper.getResourceAbsolutePath("htmltests/large.html.gz").uniVfs,
+            )
+        val reader = CharacterReader(content)
+        reader.trackNewlines(true)
+        val scan = "<p>VESTIBULUM" // near the end of the file
+        while (!reader.matches(scan)) reader.consumeTo(scan)
+        assertEquals(280218, reader.pos())
+        assertEquals(1002, reader.lineNumber())
+        assertEquals(1, reader.columnNumber())
+        reader.consumeTo(' ')
+        assertEquals(1002, reader.lineNumber())
+        assertEquals(14, reader.columnNumber())
+    }
 
     @Test
     fun consumeDoubleQuotedAttributeConsumesThruSingleQuote() {
