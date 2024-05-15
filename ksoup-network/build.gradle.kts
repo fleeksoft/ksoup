@@ -55,8 +55,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             compileOnly(projects.ksoup)
-            implementation(libs.korio)
-            api(libs.ktor.client.core)
+            implementation(libs.korlibs.io)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -70,38 +69,33 @@ kotlin {
         jvmMain {
             dependsOn(nonJsMain)
             dependencies {
-                implementation(libs.ktor.client.okhttp)
             }
         }
 
         androidMain {
             dependsOn(nonJsMain)
             dependencies {
-                implementation(libs.ktor.client.okhttp)
             }
         }
 
         appleMain {
             dependsOn(nonJsMain)
             dependencies {
-                implementation(libs.ktor.client.darwin)
             }
         }
 
         linuxMain {
             dependsOn(nonJsMain)
             dependencies {
-                implementation(libs.ktor.client.cio)
             }
         }
 
         jsMain.dependencies {
-            implementation(libs.ktor.client.js)
         }
 
         mingwMain {
+            dependsOn(nonJsMain)
             dependencies {
-                implementation(libs.ktor.client.win)
             }
         }
     }

@@ -13,6 +13,8 @@ codepoints = "0.6.1"
 dokka = "1.9.10"
 korio = "5.3.1" # 999.0.0.999 is local version
 
+korlibs = "999.0.0.999" # 999.0.0.999 is local version
+#korlibs = "6.0.0-alpha1"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -29,7 +31,8 @@ okio-nodefilesystem = { module = "com.squareup.okio:okio-nodefilesystem", versio
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }
 kotlinx-io = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version.ref = "kotlinx-io" }
 codepoints = { module = "de.cketti.unicode:kotlin-codepoints-deluxe", version.ref = "codepoints" }
-korio = { module = "com.soywiz.korge:korge-core", version.ref = "korio" }
+korlibs-io = { module = "com.soywiz:korlibs-io", version.ref = "korlibs" }
+korlibs-charset = { module = "com.soywiz:korlibs-charset", version.ref = "korlibs" }
 
 [plugins]
 androidLibrary = { id = "com.android.library", version.ref = "agp" }

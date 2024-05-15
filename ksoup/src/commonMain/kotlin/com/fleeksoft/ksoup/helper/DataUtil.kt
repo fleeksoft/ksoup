@@ -20,7 +20,7 @@ import korlibs.io.file.fullName
 import korlibs.io.file.std.uniVfs
 import korlibs.io.lang.Charset
 import korlibs.io.lang.Charsets
-import korlibs.io.lang.use
+import korlibs.io.lang.useThis
 import korlibs.io.stream.SyncStream
 import korlibs.io.stream.readAll
 import korlibs.io.stream.readBytes
@@ -78,23 +78,23 @@ public object DataUtil {
         val name: String = Normalizer.lowerCase(filePath.uniVfs.fullName)
 
         val source = readFile(filePath)
-        return source.use { bufferedSource ->
+        return source.useThis {
             val syncStream: SyncStream =
                 if (name.endsWith(".gz") || name.endsWith(".z")) {
-                    bufferedSource.mark(SharedConstants.DefaultBufferSize)
+                    this.mark(SharedConstants.DefaultBufferSize)
                     val zipped: Boolean =
                         runCatching {
-                            bufferedSource.read() == 0x1f && bufferedSource.read() == 0x8b // gzip magic bytes  0x1f == 31 & 0x8b = 139
+                            this.read() == 0x1f && this.read() == 0x8b // gzip magic bytes  0x1f == 31 & 0x8b = 139
                         }.getOrNull() ?: false
-                    bufferedSource.reset()
+                    this.reset()
                     if (zipped) {
-                        bufferedSource.close()
+                        this.close()
                         readGzipFile(filePath)
                     } else {
-                        bufferedSource
+                        this
                     }
                 } else {
-                    bufferedSource
+                    this
                 }
 
 //            val charset = charsetName?.let { Charset.forName(it) } ?: Charsets.UTF8

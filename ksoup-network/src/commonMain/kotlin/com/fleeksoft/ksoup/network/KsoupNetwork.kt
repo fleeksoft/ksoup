@@ -3,8 +3,7 @@ package com.fleeksoft.ksoup.network
 import com.fleeksoft.ksoup.Ksoup
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parser.Parser
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
+import korlibs.io.net.http.HttpBodyContent
 import korlibs.io.net.http.HttpClient
 
 /**
@@ -20,22 +19,15 @@ import korlibs.io.net.http.HttpClient
  */
 public suspend fun Ksoup.parseGetRequest(
     url: String,
-    httpRequestBuilder: HttpRequestBuilder.() -> Unit = {},
+    headers: Map<String, String> = emptyMap(),
+    requestConfig: HttpClient.RequestConfig = HttpClient.RequestConfig.DEFAULT,
     parser: Parser = Parser.htmlParser(),
 ): Document {
-    val httpResponse = NetworkHelper.instance.get(url, httpRequestBuilder = httpRequestBuilder)
-//        url can be changed after redirection
-    val finalUrl = httpResponse.request.url.toString()
-    val response = httpResponse.bodyAsText()
-    return parse(html = response, parser = parser, baseUri = finalUrl)
-}
-
-public suspend fun Ksoup.parseGetRequestKorio(
-    url: String,
-    httpRequestBuilder: HttpRequestBuilder.() -> Unit = {},
-    parser: Parser = Parser.htmlParser(),
-): Document {
-    val httpResponse = NetworkHelperKorio.instance.get(url, requestConfig = HttpClient.RequestConfig.DEFAULT.copy())
+    val httpResponse = NetworkHelperKorIo.instance.get(
+        url,
+        headers = headers,
+        requestConfig = requestConfig
+    )
 //        url can be changed after redirection
     val finalUrl = httpResponse.headers["location"] ?: url
     val response = httpResponse.readAllString()
@@ -56,19 +48,20 @@ public suspend fun Ksoup.parseGetRequestKorio(
 public suspend fun Ksoup.parseSubmitRequest(
     url: String,
     params: Map<String, String> = emptyMap(),
-    httpRequestBuilder: HttpRequestBuilder.() -> Unit = {},
+    headers: Map<String, String> = emptyMap(),
+    requestConfig: HttpClient.RequestConfig = HttpClient.RequestConfig.DEFAULT,
     parser: Parser = Parser.htmlParser(),
 ): Document {
-    val httpResponse =
-        NetworkHelper.instance.submitForm(
-            url = url,
-            params = params,
-            httpRequestBuilder = httpRequestBuilder,
-        )
+    val httpResponse = NetworkHelperKorIo.instance.submitForm(
+        url = url,
+        params = params,
+        headers = headers,
+        requestConfig = requestConfig,
+    )
 //            url can be changed after redirection
-    val finalUrl = httpResponse.request.url.toString()
-    val result: String = httpResponse.bodyAsText()
-    return parse(html = result, parser = parser, baseUri = finalUrl)
+    val finalUrl = httpResponse.headers["location"] ?: url
+    val response = httpResponse.readAllString()
+    return parse(html = response, parser = parser, baseUri = finalUrl)
 }
 
 /**
@@ -84,16 +77,19 @@ public suspend fun Ksoup.parseSubmitRequest(
  */
 public suspend fun Ksoup.parsePostRequest(
     url: String,
-    httpRequestBuilder: HttpRequestBuilder.() -> Unit = {},
+    body: HttpBodyContent = HttpBodyContent("", ""),
+    headers: Map<String, String> = emptyMap(),
+    requestConfig: HttpClient.RequestConfig = HttpClient.RequestConfig.DEFAULT,
     parser: Parser = Parser.htmlParser(),
 ): Document {
-    val httpResponse =
-        NetworkHelper.instance.post(
-            url = url,
-            httpRequestBuilder = httpRequestBuilder,
-        )
+    val httpResponse = NetworkHelperKorIo.instance.post(
+        url = url,
+        body = body,
+        headers = headers,
+        requestConfig = requestConfig
+    )
 //            url can be changed after redirection
-    val finalUrl = httpResponse.request.url.toString()
-    val result: String = httpResponse.bodyAsText()
-    return parse(html = result, parser = parser, baseUri = finalUrl)
+    val finalUrl = httpResponse.headers["location"] ?: url
+    val response = httpResponse.readAllString()
+    return parse(html = response, parser = parser, baseUri = finalUrl)
 }

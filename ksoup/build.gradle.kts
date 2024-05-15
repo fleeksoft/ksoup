@@ -61,7 +61,8 @@ kotlin {
         commonMain.dependencies {
             implementation(libs.kotlinx.datetime)
             implementation(libs.codepoints)
-            implementation(libs.korio)
+            implementation(libs.korlibs.charset)
+            implementation(libs.korlibs.io)
         }
         commonTest {
             this.kotlin.srcDir(layout.buildDirectory.file(rootPath))

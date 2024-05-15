@@ -2,6 +2,7 @@ package com.fleeksoft.ksoup
 
 import korlibs.io.compression.deflate.GZIP
 import korlibs.io.compression.uncompress
+import korlibs.io.file.readAsSyncStream
 import korlibs.io.file.std.uniVfs
 import korlibs.io.stream.*
 

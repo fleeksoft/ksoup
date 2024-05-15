@@ -3,8 +3,8 @@ package com.fleeksoft.ksoup.network
 import com.fleeksoft.ksoup.Ksoup
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parser.Parser
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
+import korlibs.io.net.http.HttpBodyContent
+import korlibs.io.net.http.HttpClient
 import kotlinx.coroutines.runBlocking
 
 /**
@@ -20,14 +20,15 @@ import kotlinx.coroutines.runBlocking
  */
 public fun Ksoup.parseGetRequestBlocking(
     url: String,
-    httpRequestBuilder: HttpRequestBuilder.() -> Unit = {},
+    headers: Map<String, String> = emptyMap(),
+    requestConfig: HttpClient.RequestConfig = HttpClient.RequestConfig.DEFAULT,
     parser: Parser = Parser.htmlParser(),
 ): Document =
     runBlocking {
-        val httpResponse = NetworkHelper.instance.get(url, httpRequestBuilder = httpRequestBuilder)
+        val httpResponse = NetworkHelperKorIo.instance.get(url = url, headers = headers, requestConfig = requestConfig)
 //        url can be changed after redirection
-        val finalUrl = httpResponse.request.url.toString()
-        val response = httpResponse.bodyAsText()
+        val finalUrl = httpResponse.headers["location"] ?: url
+        val response = httpResponse.readAllString()
         return@runBlocking parse(html = response, parser = parser, baseUri = finalUrl)
     }
 
@@ -45,19 +46,21 @@ public fun Ksoup.parseGetRequestBlocking(
 public fun Ksoup.parseSubmitRequestBlocking(
     url: String,
     params: Map<String, String> = emptyMap(),
-    httpRequestBuilder: HttpRequestBuilder.() -> Unit = {},
+    headers: Map<String, String> = emptyMap(),
+    requestConfig: HttpClient.RequestConfig = HttpClient.RequestConfig.DEFAULT,
     parser: Parser = Parser.htmlParser(),
 ): Document =
     runBlocking {
         val httpResponse =
-            NetworkHelper.instance.submitForm(
+            NetworkHelperKorIo.instance.submitForm(
                 url = url,
                 params = params,
-                httpRequestBuilder = httpRequestBuilder,
+                headers = headers,
+                requestConfig = requestConfig
             )
 //            url can be changed after redirection
-        val finalUrl = httpResponse.request.url.toString()
-        val result: String = httpResponse.bodyAsText()
+        val finalUrl = httpResponse.headers["location"] ?: url
+        val result: String = httpResponse.readAllString()
         return@runBlocking parse(html = result, parser = parser, baseUri = finalUrl)
     }
 
@@ -74,17 +77,21 @@ public fun Ksoup.parseSubmitRequestBlocking(
  */
 public fun Ksoup.parsePostRequestBlocking(
     url: String,
-    httpRequestBuilder: HttpRequestBuilder.() -> Unit = {},
+    body: HttpBodyContent = HttpBodyContent("", ""),
+    headers: Map<String, String> = emptyMap(),
+    requestConfig: HttpClient.RequestConfig = HttpClient.RequestConfig.DEFAULT,
     parser: Parser = Parser.htmlParser(),
 ): Document =
     runBlocking {
         val httpResponse =
-            NetworkHelper.instance.post(
+            NetworkHelperKorIo.instance.post(
                 url = url,
-                httpRequestBuilder = httpRequestBuilder,
+                body = body,
+                headers = headers,
+                requestConfig = requestConfig
             )
 //            url can be changed after redirection
-        val finalUrl = httpResponse.request.url.toString()
-        val result: String = httpResponse.bodyAsText()
+        val finalUrl = httpResponse.headers["location"] ?: url
+        val result: String = httpResponse.readAllString()
         return@runBlocking parse(html = result, parser = parser, baseUri = finalUrl)
     }

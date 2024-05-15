@@ -2,11 +2,11 @@ package com.fleeksoft.ksoup.network
 
 import korlibs.io.net.http.*
 
-internal class NetworkHelperKorio {
+internal class NetworkHelperKorIo {
     private val client: HttpClient = createHttpClient()
 
     companion object {
-        val instance: NetworkHelperKorio = NetworkHelperKorio()
+        val instance: NetworkHelperKorIo = NetworkHelperKorIo()
     }
 
     suspend fun get(
@@ -45,7 +45,7 @@ internal class NetworkHelperKorio {
 
     suspend fun post(
         url: String,
-        body: HttpBodyContent,
+        body: HttpBodyContent = HttpBodyContent("", ""),
         headers: Map<String, String> = mapOf(),
         requestConfig: HttpClient.RequestConfig = HttpClient.RequestConfig.DEFAULT,
     ): HttpClient.Response {
