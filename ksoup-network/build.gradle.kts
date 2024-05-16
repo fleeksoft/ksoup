@@ -1,4 +1,5 @@
 import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
+import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -19,6 +20,12 @@ kotlin {
     js(IR) {
         nodejs()
     }
+
+    @OptIn(ExperimentalWasmDsl::class)
+    wasmJs()
+//    yet not supported by korlibs and amper
+//    @OptIn(ExperimentalWasmDsl::class)
+//    wasmWasi()
 
     linuxX64()
     linuxArm64()
