@@ -184,10 +184,10 @@ class DataUtilTest {
         assertTrue(doc.title().contains("UTF-16LE"))
         assertTrue(doc.text().contains("가각갂갃간갅"))
 
-        /*if (Platform.isJS() || Platform.isApple()) {
+        if (Platform.isJS()) {
             // FIXME: UTF-32 charset not supported
             return@runTest
-        }*/
+        }
 
         input = TestHelper.getResourceAbsolutePath("bomtests/bom_utf32be.html")
         doc = Ksoup.parseFile(filePath = input, baseUri = "http://example.com", charsetName = null)
