@@ -67,7 +67,6 @@ kotlin {
         commonMain.dependencies {
             implementation(libs.kotlinx.datetime)
             implementation(libs.codepoints)
-            implementation(libs.korlibs.charset)
             implementation(libs.korlibs.io)
         }
         commonTest {
