@@ -6,11 +6,11 @@ import com.fleeksoft.ksoup.nodes.Element
 /**
  * Base combining (and, or) evaluator.
  */
-internal abstract class CombiningEvaluator internal constructor() : Evaluator() {
+public abstract class CombiningEvaluator internal constructor() : Evaluator() {
     // maintain original order so that #toString() is sensible
-    val evaluators: ArrayList<Evaluator> = ArrayList<Evaluator>()
-    val sortedEvaluators: ArrayList<Evaluator> = ArrayList<Evaluator>()
-    var num = 0
+    public val evaluators: ArrayList<Evaluator> = ArrayList()
+    public val sortedEvaluators: ArrayList<Evaluator> = ArrayList()
+    protected var num: Int = 0
     private var _cost = 0
 
     internal constructor(evaluators: Collection<Evaluator>) : this() {
@@ -29,16 +29,16 @@ internal abstract class CombiningEvaluator internal constructor() : Evaluator() 
         return _cost
     }
 
-    fun rightMostEvaluator(): Evaluator? {
+    public fun rightMostEvaluator(): Evaluator? {
         return if (num > 0) evaluators[num - 1] else null
     }
 
-    fun replaceRightMostEvaluator(replacement: Evaluator) {
+    public fun replaceRightMostEvaluator(replacement: Evaluator) {
         evaluators[num - 1] = replacement
         updateEvaluators()
     }
 
-    fun updateEvaluators() {
+    public fun updateEvaluators() {
         // used so we don't need to bash on size() for every match test
         num = evaluators.size
 
@@ -53,7 +53,7 @@ internal abstract class CombiningEvaluator internal constructor() : Evaluator() 
     }
 
     // ^ comparingInt, sortedEvaluators.sort not available in targeted version
-    class And internal constructor(evaluators: Collection<Evaluator>) :
+    public class And internal constructor(evaluators: Collection<Evaluator>) :
         CombiningEvaluator(evaluators) {
             internal constructor(vararg evaluators: Evaluator) : this(evaluators.toList())
 
@@ -73,7 +73,7 @@ internal abstract class CombiningEvaluator internal constructor() : Evaluator() 
             }
         }
 
-    class Or : CombiningEvaluator {
+    public class Or : CombiningEvaluator {
         /**
          * Create a new Or evaluator. The initial evaluators are ANDed together and used as the first clause of the OR.
          * @param evaluators initial OR clause (these are wrapped into an AND evaluator).
@@ -91,7 +91,7 @@ internal abstract class CombiningEvaluator internal constructor() : Evaluator() 
         internal constructor(vararg evaluators: Evaluator) : this(evaluators.toList())
         internal constructor() : super()
 
-        fun add(e: Evaluator) {
+        public fun add(e: Evaluator) {
             evaluators.add(e)
             updateEvaluators()
         }

@@ -31,7 +31,7 @@ class ElementIT {
         val childNodes = doc.body().childNodes()
         wrapper.insertChildren(0, childNodes)
         val runtime = System.currentTimeMillis() - start
-        assertEquals(rows, wrapper.childNodes.size)
+        assertEquals(rows, wrapper._childNodes.size)
         assertEquals(rows, childNodes.size) // child nodes is a wrapper, so still there
         assertEquals(0, doc.body().childNodes().size) // but on a fresh look, all gone
         doc.body().empty().appendChild(wrapper)
@@ -63,11 +63,11 @@ class ElementIT {
         val wrapper = Element("div")
         wrapper.append("<p>Prior Content</p>")
         wrapper.append("<p>End Content</p>")
-        assertEquals(2, wrapper.childNodes.size)
+        assertEquals(2, wrapper._childNodes.size)
         val childNodes = doc.body().childNodes()
         wrapper.insertChildren(1, childNodes)
         val runtime = System.currentTimeMillis() - start
-        assertEquals(rows + 2, wrapper.childNodes.size)
+        assertEquals(rows + 2, wrapper._childNodes.size)
         assertEquals(rows, childNodes.size) // child nodes is a wrapper, so still there
         assertEquals(0, doc.body().childNodes().size) // but on a fresh look, all gone
         doc.body().empty().appendChild(wrapper)

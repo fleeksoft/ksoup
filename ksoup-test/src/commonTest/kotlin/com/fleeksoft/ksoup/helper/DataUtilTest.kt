@@ -3,6 +3,7 @@ package com.fleeksoft.ksoup.helper
 import com.fleeksoft.ksoup.*
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parser.Parser
+import korlibs.io.file.std.resourcesVfs
 import korlibs.io.file.std.uniVfs
 import korlibs.io.lang.Charset
 import korlibs.io.lang.Charsets
@@ -14,8 +15,13 @@ import kotlin.test.*
 
 class DataUtilTest {
     @Test
+    fun testFileExists() = runTest {
+        assertEquals(true, TestHelper.getResourceAbsolutePath("htmltests/medium.html").uniVfs.exists())
+    }
+
+    @Test
     fun testCharset() {
-        assertEquals("utf-8", DataUtil.getCharsetFromContentType("text/html;charset=utf-8 "))
+        assertEquals("utf-8", DataUtil.`getCharsetFromContentType`("text/html;charset=utf-8 "))
         assertEquals("UTF-8", DataUtil.getCharsetFromContentType("text/html; charset=UTF-8"))
         assertEquals(
             "ISO-8859-1",

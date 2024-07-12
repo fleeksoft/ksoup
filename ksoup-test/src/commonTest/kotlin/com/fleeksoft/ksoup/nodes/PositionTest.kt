@@ -101,7 +101,7 @@ class PositionTest {
         val html = "<html><head><meta></head><body><img><p>One</p><p>Two</p></body></html>"
         val doc: Document = Ksoup.parse(html, TrackingHtmlParser)
 
-        val track: StringBuilder = StringBuilder()
+        val track = StringBuilder()
         doc.expectFirst("html").stream().forEach { el ->
             accumulatePositions(el, track)
             assertTrue(el.sourceRange().isTracked(), el.tagName())

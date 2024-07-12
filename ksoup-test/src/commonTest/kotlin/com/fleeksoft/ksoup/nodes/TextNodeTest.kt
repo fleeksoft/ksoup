@@ -164,12 +164,11 @@ class TextNodeTest {
         for (el in doc.getAllElements()) {
             for (node in el.childNodes()) {
                 if (node is TextNode) {
-                    val textNode = node
-                    assertFalse(StringUtil.isBlank(textNode.text()))
+                    assertFalse(StringUtil.isBlank(node.text()))
                     if (!foundFirst) {
                         foundFirst = true
-                        assertEquals("One ", textNode.text())
-                        assertEquals("One ", textNode.getWholeText())
+                        assertEquals("One ", node.text())
+                        assertEquals("One ", node.getWholeText())
                     }
                 }
             }

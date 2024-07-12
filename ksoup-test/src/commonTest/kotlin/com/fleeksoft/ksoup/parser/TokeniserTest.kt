@@ -1,7 +1,6 @@
 package com.fleeksoft.ksoup.parser
 
 import com.fleeksoft.ksoup.Ksoup
-import com.fleeksoft.ksoup.Ksoup.parse
 import com.fleeksoft.ksoup.nodes.CDataNode
 import com.fleeksoft.ksoup.nodes.Comment
 import com.fleeksoft.ksoup.nodes.TextNode
@@ -28,7 +27,7 @@ class TokeniserTest {
             sb.append('X') // First character to cross character buffer boundary
             sb.append(tail).append(quote).append(">\n")
             val html = sb.toString()
-            val doc = parse(html)
+            val doc = Ksoup.parse(html)
             val src = doc.select("img").attr("src")
             assertTrue(src.contains("X"), "Handles for quote $quote")
             assertTrue(src.contains(tail))
@@ -61,7 +60,7 @@ class TokeniserTest {
         } while (sb.length < CharacterReader.maxBufferLen)
         val attrName = sb.toString()
         val html = "<p $attrName=foo>One</p>"
-        val doc = parse(html)
+        val doc = Ksoup.parse(html)
         val els = doc.getElementsByAttribute(attrName)
         assertEquals(1, els.size)
         val el = els.first()
@@ -80,7 +79,7 @@ class TokeniserTest {
         } while (sb.length < CharacterReader.maxBufferLen)
         val text = sb.toString()
         val html = "<p>$text</p>"
-        val doc = parse(html)
+        val doc = Ksoup.parse(html)
         val els = doc.select("p")
         assertEquals(1, els.size)
         val el = els.first()
@@ -96,7 +95,7 @@ class TokeniserTest {
         } while (sb.length < CharacterReader.maxBufferLen)
         val comment = sb.toString()
         val html = "<p><!-- $comment --></p>"
-        val doc = parse(html)
+        val doc = Ksoup.parse(html)
         val els = doc.select("p")
         assertEquals(1, els.size)
         val el = els.first()
@@ -113,7 +112,7 @@ class TokeniserTest {
         } while (sb.length < CharacterReader.maxBufferLen)
         val cdata = sb.toString()
         val html = "<p><![CDATA[$cdata]]></p>"
-        val doc = parse(html)
+        val doc = Ksoup.parse(html)
         val els = doc.select("p")
         assertEquals(1, els.size)
         val el = els.first()
@@ -144,9 +143,9 @@ class TokeniserTest {
 
     @Test
     fun cp1252Entities() {
-        assertEquals("\u20ac", parse("&#0128;").text())
-        assertEquals("\u201a", parse("&#0130;").text())
-        assertEquals("\u20ac", parse("&#x80;").text())
+        assertEquals("\u20ac", Ksoup.parse("&#0128;").text())
+        assertEquals("\u201a", Ksoup.parse("&#0130;").text())
+        assertEquals("\u20ac", Ksoup.parse("&#x80;").text())
     }
 
     @Test
@@ -161,7 +160,7 @@ class TokeniserTest {
     fun cp1252SubstitutionTable() {
         for (i in Tokeniser.win1252Extensions.indices) {
             val s = byteArrayOf((i + Tokeniser.win1252ExtensionsStart).toByte()).decodeToString()
-            // TODO: ceheck it
+            // TODO: check it
 //                String(byteArrayOf((i + Tokeniser.win1252ExtensionsStart).toByte()), Charset.forName("Windows-1252"))
             assertEquals(1, s.length)
 

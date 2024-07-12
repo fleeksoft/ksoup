@@ -7,7 +7,7 @@ class DataNodeTest {
     @Test
     fun xmlOutputScriptWithCData() {
         val node = DataNode("//<![CDATA[\nscript && <> data]]>")
-        node.parentNode = Element("script")
+        node._parentNode = Element("script")
         val accum = StringBuilder()
         node.outerHtmlHead(accum, 0, Document.OutputSettings().syntax(Document.OutputSettings.Syntax.xml))
         assertEquals("//<![CDATA[\nscript && <> data]]>", accum.toString())
@@ -16,7 +16,7 @@ class DataNodeTest {
     @Test
     fun xmlOutputScriptWithoutCData() {
         val node = DataNode("script && <> data")
-        node.parentNode = Element("script")
+        node._parentNode = Element("script")
         val accum = StringBuilder()
         node.outerHtmlHead(accum, 0, Document.OutputSettings().syntax(Document.OutputSettings.Syntax.xml))
         assertEquals("//<![CDATA[\nscript && <> data\n//]]>", accum.toString())
@@ -25,7 +25,7 @@ class DataNodeTest {
     @Test
     fun xmlOutputStyleWithCData() {
         val node = DataNode("/*<![CDATA[*/\nstyle && <> data]]>")
-        node.parentNode = Element("style")
+        node._parentNode = Element("style")
         val accum = StringBuilder()
         node.outerHtmlHead(accum, 0, Document.OutputSettings().syntax(Document.OutputSettings.Syntax.xml))
         assertEquals("/*<![CDATA[*/\nstyle && <> data]]>", accum.toString())
@@ -34,7 +34,7 @@ class DataNodeTest {
     @Test
     fun xmlOutputStyleWithoutCData() {
         val node = DataNode("style && <> data")
-        node.parentNode = Element("style")
+        node._parentNode = Element("style")
         val accum = StringBuilder()
         node.outerHtmlHead(accum, 0, Document.OutputSettings().syntax(Document.OutputSettings.Syntax.xml))
         assertEquals("/*<![CDATA[*/\nstyle && <> data\n/*]]>*/", accum.toString())
@@ -43,7 +43,7 @@ class DataNodeTest {
     @Test
     fun xmlOutputOtherWithCData() {
         val node = DataNode("<![CDATA[other && <> data]]>")
-        node.parentNode = Element("other")
+        node._parentNode = Element("other")
         val accum = StringBuilder()
         node.outerHtmlHead(accum, 0, Document.OutputSettings().syntax(Document.OutputSettings.Syntax.xml))
         assertEquals("<![CDATA[other && <> data]]>", accum.toString())
@@ -52,7 +52,7 @@ class DataNodeTest {
     @Test
     fun xmlOutputOtherWithoutCData() {
         val node = DataNode("other && <> data")
-        node.parentNode = Element("other")
+        node._parentNode = Element("other")
         val accum = StringBuilder()
         node.outerHtmlHead(accum, 0, Document.OutputSettings().syntax(Document.OutputSettings.Syntax.xml))
         assertEquals("<![CDATA[other && <> data]]>", accum.toString())

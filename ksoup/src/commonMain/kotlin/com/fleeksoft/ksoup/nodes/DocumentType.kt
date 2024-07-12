@@ -68,7 +68,7 @@ public class DocumentType(private val name: String, private val publicId: String
         out: Document.OutputSettings,
     ) {
         // add a newline if the doctype has a preceding node (which must be a comment)
-        if (siblingIndex > 0 && out.prettyPrint()) accum.append('\n')
+        if (_siblingIndex > 0 && out.prettyPrint()) accum.append('\n')
         if (out.syntax() === Syntax.html && !has(PUBLIC_ID) && !has(SYSTEM_ID)) {
             // looks like a html5 doctype, go lowercase for aesthetics
             accum.append("<!doctype")

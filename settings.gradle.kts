@@ -18,3 +18,4 @@ dependencyResolutionManagement {
 rootProject.name = "ksoup-korio"
 include(":ksoup")
 include(":ksoup-network")
+include(":ksoup-test")

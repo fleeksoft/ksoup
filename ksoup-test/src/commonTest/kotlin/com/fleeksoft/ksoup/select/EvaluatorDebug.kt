@@ -9,7 +9,7 @@ object EvaluatorDebug {
     /**
      * Cast an Evaluator into a pseudo Document, to help visualize the query. Quite coupled to the current impl.
      */
-    internal fun asDocument(eval: Evaluator): Document {
+    private fun asDocument(eval: Evaluator): Document {
         val doc: Document = Document(null)
         doc.outputSettings().outline(true).indentAmount(2)
 

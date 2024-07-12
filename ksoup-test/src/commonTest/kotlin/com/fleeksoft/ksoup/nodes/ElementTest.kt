@@ -629,7 +629,7 @@ class ElementTest {
         // check sibling index (with short circuit on reindexChildren):
         val ps = doc.select("p")
         for (i in ps.indices) {
-            assertEquals(i, ps[i].siblingIndex)
+            assertEquals(i, ps[i]._siblingIndex)
         }
     }
 
@@ -671,7 +671,7 @@ class ElementTest {
         // check sibling index (reindexChildren):
         val ps = doc.select("tr")
         for (i in ps.indices) {
-            assertEquals(i, ps[i].siblingIndex)
+            assertEquals(i, ps[i]._siblingIndex)
         }
     }
 
@@ -721,7 +721,7 @@ class ElementTest {
         // check sibling index (no reindexChildren):
         val ps = doc.select("p")
         for (i in ps.indices) {
-            assertEquals(i, ps[i].siblingIndex)
+            assertEquals(i, ps[i]._siblingIndex)
         }
     }
 
@@ -738,7 +738,7 @@ class ElementTest {
         // check sibling index (reindexChildren):
         val ps = doc.select("p")
         for (i in ps.indices) {
-            assertEquals(i, ps[i].siblingIndex)
+            assertEquals(i, ps[i]._siblingIndex)
         }
     }
 
@@ -965,11 +965,11 @@ class ElementTest {
         val doc = Ksoup.parse("<div><p>One<p><span>Two</div>")
         val p = doc.select("p")[1]
         val clone = p.clone()
-        assertNotNull(clone.parentNode) // should be a cloned document just containing this clone
-        assertEquals(1, clone.parentNode!!.childNodeSize())
-        assertSame(clone.ownerDocument(), clone.parentNode)
-        assertEquals(0, clone.siblingIndex)
-        assertEquals(1, p.siblingIndex)
+        assertNotNull(clone._parentNode) // should be a cloned document just containing this clone
+        assertEquals(1, clone._parentNode!!.childNodeSize())
+        assertSame(clone.ownerDocument(), clone._parentNode)
+        assertEquals(0, clone._siblingIndex)
+        assertEquals(1, p._siblingIndex)
         assertNotNull(p.parent())
         clone.append("<span>Three")
         assertEquals(
@@ -1310,7 +1310,7 @@ class ElementTest {
         // .equals and hashcode are identity. value is content.
         val doc1 =
             "<div id=1><p class=one>One</p><p class=one>One</p><p class=one>Two</p><p class=two>One</p></div>" +
-                "<div id=2><p class=one>One</p><p class=one>One</p><p class=one>Two</p><p class=two>One</p></div>"
+                    "<div id=2><p class=one>One</p><p class=one>One</p><p class=one>Two</p><p class=two>One</p></div>"
         val doc = Ksoup.parse(doc1)
         val els = doc.select("p")
 
@@ -1785,13 +1785,13 @@ class ElementTest {
         val doc =
             Ksoup.parse(
                 "<ul id='ul'>" +
-                    "<li id='a'>a</li>" +
-                    "<li id='b'>b</li>" +
-                    "<li id='c'>c</li>" +
-                    "</ul> Not An Element but a node" +
-                    "<div id='div'>" +
-                    "<li id='d'>d</li>" +
-                    "</div>",
+                        "<li id='a'>a</li>" +
+                        "<li id='b'>b</li>" +
+                        "<li id='c'>c</li>" +
+                        "</ul> Not An Element but a node" +
+                        "<div id='div'>" +
+                        "<li id='d'>d</li>" +
+                        "</div>",
             )
         val element = doc.getElementById("a")
         val elementSiblings = element!!.nextElementSiblings()
@@ -1822,13 +1822,13 @@ class ElementTest {
         val doc =
             Ksoup.parse(
                 "<ul id='ul'>" +
-                    "<li id='a'>a</li>" +
-                    "<li id='b'>b</li>" +
-                    "<li id='c'>c</li>" +
-                    "</ul>" +
-                    "<div id='div'>" +
-                    "<li id='d'>d</li>" +
-                    "</div>",
+                        "<li id='a'>a</li>" +
+                        "<li id='b'>b</li>" +
+                        "<li id='c'>c</li>" +
+                        "</ul>" +
+                        "<div id='div'>" +
+                        "<li id='d'>d</li>" +
+                        "</div>",
             )
         val element = doc.getElementById("b")
         val elementSiblings = element!!.previousElementSiblings()
@@ -2865,11 +2865,11 @@ Three
         val xml = p.html()
         assertEquals(
             "<script>//<![CDATA[\n" +
-                "1 && 2\n" +
-                "//]]></script>\n" +
-                "<style>/*<![CDATA[*/\n" +
-                "3 && 4\n" +
-                "/*]]>*/</style> 5 &amp;&amp; 6",
+                    "1 && 2\n" +
+                    "//]]></script>\n" +
+                    "<style>/*<![CDATA[*/\n" +
+                    "3 && 4\n" +
+                    "/*]]>*/</style> 5 &amp;&amp; 6",
             xml,
         )
 
@@ -2897,10 +2897,10 @@ Three
         val scriptDataNode = scriptEl.childNode(0) as DataNode
         assertEquals(
             (
-                "//<![CDATA[\n" +
-                    "1 && 2\n" +
-                    "//]]>"
-            ),
+                    "//<![CDATA[\n" +
+                            "1 && 2\n" +
+                            "//]]>"
+                    ),
             scriptDataNode.getWholeData(),
         )
 
@@ -2909,13 +2909,13 @@ Three
         val xml = p.html()
         assertEquals(
             (
-                "<script>//<![CDATA[\n" +
-                    "1 && 2\n" +
-                    "//]]></script>\n" +
-                    "<style>\n" +
-                    "/*<![CDATA[*/3 && 4\n" +
-                    "/*]]>*/</style> 5 &amp;&amp; 6"
-            ),
+                    "<script>//<![CDATA[\n" +
+                            "1 && 2\n" +
+                            "//]]></script>\n" +
+                            "<style>\n" +
+                            "/*<![CDATA[*/3 && 4\n" +
+                            "/*]]>*/</style> 5 &amp;&amp; 6"
+                    ),
             xml,
         )
 
@@ -2987,7 +2987,7 @@ Three
         assertEquals(0, div.childNodeSize())
         assertEquals(3, childNodes.size) // copied before removing
         for (childNode in childNodes) {
-            assertNull(childNode.parentNode)
+            assertNull(childNode._parentNode)
         }
         val p = childNodes[0] as Element
         assertEquals(

@@ -22,7 +22,10 @@ kotlin {
     }
 
     @OptIn(ExperimentalWasmDsl::class)
-    wasmJs()
+    wasmJs {
+//        browser()
+        nodejs()
+    }
 //    yet not supported by korlibs and amper
 //    @OptIn(ExperimentalWasmDsl::class)
 //    wasmWasi()

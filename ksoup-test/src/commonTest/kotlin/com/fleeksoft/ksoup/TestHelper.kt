@@ -7,11 +7,12 @@ import korlibs.io.stream.SyncStream
 import korlibs.io.stream.readAll
 
 object TestHelper {
-    //    some tests ignored for specific platform
-    const val forceAllTestsRun = false
 
     fun getResourceAbsolutePath(resourceName: String): String {
-        return "${BuildConfig.PROJECT_ROOT}/ksoup/src/commonTest/resources/$resourceName"
+        if (Platform.current == PlatformType.WASMJS) {
+            return resourceName
+        }
+        return "${BuildConfig.PROJECT_ROOT}/ksoup-test/src/commonTest/resources/$resourceName"
     }
 
     suspend fun getFileAsString(file: VfsFile): String {
