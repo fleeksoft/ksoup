@@ -8,12 +8,12 @@ import com.fleeksoft.ksoup.ported.StreamCharReader
 /**
  * @author Sabeeh
  */
-internal abstract class TreeBuilder {
-    lateinit var parser: Parser
+public abstract class TreeBuilder {
+    public lateinit var parser: Parser
         internal set
-    lateinit var reader: CharacterReader
+    public lateinit var reader: CharacterReader
         private set
-    var tokeniser: Tokeniser? = null
+    public var tokeniser: Tokeniser? = null
         private set
 
     protected lateinit var doc: Document // current doc we are building into
@@ -25,13 +25,13 @@ internal abstract class TreeBuilder {
     public var settings: ParseSettings? = null
 
     // tags we've used in this parse; saves tag GC for custom tags.
-    protected var seenTags: MutableMap<String, Tag>? = null
+    private var seenTags: MutableMap<String, Tag>? = null
     private lateinit var start: Token.StartTag // start tag to process
     private lateinit var end: Token.EndTag
 
-    abstract fun defaultSettings(): ParseSettings?
+    public abstract fun defaultSettings(): ParseSettings?
 
-    public var trackSourceRange = false // optionally tracks the source range of nodes
+    public var trackSourceRange: Boolean = false // optionally tracks the source range of nodes
 
     public open fun initialiseParse(
         input: StreamCharReader,
@@ -56,7 +56,7 @@ internal abstract class TreeBuilder {
         this.baseUri = baseUri
     }
 
-    fun parse(
+    public fun parse(
         input: StreamCharReader,
         baseUri: String,
         parser: Parser,
@@ -76,9 +76,9 @@ internal abstract class TreeBuilder {
      * Create a new copy of this TreeBuilder
      * @return copy, ready for a new parse
      */
-    abstract fun newInstance(): TreeBuilder
+    public abstract fun newInstance(): TreeBuilder
 
-    abstract fun parseFragment(
+    public abstract fun parseFragment(
         inputFragment: String,
         context: Element?,
         baseUri: String?,
@@ -103,7 +103,7 @@ internal abstract class TreeBuilder {
 
     public abstract fun process(token: Token): Boolean
 
-    fun processStartTag(name: String): Boolean {
+    public fun processStartTag(name: String): Boolean {
         // these are "virtual" start tags (auto-created by the treebuilder), so not tracking the start position
         val start = this.start
         if (currentToken === start) { // don't recycle an in-use token
@@ -112,7 +112,7 @@ internal abstract class TreeBuilder {
         return process(start.reset().name(name))
     }
 
-    fun processStartTag(
+    public fun processStartTag(
         name: String,
         attrs: Attributes?,
     ): Boolean {
@@ -125,7 +125,7 @@ internal abstract class TreeBuilder {
         return process(start)
     }
 
-    fun processEndTag(name: String): Boolean {
+    public fun processEndTag(name: String): Boolean {
         if (currentToken === end) { // don't recycle an in-use token
             return process(Token.EndTag(this).name(name))
         }
@@ -136,7 +136,7 @@ internal abstract class TreeBuilder {
      * Removes the last Element from the stack, hits onNodeClosed, and then returns it.
      * @return
      */
-    fun pop(): Element {
+    public fun pop(): Element {
         val size = stack.size
         val removed = stack.removeAt(size - 1)!!
         onNodeClosed(removed)
@@ -147,7 +147,7 @@ internal abstract class TreeBuilder {
      * Adds the specified Element to the end of the stack, and hits onNodeInserted.
      * @param element
      */
-    fun push(element: Element) {
+    public fun push(element: Element) {
         stack.add(element)
         onNodeInserted(element)
     }
@@ -157,7 +157,7 @@ internal abstract class TreeBuilder {
      * (which might not actually be on the stack; use stack.size() == 0 to test if required.
      * @return the last element on the stack, if any; or the root document
      */
-    fun currentElement(): Element {
+    public fun currentElement(): Element {
         val size: Int = stack.size
         return if (size > 0) stack[size - 1]!! else doc
     }
@@ -167,7 +167,7 @@ internal abstract class TreeBuilder {
      * @param normalName name to check
      * @return true if there is a current element on the stack, and its name equals the supplied
      */
-    fun currentElementIs(normalName: String?): Boolean {
+    public fun currentElementIs(normalName: String?): Boolean {
         if (stack.size == 0) return false
         val current: Element = currentElement()
         return (
@@ -181,7 +181,7 @@ internal abstract class TreeBuilder {
      * @param namespace the namespace
      * @return true if there is a current element on the stack, and its name equals the supplied
      */
-    fun currentElementIs(
+    public fun currentElementIs(
         normalName: String?,
         namespace: String?,
     ): Boolean {
@@ -205,7 +205,7 @@ internal abstract class TreeBuilder {
      * (An internal method, visible for Element. For HTML parse, signals that script and style text should be treated as
      * Data Nodes).
      */
-    open fun isContentForTagData(normalName: String): Boolean {
+    public open fun isContentForTagData(normalName: String): Boolean {
         return false
     }
 
@@ -225,7 +225,7 @@ internal abstract class TreeBuilder {
         return cached
     }
 
-    fun tagFor(
+    public fun tagFor(
         tagName: String,
         settings: ParseSettings?,
     ): Tag {
@@ -236,7 +236,7 @@ internal abstract class TreeBuilder {
      * Gets the default namespace for this TreeBuilder
      * @return the default namespace
      */
-    open fun defaultNamespace(): String {
+    public open fun defaultNamespace(): String {
         return NamespaceHtml
     }
 
@@ -244,7 +244,7 @@ internal abstract class TreeBuilder {
      * Called by implementing TreeBuilders when a node has been inserted. This implementation includes optionally tracking
      * the source range of the node.  @param node the node that was just inserted
      */
-    fun onNodeInserted(node: Node) {
+    public fun onNodeInserted(node: Node) {
         trackNodePosition(node, true)
     }
 
@@ -252,7 +252,7 @@ internal abstract class TreeBuilder {
      * Called by implementing TreeBuilders when a node is explicitly closed. This implementation includes optionally
      * tracking the closing source range of the node.  @param node the node being closed
      */
-    fun onNodeClosed(node: Node) {
+    public fun onNodeClosed(node: Node) {
         trackNodePosition(node, false)
     }
 
@@ -268,9 +268,8 @@ internal abstract class TreeBuilder {
 
         // handle implicit element open / closes.
         if (node is Element) {
-            val el = node
             if (token.isEOF()) {
-                if (el.endSourceRange()
+                if (node.endSourceRange()
                         .isTracked()
                 ) {
                     return // /body and /html are left on stack until EOF, don't reset them
@@ -279,12 +278,12 @@ internal abstract class TreeBuilder {
                 endPos = reader.pos()
                 startPos = endPos
             } else if (isStart) { // opening tag
-                if (!token.isStartTag() || !el.normalName().equals(token.asStartTag().normalName)) {
+                if (!token.isStartTag() || node.normalName() != token.asStartTag().normalName) {
                     endPos = startPos
                 }
             } else { // closing tag
-                if (!el.tag().isEmpty && !el.tag().isSelfClosing()) {
-                    if (!token.isEndTag() || !el.normalName().equals(token.asEndTag().normalName)) {
+                if (!node.tag().isEmpty && !node.tag().isSelfClosing()) {
+                    if (!token.isEndTag() || node.normalName() != token.asEndTag().normalName) {
                         endPos = startPos
                     }
                 }

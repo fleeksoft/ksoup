@@ -5,7 +5,7 @@ import korlibs.io.lang.IOException
 /**
  * A Character Data node, to support CDATA sections.
  */
-internal class CDataNode(text: String?) : TextNode(text!!) {
+public class CDataNode(text: String?) : TextNode(text!!) {
     override fun nodeName(): String {
         return "#cdata"
     }

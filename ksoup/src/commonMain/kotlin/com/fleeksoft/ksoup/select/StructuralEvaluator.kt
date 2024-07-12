@@ -8,13 +8,13 @@ import com.fleeksoft.ksoup.ported.IdentityHashMap
 /**
  * Base structural evaluator.
  */
-internal abstract class StructuralEvaluator(val evaluator: Evaluator) : Evaluator() {
+public abstract class StructuralEvaluator(public val evaluator: Evaluator) : Evaluator() {
     // Memoize inner matches, to save repeated re-evaluations of parent, sibling etc.
     // root + element: Boolean matches. ThreadLocal in case the Evaluator is compiled then reused across multi threads
-    val threadMemo: IdentityHashMap<Element, IdentityHashMap<Element, Boolean>> =
+    public val threadMemo: IdentityHashMap<Element, IdentityHashMap<Element, Boolean>> =
         IdentityHashMap()
 
-    fun memoMatches(
+    public fun memoMatches(
         root: Element,
         element: Element,
     ): Boolean {
@@ -117,7 +117,7 @@ internal abstract class StructuralEvaluator(val evaluator: Evaluator) : Evaluato
         }
     }
 
-    class Parent(evaluator: Evaluator) : StructuralEvaluator(evaluator) {
+    public class Parent(evaluator: Evaluator) : StructuralEvaluator(evaluator) {
         override fun matches(
             root: Element,
             element: Element,
@@ -165,8 +165,8 @@ internal abstract class StructuralEvaluator(val evaluator: Evaluator) : Evaluato
      * Holds a list of evaluators for one > two > three immediate parent matches, and the final direct evaluator under
      * test. To match, these are effectively ANDed together, starting from the last, matching up to the first.
      */
-    class ImmediateParentRun(evaluator: Evaluator) : Evaluator() {
-        val evaluators: ArrayList<Evaluator> = ArrayList<Evaluator>()
+    public class ImmediateParentRun(evaluator: Evaluator) : Evaluator() {
+        public val evaluators: ArrayList<Evaluator> = ArrayList<Evaluator>()
         private var _cost = 2
 
         init {
@@ -174,7 +174,7 @@ internal abstract class StructuralEvaluator(val evaluator: Evaluator) : Evaluato
             _cost += evaluator.cost()
         }
 
-        fun add(evaluator: Evaluator) {
+        public fun add(evaluator: Evaluator) {
             evaluators.add(evaluator)
             _cost += evaluator.cost()
         }
@@ -203,7 +203,7 @@ internal abstract class StructuralEvaluator(val evaluator: Evaluator) : Evaluato
         }
     }
 
-    class PreviousSibling(evaluator: Evaluator) : StructuralEvaluator(evaluator) {
+    public class PreviousSibling(evaluator: Evaluator) : StructuralEvaluator(evaluator) {
         override fun matches(
             root: Element,
             element: Element,

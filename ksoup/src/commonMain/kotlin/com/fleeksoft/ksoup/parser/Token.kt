@@ -12,11 +12,11 @@ import de.cketti.codepoints.appendCodePoint
 /**
  * Parse tokens for the Tokeniser.
  */
-internal abstract class Token private constructor(var type: TokenType) {
+public abstract class Token private constructor(public var type: TokenType) {
     private var _startPos = 0
     private var _endPos = Unset // position in CharacterReader this token was read from
 
-    fun tokenType(): String {
+    public fun tokenType(): String {
         return this::class.simpleName ?: "Token"
     }
 
@@ -24,34 +24,34 @@ internal abstract class Token private constructor(var type: TokenType) {
      * Reset the data represent by this token, for reuse. Prevents the need to create transfer objects for every
      * piece of data, which immediately get GCed.
      */
-    open fun reset(): Token {
+    public open fun reset(): Token {
         _startPos = Unset
         _endPos = Unset
         return this
     }
 
-    fun startPos(): Int {
+    public fun startPos(): Int {
         return _startPos
     }
 
-    fun startPos(pos: Int) {
+    public fun startPos(pos: Int) {
         _startPos = pos
     }
 
-    fun endPos(): Int {
+    public fun endPos(): Int {
         return _endPos
     }
 
-    fun endPos(pos: Int) {
+    public fun endPos(pos: Int) {
         _endPos = pos
     }
 
-    internal class Doctype : Token(TokenType.Doctype) {
-        val name: StringBuilder = StringBuilder()
-        var pubSysKey: String? = null
-        val publicIdentifier: StringBuilder = StringBuilder()
-        val systemIdentifier: StringBuilder = StringBuilder()
-        var isForceQuirks: Boolean = false
+    public class Doctype : Token(TokenType.Doctype) {
+        public val name: StringBuilder = StringBuilder()
+        public var pubSysKey: String? = null
+        public val publicIdentifier: StringBuilder = StringBuilder()
+        public val systemIdentifier: StringBuilder = StringBuilder()
+        public var isForceQuirks: Boolean = false
 
         override fun reset(): Token {
             super.reset()
@@ -63,15 +63,15 @@ internal abstract class Token private constructor(var type: TokenType) {
             return this
         }
 
-        fun getName(): String {
+        public fun getName(): String {
             return name.toString()
         }
 
-        fun getPublicIdentifier(): String {
+        public fun getPublicIdentifier(): String {
             return publicIdentifier.toString()
         }
 
-        fun getSystemIdentifier(): String {
+        public fun getSystemIdentifier(): String {
             return systemIdentifier.toString()
         }
 
@@ -80,13 +80,13 @@ internal abstract class Token private constructor(var type: TokenType) {
         }
     }
 
-    internal abstract class Tag(type: TokenType, val treeBuilder: TreeBuilder) : Token(type) {
+    public abstract class Tag(type: TokenType, public val treeBuilder: TreeBuilder) : Token(type) {
         internal var tagName: String? = null
         internal var normalName: String? = null // lc version of tag name, for case-insensitive tree build
-        var isSelfClosing: Boolean = false
+        public var isSelfClosing: Boolean = false
 
         // start tags get attributes on construction. End tags get attributes on first new attribute (but only for parser convenience, not used).
-        var attributes: Attributes? = null
+        public var attributes: Attributes? = null
         private var attrName: String? = null // try to get attr names and vals in one shot, vs Builder
         private val attrNameSb: StringBuilder = StringBuilder()
         private var hasAttrName = false
@@ -96,11 +96,11 @@ internal abstract class Token private constructor(var type: TokenType) {
         private var hasAttrValue = false
         private var hasEmptyAttrValue = false // distinguish boolean attribute from empty string value
 
-        val trackSource: Boolean = treeBuilder.trackSourceRange
-        var attrNameStart: Int = 0
-        var attrNameEnd: Int = 0
-        var attrValStart: Int = 0
-        var attrValEnd: Int = 0
+        private val trackSource: Boolean = treeBuilder.trackSourceRange
+        private var attrNameStart: Int = 0
+        private var attrNameEnd: Int = 0
+        private var attrValStart: Int = 0
+        private var attrValEnd: Int = 0
 
         override fun reset(): Tag {
             super.reset()
@@ -130,7 +130,7 @@ internal abstract class Token private constructor(var type: TokenType) {
             }
         }
 
-        fun newAttribute() {
+        public fun newAttribute() {
             if (attributes == null) attributes = Attributes()
 
             if (hasAttrName && attributes!!.size() < MaxAttributes) {
@@ -198,20 +198,20 @@ internal abstract class Token private constructor(var type: TokenType) {
             }
         }
 
-        fun hasAttributes(): Boolean {
+        public fun hasAttributes(): Boolean {
             return attributes != null
         }
 
         /** Case-sensitive check  */
-        fun hasAttribute(key: String?): Boolean {
+        public fun hasAttribute(key: String?): Boolean {
             return attributes != null && attributes!!.hasKey(key!!)
         }
 
-        fun hasAttributeIgnoreCase(key: String?): Boolean {
+        public fun hasAttributeIgnoreCase(key: String?): Boolean {
             return attributes != null && attributes!!.hasKeyIgnoreCase(key!!)
         }
 
-        fun finaliseTag() {
+        public fun finaliseTag() {
             // finalises for emit
             if (hasAttrName) {
                 newAttribute()
@@ -219,39 +219,39 @@ internal abstract class Token private constructor(var type: TokenType) {
         }
 
         /** Preserves case  */
-        fun name(): String { // preserves case, for input into Tag.valueOf (which may drop case)
+        public fun name(): String { // preserves case, for input into Tag.valueOf (which may drop case)
             Validate.isFalse(tagName == null || tagName!!.isEmpty())
             return tagName ?: ""
         }
 
         /** Lower case  */
-        fun retrieveNormalName(): String { // lower case, used in tree building for working out where in tree it should go
+        public fun retrieveNormalName(): String { // lower case, used in tree building for working out where in tree it should go
             return normalName ?: ""
         }
 
-        fun toStringName(): String {
+        public fun toStringName(): String {
             return if (tagName != null) tagName!! else "[unset]"
         }
 
-        fun name(name: String): Tag {
+        public fun name(name: String): Tag {
             tagName = name
             normalName = ParseSettings.normalName(tagName)
             return this
         }
 
         // these appenders are rarely hit in not null state-- caused by null chars.
-        fun appendTagName(append: String) {
+        public fun appendTagName(append: String) {
             // might have null chars - need to replace with null replacement character
             val replacedAppend = append.replace(TokeniserState.nullChar, Tokeniser.replacementChar)
             tagName = if (tagName == null) replacedAppend else tagName + replacedAppend
             normalName = ParseSettings.normalName(tagName)
         }
 
-        fun appendTagName(append: Char) {
+        public fun appendTagName(append: Char) {
             appendTagName(append.toString())
         }
 
-        fun appendAttributeName(
+        public fun appendAttributeName(
             append: String,
             startPos: Int,
             endPos: Int,
@@ -267,7 +267,7 @@ internal abstract class Token private constructor(var type: TokenType) {
             }
         }
 
-        fun appendAttributeName(
+        public fun appendAttributeName(
             append: Char,
             startPos: Int,
             endPos: Int,
@@ -276,7 +276,7 @@ internal abstract class Token private constructor(var type: TokenType) {
             attrNameSb.append(append)
         }
 
-        fun appendAttributeValue(
+        public fun appendAttributeValue(
             append: String?,
             startPos: Int,
             endPos: Int,
@@ -289,7 +289,7 @@ internal abstract class Token private constructor(var type: TokenType) {
             }
         }
 
-        fun appendAttributeValue(
+        public fun appendAttributeValue(
             append: Char,
             startPos: Int,
             endPos: Int,
@@ -298,7 +298,7 @@ internal abstract class Token private constructor(var type: TokenType) {
             attrValueSb.append(append)
         }
 
-        fun appendAttributeValue(
+        public fun appendAttributeValue(
             appendCodepoints: IntArray,
             startPos: Int,
             endPos: Int,
@@ -309,7 +309,7 @@ internal abstract class Token private constructor(var type: TokenType) {
             }
         }
 
-        fun setEmptyAttributeValue() {
+        public fun setEmptyAttributeValue() {
             hasEmptyAttrValue = true
         }
 
@@ -347,7 +347,7 @@ internal abstract class Token private constructor(var type: TokenType) {
 
         abstract override fun toString(): String
 
-        companion object {
+        public companion object {
             /* Limits runaway crafted HTML from spewing attributes and getting a little sluggish in ensureCapacity.
         Real-world HTML will P99 around 8 attributes, so plenty of headroom. Implemented here and not in the Attributes
         object so that API users can add more if ever required. */
@@ -356,14 +356,14 @@ internal abstract class Token private constructor(var type: TokenType) {
     }
 
     // TreeBuilder is provided so if tracking, can get line / column positions for Range; and can dedupe as we go
-    internal class StartTag(treeBuilder: TreeBuilder) : Tag(TokenType.StartTag, treeBuilder) {
+    public class StartTag(treeBuilder: TreeBuilder) : Tag(TokenType.StartTag, treeBuilder) {
         override fun reset(): Tag {
             super.reset()
             attributes = null
             return this
         }
 
-        fun nameAttr(
+        public fun nameAttr(
             name: String?,
             attributes: Attributes?,
         ): StartTag {
@@ -383,16 +383,16 @@ internal abstract class Token private constructor(var type: TokenType) {
         }
     }
 
-    internal class EndTag(treeBuilder: TreeBuilder) : Tag(TokenType.EndTag, treeBuilder) {
+    public class EndTag(treeBuilder: TreeBuilder) : Tag(TokenType.EndTag, treeBuilder) {
         override fun toString(): String {
             return "</${toStringName()}>"
         }
     }
 
-    internal class Comment : Token(TokenType.Comment) {
+    public class Comment : Token(TokenType.Comment) {
         private val data: StringBuilder = StringBuilder()
         private var dataS: String? = null // try to get in one shot
-        var bogus: Boolean = false
+        public var bogus: Boolean = false
 
         override fun reset(): Token {
             super.reset()
@@ -402,11 +402,11 @@ internal abstract class Token private constructor(var type: TokenType) {
             return this
         }
 
-        fun getData(): String {
+        public fun getData(): String {
             return if (dataS != null) dataS!! else data.toString()
         }
 
-        fun append(append: String?): Comment {
+        public fun append(append: String?): Comment {
             ensureData()
             if (data.isEmpty()) {
                 dataS = append
@@ -416,7 +416,7 @@ internal abstract class Token private constructor(var type: TokenType) {
             return this
         }
 
-        fun append(append: Char): Comment {
+        public fun append(append: Char): Comment {
             ensureData()
             data.append(append)
             return this
@@ -435,8 +435,8 @@ internal abstract class Token private constructor(var type: TokenType) {
         }
     }
 
-    internal open class Character : Token(TokenType.Character), KCloneable<Character> {
-        var data: String? = null
+    public open class Character : Token(TokenType.Character), KCloneable<Character> {
+        public var data: String? = null
             private set
 
         override fun reset(): Token {
@@ -445,7 +445,7 @@ internal abstract class Token private constructor(var type: TokenType) {
             return this
         }
 
-        fun data(data: String?): Character {
+        public fun data(data: String?): Character {
             this.data = data
             return this
         }
@@ -482,55 +482,55 @@ internal abstract class Token private constructor(var type: TokenType) {
         }
     }
 
-    fun isDoctype(): Boolean {
+    public fun isDoctype(): Boolean {
         return type == TokenType.Doctype
     }
 
-    fun asDoctype(): Doctype {
+    public fun asDoctype(): Doctype {
         return this as Doctype
     }
 
-    fun isStartTag(): Boolean {
+    public fun isStartTag(): Boolean {
         return type == TokenType.StartTag
     }
 
-    fun asStartTag(): StartTag {
+    public fun asStartTag(): StartTag {
         return this as StartTag
     }
 
-    fun isEndTag(): Boolean {
+    public fun isEndTag(): Boolean {
         return type == TokenType.EndTag
     }
 
-    fun asEndTag(): EndTag {
+    public fun asEndTag(): EndTag {
         return this as EndTag
     }
 
-    fun isComment(): Boolean {
+    public fun isComment(): Boolean {
         return type == TokenType.Comment
     }
 
-    fun asComment(): Comment {
+    public fun asComment(): Comment {
         return this as Comment
     }
 
-    fun isCharacter(): Boolean {
+    public fun isCharacter(): Boolean {
         return type == TokenType.Character
     }
 
-    fun isCData(): Boolean {
+    public fun isCData(): Boolean {
         return this is CData
     }
 
-    fun asCharacter(): Character {
+    public fun asCharacter(): Character {
         return this as Character
     }
 
-    fun isEOF(): Boolean {
+    public fun isEOF(): Boolean {
         return type == TokenType.EOF
     }
 
-    enum class TokenType {
+    public enum class TokenType {
         Doctype,
         StartTag,
         EndTag,
@@ -539,17 +539,17 @@ internal abstract class Token private constructor(var type: TokenType) {
         EOF,
     }
 
-    fun cloneCopy(token: Token): Token {
+    public fun cloneCopy(token: Token): Token {
         token.type = this.type
         token._startPos = this._startPos
         token._endPos = this._endPos
         return token
     }
 
-    companion object {
-        const val Unset: Int = -1
+    public companion object {
+        public const val Unset: Int = -1
 
-        fun reset(sb: StringBuilder?) {
+        public fun reset(sb: StringBuilder?) {
             sb?.clear()
         }
     }

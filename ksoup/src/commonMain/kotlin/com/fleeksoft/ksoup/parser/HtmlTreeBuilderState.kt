@@ -10,7 +10,7 @@ import com.fleeksoft.ksoup.nodes.Element
 /**
  * The Tree Builder's current state. Each state embodies the processing for the state, and transitions to other states.
  */
-internal enum class HtmlTreeBuilderState {
+public enum class HtmlTreeBuilderState {
     Initial {
         override fun process(
             t: Token,
@@ -137,7 +137,7 @@ internal enum class HtmlTreeBuilderState {
 
                 Token.TokenType.StartTag -> {
                     val start: Token.StartTag = t.asStartTag()
-                    var name: String = start.retrieveNormalName()
+                    val name: String = start.retrieveNormalName()
                     if (name == "html") {
                         return InBody.process(t, tb)
                     } else if (StringUtil.inSorted(name, Constants.InHeadEmpty)) {
@@ -325,7 +325,7 @@ internal enum class HtmlTreeBuilderState {
             t: Token,
             tb: HtmlTreeBuilder,
         ): Boolean {
-            when (t.type!!) {
+            when (t.type) {
                 Token.TokenType.Character -> {
                     val c: Token.Character = t.asCharacter()
                     if (c.data.equals(nullString)) {
@@ -905,7 +905,7 @@ internal enum class HtmlTreeBuilderState {
             return true
         }
 
-        fun anyOtherEndTag(
+        public fun anyOtherEndTag(
             t: Token,
             tb: HtmlTreeBuilder,
         ): Boolean {
@@ -1118,12 +1118,12 @@ internal enum class HtmlTreeBuilderState {
                     return tb.process(t, InHead)
                 } else if (name == "input") {
                     if (!(
-                            startTag.hasAttributes() &&
-                                startTag.attributes!!["type"].equals(
-                                    "hidden",
-                                    ignoreCase = true,
+                                startTag.hasAttributes() &&
+                                        startTag.attributes!!["type"].equals(
+                                            "hidden",
+                                            ignoreCase = true,
+                                        )
                                 )
-                        )
                     ) {
                         return anythingElse(t, tb)
                     } else {
@@ -1171,7 +1171,7 @@ internal enum class HtmlTreeBuilderState {
             return anythingElse(t, tb)
         }
 
-        fun anythingElse(
+        public fun anythingElse(
             t: Token,
             tb: HtmlTreeBuilder,
         ): Boolean {
@@ -1241,10 +1241,10 @@ internal enum class HtmlTreeBuilderState {
                     tb.transition(InTable)
                 }
             } else if ((
-                    t.isStartTag() &&
-                        StringUtil.inSorted(t.asStartTag().retrieveNormalName(), Constants.InCellCol) ||
-                        t.isEndTag() && t.asEndTag().retrieveNormalName() == "table"
-                )
+                        t.isStartTag() &&
+                                StringUtil.inSorted(t.asStartTag().retrieveNormalName(), Constants.InCellCol) ||
+                                t.isEndTag() && t.asEndTag().retrieveNormalName() == "table"
+                        )
             ) {
                 // same as above but processes after transition
                 if (!tb.inTableScope("caption")) { // fragment case
@@ -1951,10 +1951,10 @@ internal enum class HtmlTreeBuilderState {
                         return processAsHtml(t, tb)
                     }
                     if (start.normalName.equals("font") && (
-                            start.hasAttributeIgnoreCase("color") ||
-                                start.hasAttributeIgnoreCase("face") ||
-                                start.hasAttributeIgnoreCase("size")
-                        )
+                                start.hasAttributeIgnoreCase("color") ||
+                                        start.hasAttributeIgnoreCase("face") ||
+                                        start.hasAttributeIgnoreCase("size")
+                                )
                     ) {
                         return processAsHtml(t, tb)
                     }
@@ -2011,7 +2011,7 @@ internal enum class HtmlTreeBuilderState {
             return true
         }
 
-        fun processAsHtml(
+        public fun processAsHtml(
             t: Token,
             tb: HtmlTreeBuilder,
         ): Boolean {
@@ -2020,231 +2020,221 @@ internal enum class HtmlTreeBuilderState {
     },
     ;
 
-    abstract fun process(
+    public abstract fun process(
         t: Token,
         tb: HtmlTreeBuilder,
     ): Boolean
 
     // lists of tags to search through
-    object Constants {
-        val InHeadEmpty = arrayOf("base", "basefont", "bgsound", "command", "link")
-        val InHeadRaw = arrayOf("noframes", "style")
-        val InHeadEnd = arrayOf<String>("body", "br", "html")
-        val AfterHeadBody = arrayOf("body", "br", "html")
-        val BeforeHtmlToHead = arrayOf("body", "br", "head", "html")
-        val InHeadNoScriptHead = arrayOf("basefont", "bgsound", "link", "meta", "noframes", "style")
-        val InBodyStartToHead =
-            arrayOf<String>(
-                "base",
-                "basefont",
-                "bgsound",
-                "command",
-                "link",
-                "meta",
-                "noframes",
-                "script",
-                "style",
-                "template",
-                "title",
-            )
-        val InBodyStartPClosers =
-            arrayOf<String>(
-                "address", "article", "aside", "blockquote", "center", "details", "dir", "div", "dl",
-                "fieldset", "figcaption", "figure", "footer", "header", "hgroup", "menu", "nav", "ol",
-                "p", "section", "summary", "ul",
-            )
-        val Headings = arrayOf<String>("h1", "h2", "h3", "h4", "h5", "h6")
-        val InBodyStartLiBreakers = arrayOf<String>("address", "div", "p")
-        val DdDt = arrayOf<String>("dd", "dt")
-        val InBodyStartApplets = arrayOf<String>("applet", "marquee", "object")
-        val InBodyStartMedia = arrayOf<String>("param", "source", "track")
-        val InBodyStartInputAttribs = arrayOf<String>("action", "name", "prompt")
-        val InBodyStartDrop =
-            arrayOf<String>(
-                "caption",
-                "col",
-                "colgroup",
-                "frame",
-                "head",
-                "tbody",
-                "td",
-                "tfoot",
-                "th",
-                "thead",
-                "tr",
-            )
-        val InBodyEndClosers =
-            arrayOf<String>(
-                "address",
-                "article",
-                "aside",
-                "blockquote",
-                "button",
-                "center",
-                "details",
-                "dir",
-                "div",
-                "dl",
-                "fieldset",
-                "figcaption",
-                "figure",
-                "footer",
-                "header",
-                "hgroup",
-                "listing",
-                "menu",
-                "nav",
-                "ol",
-                "pre",
-                "section",
-                "summary",
-                "ul",
-            )
-        val InBodyEndOtherErrors =
-            arrayOf(
-                "body",
-                "dd",
-                "dt",
-                "html",
-                "li",
-                "optgroup",
-                "option",
-                "p",
-                "rb",
-                "rp",
-                "rt",
-                "rtc",
-                "tbody",
-                "td",
-                "tfoot",
-                "th",
-                "thead",
-                "tr",
-            )
-        val InBodyEndAdoptionFormatters =
-            arrayOf<String>(
-                "a",
-                "b",
-                "big",
-                "code",
-                "em",
-                "font",
-                "i",
-                "nobr",
-                "s",
-                "small",
-                "strike",
-                "strong",
-                "tt",
-                "u",
-            )
-        val InBodyEndTableFosters = arrayOf<String>("table", "tbody", "tfoot", "thead", "tr")
-        val InTableToBody = arrayOf("tbody", "tfoot", "thead")
-        val InTableAddBody = arrayOf("td", "th", "tr")
-        val InTableToHead = arrayOf("script", "style", "template")
-        val InCellNames = arrayOf<String>("td", "th")
-        val InCellBody = arrayOf<String>("body", "caption", "col", "colgroup", "html")
-        val InCellTable = arrayOf<String>("table", "tbody", "tfoot", "thead", "tr")
-        val InCellCol =
-            arrayOf<String>(
-                "caption",
-                "col",
-                "colgroup",
-                "tbody",
-                "td",
-                "tfoot",
-                "th",
-                "thead",
-                "tr",
-            )
-        val InTableEndErr =
-            arrayOf(
-                "body",
-                "caption",
-                "col",
-                "colgroup",
-                "html",
-                "tbody",
-                "td",
-                "tfoot",
-                "th",
-                "thead",
-                "tr",
-            )
-        val InTableFoster = arrayOf("table", "tbody", "tfoot", "thead", "tr")
-        val InTableBodyExit = arrayOf("caption", "col", "colgroup", "tbody", "tfoot", "thead")
-        val InTableBodyEndIgnore = arrayOf("body", "caption", "col", "colgroup", "html", "td", "th", "tr")
-        val InRowMissing = arrayOf("caption", "col", "colgroup", "tbody", "tfoot", "thead", "tr")
-        val InRowIgnore = arrayOf("body", "caption", "col", "colgroup", "html", "td", "th")
-        val InSelectEnd = arrayOf("input", "keygen", "textarea")
-        val InSelectTableEnd = arrayOf("caption", "table", "tbody", "td", "tfoot", "th", "thead", "tr")
-        val InTableEndIgnore = arrayOf("tbody", "tfoot", "thead")
-        val InHeadNoscriptIgnore = arrayOf("head", "noscript")
-        val InCaptionIgnore = arrayOf("body", "col", "colgroup", "html", "tbody", "td", "tfoot", "th", "thead", "tr")
-        val InTemplateToHead =
-            arrayOf(
-                "base",
-                "basefont",
-                "bgsound",
-                "link",
-                "meta",
-                "noframes",
-                "script",
-                "style",
-                "template",
-                "title",
-            )
-        val InTemplateToTable = arrayOf("caption", "colgroup", "tbody", "tfoot", "thead")
-        val InForeignToHtml =
-            arrayOf(
-                "b",
-                "big",
-                "blockquote",
-                "body",
-                "br",
-                "center",
-                "code",
-                "dd",
-                "div",
-                "dl",
-                "dt",
-                "em",
-                "embed",
-                "h1",
-                "h2",
-                "h3",
-                "h4",
-                "h5",
-                "h6",
-                "head",
-                "hr",
-                "i",
-                "img",
-                "li",
-                "listing",
-                "menu",
-                "meta",
-                "nobr",
-                "ol",
-                "p",
-                "pre",
-                "ruby",
-                "s",
-                "small",
-                "span",
-                "strike",
-                "strong",
-                "sub",
-                "sup",
-                "table",
-                "tt",
-                "u",
-                "ul",
-                "var",
-            )
+    public object Constants {
+        public val InHeadEmpty: Array<String> = arrayOf("base", "basefont", "bgsound", "command", "link")
+        public val InHeadRaw: Array<String> = arrayOf("noframes", "style")
+        public val InHeadEnd: Array<String> = arrayOf("body", "br", "html")
+        public val AfterHeadBody: Array<String> = arrayOf("body", "br", "html")
+        public val BeforeHtmlToHead: Array<String> = arrayOf("body", "br", "head", "html")
+        public val InHeadNoScriptHead: Array<String> = arrayOf("basefont", "bgsound", "link", "meta", "noframes", "style")
+        public val InBodyStartToHead: Array<String> = arrayOf(
+            "base",
+            "basefont",
+            "bgsound",
+            "command",
+            "link",
+            "meta",
+            "noframes",
+            "script",
+            "style",
+            "template",
+            "title",
+        )
+        public val InBodyStartPClosers: Array<String> = arrayOf(
+            "address", "article", "aside", "blockquote", "center", "details", "dir", "div", "dl",
+            "fieldset", "figcaption", "figure", "footer", "header", "hgroup", "menu", "nav", "ol",
+            "p", "section", "summary", "ul",
+        )
+        public val Headings: Array<String> = arrayOf("h1", "h2", "h3", "h4", "h5", "h6")
+        public val InBodyStartLiBreakers: Array<String> = arrayOf("address", "div", "p")
+        public val DdDt: Array<String> = arrayOf("dd", "dt")
+        public val InBodyStartApplets: Array<String> = arrayOf("applet", "marquee", "object")
+        public val InBodyStartMedia: Array<String> = arrayOf("param", "source", "track")
+        public val InBodyStartInputAttribs: Array<String> = arrayOf("action", "name", "prompt")
+        public val InBodyStartDrop: Array<String> = arrayOf(
+            "caption",
+            "col",
+            "colgroup",
+            "frame",
+            "head",
+            "tbody",
+            "td",
+            "tfoot",
+            "th",
+            "thead",
+            "tr",
+        )
+        public val InBodyEndClosers: Array<String> = arrayOf(
+            "address",
+            "article",
+            "aside",
+            "blockquote",
+            "button",
+            "center",
+            "details",
+            "dir",
+            "div",
+            "dl",
+            "fieldset",
+            "figcaption",
+            "figure",
+            "footer",
+            "header",
+            "hgroup",
+            "listing",
+            "menu",
+            "nav",
+            "ol",
+            "pre",
+            "section",
+            "summary",
+            "ul",
+        )
+        public val InBodyEndOtherErrors: Array<String> = arrayOf(
+            "body",
+            "dd",
+            "dt",
+            "html",
+            "li",
+            "optgroup",
+            "option",
+            "p",
+            "rb",
+            "rp",
+            "rt",
+            "rtc",
+            "tbody",
+            "td",
+            "tfoot",
+            "th",
+            "thead",
+            "tr",
+        )
+        public val InBodyEndAdoptionFormatters: Array<String> = arrayOf(
+            "a",
+            "b",
+            "big",
+            "code",
+            "em",
+            "font",
+            "i",
+            "nobr",
+            "s",
+            "small",
+            "strike",
+            "strong",
+            "tt",
+            "u",
+        )
+        public val InBodyEndTableFosters: Array<String> = arrayOf("table", "tbody", "tfoot", "thead", "tr")
+        public val InTableToBody: Array<String> = arrayOf("tbody", "tfoot", "thead")
+        public val InTableAddBody: Array<String> = arrayOf("td", "th", "tr")
+        public val InTableToHead: Array<String> = arrayOf("script", "style", "template")
+        public val InCellNames: Array<String> = arrayOf("td", "th")
+        public val InCellBody: Array<String> = arrayOf("body", "caption", "col", "colgroup", "html")
+        public val InCellTable: Array<String> = arrayOf("table", "tbody", "tfoot", "thead", "tr")
+        public val InCellCol: Array<String> = arrayOf(
+            "caption",
+            "col",
+            "colgroup",
+            "tbody",
+            "td",
+            "tfoot",
+            "th",
+            "thead",
+            "tr",
+        )
+        public val InTableEndErr: Array<String> = arrayOf(
+            "body",
+            "caption",
+            "col",
+            "colgroup",
+            "html",
+            "tbody",
+            "td",
+            "tfoot",
+            "th",
+            "thead",
+            "tr",
+        )
+        public val InTableFoster: Array<String> = arrayOf("table", "tbody", "tfoot", "thead", "tr")
+        public val InTableBodyExit: Array<String> = arrayOf("caption", "col", "colgroup", "tbody", "tfoot", "thead")
+        public val InTableBodyEndIgnore: Array<String> = arrayOf("body", "caption", "col", "colgroup", "html", "td", "th", "tr")
+        public val InRowMissing: Array<String> = arrayOf("caption", "col", "colgroup", "tbody", "tfoot", "thead", "tr")
+        public val InRowIgnore: Array<String> = arrayOf("body", "caption", "col", "colgroup", "html", "td", "th")
+        public val InSelectEnd: Array<String> = arrayOf("input", "keygen", "textarea")
+        public val InSelectTableEnd: Array<String> = arrayOf("caption", "table", "tbody", "td", "tfoot", "th", "thead", "tr")
+        public val InTableEndIgnore: Array<String> = arrayOf("tbody", "tfoot", "thead")
+        public val InHeadNoscriptIgnore: Array<String> = arrayOf("head", "noscript")
+        public val InCaptionIgnore: Array<String> = arrayOf("body", "col", "colgroup", "html", "tbody", "td", "tfoot", "th", "thead", "tr")
+        public val InTemplateToHead: Array<String> = arrayOf(
+            "base",
+            "basefont",
+            "bgsound",
+            "link",
+            "meta",
+            "noframes",
+            "script",
+            "style",
+            "template",
+            "title",
+        )
+        public val InTemplateToTable: Array<String> = arrayOf("caption", "colgroup", "tbody", "tfoot", "thead")
+        public val InForeignToHtml: Array<String> = arrayOf(
+            "b",
+            "big",
+            "blockquote",
+            "body",
+            "br",
+            "center",
+            "code",
+            "dd",
+            "div",
+            "dl",
+            "dt",
+            "em",
+            "embed",
+            "h1",
+            "h2",
+            "h3",
+            "h4",
+            "h5",
+            "h6",
+            "head",
+            "hr",
+            "i",
+            "img",
+            "li",
+            "listing",
+            "menu",
+            "meta",
+            "nobr",
+            "ol",
+            "p",
+            "pre",
+            "ruby",
+            "s",
+            "small",
+            "span",
+            "strike",
+            "strong",
+            "sub",
+            "sup",
+            "table",
+            "tt",
+            "u",
+            "ul",
+            "var",
+        )
     }
 
-    companion object {
+    public companion object {
         private const val nullString = '\u0000'.toString()
 
         private fun isWhitespace(t: Token): Boolean {

@@ -2,14 +2,14 @@ package com.fleeksoft.ksoup.network
 
 import korlibs.io.net.http.*
 
-internal class NetworkHelperKorIo {
+public class NetworkHelperKorIo {
     private val client: HttpClient = createHttpClient()
 
-    companion object {
-        val instance: NetworkHelperKorIo = NetworkHelperKorIo()
+    public companion object {
+        public val instance: NetworkHelperKorIo = NetworkHelperKorIo()
     }
 
-    suspend fun get(
+    public suspend fun get(
         url: String,
         headers: Map<String, String> = mapOf(),
         requestConfig: HttpClient.RequestConfig = HttpClient.RequestConfig.DEFAULT,
@@ -23,7 +23,7 @@ internal class NetworkHelperKorIo {
         return client.request(url = url, method = Http.Methods.GET, headers = headersBuild, config = requestConfig)
     }
 
-    suspend fun submitForm(
+    public suspend fun submitForm(
         url: String,
         params: Map<String, String>,
         headers: Map<String, String> = mapOf(),
@@ -43,7 +43,7 @@ internal class NetworkHelperKorIo {
         )
     }
 
-    suspend fun post(
+    public suspend fun post(
         url: String,
         body: HttpBodyContent = HttpBodyContent("", ""),
         headers: Map<String, String> = mapOf(),

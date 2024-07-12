@@ -6,16 +6,16 @@ import korlibs.io.file.readAsSyncStream
 import korlibs.io.file.std.uniVfs
 import korlibs.io.stream.*
 
-internal suspend fun readGzipFile(filePath: String): SyncStream {
+public suspend fun readGzipFile(filePath: String): SyncStream {
     return filePath.uniVfs.readAsSyncStream().readAll().uncompress(GZIP).openSync()
 }
 
-internal suspend fun readFile(filePath: String): SyncStream {
+public suspend fun readFile(filePath: String): SyncStream {
     return filePath.uniVfs.readAsSyncStream()
 }
 
 // js don't support ?i
-internal fun jsSupportedRegex(regex: String): Regex {
+public fun jsSupportedRegex(regex: String): Regex {
     return if (Platform.isJS() && regex.contains("(?i)")) {
         Regex(regex.replace("(?i)", ""), RegexOption.IGNORE_CASE)
     } else {

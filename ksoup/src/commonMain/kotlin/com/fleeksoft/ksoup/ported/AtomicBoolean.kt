@@ -1,11 +1,10 @@
 package com.fleeksoft.ksoup.ported
 
-internal class AtomicBoolean(value: Boolean) {
-    private var value: Boolean = value
+public class AtomicBoolean(private var value: Boolean) {
 
-    fun set(value: Boolean) {
+    public fun set(value: Boolean) {
         this.value = value
     }
 
-    fun get() = value
+    public fun get(): Boolean = value
 }

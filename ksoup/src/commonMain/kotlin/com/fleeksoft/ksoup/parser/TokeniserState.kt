@@ -5,7 +5,7 @@ import com.fleeksoft.ksoup.nodes.DocumentType
 /**
  * States and transition activations for the Tokeniser.
  */
-internal enum class TokeniserState {
+public enum class TokeniserState {
     Data {
         // in data state, gather characters until a character reference or tag is found
         override fun read(
@@ -162,8 +162,7 @@ internal enum class TokeniserState {
             // previous TagOpen state did NOT consume, will have a letter char in current
             val tagName: String = r.consumeTagName()
             t.tagPending.appendTagName(tagName)
-            val c: Char = r.consume()
-            when (c) {
+            when (val c: Char = r.consume()) {
                 '\t', '\n', '\r', '\u000c', ' ' -> t.transition(BeforeAttributeName)
                 '/' -> t.transition(SelfClosingStartTag)
                 '<' -> {
@@ -425,8 +424,7 @@ internal enum class TokeniserState {
                 t.transition(Data)
                 return
             }
-            val c: Char = r.consume()
-            when (c) {
+            when (val c: Char = r.consume()) {
                 '-' -> {
                     t.emit(c)
                     t.transition(ScriptDataEscapedDashDash)
@@ -456,8 +454,7 @@ internal enum class TokeniserState {
                 t.transition(Data)
                 return
             }
-            val c: Char = r.consume()
-            when (c) {
+            when (val c: Char = r.consume()) {
                 '-' -> t.emit(c)
                 '<' -> t.transition(ScriptDataEscapedLessthanSign)
                 '>' -> {
@@ -535,8 +532,7 @@ internal enum class TokeniserState {
             t: Tokeniser,
             r: CharacterReader,
         ) {
-            val c: Char = r.current()
-            when (c) {
+            when (val c: Char = r.current()) {
                 '-' -> {
                     t.emit(c)
                     t.advanceTransition(ScriptDataDoubleEscapedDash)
@@ -570,8 +566,7 @@ internal enum class TokeniserState {
             t: Tokeniser,
             r: CharacterReader,
         ) {
-            val c: Char = r.consume()
-            when (c) {
+            when (val c: Char = r.consume()) {
                 '-' -> {
                     t.emit(c)
                     t.transition(ScriptDataDoubleEscapedDashDash)
@@ -605,8 +600,7 @@ internal enum class TokeniserState {
             t: Tokeniser,
             r: CharacterReader,
         ) {
-            val c: Char = r.consume()
-            when (c) {
+            when (val c: Char = r.consume()) {
                 '-' -> t.emit(c)
                 '<' -> {
                     t.emit(c)
@@ -746,8 +740,7 @@ internal enum class TokeniserState {
             t: Tokeniser,
             r: CharacterReader,
         ) {
-            val c: Char = r.consume()
-            when (c) {
+            when (val c: Char = r.consume()) {
                 '\t', '\n', '\r', '\u000c', ' ' -> {}
                 '/' -> t.transition(SelfClosingStartTag)
                 '=' -> t.transition(BeforeAttributeValue)
@@ -787,8 +780,7 @@ internal enum class TokeniserState {
             t: Tokeniser,
             r: CharacterReader,
         ) {
-            val c: Char = r.consume()
-            when (c) {
+            when (val c: Char = r.consume()) {
                 '\t', '\n', '\r', '\u000c', ' ' -> {}
                 '"' -> t.transition(AttributeValue_doubleQuoted)
                 '&' -> {
@@ -1138,8 +1130,7 @@ internal enum class TokeniserState {
             t: Tokeniser,
             r: CharacterReader,
         ) {
-            val c: Char = r.consume()
-            when (c) {
+            when (val c: Char = r.consume()) {
                 '-' -> t.transition(CommentEnd)
                 nullChar -> {
                     t.error(this)
@@ -1470,8 +1461,7 @@ internal enum class TokeniserState {
             t: Tokeniser,
             r: CharacterReader,
         ) {
-            val c: Char = r.consume()
-            when (c) {
+            when (val c: Char = r.consume()) {
                 '\'' -> t.transition(AfterDoctypePublicIdentifier)
                 nullChar -> {
                     t.error(this)
@@ -1663,8 +1653,7 @@ internal enum class TokeniserState {
             t: Tokeniser,
             r: CharacterReader,
         ) {
-            val c: Char = r.consume()
-            when (c) {
+            when (val c: Char = r.consume()) {
                 '"' -> t.transition(AfterDoctypeSystemIdentifier)
                 nullChar -> {
                     t.error(this)
@@ -1782,36 +1771,34 @@ internal enum class TokeniserState {
     },
     ;
 
-    abstract fun read(
+    public abstract fun read(
         t: Tokeniser,
         r: CharacterReader,
     )
 
-    companion object {
-        const val nullChar = '\u0000'
+    public companion object {
+        public const val nullChar: Char = '\u0000'
 
         // char searches. must be sorted, used in inSorted. MUST update TokenisetStateTest if more arrays are added.
-        val attributeNameCharsSorted =
-            charArrayOf('\t', '\n', '\u000c', '\r', ' ', '"', '\'', '/', '<', '=', '>')
-        val attributeValueUnquoted =
-            charArrayOf(
-                nullChar,
-                '\t',
-                '\n',
-                '\u000c',
-                '\r',
-                ' ',
-                '"',
-                '&',
-                '\'',
-                '<',
-                '=',
-                '>',
-                '`',
-            )
-        private val replacementChar: Char = Tokeniser.replacementChar
-        private val replacementStr: String = Tokeniser.replacementChar.toString()
-        private val eof: Char = CharacterReader.EOF
+        public val attributeNameCharsSorted: CharArray = charArrayOf('\t', '\n', '\u000c', '\r', ' ', '"', '\'', '/', '<', '=', '>')
+        public val attributeValueUnquoted: CharArray = charArrayOf(
+            nullChar,
+            '\t',
+            '\n',
+            '\u000c',
+            '\r',
+            ' ',
+            '"',
+            '&',
+            '\'',
+            '<',
+            '=',
+            '>',
+            '`',
+        )
+        private const val replacementChar: Char = Tokeniser.replacementChar
+        private const val replacementStr: String = Tokeniser.replacementChar.toString()
+        private const val eof: Char = CharacterReader.EOF
 
         /**
          * Handles RawtextEndTagName, ScriptDataEndTagName, and ScriptDataEscapedEndTagName. Same body impl, just
@@ -1830,8 +1817,7 @@ internal enum class TokeniserState {
             }
             var needsExitTransition = false
             if (t.isAppropriateEndTagToken() && !r.isEmpty()) {
-                val c: Char = r.consume()
-                when (c) {
+                when (val c: Char = r.consume()) {
                     '\t', '\n', '\r', '\u000c', ' ' -> t.transition(BeforeAttributeName)
                     '/' -> t.transition(SelfClosingStartTag)
                     '>' -> {

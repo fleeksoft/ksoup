@@ -14,9 +14,9 @@ import kotlin.math.min
  * A minimal String utility class. Designed for **internal** com.fleeksoft.ksoup use only - the API and outcome may change without
  * notice.
  */
-internal object StringUtil {
+public object StringUtil {
     // memoised padding up to 21 (blocks 0 to 20 spaces)
-    val padding = arrayOf(
+    public val padding: Array<String> = arrayOf(
         "",
         " ",
         "  ",
@@ -46,7 +46,7 @@ internal object StringUtil {
      * @param sep string to place between strings
      * @return joined string
      */
-    fun join(strings: Collection<*>, sep: String?): String {
+    public fun join(strings: Collection<*>, sep: String?): String {
         return join(strings.iterator(), sep)
     }
 
@@ -56,7 +56,7 @@ internal object StringUtil {
      * @param sep string to place between strings
      * @return joined string
      */
-    fun join(strings: Iterator<*>, sep: String?): String {
+    public fun join(strings: Iterator<*>, sep: String?): String {
         if (!strings.hasNext()) return ""
         val start = strings.next().toString()
         if (!strings.hasNext()) {
@@ -78,7 +78,7 @@ internal object StringUtil {
      * @return string of spaces * width
      * @see .padding
      */
-    fun padding(width: Int, maxPaddingWidth: Int = 30): String {
+    public fun padding(width: Int, maxPaddingWidth: Int = 30): String {
         require(width >= 0) { "width must be >= 0" }
         require(maxPaddingWidth >= -1)
         val effectiveWidth = if (maxPaddingWidth != -1) min(width, maxPaddingWidth) else width
@@ -94,7 +94,7 @@ internal object StringUtil {
      * @param string string to test
      * @return if string is blank
      */
-    fun isBlank(string: String?): Boolean {
+    public fun isBlank(string: String?): Boolean {
         if (string.isNullOrEmpty()) return true
         val l = string.length
         for (i in 0 until l) {
@@ -108,7 +108,7 @@ internal object StringUtil {
      * @param string string to test
      * @return if its first character is a newline
      */
-    fun startsWithNewline(string: String?): Boolean {
+    public fun startsWithNewline(string: String?): Boolean {
         return if (string.isNullOrEmpty()) false else string[0] == '\n'
     }
 
@@ -117,7 +117,7 @@ internal object StringUtil {
      * @param string string to test
      * @return true if only digit chars, false if empty or null or contains non-digit chars
      */
-    fun isNumeric(string: String?): Boolean {
+    public fun isNumeric(string: String?): Boolean {
         if (string.isNullOrEmpty()) return false
         val l = string.length
         for (i in 0 until l) {
@@ -132,7 +132,7 @@ internal object StringUtil {
      * @return true if code point is whitespace, false otherwise
      * @see .isActuallyWhitespace
      */
-    fun isWhitespace(c: Int): Boolean {
+    public fun isWhitespace(c: Int): Boolean {
         return c == ' '.code || c == '\t'.code || c == '\n'.code || c == '\u000c'.code || c == '\r'.code
     }
 
@@ -141,12 +141,12 @@ internal object StringUtil {
      * @param c code point to test
      * @return true if code point is whitespace, false otherwise
      */
-    fun isActuallyWhitespace(c: Int): Boolean {
+    public fun isActuallyWhitespace(c: Int): Boolean {
         return c == ' '.code || c == '\t'.code || c == '\n'.code || c == '\u000c'.code || c == '\r'.code || c == 160
         // 160 is &nbsp; (non-breaking space). Not in the spec but expected.
     }
 
-    fun isInvisibleChar(c: Int): Boolean {
+    public fun isInvisibleChar(c: Int): Boolean {
         return c == 8203 || c == 173 // zero width sp, soft hyphen
         // previously also included zw non join, zw join - but removing those breaks semantic meaning of text
     }
@@ -157,7 +157,7 @@ internal object StringUtil {
      * @param string content to normalise
      * @return normalised string
      */
-    fun normaliseWhitespace(string: String): String {
+    public fun normaliseWhitespace(string: String): String {
         val sb: StringBuilder = borrowBuilder()
         appendNormalisedWhitespace(sb, string, false)
         return releaseBuilder(sb)
@@ -169,7 +169,7 @@ internal object StringUtil {
      * @param string string to normalize whitespace within
      * @param stripLeading set to true if you wish to remove any leading whitespace
      */
-    fun appendNormalisedWhitespace(
+    public fun appendNormalisedWhitespace(
         accum: StringBuilder,
         string: String,
         stripLeading: Boolean,
@@ -197,7 +197,7 @@ internal object StringUtil {
         }
     }
 
-    fun isIn(needle: String, vararg haystack: String): Boolean {
+    public fun isIn(needle: String, vararg haystack: String): Boolean {
         val len = haystack.size
         for (i in 0 until len) {
             if (haystack[i] == needle) return true
@@ -205,7 +205,7 @@ internal object StringUtil {
         return false
     }
 
-    fun inSorted(needle: String, haystack: Array<out String>): Boolean {
+    public fun inSorted(needle: String, haystack: Array<out String>): Boolean {
         return haystack.toList().binarySearch(needle) >= 0
     }
 
@@ -214,7 +214,7 @@ internal object StringUtil {
      * @param string scanned string
      * @return true if all characters are in range 0 - 127
      */
-    fun isAscii(string: String): Boolean {
+    public fun isAscii(string: String): Boolean {
         for (element in string) {
             val c = element.code
             if (c > 127) { // ascii range
@@ -230,7 +230,7 @@ internal object StringUtil {
      * @param relUrl the relative URL to resolve. (If it's already absolute, it will be returned)
      * @return an absolute URL if one was able to be generated, or the empty string if not
      */
-    fun resolve(baseUrl: String, relUrl: String): String {
+    public fun resolve(baseUrl: String, relUrl: String): String {
         // if access url is relative protocol then copy it
         val cleanedBaseUrl = stripControlChars(baseUrl)
         val cleanedRelUrl = stripControlChars(relUrl)
@@ -254,7 +254,7 @@ internal object StringUtil {
      * Care must be taken to release the builder once its work has been completed, with [.releaseBuilder]
      * @return an empty StringBuilder
      */
-    fun borrowBuilder(): StringBuilder {
+    public fun borrowBuilder(): StringBuilder {
         return StringBuilder(MaxCachedBuilderSize)
     }
 
@@ -266,7 +266,7 @@ internal object StringUtil {
      */
 
     // TODO: replace this
-    fun releaseBuilder(sb: StringBuilder): String {
+    public fun releaseBuilder(sb: StringBuilder): String {
         var stringBuilder: StringBuilder = sb
         val string: String = stringBuilder.toString()
         if (stringBuilder.length > MaxCachedBuilderSize) {
@@ -287,22 +287,22 @@ internal object StringUtil {
     /**
      * A StringJoiner allows incremental / filtered joining of a set of stringable objects.
      */
-    class StringJoiner
+    public class StringJoiner
     /**
      * Create a new joiner, that uses the specified separator. MUST call [.complete] or will leak a thread
      * local string builder.
      *
      * @param separator the token to insert between strings
-     */(val separator: String?) {
+     */(private val separator: String?) {
 
         // sets null on builder release so can't accidentally be reused
-        var sb: StringBuilder? = borrowBuilder()
-        var first = true
+        private var sb: StringBuilder? = borrowBuilder()
+        private var first = true
 
         /**
          * Add another item to the joiner, will be separated
          */
-        fun add(stringy: Any?): StringJoiner {
+        public fun add(stringy: Any?): StringJoiner {
             if (!first) sb!!.append(separator)
             sb!!.append(stringy)
             first = false
@@ -312,7 +312,7 @@ internal object StringUtil {
         /**
          * Append content to the current item; not separated
          */
-        fun append(stringy: Any?): StringJoiner {
+        public fun append(stringy: Any?): StringJoiner {
             sb!!.append(stringy)
             return this
         }
@@ -320,7 +320,7 @@ internal object StringUtil {
         /**
          * Return the joined string, and release the builder back to the pool. This joiner cannot be reused.
          */
-        fun complete(): String {
+        public fun complete(): String {
             val string = sb?.let { releaseBuilder(it) }
             sb = null
             return string ?: ""

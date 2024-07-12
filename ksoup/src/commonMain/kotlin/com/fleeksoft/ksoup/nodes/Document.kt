@@ -61,7 +61,7 @@ public class Document(private val namespace: String, private val location: Strin
      * @return document type, or null if not set
      */
     public fun documentType(): DocumentType? {
-        for (node in childNodes) {
+        for (node in _childNodes) {
             if (node is DocumentType) {
                 return node
             } else if (node !is LeafNode) {
@@ -290,7 +290,7 @@ public class Document(private val namespace: String, private val location: Strin
         return document
     }
 
-    override fun shallowClone(): Document {
+    public override fun shallowClone(): Document {
         val clone = Document(this.tag().namespace(), baseUri())
         if (attributes != null) clone.attributes = attributes!!.clone()
         clone.outputSettings = outputSettings.clone()

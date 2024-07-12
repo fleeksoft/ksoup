@@ -3,10 +3,10 @@ package com.fleeksoft.ksoup.parser
 /**
  * A Parse Error records an error in the input HTML that occurs in either the tokenisation or the tree building phase.
  */
-internal class ParseError {
-    val pos: Int
-    val cursorPos: String
-    val errorMsg: String
+public class ParseError {
+    public val pos: Int
+    private val cursorPos: String
+    public val errorMsg: String
 
     internal constructor(reader: CharacterReader, errorMsg: String) {
         pos = reader.pos()

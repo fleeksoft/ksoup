@@ -81,7 +81,7 @@ import com.fleeksoft.ksoup.ported.IdentityHashMap
  * @see Elements#select(String css)
  * @see Element#selectXpath(String xpath)
  */
-internal object Selector {
+public object Selector {
     /**
      * Find elements matching selector.
      *
@@ -90,7 +90,7 @@ internal object Selector {
      * @return matching elements, empty if none
      * @throws Selector.SelectorParseException (unchecked) on an invalid CSS query.
      */
-    fun select(
+    public fun select(
         query: String,
         root: Element,
     ): Elements {
@@ -105,7 +105,7 @@ internal object Selector {
      * @param root root element to descend into
      * @return matching elements, empty if none
      */
-    fun select(
+    public fun select(
         evaluator: Evaluator,
         root: Element,
     ): Elements {
@@ -119,7 +119,7 @@ internal object Selector {
      * @param roots root elements to descend into
      * @return matching elements, empty if none
      */
-    fun select(
+    public fun select(
         query: String,
         roots: Iterable<Element>,
     ): Elements {
@@ -140,7 +140,7 @@ internal object Selector {
     }
 
     // exclude set. package open so that Elements can implement .not() selector.
-    fun filterOut(
+    public fun filterOut(
         elements: Collection<Element>,
         outs: Collection<Element?>,
     ): Elements {
@@ -165,7 +165,7 @@ internal object Selector {
      * @return the matching element, or **null** if none.
      */
 
-    fun selectFirst(
+    public fun selectFirst(
         cssQuery: String,
         root: Element,
     ): Element? {
@@ -173,9 +173,9 @@ internal object Selector {
         return Collector.findFirst(QueryParser.parse(cssQuery), root)
     }
 
-    class SelectorParseException : IllegalStateException {
-        constructor(msg: String?) : super(msg)
-        constructor(
+    public class SelectorParseException : IllegalStateException {
+        public constructor(msg: String?) : super(msg)
+        public constructor(
             cause: Throwable?,
             msg: String?,
         ) : super(msg, cause)

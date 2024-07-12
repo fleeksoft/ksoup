@@ -16,7 +16,7 @@ import kotlin.jvm.JvmOverloads
 /**
  * HTML Tree Builder; creates a DOM from Tokens.
  */
-internal open class HtmlTreeBuilder : TreeBuilder() {
+public open class HtmlTreeBuilder : TreeBuilder() {
     private var state: HtmlTreeBuilderState? = null // the current state
     private var originalState: HtmlTreeBuilderState? = null // original / marked state
     private var baseUriSetFromDoc = false
@@ -35,8 +35,8 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
         null // chars in table to be shifted out
     private var emptyEnd: Token.EndTag? = null // reused empty end tag
     private var framesetOk = false // if ok to go into frameset
-    var isFosterInserts = false // if next inserts should be fostered
-    var isFragmentParsing = false // if parsing a fragment of html
+    public var isFosterInserts: Boolean = false // if next inserts should be fostered
+    public var isFragmentParsing: Boolean = false // if parsing a fragment of html
         private set
 
     override fun defaultSettings(): ParseSettings? {
@@ -61,9 +61,9 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
         headElement = null
         formElement = null
         contextElement = null
-        formattingElements = ArrayList<Element?>()
-        tmplInsertMode = ArrayList<HtmlTreeBuilderState>()
-        pendingTableCharacters = ArrayList<Token.Character>()
+        formattingElements = ArrayList()
+        tmplInsertMode = ArrayList()
+        pendingTableCharacters = ArrayList()
         emptyEnd = Token.EndTag(this)
         framesetOk = true
         isFosterInserts = false
@@ -139,7 +139,7 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
         return dispatch!!.process(token, this)
     }
 
-    fun useCurrentOrForeignInsert(token: Token): Boolean {
+    private fun useCurrentOrForeignInsert(token: Token): Boolean {
         // https://html.spec.whatwg.org/multipage/parsing.html#tree-construction
         // If the stack of open elements is empty
         if (stack.isEmpty()) return true
@@ -181,41 +181,41 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
         // If the token is an end-of-file token
     }
 
-    fun process(
+    public fun process(
         token: Token,
         state: HtmlTreeBuilderState,
     ): Boolean {
         return state.process(token, this)
     }
 
-    fun transition(state: HtmlTreeBuilderState?) {
+    public fun transition(state: HtmlTreeBuilderState?) {
         this.state = state
     }
 
-    fun state(): HtmlTreeBuilderState? {
+    public fun state(): HtmlTreeBuilderState? {
         return state
     }
 
-    fun markInsertionMode() {
+    public fun markInsertionMode() {
         originalState = state
     }
 
-    fun originalState(): HtmlTreeBuilderState? {
+    public fun originalState(): HtmlTreeBuilderState? {
         return originalState
     }
 
-    fun framesetOk(framesetOk: Boolean) {
+    public fun framesetOk(framesetOk: Boolean) {
         this.framesetOk = framesetOk
     }
 
-    fun framesetOk(): Boolean {
+    public fun framesetOk(): Boolean {
         return framesetOk
     }
 
-    val document: Document
+    public val document: Document
         get() = doc
 
-    fun maybeSetBaseUri(base: Element) {
+    public fun maybeSetBaseUri(base: Element) {
         if (baseUriSetFromDoc) {
             // only listen to the first <base href> in parse
             return
@@ -228,7 +228,7 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
         }
     }
 
-    fun error(state: HtmlTreeBuilderState?) {
+    public fun error(state: HtmlTreeBuilderState?) {
         if (parser.getErrors().canAddError()) {
             parser.getErrors().add(
                 ParseError(
@@ -239,7 +239,7 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
         }
     }
 
-    fun createElementFor(
+    public fun createElementFor(
         startTag: Token.StartTag,
         namespace: String,
         forcePreserveCase: Boolean,
@@ -273,7 +273,7 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
     }
 
     /** Inserts an HTML element for the given tag)  */
-    fun insertElementFor(startTag: Token.StartTag): Element {
+    public fun insertElementFor(startTag: Token.StartTag): Element {
         val el = createElementFor(startTag, NamespaceHtml, false)
         doInsertElement(el, startTag)
 
@@ -300,7 +300,7 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
     /**
      * Inserts a foreign element. Preserves the case of the tag name and of the attributes.
      */
-    fun insertForeignElementFor(
+    public fun insertForeignElementFor(
         startTag: Token.StartTag,
         namespace: String,
     ): Element {
@@ -315,14 +315,14 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
         return el
     }
 
-    fun insertEmptyElementFor(startTag: Token.StartTag): Element {
+    public fun insertEmptyElementFor(startTag: Token.StartTag): Element {
         val el = createElementFor(startTag, NamespaceHtml, false)
         doInsertElement(el, startTag)
         pop()
         return el
     }
 
-    fun insertFormElement(
+    public fun insertFormElement(
         startTag: Token.StartTag,
         onStack: Boolean,
         checkTemplateStack: Boolean,
@@ -374,21 +374,21 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
         push(el)
     }
 
-    fun insertCommentNode(token: Token.Comment) {
+    public fun insertCommentNode(token: Token.Comment) {
         val node = Comment(token.getData())
         currentElement().appendChild(node)
         onNodeInserted(node)
     }
 
     /** Inserts the provided character token into the current element.  */
-    fun insertCharacterNode(characterToken: Token.Character) {
+    public fun insertCharacterNode(characterToken: Token.Character) {
         // will be doc if no current element; allows for whitespace to be inserted into the doc root object (not on the stack)
         val el = currentElement()
         insertCharacterToElement(characterToken, el)
     }
 
     /** Inserts the provided character token into the provided element.  */
-    fun insertCharacterToElement(
+    public fun insertCharacterToElement(
         characterToken: Token.Character,
         el: Element,
     ) {
@@ -408,18 +408,18 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
         onNodeInserted(node)
     }
 
-    fun onStack(el: Element): Boolean {
+    public fun onStack(el: Element): Boolean {
         return onStack(stack, el)
     }
 
     /** Checks if there is an HTML element with the given name on the stack.  */
-    fun onStack(elName: String?): Boolean {
+    public fun onStack(elName: String?): Boolean {
         return getFromStack(elName) != null
     }
 
     /** Gets the nearest (lowest) HTML element with the given name from the stack.  */
 
-    fun getFromStack(elName: String?): Element? {
+    public fun getFromStack(elName: String?): Element? {
         val bottom: Int = stack.size - 1
         val upper = if (bottom >= maxQueueDepth) bottom - maxQueueDepth else 0
         for (pos in bottom downTo upper) {
@@ -431,7 +431,7 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
         return null
     }
 
-    fun removeFromStack(el: Element): Boolean {
+    public fun removeFromStack(el: Element): Boolean {
         for (pos in stack.size - 1 downTo 0) {
             val next: Element = stack[pos]!!
             if (next === el) {
@@ -445,7 +445,7 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
 
     /** Pops the stack until the given HTML element is removed.  */
 
-    fun popStackToClose(elName: String): Element? {
+    public fun popStackToClose(elName: String): Element? {
         for (pos in stack.size - 1 downTo 0) {
             val el: Element = pop()
             if (el.elementIs(elName, NamespaceHtml)) {
@@ -457,7 +457,7 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
 
     /** Pops the stack until an element with the supplied name is removed, irrespective of namespace.  */
 
-    fun popStackToCloseAnyNamespace(elName: String): Element? {
+    public fun popStackToCloseAnyNamespace(elName: String): Element? {
         for (pos in stack.size - 1 downTo 0) {
             val el: Element = pop()
             if (el.nameIs(elName)) {
@@ -468,7 +468,7 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
     }
 
     /** Pops the stack until one of the given HTML elements is removed.  */
-    fun popStackToClose(vararg elNames: String) { // elnames is sorted, comes from Constants
+    public fun popStackToClose(vararg elNames: String) { // elnames is sorted, comes from Constants
         // elnames is sorted, comes from Constants
         for (pos in stack.size - 1 downTo 0) {
             val el: Element = pop()
@@ -478,15 +478,15 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
         }
     }
 
-    fun clearStackToTableContext() {
+    public fun clearStackToTableContext() {
         clearStackToContext("table", "template")
     }
 
-    fun clearStackToTableBodyContext() {
+    public fun clearStackToTableBodyContext() {
         clearStackToContext("tbody", "tfoot", "thead", "template")
     }
 
-    fun clearStackToTableRowContext() {
+    public fun clearStackToTableRowContext() {
         clearStackToContext("tr", "template")
     }
 
@@ -504,7 +504,7 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
         }
     }
 
-    fun aboveOnStack(el: Element): Element? {
+    public fun aboveOnStack(el: Element): Element? {
         assert(onStack(el))
         for (pos in stack.size - 1 downTo 0) {
             val next: Element? = stack[pos]
@@ -515,7 +515,7 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
         return null
     }
 
-    fun insertOnStackAfter(
+    public fun insertOnStackAfter(
         after: Element,
         inEl: Element,
     ) {
@@ -524,7 +524,7 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
         stack.add(i + 1, inEl)
     }
 
-    fun replaceOnStack(
+    public fun replaceOnStack(
         out: Element,
         `in`: Element,
     ) {
@@ -536,7 +536,7 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
      * is limited to [.maxQueueDepth].
      * @return true if the insertion mode was actually changed.
      */
-    fun resetInsertionMode(): Boolean {
+    public fun resetInsertionMode(): Boolean {
         // https://html.spec.whatwg.org/multipage/parsing.html#the-insertion-mode
         var last = false
         val bottom: Int = stack.size - 1
@@ -631,7 +631,7 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
     }
 
     /** Places the body back onto the stack and moves to InBody, for cases in AfterBody / AfterAfterBody when more content comes  */
-    fun resetBody() {
+    public fun resetBody() {
         if (!onStack("body")) {
             stack.add(doc.body()) // not onNodeInserted, as already seen
         }
@@ -671,12 +671,12 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
         return false
     }
 
-    fun inScope(targetNames: Array<String>): Boolean {
+    public fun inScope(targetNames: Array<String>): Boolean {
         return inSpecificScope(targetNames, TagsSearchInScope, null)
     }
 
     @JvmOverloads
-    fun inScope(
+    public fun inScope(
         targetName: String,
         extras: Array<String>? = null,
     ): Boolean {
@@ -689,19 +689,19 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
         // todo: in svg namespace: forignOjbect, desc, title
     }
 
-    fun inListItemScope(targetName: String): Boolean {
+    public fun inListItemScope(targetName: String): Boolean {
         return inScope(targetName, TagSearchList)
     }
 
-    fun inButtonScope(targetName: String): Boolean {
+    public fun inButtonScope(targetName: String): Boolean {
         return inScope(targetName, TagSearchButton)
     }
 
-    fun inTableScope(targetName: String): Boolean {
+    public fun inTableScope(targetName: String): Boolean {
         return inSpecificScope(targetName, TagSearchTableScope, null)
     }
 
-    fun inSelectScope(targetName: String): Boolean {
+    public fun inSelectScope(targetName: String): Boolean {
         for (pos in stack.size - 1 downTo 0) {
             val el: Element = stack[pos] ?: continue
             val elName: String = el.normalName()
@@ -716,7 +716,7 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
     }
 
     /** Tests if there is some element on the stack that is not in the provided set.  */
-    fun onStackNot(allowedTags: Array<String>): Boolean {
+    public fun onStackNot(allowedTags: Array<String>): Boolean {
         val bottom: Int = stack.size - 1
         val top = if (bottom > MaxScopeSearchDepth) bottom - MaxScopeSearchDepth else 0
         // don't walk too far up the tree
@@ -727,31 +727,31 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
         return false
     }
 
-    fun setHeadElement(headElement: Element?) {
+    public fun setHeadElement(headElement: Element?) {
         this.headElement = headElement
     }
 
-    fun getHeadElement(): Element? {
+    public fun getHeadElement(): Element? {
         return headElement
     }
 
-    fun getFormElement(): FormElement? {
+    public fun getFormElement(): FormElement? {
         return formElement
     }
 
-    fun setFormElement(formElement: FormElement?) {
+    public fun setFormElement(formElement: FormElement?) {
         this.formElement = formElement
     }
 
-    fun resetPendingTableCharacters() {
+    public fun resetPendingTableCharacters() {
         pendingTableCharacters?.clear()
     }
 
-    fun getPendingTableCharacters(): List<Token.Character>? {
+    public fun getPendingTableCharacters(): List<Token.Character>? {
         return pendingTableCharacters
     }
 
-    fun addPendingTableCharacters(c: Token.Character) {
+    public fun addPendingTableCharacters(c: Token.Character) {
         // make a clone of the token to maintain its state (as Tokens are otherwise reset)
         val clone: Token.Character = c.clone()
         pendingTableCharacters!!.add(clone)
@@ -768,7 +768,7 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
      * @param excludeTag If a step requires the UA to generate implied end tags but lists an element to exclude from the
      * process, then the UA must perform the above steps as if that element was not in the above list.
      */
-    fun generateImpliedEndTags(excludeTag: String?) {
+    public fun generateImpliedEndTags(excludeTag: String?) {
         while (StringUtil.inSorted(currentElement().normalName(), TagSearchEndTags)) {
             if (excludeTag != null && currentElementIs(excludeTag)) break
             pop()
@@ -780,7 +780,7 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
      * @param thorough if we are thorough (includes table elements etc) or not
      */
     @JvmOverloads
-    fun generateImpliedEndTags(thorough: Boolean = false) {
+    public fun generateImpliedEndTags(thorough: Boolean = false) {
         val search = if (thorough) TagThoroughSearchEndTags else TagSearchEndTags
         while (NamespaceHtml == currentElement().tag().namespace() &&
             StringUtil.inSorted(currentElement().normalName(), search)
@@ -789,13 +789,13 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
         }
     }
 
-    fun closeElement(name: String) {
+    public fun closeElement(name: String) {
         generateImpliedEndTags(name)
         if (name != currentElement().normalName()) error(state())
         popStackToClose(name)
     }
 
-    fun lastFormattingElement(): Element? {
+    private fun lastFormattingElement(): Element? {
         return if ((formattingElements?.size ?: 0) > 0) {
             formattingElements!![formattingElements!!.size - 1]
         } else {
@@ -803,25 +803,25 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
         }
     }
 
-    fun positionOfElement(el: Element?): Int {
+    public fun positionOfElement(el: Element?): Int {
         for (i in formattingElements!!.indices) {
             if (el === formattingElements!!.get(i)) return i
         }
         return -1
     }
 
-    fun removeLastFormattingElement(): Element? {
+    public fun removeLastFormattingElement(): Element? {
         val size: Int = formattingElements?.size ?: 0
         return if (size > 0) formattingElements!!.removeAt(size - 1) else null
     }
 
     // active formatting elements
-    fun pushActiveFormattingElements(`in`: Element) {
+    public fun pushActiveFormattingElements(`in`: Element) {
         checkActiveFormattingElements(`in`)
         formattingElements!!.add(`in`)
     }
 
-    fun pushWithBookmark(
+    public fun pushWithBookmark(
         `in`: Element,
         bookmark: Int,
     ) {
@@ -834,7 +834,7 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
         }
     }
 
-    fun checkActiveFormattingElements(`in`: Element) {
+    public fun checkActiveFormattingElements(`in`: Element) {
         var numSeen = 0
         val size: Int = formattingElements!!.size - 1
         var ceil = size - maxUsedFormattingElements
@@ -849,7 +849,7 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
         }
     }
 
-    fun reconstructFormattingElements() {
+    public fun reconstructFormattingElements() {
         if (stack.size > maxQueueDepth) return
         val last: Element? = lastFormattingElement()
         if (last == null || onStack(last)) return
@@ -893,13 +893,13 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
         }
     }
 
-    fun clearFormattingElementsToLastMarker() {
+    public fun clearFormattingElementsToLastMarker() {
         while (!formattingElements!!.isEmpty()) {
             removeLastFormattingElement() ?: break
         }
     }
 
-    fun removeFromActiveFormattingElements(el: Element) {
+    public fun removeFromActiveFormattingElements(el: Element) {
         for (pos in formattingElements!!.indices.reversed()) {
             val next: Element? = formattingElements?.get(pos)
             if (next === el) {
@@ -909,11 +909,11 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
         }
     }
 
-    fun isInActiveFormattingElements(el: Element): Boolean {
+    public fun isInActiveFormattingElements(el: Element): Boolean {
         return onStack(formattingElements?.mapNotNull { it }?.toList() ?: emptyList(), el)
     }
 
-    fun getActiveFormattingElement(nodeName: String?): Element? {
+    public fun getActiveFormattingElement(nodeName: String?): Element? {
         for (pos in formattingElements!!.indices.reversed()) {
             val next: Element? = formattingElements?.get(pos)
             if (next == null) {
@@ -926,18 +926,18 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
         return null
     }
 
-    fun replaceActiveFormattingElement(
+    public fun replaceActiveFormattingElement(
         out: Element,
         `in`: Element,
     ) {
         replaceInQueue(formattingElements!!, out, `in`)
     }
 
-    fun insertMarkerToFormattingElements() {
+    public fun insertMarkerToFormattingElements() {
         formattingElements?.add(null)
     }
 
-    fun insertInFosterParent(inNode: Node) {
+    public fun insertInFosterParent(inNode: Node) {
         val fosterParent: Element?
         val lastTable: Element? = getFromStack("table")
         var isLastTableParent = false
@@ -960,11 +960,11 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
     }
 
     // Template Insertion Mode stack
-    fun pushTemplateMode(state: HtmlTreeBuilderState) {
+    public fun pushTemplateMode(state: HtmlTreeBuilderState) {
         tmplInsertMode?.add(state)
     }
 
-    fun popTemplateMode(): HtmlTreeBuilderState? {
+    public fun popTemplateMode(): HtmlTreeBuilderState? {
         return if (!tmplInsertMode.isNullOrEmpty()) {
             tmplInsertMode?.removeAt(tmplInsertMode!!.size - 1)
         } else {
@@ -972,144 +972,139 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
         }
     }
 
-    fun templateModeSize(): Int {
+    public fun templateModeSize(): Int {
         return tmplInsertMode?.size ?: 0
     }
 
-    fun currentTemplateMode(): HtmlTreeBuilderState? {
+    public fun currentTemplateMode(): HtmlTreeBuilderState? {
         return if (tmplInsertMode!!.size > 0) tmplInsertMode?.get(tmplInsertMode!!.size - 1) else null
     }
 
     override fun toString(): String {
         return "TreeBuilder{" +
-            "currentToken=" + currentToken +
-            ", state=" + state +
-            ", currentElement=" + currentElement() +
-            '}'
+                "currentToken=" + currentToken +
+                ", state=" + state +
+                ", currentElement=" + currentElement() +
+                '}'
     }
 
     override fun isContentForTagData(normalName: String): Boolean {
         return normalName == "script" || normalName == "style"
     }
 
-    companion object {
+    public companion object {
         // tag searches. must be sorted, used in inSorted. HtmlTreeBuilderTest validates they're sorted.
-        val TagsSearchInScope: Array<String> =
-            arrayOf<String>("applet", "caption", "html", "marquee", "object", "table", "td", "th")
-        val TagSearchList = arrayOf<String>("ol", "ul")
-        val TagSearchButton = arrayOf<String>("button")
-        val TagSearchTableScope = arrayOf<String>("html", "table")
-        val TagSearchSelectScope = arrayOf<String>("optgroup", "option")
-        val TagSearchEndTags = arrayOf<String>("dd", "dt", "li", "optgroup", "option", "p", "rb", "rp", "rt", "rtc")
-        val TagThoroughSearchEndTags =
-            arrayOf<String>(
-                "caption",
-                "colgroup",
-                "dd",
-                "dt",
-                "li",
-                "optgroup",
-                "option",
-                "p",
-                "rb",
-                "rp",
-                "rt",
-                "rtc",
-                "tbody",
-                "td",
-                "tfoot",
-                "th",
-                "thead",
-                "tr",
-            )
-        val TagSearchSpecial =
-            arrayOf<String>(
-                "address",
-                "applet",
-                "area",
-                "article",
-                "aside",
-                "base",
-                "basefont",
-                "bgsound",
-                "blockquote",
-                "body",
-                "br",
-                "button",
-                "caption",
-                "center",
-                "col",
-                "colgroup",
-                "command",
-                "dd",
-                "details",
-                "dir",
-                "div",
-                "dl",
-                "dt",
-                "embed",
-                "fieldset",
-                "figcaption",
-                "figure",
-                "footer",
-                "form",
-                "frame",
-                "frameset",
-                "h1",
-                "h2",
-                "h3",
-                "h4",
-                "h5",
-                "h6",
-                "head",
-                "header",
-                "hgroup",
-                "hr",
-                "html",
-                "iframe",
-                "img",
-                "input",
-                "isindex",
-                "li",
-                "link",
-                "listing",
-                "marquee",
-                "menu",
-                "meta",
-                "nav",
-                "noembed",
-                "noframes",
-                "noscript",
-                "object",
-                "ol",
-                "p",
-                "param",
-                "plaintext",
-                "pre",
-                "script",
-                "section",
-                "select",
-                "style",
-                "summary",
-                "table",
-                "tbody",
-                "td",
-                "textarea",
-                "tfoot",
-                "th",
-                "thead",
-                "title",
-                "tr",
-                "ul",
-                "wbr",
-                "xmp",
-            )
-        val TagMathMlTextIntegration = arrayOf<String>("mi", "mn", "mo", "ms", "mtext")
-        val TagSvgHtmlIntegration = arrayOf("desc", "foreignObject", "title")
-        const val MaxScopeSearchDepth =
-            100 // prevents the parser bogging down in exceptionally broken pages
-        private const val maxQueueDepth =
-            256 // an arbitrary tension point between real HTML and crafted pain
+        public val TagsSearchInScope: Array<String> = arrayOf("applet", "caption", "html", "marquee", "object", "table", "td", "th")
+        public val TagSearchList: Array<String> = arrayOf("ol", "ul")
+        public val TagSearchButton: Array<String> = arrayOf("button")
+        public val TagSearchTableScope: Array<String> = arrayOf("html", "table")
+        public val TagSearchSelectScope: Array<String> = arrayOf("optgroup", "option")
+        public val TagSearchEndTags: Array<String> = arrayOf("dd", "dt", "li", "optgroup", "option", "p", "rb", "rp", "rt", "rtc")
+        public val TagThoroughSearchEndTags: Array<String> = arrayOf(
+            "caption",
+            "colgroup",
+            "dd",
+            "dt",
+            "li",
+            "optgroup",
+            "option",
+            "p",
+            "rb",
+            "rp",
+            "rt",
+            "rtc",
+            "tbody",
+            "td",
+            "tfoot",
+            "th",
+            "thead",
+            "tr",
+        )
+        public val TagSearchSpecial: Array<String> = arrayOf(
+            "address",
+            "applet",
+            "area",
+            "article",
+            "aside",
+            "base",
+            "basefont",
+            "bgsound",
+            "blockquote",
+            "body",
+            "br",
+            "button",
+            "caption",
+            "center",
+            "col",
+            "colgroup",
+            "command",
+            "dd",
+            "details",
+            "dir",
+            "div",
+            "dl",
+            "dt",
+            "embed",
+            "fieldset",
+            "figcaption",
+            "figure",
+            "footer",
+            "form",
+            "frame",
+            "frameset",
+            "h1",
+            "h2",
+            "h3",
+            "h4",
+            "h5",
+            "h6",
+            "head",
+            "header",
+            "hgroup",
+            "hr",
+            "html",
+            "iframe",
+            "img",
+            "input",
+            "isindex",
+            "li",
+            "link",
+            "listing",
+            "marquee",
+            "menu",
+            "meta",
+            "nav",
+            "noembed",
+            "noframes",
+            "noscript",
+            "object",
+            "ol",
+            "p",
+            "param",
+            "plaintext",
+            "pre",
+            "script",
+            "section",
+            "select",
+            "style",
+            "summary",
+            "table",
+            "tbody",
+            "td",
+            "textarea",
+            "tfoot",
+            "th",
+            "thead",
+            "title",
+            "tr",
+            "ul",
+            "wbr",
+            "xmp",
+        )
+        public val TagMathMlTextIntegration: Array<String> = arrayOf("mi", "mn", "mo", "ms", "mtext")
+        public val TagSvgHtmlIntegration: Array<String> = arrayOf("desc", "foreignObject", "title")
+        public const val MaxScopeSearchDepth: Int = 100 // prevents the parser bogging down in exceptionally broken pages
+        private const val maxQueueDepth: Int = 256 // an arbitrary tension point between real HTML and crafted pain
 
         private fun onStack(
             queue: List<Element?>,
@@ -1128,7 +1123,7 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
 
         private const val maxUsedFormattingElements = 12 // limit how many elements get recreated
 
-        fun isMathmlTextIntegration(el: Element): Boolean {
+        public fun isMathmlTextIntegration(el: Element): Boolean {
             /*
             A node is a MathML text integration point if it is one of the following elements:
             A MathML mi element
@@ -1138,12 +1133,12 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
             A MathML mtext element
              */
             return (
-                Parser.NamespaceMathml == el.tag().namespace() &&
-                    StringUtil.inSorted(el.normalName(), TagMathMlTextIntegration)
-            )
+                    Parser.NamespaceMathml == el.tag().namespace() &&
+                            StringUtil.inSorted(el.normalName(), TagMathMlTextIntegration)
+                    )
         }
 
-        fun isHtmlIntegration(el: Element): Boolean {
+        public fun isHtmlIntegration(el: Element): Boolean {
             /*
             A node is an HTML integration point if it is one of the following elements:
             A MathML annotation-xml element whose start tag token had an attribute with the name "encoding" whose value was an ASCII case-insensitive match for the string "text/html"
@@ -1157,10 +1152,10 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
                 if (encoding == "text/html" || encoding == "application/xhtml+xml") return true
             }
             return Parser.NamespaceSvg == el.tag().namespace() &&
-                StringUtil.isIn(
-                    el.tagName(),
-                    *TagSvgHtmlIntegration,
-                )
+                    StringUtil.isIn(
+                        el.tagName(),
+                        *TagSvgHtmlIntegration,
+                    )
         }
 
         private fun replaceInQueue(
@@ -1173,7 +1168,7 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
             queue[i] = inEl
         }
 
-        fun isSpecial(el: Element): Boolean {
+        public fun isSpecial(el: Element): Boolean {
             // todo: mathml's mi, mo, mn
             // todo: svg's foreigObject, desc, title
             val name: String = el.normalName()
@@ -1186,7 +1181,7 @@ internal open class HtmlTreeBuilder : TreeBuilder() {
         ): Boolean {
             // same if: same namespace, tag, and attributes. Element.equals only checks tag, might in future check children
             return a.normalName() == b.normalName() && // a.namespace().equals(b.namespace()) &&
-                a.attributes() == b.attributes()
+                    a.attributes() == b.attributes()
             // todo: namespaces
         }
     }

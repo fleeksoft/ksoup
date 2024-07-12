@@ -12,7 +12,7 @@ internal fun String.isCharsetSupported(): Boolean {
     return result != null
 }
 
-internal fun SyncStream.toStreamCharReader(
+public fun SyncStream.toStreamCharReader(
     charset: Charset = Charsets.UTF8,
     chunkSize: Int = SharedConstants.DefaultBufferSize,
 ): StreamCharReader = StreamCharReaderImpl(stream = this, charset = charset, chunkSize = chunkSize)

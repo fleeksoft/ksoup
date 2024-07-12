@@ -11,7 +11,7 @@ import com.fleeksoft.ksoup.select.StructuralEvaluator.ImmediateParentRun
 /**
  * Parses a CSS selector into an Evaluator tree.
  */
-internal class QueryParser private constructor(query: String) {
+public class QueryParser private constructor(query: String) {
     private val tq: TokenQueue
     private val query: String
     private val evals: MutableList<Evaluator> = ArrayList()
@@ -20,7 +20,7 @@ internal class QueryParser private constructor(query: String) {
      * Parse the query
      * @return Evaluator
      */
-    fun parse(): Evaluator {
+    public fun parse(): Evaluator {
         tq.consumeWhitespace()
         if (tq.matchesAny(*Combinators)) { // if starts with a combinator, use root as elements
             evals.add(StructuralEvaluator.Root())
@@ -467,7 +467,7 @@ internal class QueryParser private constructor(query: String) {
         return query
     }
 
-    companion object {
+    public companion object {
         private val Combinators: CharArray = charArrayOf(',', '>', '+', '~', ' ')
         private val AttributeEvals = arrayOf("=", "!=", "^=", "$=", "*=", "~=")
 
@@ -477,7 +477,7 @@ internal class QueryParser private constructor(query: String) {
          * @return Evaluator
          * @see Selector selector query syntax
          */
-        fun parse(query: String): Evaluator {
+        public fun parse(query: String): Evaluator {
             return try {
                 val p = QueryParser(query)
                 p.parse()

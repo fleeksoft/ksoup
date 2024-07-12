@@ -10,13 +10,13 @@ import com.fleeksoft.ksoup.parser.ParseSettings
 /**
  * Evaluates that an element matches the selector.
  */
-internal abstract class Evaluator protected constructor() {
+public abstract class Evaluator protected constructor() {
     /**
      * Provides a Predicate for this Evaluator, matching the test Element.
      * @param root the root Element, for match evaluation
      * @return a predicate that accepts an Element to test for matches with this Evaluator
      */
-    fun asPredicate(root: Element): (Element) -> Boolean = { element -> matches(root, element) }
+    public fun asPredicate(root: Element): (Element) -> Boolean = { element -> matches(root, element) }
 
     /**
      * Test if the element meets the evaluator's requirements.
@@ -26,7 +26,7 @@ internal abstract class Evaluator protected constructor() {
      * @return Returns <tt>true</tt> if the requirements are met or
      * <tt>false</tt> otherwise
      */
-    abstract fun matches(
+    public abstract fun matches(
         root: Element,
         element: Element,
     ): Boolean
@@ -34,20 +34,20 @@ internal abstract class Evaluator protected constructor() {
     /**
      * Reset any internal state in this Evaluator before executing a new Collector evaluation.
      */
-    open fun reset() {}
+    public open fun reset() {}
 
     /**
      * A relative evaluator cost function. During evaluation, Evaluators are sorted by ascending cost as an optimization.
      * @return the relative cost of this Evaluator
      */
-    open fun cost(): Int {
+    public open fun cost(): Int {
         return 5 // a nominal default cost
     }
 
     /**
      * Evaluator for tag name
      */
-    class Tag(private val tagName: String) : Evaluator() {
+    public class Tag(private val tagName: String) : Evaluator() {
         override fun matches(
             root: Element,
             element: Element,
@@ -67,7 +67,7 @@ internal abstract class Evaluator protected constructor() {
     /**
      * Evaluator for tag name that ends with
      */
-    class TagEndsWith(private val tagName: String) : Evaluator() {
+    public class TagEndsWith(private val tagName: String) : Evaluator() {
         override fun matches(
             root: Element,
             element: Element,
@@ -83,7 +83,7 @@ internal abstract class Evaluator protected constructor() {
     /**
      * Evaluator for element id
      */
-    class Id(private val id: String) : Evaluator() {
+    public class Id(private val id: String) : Evaluator() {
         override fun matches(
             root: Element,
             element: Element,
@@ -103,7 +103,7 @@ internal abstract class Evaluator protected constructor() {
     /**
      * Evaluator for element class
      */
-    class Class(private val className: String) : Evaluator() {
+    public class Class(private val className: String) : Evaluator() {
         override fun matches(
             root: Element,
             element: Element,
@@ -123,7 +123,7 @@ internal abstract class Evaluator protected constructor() {
     /**
      * Evaluator for attribute name matching
      */
-    class Attribute(private val key: String) : Evaluator() {
+    public class Attribute(private val key: String) : Evaluator() {
         override fun matches(
             root: Element,
             element: Element,
@@ -143,7 +143,7 @@ internal abstract class Evaluator protected constructor() {
     /**
      * Evaluator for attribute name prefix matching
      */
-    class AttributeStarting(keyPrefix: String) : Evaluator() {
+    public class AttributeStarting(keyPrefix: String) : Evaluator() {
         private val keyPrefix: String = lowerCase(keyPrefix)
 
         override fun matches(
@@ -169,7 +169,7 @@ internal abstract class Evaluator protected constructor() {
     /**
      * Evaluator for attribute name/value matching
      */
-    class AttributeWithValue(key: String, value: String) : AttributeKeyPair(key, value) {
+    public class AttributeWithValue(key: String, value: String) : AttributeKeyPair(key, value) {
         override fun matches(
             root: Element,
             element: Element,
@@ -189,7 +189,7 @@ internal abstract class Evaluator protected constructor() {
     /**
      * Evaluator for attribute name != value matching
      */
-    class AttributeWithValueNot(key: String, value: String) : AttributeKeyPair(key, value) {
+    public class AttributeWithValueNot(key: String, value: String) : AttributeKeyPair(key, value) {
         override fun matches(
             root: Element,
             element: Element,
@@ -209,7 +209,7 @@ internal abstract class Evaluator protected constructor() {
     /**
      * Evaluator for attribute name/value matching (value prefix)
      */
-    class AttributeWithValueStarting(key: String, value: String) :
+    public class AttributeWithValueStarting(key: String, value: String) :
         AttributeKeyPair(key, value, false) {
         override fun matches(
             root: Element,
@@ -230,7 +230,7 @@ internal abstract class Evaluator protected constructor() {
     /**
      * Evaluator for attribute name/value matching (value ending)
      */
-    class AttributeWithValueEnding(key: String, value: String) :
+    public class AttributeWithValueEnding(key: String, value: String) :
         AttributeKeyPair(key, value, false) {
         override fun matches(
             root: Element,
@@ -251,7 +251,7 @@ internal abstract class Evaluator protected constructor() {
     /**
      * Evaluator for attribute name/value matching (value containing)
      */
-    class AttributeWithValueContaining(key: String, value: String) : AttributeKeyPair(key, value) {
+    public class AttributeWithValueContaining(key: String, value: String) : AttributeKeyPair(key, value) {
         override fun matches(
             root: Element,
             element: Element,
@@ -294,13 +294,13 @@ internal abstract class Evaluator protected constructor() {
     /**
      * Abstract evaluator for attribute name/value matching
      */
-    internal abstract class AttributeKeyPair(
+    public abstract class AttributeKeyPair(
         key: String,
         value: String,
         trimValue: Boolean = true,
     ) : Evaluator() {
-        var key: String
-        var value: String
+        public var key: String
+        public var value: String
 
         init {
             var resultValue = value
@@ -308,9 +308,9 @@ internal abstract class Evaluator protected constructor() {
             Validate.notEmpty(resultValue)
             this.key = normalize(key)
             val isStringLiteral = (
-                resultValue.startsWith("'") && resultValue.endsWith("'") ||
-                    resultValue.startsWith("\"") && resultValue.endsWith("\"")
-            )
+                    resultValue.startsWith("'") && resultValue.endsWith("'") ||
+                            resultValue.startsWith("\"") && resultValue.endsWith("\"")
+                    )
             if (isStringLiteral) {
                 resultValue = resultValue.substring(1, resultValue.length - 1)
             }
@@ -403,20 +403,20 @@ internal abstract class Evaluator protected constructor() {
         }
     }
 
-    class IsFirstOfType : IsNthOfType(0, 1) {
+    public class IsFirstOfType : IsNthOfType(0, 1) {
         override fun toString(): String {
             return ":first-of-type"
         }
     }
 
-    class IsLastOfType : IsNthLastOfType(0, 1) {
+    public class IsLastOfType : IsNthLastOfType(0, 1) {
         override fun toString(): String {
             return ":last-of-type"
         }
     }
 
-    abstract class CssNthEvaluator(protected val a: Int, protected val b: Int) : Evaluator() {
-        constructor(b: Int) : this(0, b)
+    public abstract class CssNthEvaluator(protected val a: Int, protected val b: Int) : Evaluator() {
+        public constructor(b: Int) : this(0, b)
 
         override fun matches(
             root: Element,
@@ -451,7 +451,7 @@ internal abstract class Evaluator protected constructor() {
      *
      * @see IndexEquals
      */
-    open class IsNthChild(a: Int, b: Int) : CssNthEvaluator(a, b) {
+    public open class IsNthChild(a: Int, b: Int) : CssNthEvaluator(a, b) {
         override fun calculatePosition(
             root: Element,
             element: Element,
@@ -463,11 +463,11 @@ internal abstract class Evaluator protected constructor() {
     }
 
     /**
-     * css pseudo class :nth-last-child)
+     * css pseudo class :nth-last-child
      *
      * @see IndexEquals
      */
-    class IsNthLastChild(a: Int, b: Int) : CssNthEvaluator(a, b) {
+    public class IsNthLastChild(a: Int, b: Int) : CssNthEvaluator(a, b) {
         override fun calculatePosition(
             root: Element,
             element: Element,
@@ -487,7 +487,7 @@ internal abstract class Evaluator protected constructor() {
      * css pseudo class nth-of-type
      *
      */
-    open class IsNthOfType(a: Int, b: Int) : CssNthEvaluator(a, b) {
+    public open class IsNthOfType(a: Int, b: Int) : CssNthEvaluator(a, b) {
         override fun calculatePosition(
             root: Element,
             element: Element,
@@ -506,7 +506,7 @@ internal abstract class Evaluator protected constructor() {
         override val pseudoClass: String = "nth-of-type"
     }
 
-    open class IsNthLastOfType(a: Int, b: Int) : CssNthEvaluator(a, b) {
+    public open class IsNthLastOfType(a: Int, b: Int) : CssNthEvaluator(a, b) {
         override fun calculatePosition(
             root: Element,
             element: Element,
@@ -527,7 +527,7 @@ internal abstract class Evaluator protected constructor() {
     /**
      * Evaluator for matching the first sibling (css :first-child)
      */
-    class IsFirstChild : Evaluator() {
+    public class IsFirstChild : Evaluator() {
         override fun matches(
             root: Element,
             element: Element,
@@ -545,7 +545,7 @@ internal abstract class Evaluator protected constructor() {
      * css3 pseudo-class :root
      * @see [:root selector](http://www.w3.org/TR/selectors/.root-pseudo)
      */
-    class IsRoot : Evaluator() {
+    public class IsRoot : Evaluator() {
         override fun matches(
             root: Element,
             element: Element,
@@ -563,7 +563,7 @@ internal abstract class Evaluator protected constructor() {
         }
     }
 
-    class IsOnlyChild : Evaluator() {
+    public class IsOnlyChild : Evaluator() {
         override fun matches(
             root: Element,
             element: Element,
@@ -577,7 +577,7 @@ internal abstract class Evaluator protected constructor() {
         }
     }
 
-    class IsOnlyOfType : Evaluator() {
+    public class IsOnlyOfType : Evaluator() {
         override fun matches(
             root: Element,
             element: Element,
@@ -599,7 +599,7 @@ internal abstract class Evaluator protected constructor() {
         }
     }
 
-    class IsEmpty : Evaluator() {
+    public class IsEmpty : Evaluator() {
         override fun matches(
             root: Element,
             element: Element,
@@ -622,17 +622,13 @@ internal abstract class Evaluator protected constructor() {
      *
      * @author ant
      */
-    abstract class IndexEvaluator(var index: Int) : Evaluator()
+    public abstract class IndexEvaluator(public var index: Int) : Evaluator()
 
     /**
      * Evaluator for matching Element (and its descendants) text
      */
-    class ContainsText(searchText: String) : Evaluator() {
-        private val searchText: String
-
-        init {
-            this.searchText = lowerCase(normaliseWhitespace(searchText))
-        }
+    public class ContainsText(searchText: String) : Evaluator() {
+        private val searchText: String = lowerCase(normaliseWhitespace(searchText))
 
         override fun matches(
             root: Element,
@@ -654,7 +650,7 @@ internal abstract class Evaluator protected constructor() {
      * Evaluator for matching Element (and its descendants) wholeText. Neither the input nor the element text is
      * normalized. `:containsWholeText()`
      */
-    class ContainsWholeText(private val searchText: String) : Evaluator() {
+    public class ContainsWholeText(private val searchText: String) : Evaluator() {
         override fun matches(
             root: Element,
             element: Element,
@@ -675,7 +671,7 @@ internal abstract class Evaluator protected constructor() {
      * Evaluator for matching Element (but **not** its descendants) wholeText. Neither the input nor the element text is
      * normalized. `:containsWholeOwnText()`
      */
-    class ContainsWholeOwnText(private val searchText: String) : Evaluator() {
+    public class ContainsWholeOwnText(private val searchText: String) : Evaluator() {
         override fun matches(
             root: Element,
             element: Element,
@@ -691,12 +687,8 @@ internal abstract class Evaluator protected constructor() {
     /**
      * Evaluator for matching Element (and its descendants) data
      */
-    class ContainsData(searchText: String?) : Evaluator() {
-        private val searchText: String
-
-        init {
-            this.searchText = lowerCase(searchText)
-        }
+    public class ContainsData(searchText: String?) : Evaluator() {
+        private val searchText: String = lowerCase(searchText)
 
         override fun matches(
             root: Element,
@@ -713,12 +705,8 @@ internal abstract class Evaluator protected constructor() {
     /**
      * Evaluator for matching Element's own text
      */
-    class ContainsOwnText(searchText: String) : Evaluator() {
-        private val searchText: String
-
-        init {
-            this.searchText = lowerCase(normaliseWhitespace(searchText))
-        }
+    public class ContainsOwnText(searchText: String) : Evaluator() {
+        private val searchText: String = lowerCase(normaliseWhitespace(searchText))
 
         override fun matches(
             root: Element,
@@ -735,7 +723,7 @@ internal abstract class Evaluator protected constructor() {
     /**
      * Evaluator for matching Element (and its descendants) text with regex
      */
-    class Matches(private val pattern: Regex) : Evaluator() {
+    public class Matches(private val pattern: Regex) : Evaluator() {
         override fun matches(
             root: Element,
             element: Element,
@@ -751,7 +739,7 @@ internal abstract class Evaluator protected constructor() {
     /**
      * Evaluator for matching Element's own text with regex
      */
-    class MatchesOwn(private val pattern: Regex) : Evaluator() {
+    public class MatchesOwn(private val pattern: Regex) : Evaluator() {
         override fun matches(
             root: Element,
             element: Element,
@@ -767,7 +755,7 @@ internal abstract class Evaluator protected constructor() {
     /**
      * Evaluator for matching Element (and its descendants) whole text with regex.
      */
-    class MatchesWholeText(private val pattern: Regex) : Evaluator() {
+    public class MatchesWholeText(private val pattern: Regex) : Evaluator() {
         override fun matches(
             root: Element,
             element: Element,
@@ -783,7 +771,7 @@ internal abstract class Evaluator protected constructor() {
     /**
      * Evaluator for matching Element's own whole text with regex.
      */
-    class MatchesWholeOwnText(private val pattern: Regex) : Evaluator() {
+    public class MatchesWholeOwnText(private val pattern: Regex) : Evaluator() {
         override fun matches(
             root: Element,
             element: Element,
@@ -796,7 +784,7 @@ internal abstract class Evaluator protected constructor() {
         override fun toString(): String = ":matchesWholeOwnText($pattern)"
     }
 
-    class MatchText : Evaluator() {
+    public class MatchText : Evaluator() {
         override fun matches(
             root: Element,
             element: Element,

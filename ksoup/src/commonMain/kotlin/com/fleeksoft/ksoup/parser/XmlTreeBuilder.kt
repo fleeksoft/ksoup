@@ -15,7 +15,7 @@ import korlibs.io.stream.openSync
  *
  * @author Sabeeh
  */
-internal open class XmlTreeBuilder : TreeBuilder() {
+public open class XmlTreeBuilder : TreeBuilder() {
     override fun defaultSettings(): ParseSettings {
         return ParseSettings.preserveCase
     }
@@ -36,14 +36,14 @@ internal open class XmlTreeBuilder : TreeBuilder() {
             .prettyPrint(false) // as XML, we don't understand what whitespace is significant or not
     }
 
-    fun parse(
+    public fun parse(
         input: StreamCharReader,
         baseUri: String? = null,
     ): Document {
         return parse(input, baseUri ?: "", Parser(this))
     }
 
-    fun parse(
+    public fun parse(
         input: String,
         baseUri: String? = null,
     ): Document {
@@ -73,7 +73,7 @@ internal open class XmlTreeBuilder : TreeBuilder() {
         return true
     }
 
-    fun insertElementFor(startTag: Token.StartTag) {
+    public fun insertElementFor(startTag: Token.StartTag) {
         val tag = tagFor(startTag.name(), settings)
         if (startTag.attributes != null) startTag.attributes!!.deduplicate(settings!!)
 
@@ -87,12 +87,12 @@ internal open class XmlTreeBuilder : TreeBuilder() {
         }
     }
 
-    fun insertLeafNode(node: LeafNode?) {
+    public fun insertLeafNode(node: LeafNode?) {
         currentElement().appendChild(node!!)
         onNodeInserted(node)
     }
 
-    fun insertCommentFor(commentToken: Token.Comment) {
+    public fun insertCommentFor(commentToken: Token.Comment) {
         val comment = Comment(commentToken.getData())
         var insert: LeafNode? = comment
         if (commentToken.bogus && comment.isXmlDeclaration()) {
@@ -105,12 +105,12 @@ internal open class XmlTreeBuilder : TreeBuilder() {
         insertLeafNode(insert)
     }
 
-    fun insertCharacterFor(token: Token.Character) {
+    public fun insertCharacterFor(token: Token.Character) {
         val data: String = token.data!!
         insertLeafNode(if (token.isCData()) CDataNode(data) else TextNode(data))
     }
 
-    fun insertDoctypeFor(token: Token.Doctype) {
+    public fun insertDoctypeFor(token: Token.Doctype) {
         val doctypeNode =
             DocumentType(
                 settings!!.normalizeTag(token.getName()),
@@ -142,7 +142,7 @@ internal open class XmlTreeBuilder : TreeBuilder() {
      *
      * @param endTag tag to close
      */
-    protected fun popStackToClose(endTag: Token.EndTag) {
+    private fun popStackToClose(endTag: Token.EndTag) {
         // like in HtmlTreeBuilder - don't scan up forever for very (artificially) deeply nested stacks
         val elName = settings!!.normalizeTag(endTag.tagName!!)
         var firstFound: Element? = null
@@ -177,7 +177,7 @@ internal open class XmlTreeBuilder : TreeBuilder() {
         return parseFragment(inputFragment, baseUri, parser)
     }
 
-    fun parseFragment(
+    public fun parseFragment(
         inputFragment: String,
         baseUri: String?,
         parser: Parser,
@@ -187,7 +187,7 @@ internal open class XmlTreeBuilder : TreeBuilder() {
         return doc.childNodes()
     }
 
-    companion object {
+    public companion object {
         private const val maxQueueDepth = 256 // an arbitrary tension point between real XML and crafted pain
     }
 }

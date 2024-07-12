@@ -8,11 +8,11 @@ import com.fleeksoft.ksoup.internal.StringUtil
  *
  * @author Sabeeh
  */
-internal class TokenQueue(data: String) {
+public class TokenQueue(data: String) {
     private var queue: String
     private var pos = 0
 
-    fun isEmpty(): Boolean = remainingLength() == 0
+    public fun isEmpty(): Boolean = remainingLength() == 0
 
     private fun remainingLength(): Int {
         return queue.length - pos
@@ -22,7 +22,7 @@ internal class TokenQueue(data: String) {
      * Add a string to the start of the queue.
      * @param seq string to add.
      */
-    fun addFirst(seq: String) {
+    public fun addFirst(seq: String) {
         // not very performant, but an edge case
         queue = seq + queue.substring(pos)
         pos = 0
@@ -33,7 +33,7 @@ internal class TokenQueue(data: String) {
      * @param seq String to check queue for.
      * @return true if the next characters match.
      */
-    fun matches(seq: String): Boolean {
+    public fun matches(seq: String): Boolean {
         return queue.regionMatches(pos, seq, 0, seq.length, ignoreCase = true)
     }
 
@@ -42,14 +42,14 @@ internal class TokenQueue(data: String) {
      * @param seq list of strings to case insensitively check for
      * @return true of any matched, false if none did
      */
-    fun matchesAny(vararg seq: String): Boolean {
+    public fun matchesAny(vararg seq: String): Boolean {
         for (s in seq) {
             if (matches(s)) return true
         }
         return false
     }
 
-    fun matchesAny(vararg seq: Char): Boolean {
+    public fun matchesAny(vararg seq: Char): Boolean {
         if (isEmpty()) return false
         for (c in seq) {
             if (queue[pos] == c) return true
@@ -63,7 +63,7 @@ internal class TokenQueue(data: String) {
      * @param seq String to search for, and if found, remove from queue.
      * @return true if found and removed, false if not found.
      */
-    fun matchChomp(seq: String): Boolean {
+    public fun matchChomp(seq: String): Boolean {
         return if (matches(seq)) {
             pos += seq.length
             true
@@ -76,7 +76,7 @@ internal class TokenQueue(data: String) {
      * Tests if queue starts with a whitespace character.
      * @return if starts with whitespace
      */
-    fun matchesWhitespace(): Boolean {
+    public fun matchesWhitespace(): Boolean {
         return !isEmpty() && StringUtil.isWhitespace(queue[pos].code)
     }
 
@@ -84,14 +84,14 @@ internal class TokenQueue(data: String) {
      * Test if the queue matches a word character (letter or digit).
      * @return if matches a word character
      */
-    fun matchesWord(): Boolean {
+    public fun matchesWord(): Boolean {
         return !isEmpty() && queue[pos].isLetterOrDigit()
     }
 
     /**
      * Drops the next character off the queue.
      */
-    fun advance() {
+    public fun advance() {
         if (!isEmpty()) pos++
     }
 
@@ -99,7 +99,7 @@ internal class TokenQueue(data: String) {
      * Consume one character off queue.
      * @return first character on queue.
      */
-    fun consume(): Char {
+    public fun consume(): Char {
         return queue[pos++]
     }
 
@@ -111,7 +111,7 @@ internal class TokenQueue(data: String) {
      * Case insensitive.
      * @param seq sequence to remove from head of queue.
      */
-    fun consume(seq: String) {
+    public fun consume(seq: String) {
         if (!matches(seq)) throw IllegalStateException("Queue did not match expected sequence")
         val len = seq.length
         if (len > remainingLength()) throw IllegalStateException("Queue not long enough to consume sequence")
@@ -123,7 +123,7 @@ internal class TokenQueue(data: String) {
      * @param seq String to end on (and not include in return, but leave on queue). **Case sensitive.**
      * @return The matched data consumed from queue.
      */
-    fun consumeTo(seq: String?): String {
+    public fun consumeTo(seq: String?): String {
         val offset = queue.indexOf(seq!!, pos)
         return if (offset != -1) {
             val consumed = queue.substring(pos, offset)
@@ -134,7 +134,7 @@ internal class TokenQueue(data: String) {
         }
     }
 
-    fun consumeToIgnoreCase(seq: String): String {
+    public fun consumeToIgnoreCase(seq: String): String {
         val start = pos
         val first = seq.substring(0, 1)
         val canScan =
@@ -166,7 +166,7 @@ internal class TokenQueue(data: String) {
      */
     // todo: method name. not good that consumeTo cares for case, and consume to any doesn't. And the only use for this
     // is a case sensitive time...
-    fun consumeToAny(vararg seq: String): String {
+    public fun consumeToAny(vararg seq: String): String {
         val start = pos
         while (!isEmpty() && !matchesAny(*seq)) {
             pos++
@@ -183,13 +183,13 @@ internal class TokenQueue(data: String) {
      * @param seq String to match up to, and not include in return, and to pull off queue. **Case sensitive.**
      * @return Data matched from queue.
      */
-    fun chompTo(seq: String): String {
+    public fun chompTo(seq: String): String {
         val data = consumeTo(seq)
         matchChomp(seq)
         return data
     }
 
-    fun chompToIgnoreCase(seq: String): String {
+    public fun chompToIgnoreCase(seq: String): String {
         val data = consumeToIgnoreCase(seq) // case insensitive scan
         matchChomp(seq)
         return data
@@ -204,7 +204,7 @@ internal class TokenQueue(data: String) {
      * @param close closer
      * @return data matched from the queue
      */
-    fun chompBalanced(
+    public fun chompBalanced(
         open: Char,
         close: Char,
     ): String {
@@ -258,7 +258,7 @@ internal class TokenQueue(data: String) {
      * Pulls the next run of whitespace characters of the queue.
      * @return Whether consuming whitespace or not
      */
-    fun consumeWhitespace(): Boolean {
+    public fun consumeWhitespace(): Boolean {
         var seen = false
         while (matchesWhitespace()) {
             pos++
@@ -271,7 +271,7 @@ internal class TokenQueue(data: String) {
      * Retrieves the next run of word type (letter or digit) off the queue.
      * @return String of word characters from queue, or empty string if none.
      */
-    fun consumeWord(): String {
+    public fun consumeWord(): String {
         val start = pos
         while (matchesWord()) pos++
         return queue.substring(start, pos)
@@ -282,7 +282,7 @@ internal class TokenQueue(data: String) {
      *
      * @return tag name
      */
-    fun consumeElementSelector(): String {
+    public fun consumeElementSelector(): String {
         return consumeEscapedCssIdentifier(*ElementSelectorChars)
     }
 
@@ -291,7 +291,7 @@ internal class TokenQueue(data: String) {
      * http://www.w3.org/TR/CSS2/syndata.html#value-def-identifier
      * @return identifier
      */
-    fun consumeCssIdentifier(): String {
+    public fun consumeCssIdentifier(): String {
         return consumeEscapedCssIdentifier(*CssIdentifierChars)
     }
 
@@ -328,7 +328,7 @@ internal class TokenQueue(data: String) {
      * Consume and return whatever is left on the queue.
      * @return remained of queue.
      */
-    fun remainder(): String {
+    public fun remainder(): String {
         val remainder = queue.substring(pos)
         pos = queue.length
         return remainder
@@ -338,7 +338,7 @@ internal class TokenQueue(data: String) {
         return queue.substring(pos)
     }
 
-    companion object {
+    public companion object {
         private const val ESC = '\\' // escape char for chomp balanced.
 
         /**
@@ -362,7 +362,7 @@ internal class TokenQueue(data: String) {
             }
             return StringUtil.releaseBuilder(out)
         }*/
-        fun unescape(input: String): String {
+        public fun unescape(input: String): String {
             val output = StringBuilder()
             var lastChar: Char = 0.toChar()
             for (c in input) {
@@ -384,7 +384,7 @@ internal class TokenQueue(data: String) {
     Given a CSS identifier (such as a tag, ID, or class), escape any CSS special characters that would otherwise not be
     valid in a selector.
          */
-        fun escapeCssIdentifier(`in`: String): String {
+        public fun escapeCssIdentifier(`in`: String): String {
             val out: StringBuilder = StringUtil.borrowBuilder()
             val q = TokenQueue(`in`)
             while (!q.isEmpty()) {

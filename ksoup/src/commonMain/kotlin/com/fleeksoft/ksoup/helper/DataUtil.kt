@@ -279,7 +279,7 @@ public object DataUtil {
      * @param contentType e.g. "text/html; charset=EUC-JP"
      * @return "EUC-JP", or null if not found. Charset is trimmed and uppercased.
      */
-    internal fun getCharsetFromContentType(contentType: String?): String? {
+    public fun getCharsetFromContentType(contentType: String?): String? {
         if (contentType == null) return null
         val matchResult: MatchResult? = charsetPattern.find(contentType)
         matchResult?.let {
@@ -309,7 +309,7 @@ public object DataUtil {
     /**
      * Creates a random string, suitable for use as a mime boundary
      */
-    internal fun mimeBoundary(): String {
+    public fun mimeBoundary(): String {
         val mime: StringBuilder = StringUtil.borrowBuilder()
         for (i in 0 until boundaryLength) {
             mime.append(mimeBoundaryChars[Random.nextInt(mimeBoundaryChars.size)])

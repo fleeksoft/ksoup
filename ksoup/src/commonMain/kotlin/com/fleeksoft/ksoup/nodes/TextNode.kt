@@ -64,7 +64,7 @@ public open class TextNode(text: String) : LeafNode() {
         val tail = text.substring(offset)
         text(head)
         val tailNode = TextNode(tail)
-        if (parentNode != null) parentNode!!.addChildren(siblingIndex() + 1, tailNode)
+        if (_parentNode != null) _parentNode!!.addChildren(siblingIndex() + 1, tailNode)
         return tailNode
     }
 
@@ -75,13 +75,13 @@ public open class TextNode(text: String) : LeafNode() {
         out: Document.OutputSettings,
     ) {
         val prettyPrint: Boolean = out.prettyPrint()
-        val parent: Element? = if (parentNode is Element) parentNode as Element? else null
-        val normaliseWhite = prettyPrint && !Element.preserveWhitespace(parentNode)
+        val parent: Element? = if (_parentNode is Element) _parentNode as Element? else null
+        val normaliseWhite = prettyPrint && !Element.preserveWhitespace(_parentNode)
         val trimLikeBlock = parent != null && (parent.tag().isBlock || parent.tag().formatAsBlock())
         var trimLeading = false
         var trimTrailing = false
         if (normaliseWhite) {
-            trimLeading = trimLikeBlock && siblingIndex == 0 || parentNode is Document
+            trimLeading = trimLikeBlock && _siblingIndex == 0 || _parentNode is Document
             trimTrailing = trimLikeBlock && nextSibling() == null
 
             // if this text is just whitespace, and the next node will cause an indent, skip this text:
@@ -137,11 +137,11 @@ public open class TextNode(text: String) : LeafNode() {
             return TextNode(text)
         }
 
-        internal fun normaliseWhitespace(text: String): String {
+        public fun normaliseWhitespace(text: String): String {
             return StringUtil.normaliseWhitespace(text)
         }
 
-        internal fun stripLeadingWhitespace(text: String): String {
+        public fun stripLeadingWhitespace(text: String): String {
             return text.replaceFirst("^\\s+".toRegex(), "")
         }
 

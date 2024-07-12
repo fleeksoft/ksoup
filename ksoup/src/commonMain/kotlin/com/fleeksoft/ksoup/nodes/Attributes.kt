@@ -583,10 +583,10 @@ public class Attributes : Iterable<Attribute>, KCloneable<Attributes> {
         }
     }
 
-    internal companion object {
+    public companion object {
         // Indicates an internal key. Can't be set via HTML. (It could be set via accessor, but not too worried about
         // that. Suppressed from list, iter.)
-        const val InternalPrefix: Char = '/'
+        private const val InternalPrefix: Char = '/'
 
         // The Attributes object is only created on the first use of an attribute; the Element will just have a null
         // Attribute slot otherwise
@@ -598,12 +598,12 @@ public class Attributes : Iterable<Attribute>, KCloneable<Attributes> {
         // manages the key/val arrays
         private const val GrowthFactor = 2
 
-        const val NotFound: Int = -1
+        internal const val NotFound: Int = -1
         private const val EmptyString = ""
 
         // we track boolean attributes as null in values - they're just keys. so returns empty for consumers
         // casts to String, so only for non-internal attributes
-        fun checkNotNull(value: Any?): String {
+        public fun checkNotNull(value: Any?): String {
             return if (value == null) EmptyString else (value as String?)!!
         }
 
@@ -611,11 +611,11 @@ public class Attributes : Iterable<Attribute>, KCloneable<Attributes> {
             return dataPrefix + key
         }
 
-        fun internalKey(key: String): String {
+        public fun internalKey(key: String): String {
             return "$InternalPrefix$key"
         }
 
-        fun isInternalKey(key: String?): Boolean {
+        public fun isInternalKey(key: String?): Boolean {
             return key != null && key.length > 1 && key[0] == InternalPrefix
         }
     }

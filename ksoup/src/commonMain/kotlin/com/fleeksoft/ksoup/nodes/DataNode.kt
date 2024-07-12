@@ -30,7 +30,7 @@ public class DataNode(data: String) : LeafNode() {
     }
 
     @Throws(IOException::class)
-    override fun outerHtmlHead(
+    public override fun outerHtmlHead(
         accum: Appendable,
         depth: Int,
         out: Document.OutputSettings,

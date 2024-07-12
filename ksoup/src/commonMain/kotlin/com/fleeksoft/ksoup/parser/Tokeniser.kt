@@ -9,22 +9,22 @@ import de.cketti.codepoints.appendCodePoint
 /**
  * Readers the input stream into tokens.
  */
-internal class Tokeniser(private val treeBuilder: TreeBuilder) {
+public class Tokeniser(treeBuilder: TreeBuilder) {
     private val reader: CharacterReader = treeBuilder.reader
     private val errors: ParseErrorList = treeBuilder.parser.getErrors()
-    private var state = TokeniserState.Data
+    private var _state = TokeniserState.Data
     private var emitPending: Token? = null
     private var isEmitPending = false
     private var charsString: String? = null
     private val charsBuilder = StringBuilder(1024)
-    val dataBuffer = StringBuilder(1024)
+    public val dataBuffer: StringBuilder = StringBuilder(1024)
 
     private val startPending = Token.StartTag(treeBuilder)
     private val endPending = Token.EndTag(treeBuilder)
-    var tagPending: Token.Tag = startPending
+    public var tagPending: Token.Tag = startPending
     private val charPending = Token.Character()
-    val doctypePending = Token.Doctype()
-    val commentPending = Token.Comment()
+    public val doctypePending: Token.Doctype = Token.Doctype()
+    public val commentPending: Token.Comment = Token.Comment()
     private var lastStartTag: String? = null
     private var lastStartCloseSeq: String? = null
     private var markupStartPos = Unset
@@ -33,9 +33,9 @@ internal class Tokeniser(private val treeBuilder: TreeBuilder) {
     private val codepointHolder = IntArray(1) // holder to not have to keep creating arrays
     private val multipointHolder = IntArray(2)
 
-    fun read(): Token {
+    public fun read(): Token {
         while (!isEmitPending) {
-            state.read(this, reader)
+            _state.read(this, reader)
         }
 
         return when {
@@ -56,7 +56,7 @@ internal class Tokeniser(private val treeBuilder: TreeBuilder) {
         }
     }
 
-    fun emit(token: Token) {
+    public fun emit(token: Token) {
         Validate.isFalse(isEmitPending)
 
         emitPending = token
@@ -83,7 +83,7 @@ internal class Tokeniser(private val treeBuilder: TreeBuilder) {
         }
     }
 
-    fun emit(str: String) {
+    public fun emit(str: String) {
         if (charsString == null) {
             charsString = str
         } else {
@@ -96,7 +96,7 @@ internal class Tokeniser(private val treeBuilder: TreeBuilder) {
         charPending.endPos(reader.pos())
     }
 
-    fun emit(strBuilder: StringBuilder) {
+    public fun emit(strBuilder: StringBuilder) {
         if (charsString == null) {
             charsString = strBuilder.toString()
         } else {
@@ -109,7 +109,7 @@ internal class Tokeniser(private val treeBuilder: TreeBuilder) {
         charPending.endPos(reader.pos())
     }
 
-    fun emit(c: Char) {
+    public fun emit(c: Char) {
         if (charsString == null) {
             charsString = c.toString()
         } else {
@@ -122,34 +122,34 @@ internal class Tokeniser(private val treeBuilder: TreeBuilder) {
         charPending.endPos(reader.pos())
     }
 
-    fun emit(chars: CharArray) {
+    public fun emit(chars: CharArray) {
         emit(chars.concatToString())
     }
 
-    fun emit(codepoints: IntArray) {
+    public fun emit(codepoints: IntArray) {
         emit(codepoints.codePointsToString())
 //        emit(String(codepoints, 0, codepoints.size))
     }
 
-    fun getState(): TokeniserState {
-        return state
+    public fun getState(): TokeniserState {
+        return _state
     }
 
-    fun transition(newState: TokeniserState) {
+    public fun transition(newState: TokeniserState) {
         when (newState) {
             TokeniserState.TagOpen -> markupStartPos = reader.pos()
             TokeniserState.Data -> if (charStartPos == Unset) charStartPos = reader.pos()
             else -> {}
         }
-        this.state = newState
+        this._state = newState
     }
 
-    fun advanceTransition(newState: TokeniserState) {
+    public fun advanceTransition(newState: TokeniserState) {
         transition(newState)
         reader.advance()
     }
 
-    fun consumeCharacterReference(
+    public fun consumeCharacterReference(
         additionalAllowedCharacter: Char?,
         inAttribute: Boolean,
     ): IntArray? {
@@ -228,49 +228,49 @@ internal class Tokeniser(private val treeBuilder: TreeBuilder) {
         }
     }
 
-    fun createTagPending(start: Boolean): Token.Tag {
+    public fun createTagPending(start: Boolean): Token.Tag {
         tagPending = if (start) startPending.reset() else endPending.reset()
         return tagPending
     }
 
-    fun emitTagPending() {
+    public fun emitTagPending() {
         tagPending.finaliseTag()
         emit(tagPending)
     }
 
-    fun createCommentPending() {
+    public fun createCommentPending() {
         commentPending.reset()
     }
 
-    fun emitCommentPending() {
+    public fun emitCommentPending() {
         emit(commentPending)
     }
 
-    fun createBogusCommentPending() {
+    public fun createBogusCommentPending() {
         commentPending.reset()
         commentPending.bogus = true
     }
 
-    fun createDoctypePending() {
+    public fun createDoctypePending() {
         doctypePending.reset()
     }
 
-    fun emitDoctypePending() {
+    public fun emitDoctypePending() {
         emit(doctypePending)
     }
 
-    fun createTempBuffer() {
+    public fun createTempBuffer() {
         Token.reset(dataBuffer)
     }
 
-    fun isAppropriateEndTagToken(): Boolean = lastStartTag != null && tagPending.name().equals(lastStartTag, ignoreCase = true)
+    public fun isAppropriateEndTagToken(): Boolean = lastStartTag != null && tagPending.name().equals(lastStartTag, ignoreCase = true)
 
-    fun appropriateEndTagName(): String? {
+    public fun appropriateEndTagName(): String? {
         return lastStartTag // could be null
     }
 
     /** Returns the closer sequence `</lastStart`  */
-    fun appropriateEndTagSeq(): String {
+    public fun appropriateEndTagSeq(): String {
         if (lastStartCloseSeq == null) {
             // reset on start tag emit
             lastStartCloseSeq = "</$lastStartTag"
@@ -278,7 +278,7 @@ internal class Tokeniser(private val treeBuilder: TreeBuilder) {
         return lastStartCloseSeq!!
     }
 
-    fun error(state: TokeniserState?) {
+    public fun error(state: TokeniserState?) {
         if (errors.canAddError()) {
             errors.add(
                 ParseError(
@@ -289,7 +289,7 @@ internal class Tokeniser(private val treeBuilder: TreeBuilder) {
         }
     }
 
-    fun eofError(state: TokeniserState?) {
+    public fun eofError(state: TokeniserState?) {
         if (errors.canAddError()) {
             errors.add(
                 ParseError(
@@ -311,7 +311,7 @@ internal class Tokeniser(private val treeBuilder: TreeBuilder) {
         }
     }
 
-    fun error(errorMsg: String) {
+    public fun error(errorMsg: String) {
         if (errors.canAddError()) errors.add(ParseError(reader, errorMsg))
     }
 
@@ -320,7 +320,7 @@ internal class Tokeniser(private val treeBuilder: TreeBuilder) {
      * @param inAttribute if the text to be unescaped is in an attribute
      * @return unescaped string from reader
      */
-    fun unescapeEntities(inAttribute: Boolean): String {
+    public fun unescapeEntities(inAttribute: Boolean): String {
         val builder: StringBuilder = StringUtil.borrowBuilder()
         while (!reader.isEmpty()) {
             builder.append(reader.consumeTo('&'))
@@ -338,27 +338,26 @@ internal class Tokeniser(private val treeBuilder: TreeBuilder) {
         return StringUtil.releaseBuilder(builder)
     }
 
-    companion object {
-        const val replacementChar: Char = '\uFFFD' // replaces null character
+    public companion object {
+        public const val replacementChar: Char = '\uFFFD' // replaces null character
         private val notCharRefCharsSorted: CharArray =
             charArrayOf('\t', '\n', '\r', '\u000c', ' ', '<', '&').sortedArray()
 
         // Some illegal character escapes are parsed by browsers as windows-1252 instead. See issue #1034
         // https://html.spec.whatwg.org/multipage/parsing.html#numeric-character-reference-end-state
-        const val win1252ExtensionsStart = 0x80
-        val win1252Extensions =
-            intArrayOf(
-                // we could build this manually, but Windows-1252 is not a standard java charset so that could break on
-                // some platforms - this table is verified with a test
-                0x20AC, 0x0081, 0x201A, 0x0192, 0x201E, 0x2026, 0x2020, 0x2021,
-                0x02C6, 0x2030, 0x0160, 0x2039, 0x0152, 0x008D, 0x017D, 0x008F,
-                0x0090, 0x2018, 0x2019, 0x201C, 0x201D, 0x2022, 0x2013, 0x2014,
-                0x02DC, 0x2122, 0x0161, 0x203A, 0x0153, 0x009D, 0x017E, 0x0178,
-            )
+        public const val win1252ExtensionsStart: Int = 0x80
+        public val win1252Extensions: IntArray = intArrayOf(
+            // we could build this manually, but Windows-1252 is not a standard java charset so that could break on
+            // some platforms - this table is verified with a test
+            0x20AC, 0x0081, 0x201A, 0x0192, 0x201E, 0x2026, 0x2020, 0x2021,
+            0x02C6, 0x2030, 0x0160, 0x2039, 0x0152, 0x008D, 0x017D, 0x008F,
+            0x0090, 0x2018, 0x2019, 0x201C, 0x201D, 0x2022, 0x2013, 0x2014,
+            0x02DC, 0x2122, 0x0161, 0x203A, 0x0153, 0x009D, 0x017E, 0x0178,
+        )
 
         private const val Unset = -1
 
-        fun currentNodeInHtmlNS(): Boolean {
+        public fun currentNodeInHtmlNS(): Boolean {
             // todo: implement namespaces correctly
             return true
             // Element currentNode = currentNode();

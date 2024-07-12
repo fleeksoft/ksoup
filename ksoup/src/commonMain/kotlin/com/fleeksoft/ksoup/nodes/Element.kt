@@ -32,7 +32,7 @@ public open class Element : Node {
 
     // points to child elements shadowed from node children
     private var shadowChildrenRef: List<Element>? = null
-    internal var childNodes: MutableList<Node> = EmptyNodes
+    public var _childNodes: MutableList<Node> = EmptyNodes
 
     // field is nullable but all methods for attributes are non-null
     internal var attributes: Attributes? = null
@@ -76,7 +76,7 @@ public open class Element : Node {
      * @see #appendElement(String)
      */
     public constructor(tag: Tag, baseUri: String?, attributes: Attributes?) {
-        childNodes = EmptyNodes.toMutableList()
+        _childNodes = EmptyNodes.toMutableList()
         this.attributes = attributes
         this.tag = tag
         _baseUri = baseUri
@@ -96,14 +96,14 @@ public open class Element : Node {
      * Internal test to check if a nodelist object has been created.
      */
     public fun hasChildNodes(): Boolean {
-        return childNodes != EmptyNodes
+        return _childNodes != EmptyNodes
     }
 
     public override fun ensureChildNodes(): MutableList<Node> {
-        if (childNodes == EmptyNodes) {
-            childNodes = NodeList(owner = this, initialCapacity = 4) as MutableList<Node>
+        if (_childNodes == EmptyNodes) {
+            _childNodes = NodeList(owner = this, initialCapacity = 4) as MutableList<Node>
         }
-        return childNodes
+        return _childNodes
     }
 
     public override fun hasAttributes(): Boolean {
@@ -127,7 +127,7 @@ public open class Element : Node {
     }
 
     override fun childNodeSize(): Int {
-        return childNodes.size
+        return _childNodes.size
     }
 
     override fun nodeName(): String {
@@ -295,7 +295,7 @@ public open class Element : Node {
     }
 
     override fun parent(): Element? {
-        return parentNode as? Element
+        return _parentNode as? Element
     }
 
     /**
@@ -368,10 +368,10 @@ public open class Element : Node {
             children = shadowChildrenRef!!.toMutableList()
         }
         if (shadowChildrenRef == null || children == null) {
-            val size = childNodes.size
+            val size = _childNodes.size
             children = ArrayList(size)
             for (i in 0 until size) {
-                val node: Node = childNodes[i]
+                val node: Node = _childNodes[i]
                 if (node is Element) children.add(node)
             }
             shadowChildrenRef = children
@@ -415,7 +415,7 @@ public open class Element : Node {
      */
     public fun textNodes(): List<TextNode> {
         val textNodes: MutableList<TextNode> = ArrayList()
-        for (node in childNodes) {
+        for (node in _childNodes) {
             if (node is TextNode) textNodes.add(node)
         }
         return Collections.unmodifiableList(textNodes)
@@ -433,7 +433,7 @@ public open class Element : Node {
      */
     public fun dataNodes(): List<DataNode> {
         val dataNodes: MutableList<DataNode> = ArrayList()
-        for (node in childNodes) {
+        for (node in _childNodes) {
             if (node is DataNode) dataNodes.add(node)
         }
         return Collections.unmodifiableList(dataNodes)
@@ -472,7 +472,7 @@ public open class Element : Node {
      * @param evaluator an element evaluator
      * @return an [Elements] list containing elements that match the query (empty if none match)
      */
-    internal fun select(evaluator: Evaluator): Elements {
+    public fun select(evaluator: Evaluator): Elements {
         return Selector.select(evaluator, this)
     }
 
@@ -499,7 +499,7 @@ public open class Element : Node {
      * @return the first matching element (walking down the tree, starting from this element), or `null` if none
      * match.
      */
-    internal fun selectFirst(evaluator: Evaluator): Element? {
+    public fun selectFirst(evaluator: Evaluator): Element? {
         return Collector.findFirst(evaluator, this)
     }
 
@@ -533,7 +533,7 @@ public open class Element : Node {
      * @param evaluator an element evaluator
      * @return if this element matches
      */
-    internal fun `is`(evaluator: Evaluator?): Boolean {
+    public fun `is`(evaluator: Evaluator?): Boolean {
         return evaluator!!.matches(root(), this)
     }
 
@@ -556,7 +556,7 @@ public open class Element : Node {
      * found.
      */
 //    @Nullable
-    internal fun closest(evaluator: Evaluator): Element? {
+    public fun closest(evaluator: Evaluator): Element? {
         var el: Element? = this
         val root = root()
         do {
@@ -578,8 +578,8 @@ public open class Element : Node {
         // was - Node#addChildren(child). short-circuits an array create and a loop.
         reparentChild(child)
         ensureChildNodes()
-        childNodes.add(child)
-        child.siblingIndex = childNodes.size - 1
+        _childNodes.add(child)
+        child._siblingIndex = _childNodes.size - 1
         return this
     }
 
@@ -810,10 +810,10 @@ public open class Element : Node {
      */
     override fun empty(): Element {
         // Detach each of the children -> parent links:
-        for (child in childNodes) {
-            child.parentNode = null
+        for (child in _childNodes) {
+            child._parentNode = null
         }
-        childNodes.clear()
+        _childNodes.clear()
         return this
     }
 
@@ -889,8 +889,8 @@ public open class Element : Node {
      * @return sibling elements
      */
     public fun siblingElements(): Elements {
-        if (parentNode == null) return Elements()
-        val elements = (parentNode as Element).childElementsList()
+        if (_parentNode == null) return Elements()
+        val elements = (_parentNode as Element).childElementsList()
         val siblings = Elements()
         for (el in elements) if (el != this) siblings.add(el)
         return siblings
@@ -949,7 +949,7 @@ public open class Element : Node {
 
     private fun nextElementSiblings(next: Boolean): Elements {
         val els = Elements()
-        if (parentNode == null) return els
+        if (_parentNode == null) return els
         els.add(this)
         return if (next) els.nextAll() else els.prevAll()
     }
@@ -1387,7 +1387,7 @@ public open class Element : Node {
         val accum: StringBuilder = StringUtil.borrowBuilder()
         val size = childNodeSize()
         for (i in 0 until size) {
-            val node: Node = childNodes[i]
+            val node: Node = _childNodes[i]
             appendWholeText(node, accum)
         }
         return StringUtil.releaseBuilder(accum)
@@ -1413,7 +1413,7 @@ public open class Element : Node {
 
     private fun ownText(accum: StringBuilder) {
         for (i in 0 until childNodeSize()) {
-            val child: Node = childNodes[i]
+            val child: Node = _childNodes[i]
             if (child is TextNode) {
                 appendNormalisedText(accum, child)
             } else if (child.nameIs("br") && !lastCharIsWhitespace(accum)) {
@@ -1657,14 +1657,14 @@ public open class Element : Node {
      * @see Node#sourceRange()
      * @see Range#isImplicit()
      */
-    internal fun endSourceRange(): Range {
+    public fun endSourceRange(): Range {
         return Range.of(this, false)
     }
 
     public fun shouldIndent(out: Document.OutputSettings): Boolean {
         return out.prettyPrint() && isFormatAsBlock(out) && !isInlineable(out) &&
             !preserveWhitespace(
-                parentNode,
+                _parentNode,
             )
     }
 
@@ -1685,7 +1685,7 @@ public open class Element : Node {
         if (attributes != null) attributes!!.html(accum, out)
 
         // selfclosing includes unknown tags, isEmpty defines tags that are always empty
-        if (childNodes.isEmpty() && tag.isSelfClosing()) {
+        if (_childNodes.isEmpty() && tag.isSelfClosing()) {
             if (out.syntax() == Document.OutputSettings.Syntax.html && tag.isEmpty) {
                 accum.append(
                     '>',
@@ -1704,10 +1704,10 @@ public open class Element : Node {
         depth: Int,
         out: Document.OutputSettings,
     ) {
-        if (!(childNodes.isEmpty() && tag.isSelfClosing())) {
-            if (out.prettyPrint() && childNodes.isNotEmpty() && (
-                    tag.formatAsBlock() && !preserveWhitespace(parentNode) || out.outline() &&
-                        (childNodes.size > 1 || childNodes.size == 1 && childNodes[0] is Element)
+        if (!(_childNodes.isEmpty() && tag.isSelfClosing())) {
+            if (out.prettyPrint() && _childNodes.isNotEmpty() && (
+                    tag.formatAsBlock() && !preserveWhitespace(_parentNode) || out.outline() &&
+                        (_childNodes.size > 1 || _childNodes.size == 1 && _childNodes[0] is Element)
                 )
             ) {
                 indent(accum, depth, out)
@@ -1731,8 +1731,8 @@ public open class Element : Node {
     }
 
     override fun <T : Appendable> html(appendable: T): T {
-        val size = childNodes.size
-        for (i in 0 until size) childNodes[i].outerHtml(appendable)
+        val size = _childNodes.size
+        for (i in 0 until size) _childNodes[i].outerHtml(appendable)
         return appendable
     }
 
@@ -1740,9 +1740,9 @@ public open class Element : Node {
         element.tag = this.tag.clone()
         element._baseUri = this._baseUri
         element.shadowChildrenRef = this.shadowChildrenRef
-        element.childNodes = this.childNodes.toMutableList()
+        element._childNodes = this._childNodes.toMutableList()
         element.attributes = this.attributes?.clone()
-        element.parentNode = this.parentNode?.clone()
+        element._parentNode = this._parentNode?.clone()
 
         return element
     }
@@ -1750,7 +1750,7 @@ public open class Element : Node {
     override fun createClone(): Node {
         val element = Element(this.tag.clone(), _baseUri)
         element.shadowChildrenRef = this.shadowChildrenRef
-        element.childNodes = this.childNodes
+        element._childNodes = this._childNodes
         element.attributes = this.attributes
         return element
     }
@@ -1771,7 +1771,7 @@ public open class Element : Node {
         return super.clone() as Element
     }
 
-    override fun shallowClone(): Element {
+    public override fun shallowClone(): Element {
         // simpler than implementing a clone version with no child copy
         val baseUri = baseUri()
         return Element(tag, if (baseUri.isEmpty()) null else baseUri, attributes?.clone())
@@ -1780,8 +1780,8 @@ public open class Element : Node {
     protected override fun doClone(parent: Node?): Element {
         val clone = super.doClone(parent) as Element
         clone.attributes = if (attributes != null) attributes!!.clone() else null
-        clone.childNodes = NodeList(clone, childNodes.size) as MutableList<Node>
-        clone.childNodes.addAll(childNodes) // the children then get iterated and cloned in Node.clone
+        clone._childNodes = NodeList(clone, _childNodes.size) as MutableList<Node>
+        clone._childNodes.addAll(_childNodes) // the children then get iterated and cloned in Node.clone
         return clone
     }
 
@@ -1897,7 +1897,7 @@ public open class Element : Node {
             textNode: TextNode,
         ) {
             val text: String = textNode.getWholeText()
-            if (preserveWhitespace(textNode.parentNode) || textNode is CDataNode) {
+            if (preserveWhitespace(textNode._parentNode) || textNode is CDataNode) {
                 accum.append(text)
             } else {
                 StringUtil.appendNormalisedWhitespace(

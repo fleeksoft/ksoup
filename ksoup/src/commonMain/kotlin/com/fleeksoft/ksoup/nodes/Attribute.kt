@@ -15,7 +15,7 @@ public open class Attribute : Map.Entry<String, String?>, KCloneable<Attribute> 
 
     private var attributeValue: String?
 
-    internal var parent: Attributes?
+    public var parent: Attributes?
 
     /**
      * Create a new attribute from unencoded (raw) key and value.
@@ -56,7 +56,7 @@ public open class Attribute : Map.Entry<String, String?>, KCloneable<Attribute> 
      * Set the attribute key; case is preserved.
      * @param key the new key; must not be null
      */
-    internal fun setKey(key: String) {
+    public fun setKey(key: String) {
         val trimmedKey = key.trim { it <= ' ' }
         Validate.notEmpty(trimmedKey) // trimming could potentially make empty, so validate here
         if (parent != null) {
@@ -200,7 +200,7 @@ public open class Attribute : Map.Entry<String, String?>, KCloneable<Attribute> 
         return Attributes.isInternalKey(key)
     }
 
-    internal companion object {
+    public companion object {
         private val booleanAttributes =
             arrayOf(
                 "allowfullscreen",
@@ -247,7 +247,7 @@ public open class Attribute : Map.Entry<String, String?>, KCloneable<Attribute> 
         }
 
         @Throws(IOException::class)
-        fun htmlNoValidate(
+        public fun htmlNoValidate(
             key: String,
             value: String?,
             accum: Appendable,
@@ -279,7 +279,7 @@ public open class Attribute : Map.Entry<String, String?>, KCloneable<Attribute> 
         private val htmlKeyReplace: Regex =
             Regex("[\\x00-\\x1f\\x7f-\\x9f \"'/=]")
 
-        fun getValidKey(
+        public fun getValidKey(
             key: String,
             syntax: Syntax,
         ): String? {
@@ -310,7 +310,7 @@ public open class Attribute : Map.Entry<String, String?>, KCloneable<Attribute> 
          * @param encodedValue HTML attribute encoded value
          * @return attribute
          */
-        fun createFromEncoded(
+        public fun createFromEncoded(
             unencodedKey: String,
             encodedValue: String,
         ): Attribute {
@@ -343,7 +343,7 @@ public open class Attribute : Map.Entry<String, String?>, KCloneable<Attribute> 
         /**
          * Checks if this attribute name is defined as a boolean attribute in HTML5
          */
-        fun isBooleanAttribute(key: String): Boolean {
+        public fun isBooleanAttribute(key: String): Boolean {
             return booleanAttributes.toList().binarySearch { it.compareTo(key.lowercase()) } >= 0
         }
     }

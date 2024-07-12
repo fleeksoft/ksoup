@@ -23,14 +23,14 @@ public class Parser {
      * source they were created from. By default, tracking is not enabled.
      * @return current track position setting
      */
-    internal var isTrackPosition = false
+    public var isTrackPosition: Boolean = false
         private set
 
     /**
      * Create a new Parser, using the specified TreeBuilder
      * @param treeBuilder TreeBuilder to use to parse input into Documents.
      */
-    internal constructor(treeBuilder: TreeBuilder) {
+    public constructor(treeBuilder: TreeBuilder) {
         this.treeBuilder = treeBuilder
         settings = treeBuilder.defaultSettings()
         errors = ParseErrorList.noTracking()
@@ -85,7 +85,7 @@ public class Parser {
      * Get the TreeBuilder currently in use.
      * @return current TreeBuilder.
      */
-    internal fun getTreeBuilder(): TreeBuilder {
+    public fun getTreeBuilder(): TreeBuilder {
         return treeBuilder
     }
 

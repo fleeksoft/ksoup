@@ -34,8 +34,8 @@ public class Comment(data: String) : LeafNode() {
         out: Document.OutputSettings,
     ) {
         if (out.prettyPrint() && (
-                isEffectivelyFirst() && parentNode is Element &&
-                    (parentNode as Element).tag()
+                isEffectivelyFirst() && _parentNode is Element &&
+                    (_parentNode as Element).tag()
                         .formatAsBlock() || out.outline()
             )
         ) {

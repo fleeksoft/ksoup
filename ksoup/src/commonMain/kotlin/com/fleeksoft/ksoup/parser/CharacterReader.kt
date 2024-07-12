@@ -14,7 +14,7 @@ import kotlin.math.min
 /**
  * CharacterReader consumes tokens off a string. Used internally by com.fleeksoft.ksoup. API subject to changes.
  */
-internal class CharacterReader {
+public class CharacterReader {
     private var charBuf: CharArray?
     private var charReader: StreamCharReader? = null
     private var bufLength = 0
@@ -30,21 +30,21 @@ internal class CharacterReader {
     private var newlinePositions: ArrayList<Int>? = null
     private var lineNumberOffset = 1 // line numbers start at 1; += newlinePosition[indexof(pos)]
 
-    constructor(input: String, charset: Charset = Charsets.UTF8) : this(
+    public constructor(input: String, charset: Charset = Charsets.UTF8) : this(
         charReader = input.openSync().toStreamCharReader(),
         charset = charset,
         input.length,
     )
 
-    constructor(charReader: StreamCharReader, charset: Charset = Charsets.UTF8, sz: Int = maxBufferLen) {
+    public constructor(charReader: StreamCharReader, charset: Charset = Charsets.UTF8, sz: Int = maxBufferLen) {
         this.charReader = charReader
         charBuf = CharArray(min(sz, maxBufferLen))
         bufferUp()
     }
 
-    fun isClosed() = close
+    public fun isClosed(): Boolean = close
 
-    fun close() {
+    public fun close() {
         close = true
         try {
             charReader = null
@@ -107,12 +107,12 @@ internal class CharacterReader {
      * Gets the position currently read to in the content. Starts at 0.
      * @return current position
      */
-    fun pos(): Int {
+    public fun pos(): Int {
         return readerPos + bufPos
     }
 
     /** Tests if the buffer has been fully read.  */
-    fun readFully(): Boolean {
+    public fun readFully(): Boolean {
         return readFully
     }
 
@@ -123,7 +123,7 @@ internal class CharacterReader {
      *
      * @param track set tracking on|off
      */
-    fun trackNewlines(track: Boolean) {
+    public fun trackNewlines(track: Boolean) {
         if (track && newlinePositions == null) {
             newlinePositions =
                 ArrayList<Int>(maxBufferLen / 80) // rough guess of likely count
@@ -133,18 +133,18 @@ internal class CharacterReader {
         }
     }
 
-    fun isTrackNewlines(): Boolean = newlinePositions != null
+    public fun isTrackNewlines(): Boolean = newlinePositions != null
 
     /**
      * Get the current line number (that the reader has consumed to). Starts at line #1.
      * @return the current line number, or 1 if line tracking is not enabled.
      * @see .trackNewlines
      */
-    fun lineNumber(): Int {
+    public fun lineNumber(): Int {
         return lineNumber(pos())
     }
 
-    fun lineNumber(pos: Int): Int {
+    public fun lineNumber(pos: Int): Int {
         // note that this impl needs to be called before the next buffer up or line numberoffset will be wrong. if that
         // causes issues, can remove the reset of newlinepositions during buffer, at the cost of a larger tracking array
         if (!isTrackNewlines()) return 1
@@ -157,11 +157,11 @@ internal class CharacterReader {
      * @return the current column number
      * @see .trackNewlines
      */
-    fun columnNumber(): Int {
+    public fun columnNumber(): Int {
         return columnNumber(pos())
     }
 
-    fun columnNumber(pos: Int): Int {
+    public fun columnNumber(pos: Int): Int {
         if (!isTrackNewlines()) return pos + 1
         val i = lineNumIndex(pos)
         return if (i == -1) pos + 1 else pos - newlinePositions!![i] + 1
@@ -173,7 +173,7 @@ internal class CharacterReader {
      * @return line:col position
      * @see .trackNewlines
      */
-    fun posLineCol(): String {
+    public fun posLineCol(): String {
         return lineNumber().toString() + ":" + columnNumber()
     }
 
@@ -203,7 +203,7 @@ internal class CharacterReader {
         }
     }
 
-    fun isEmpty(): Boolean {
+    public fun isEmpty(): Boolean {
         bufferUp()
         return bufPos >= bufLength
     }
@@ -214,12 +214,12 @@ internal class CharacterReader {
      * Get the char at the current position.
      * @return char
      */
-    fun current(): Char {
+    public fun current(): Char {
         bufferUp()
         return if (isEmptyNoBufferUp()) EOF else charBuf!![bufPos]
     }
 
-    fun consume(): Char {
+    public fun consume(): Char {
         bufferUp()
         val value = if (isEmptyNoBufferUp()) EOF else charBuf!![bufPos]
         bufPos++
@@ -229,7 +229,7 @@ internal class CharacterReader {
     /**
      * Unconsume one character (bufPos--). MUST only be called directly after a consume(), and no chance of a bufferUp.
      */
-    fun unconsume() {
+    public fun unconsume() {
         if (bufPos < 1) {
             throw UncheckedIOException(
                 IOException("WTF: No buffer left to unconsume."),
@@ -241,22 +241,22 @@ internal class CharacterReader {
     /**
      * Moves the current position by one.
      */
-    fun advance() {
+    public fun advance() {
         bufPos++
     }
 
-    fun mark() {
+    public fun mark() {
         // make sure there is enough look ahead capacity
         if (bufLength - bufPos < minReadAheadLen) bufSplitPoint = 0
         bufferUp()
         bufMark = bufPos
     }
 
-    fun unmark() {
+    public fun unmark() {
         bufMark = -1
     }
 
-    fun rewindToMark() {
+    public fun rewindToMark() {
         if (bufMark == -1) throw UncheckedIOException(IOException("Mark invalid"))
         bufPos = bufMark
         unmark()
@@ -267,7 +267,7 @@ internal class CharacterReader {
      * @param c scan target
      * @return offset between current position and next instance of target. -1 if not found.
      */
-    fun nextIndexOf(c: Char): Int {
+    public fun nextIndexOf(c: Char): Int {
         // doesn't handle scanning for surrogates
         bufferUp()
         for (i in bufPos until bufLength) {
@@ -282,7 +282,7 @@ internal class CharacterReader {
      * @param seq scan target
      * @return offset between current position and next instance of target. -1 if not found.
      */
-    fun nextIndexOf(seq: CharSequence): Int {
+    public fun nextIndexOf(seq: CharSequence): Int {
         bufferUp()
         // doesn't handle scanning for surrogates
         val startChar = seq[0]
@@ -317,7 +317,7 @@ internal class CharacterReader {
      * @param c the delimiter
      * @return the chars read
      */
-    fun consumeTo(c: Char): String {
+    public fun consumeTo(c: Char): String {
         val offset = nextIndexOf(c)
         return if (offset != -1) {
             val consumed =
@@ -334,7 +334,7 @@ internal class CharacterReader {
         }
     }
 
-    fun consumeTo(seq: String): String {
+    public fun consumeTo(seq: String): String {
         val offset = nextIndexOf(seq)
         return if (offset != -1) {
             val consumed =
@@ -370,7 +370,7 @@ internal class CharacterReader {
      * @param chars delimiters to scan for
      * @return characters read up to the matched delimiter.
      */
-    fun consumeToAny(vararg chars: Char): String {
+    public fun consumeToAny(vararg chars: Char): String {
         bufferUp()
         var pos = bufPos
         val start = pos
@@ -390,7 +390,7 @@ internal class CharacterReader {
         return if (pos > start) cacheString(charBuf, stringCache, start, pos - start) else ""
     }
 
-    fun consumeToAnySorted(vararg chars: Char): String {
+    public fun consumeToAnySorted(vararg chars: Char): String {
         bufferUp()
         var pos = bufPos
         val start = pos
@@ -404,7 +404,7 @@ internal class CharacterReader {
         return if (bufPos > start) cacheString(charBuf, stringCache, start, pos - start) else ""
     }
 
-    fun consumeData(): String {
+    public fun consumeData(): String {
         // &, <, null
         // bufferUp(); // no need to bufferUp, just called consume()
         var pos = bufPos
@@ -421,7 +421,7 @@ internal class CharacterReader {
         return if (pos > start) cacheString(charBuf, stringCache, start, pos - start) else ""
     }
 
-    fun consumeAttributeQuoted(single: Boolean): String {
+    public fun consumeAttributeQuoted(single: Boolean): String {
         // null, " or ', &
         // bufferUp(); // no need to bufferUp, just called consume()
         var pos = bufPos
@@ -441,7 +441,7 @@ internal class CharacterReader {
         return if (pos > start) cacheString(charBuf, stringCache, start, pos - start) else ""
     }
 
-    fun consumeRawData(): String {
+    public fun consumeRawData(): String {
         // <, null
         // bufferUp(); // no need to bufferUp, just called consume()
         var pos = bufPos
@@ -458,7 +458,7 @@ internal class CharacterReader {
         return if (pos > start) cacheString(charBuf, stringCache, start, pos - start) else ""
     }
 
-    fun consumeTagName(): String {
+    public fun consumeTagName(): String {
         // '\t', '\n', '\r', '\u000c', ' ', '/', '>'
         // NOTE: out of spec, added '<' to fix common author bugs; does not stop and append on nullChar but eats
         bufferUp()
@@ -476,14 +476,14 @@ internal class CharacterReader {
         return if (pos > start) cacheString(charBuf, stringCache, start, pos - start) else ""
     }
 
-    fun consumeToEnd(): String {
+    public fun consumeToEnd(): String {
         bufferUp()
         val data = cacheString(charBuf, stringCache, bufPos, bufLength - bufPos)
         bufPos = bufLength
         return data
     }
 
-    fun consumeLetterSequence(): String {
+    public fun consumeLetterSequence(): String {
         bufferUp()
         val start = bufPos
         while (bufPos < bufLength) {
@@ -493,7 +493,7 @@ internal class CharacterReader {
         return cacheString(charBuf, stringCache, start, bufPos - start)
     }
 
-    fun consumeLetterThenDigitSequence(): String {
+    public fun consumeLetterThenDigitSequence(): String {
         bufferUp()
         val start = bufPos
         while (bufPos < bufLength) {
@@ -507,7 +507,7 @@ internal class CharacterReader {
         return cacheString(charBuf, stringCache, start, bufPos - start)
     }
 
-    fun consumeHexSequence(): String {
+    public fun consumeHexSequence(): String {
         bufferUp()
         val start = bufPos
         while (bufPos < bufLength) {
@@ -517,7 +517,7 @@ internal class CharacterReader {
         return cacheString(charBuf, stringCache, start, bufPos - start)
     }
 
-    fun consumeDigitSequence(): String {
+    public fun consumeDigitSequence(): String {
         bufferUp()
         val start = bufPos
         while (bufPos < bufLength) {
@@ -527,11 +527,11 @@ internal class CharacterReader {
         return cacheString(charBuf, stringCache, start, bufPos - start)
     }
 
-    fun matches(c: Char): Boolean {
+    public fun matches(c: Char): Boolean {
         return !isEmpty() && charBuf!![bufPos] == c
     }
 
-    fun matches(seq: String): Boolean {
+    public fun matches(seq: String): Boolean {
         bufferUp()
         val scanLength = seq.length
         if (scanLength > bufLength - bufPos) return false
@@ -539,7 +539,7 @@ internal class CharacterReader {
         return true
     }
 
-    fun matchesIgnoreCase(seq: String): Boolean {
+    public fun matchesIgnoreCase(seq: String): Boolean {
         bufferUp()
         val scanLength = seq.length
         if (scanLength > bufLength - bufPos) return false
@@ -551,7 +551,7 @@ internal class CharacterReader {
         return true
     }
 
-    fun matchesAny(vararg seq: Char): Boolean {
+    public fun matchesAny(vararg seq: Char): Boolean {
         if (isEmpty()) return false
         bufferUp()
         val c = charBuf!![bufPos]
@@ -561,12 +561,12 @@ internal class CharacterReader {
         return false
     }
 
-    fun matchesAnySorted(seq: CharArray): Boolean {
+    public fun matchesAnySorted(seq: CharArray): Boolean {
         bufferUp()
         return !isEmpty() && seq.contains(charBuf!![bufPos])
     }
 
-    fun matchesLetter(): Boolean {
+    public fun matchesLetter(): Boolean {
         if (isEmpty()) return false
         val c = charBuf!![bufPos]
         return c in 'A'..'Z' || c in 'a'..'z' || c.isLetter()
@@ -576,19 +576,19 @@ internal class CharacterReader {
      * Checks if the current pos matches an ascii alpha (A-Z a-z) per https://infra.spec.whatwg.org/#ascii-alpha
      * @return if it matches or not
      */
-    fun matchesAsciiAlpha(): Boolean {
+    public fun matchesAsciiAlpha(): Boolean {
         if (isEmpty()) return false
         val c = charBuf!![bufPos]
         return c in 'A'..'Z' || c in 'a'..'z'
     }
 
-    fun matchesDigit(): Boolean {
+    public fun matchesDigit(): Boolean {
         if (isEmpty()) return false
         val c = charBuf!![bufPos]
         return c in '0'..'9'
     }
 
-    fun matchConsume(seq: String): Boolean {
+    public fun matchConsume(seq: String): Boolean {
         bufferUp()
         return if (matches(seq)) {
             bufPos += seq.length
@@ -598,7 +598,7 @@ internal class CharacterReader {
         }
     }
 
-    fun matchConsumeIgnoreCase(seq: String): Boolean {
+    public fun matchConsumeIgnoreCase(seq: String): Boolean {
         return if (matchesIgnoreCase(seq)) {
             bufPos += seq.length
             true
@@ -615,7 +615,7 @@ internal class CharacterReader {
     private var lastIcIndex = 0 // nearest found indexOf
 
     /** Used to check presence of ,  when we're in RCData and see a <xxx. Only finds consistent case.></xxx.>  */
-    fun containsIgnoreCase(seq: String): Boolean {
+    public fun containsIgnoreCase(seq: String): Boolean {
         if (seq == lastIcSeq) {
             if (lastIcIndex == -1) return false
             if (lastIcIndex >= bufPos) return true
@@ -648,7 +648,7 @@ internal class CharacterReader {
     }
 
     // just used for testing
-    fun rangeEquals(
+    public fun rangeEquals(
         start: Int,
         count: Int,
         cached: String,
@@ -656,11 +656,11 @@ internal class CharacterReader {
         return rangeEquals(charBuf, start, count, cached)
     }
 
-    companion object {
-        const val EOF: Char = (-1).toChar()
+    public companion object {
+        public const val EOF: Char = (-1).toChar()
         private const val maxStringCacheLen = 12
-        const val maxBufferLen = 1024 * 32 // visible for testing
-        const val readAheadLimit = (maxBufferLen * 0.75).toInt() // visible for testing
+        public const val maxBufferLen: Int = 1024 * 32 // visible for testing
+        public const val readAheadLimit: Int = (maxBufferLen * 0.75).toInt() // visible for testing
 
         // the minimum mark length supported. No HTML entities can be larger than this.
         private const val minReadAheadLen = 1024
@@ -707,7 +707,7 @@ internal class CharacterReader {
         /**
          * Check if the value of the provided range equals the string.
          */
-        fun rangeEquals(
+        public fun rangeEquals(
             charBuf: CharArray?,
             start: Int,
             count: Int,

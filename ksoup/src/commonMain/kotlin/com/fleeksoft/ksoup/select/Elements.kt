@@ -35,7 +35,7 @@ public class Elements(private val delegateList: MutableList<Element> = mutableLi
      * Creates a deep copy of these elements.
      * @return a deep copy
      */
-    internal fun clone(): Elements {
+    public fun clone(): Elements {
         val clone = Elements()
         this.forEach { element: Element ->
             clone.add(element.clone())
