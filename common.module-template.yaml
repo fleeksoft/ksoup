@@ -1,0 +1,10 @@
+settings:
+  kotlin:
+    apiVersion: 1.9
+    languageVersion: 1.9
+  android:
+    compileSdk: 33
+    namespace: "com.fleeksoft.ksoup"
+
+test-dependencies:
+  - $kotlin-test

@@ -2,8 +2,6 @@ import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
 import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
 
 plugins {
-    alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.androidLibrary)
     alias(libs.plugins.dokka)
     id("maven-publish")
     id("signing")
@@ -11,109 +9,6 @@ plugins {
 
 group = "com.fleeksoft.ksoup"
 version = libs.versions.libraryVersion.get()
-
-kotlin {
-    explicitApi()
-
-    jvm()
-
-    js(IR) {
-        nodejs()
-    }
-
-    @OptIn(ExperimentalWasmDsl::class)
-    wasmJs {
-//        browser()
-        nodejs()
-    }
-//    yet not supported by korlibs and amper
-//    @OptIn(ExperimentalWasmDsl::class)
-//    wasmWasi()
-
-    linuxX64()
-    linuxArm64()
-
-    mingwX64()
-
-    androidTarget {
-        compilations.all {
-            kotlinOptions {
-                jvmTarget = "11"
-            }
-        }
-    }
-
-    listOf(
-        iosX64(),
-        iosArm64(),
-        iosSimulatorArm64(),
-        macosX64(),
-        macosArm64(),
-        tvosX64(),
-        tvosArm64(),
-        tvosSimulatorArm64(),
-//        watchosX64(),
-        watchosArm64(),
-        watchosSimulatorArm64(),
-    ).forEach {
-        it.binaries.framework {
-            baseName = "ksoup"
-            isStatic = true
-        }
-    }
-
-    applyDefaultHierarchyTemplate()
-
-    sourceSets {
-        commonMain.dependencies {
-            implementation(libs.kotlinx.datetime)
-            implementation(libs.codepoints)
-            implementation(libs.korlibs.io)
-        }
-
-        jvmMain.dependencies {
-        }
-
-        androidMain.dependencies {
-        }
-
-        appleMain.dependencies {
-        }
-
-        jsMain.dependencies {
-        }
-
-        val jvmAndroidCommonMain by creating {
-            dependsOn(commonMain.get())
-            kotlin.srcDir("src/jvmAndroidCommonMain/kotlin")
-        }
-
-        // Make JVM and Android source sets depend on the new shared source set
-        jvmMain.get().dependsOn(jvmAndroidCommonMain)
-        androidMain.get().dependsOn(jvmAndroidCommonMain)
-
-        // Define a new source set for shared JVM and Android tests
-        val jvmAndroidCommonTest by creating {
-            dependsOn(commonTest.get())
-            kotlin.srcDir("src/jvmAndroidCommonTest/kotlin")
-        }
-        // Make JVM and Android test source sets depend on the new shared test source set
-        jvmTest.get().dependsOn(jvmAndroidCommonTest)
-        androidNativeTest.get().dependsOn(jvmAndroidCommonTest)
-    }
-}
-
-android {
-    namespace = "com.fleeksoft.ksoup"
-    compileSdk = libs.versions.compileSdk.get().toInt()
-    defaultConfig {
-        minSdk = libs.versions.minSdk.get().toInt()
-    }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-}
 
 publishing {
     repositories {

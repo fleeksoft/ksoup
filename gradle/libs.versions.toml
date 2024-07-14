@@ -13,8 +13,8 @@ kotlinx-io = "0.3.5"
 codepoints = "0.8.0"
 dokka = "1.9.20"
 
-#korlibs = "999.0.0.999" # 999.0.0.999 is local version
-korlibs = "6.0.0-alpha9"
+korlibs = "999.0.0.999" # 999.0.0.999 is local version
+#korlibs = "6.0.0-alpha9"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }

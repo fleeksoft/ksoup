@@ -2,8 +2,6 @@ import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
 import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
 
 plugins {
-    alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.androidLibrary)
     alias(libs.plugins.dokka)
     id("maven-publish")
     id("signing")
@@ -12,121 +10,6 @@ plugins {
 group = "com.fleeksoft.ksoup"
 version = libs.versions.libraryVersion.get()
 
-kotlin {
-    explicitApi()
-
-    jvm()
-
-    js(IR) {
-        nodejs()
-    }
-
-    @OptIn(ExperimentalWasmDsl::class)
-    wasmJs {
-//        browser()
-        nodejs()
-    }
-//    yet not supported by korlibs and amper
-//    @OptIn(ExperimentalWasmDsl::class)
-//    wasmWasi()
-
-    linuxX64()
-    linuxArm64()
-
-    macosX64()
-    macosArm64()
-
-    mingwX64()
-
-    androidTarget {
-        compilations.all {
-            kotlinOptions {
-                jvmTarget = "11"
-            }
-        }
-    }
-
-    listOf(
-        iosX64(),
-        iosArm64(),
-        iosSimulatorArm64(),
-        macosX64(),
-        macosArm64(),
-        tvosX64(),
-        tvosArm64(),
-        tvosSimulatorArm64(),
-//        watchosX64(),
-        watchosArm64(),
-        watchosSimulatorArm64(),
-    ).forEach {
-        it.binaries.framework {
-            baseName = "ksoup-network"
-            isStatic = true
-        }
-    }
-
-    applyDefaultHierarchyTemplate()
-
-    sourceSets {
-        commonMain.dependencies {
-            compileOnly(projects.ksoup)
-            implementation(libs.korlibs.io)
-        }
-        commonTest.dependencies {
-            implementation(libs.kotlin.test)
-            implementation(projects.ksoup)
-        }
-
-        val nonJsMain by creating {
-            dependsOn(commonMain.get())
-        }
-
-        jvmMain {
-            dependsOn(nonJsMain)
-            dependencies {
-            }
-        }
-
-        androidMain {
-            dependsOn(nonJsMain)
-            dependencies {
-            }
-        }
-
-        appleMain {
-            dependsOn(nonJsMain)
-            dependencies {
-            }
-        }
-
-        linuxMain {
-            dependsOn(nonJsMain)
-            dependencies {
-            }
-        }
-
-        jsMain.dependencies {
-        }
-
-        mingwMain {
-            dependsOn(nonJsMain)
-            dependencies {
-            }
-        }
-    }
-}
-
-android {
-    namespace = "com.fleeksoft.ksoup.network"
-    compileSdk = libs.versions.compileSdk.get().toInt()
-    defaultConfig {
-        minSdk = libs.versions.minSdk.get().toInt()
-    }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-}
 
 publishing {
     repositories {
