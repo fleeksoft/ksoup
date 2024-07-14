@@ -1,0 +1,8 @@
+product: android/app
+
+dependencies:
+    - ../shared
+
+settings:
+    compose:
+        enabled: true
