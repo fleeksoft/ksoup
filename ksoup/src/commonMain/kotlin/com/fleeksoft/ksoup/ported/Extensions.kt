@@ -6,7 +6,7 @@ import io.ktor.utils.io.charsets.*
 import okio.Buffer
 
 internal fun String.isCharsetSupported(): Boolean {
-    val result = runCatching { Charset.forName(this) }.getOrNull()
+    val result = runCatching { Charsets.forName(this) }.getOrNull()
     return result != null
 }
 

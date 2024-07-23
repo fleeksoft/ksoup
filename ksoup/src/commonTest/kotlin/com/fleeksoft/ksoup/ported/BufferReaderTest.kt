@@ -79,7 +79,7 @@ class BufferReaderTest {
         assertEquals(
             specialText3,
             BufferReader(
-                byteArray = specialText3.toByteArray(Charset.forName("euc-kr")),
+                byteArray = specialText3.toByteArray(Charsets.forName("euc-kr")),
                 charset = "euc-kr",
             ).readString(specialText3.length.toLong()),
         )
@@ -88,7 +88,7 @@ class BufferReaderTest {
         assertEquals(
             specialText2,
             BufferReader(
-                byteArray = specialText2.toByteArray(Charset.forName("iso-8859-1")),
+                byteArray = specialText2.toByteArray(Charsets.forName("iso-8859-1")),
                 charset = "iso-8859-1",
             ).readString(specialText2.length.toLong()),
         )
@@ -97,7 +97,7 @@ class BufferReaderTest {
         assertEquals(
             specialText2.length,
             BufferReader(
-                byteArray = specialText2.toByteArray(Charset.forName("iso-8859-1")),
+                byteArray = specialText2.toByteArray(Charsets.forName("iso-8859-1")),
                 charset = "iso-8859-1",
             ).readCharArray(charArray, 0, specialText2.length),
         )
@@ -107,7 +107,7 @@ class BufferReaderTest {
         assertEquals(
             specialText3.length,
             BufferReader(
-                byteArray = specialText3.toByteArray(Charset.forName("euc-kr")),
+                byteArray = specialText3.toByteArray(Charsets.forName("euc-kr")),
                 charset = "euc-kr",
             ).readCharArray(charArray2, 0, specialText3.length),
         )

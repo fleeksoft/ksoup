@@ -93,7 +93,7 @@ public object DataUtil {
                     BufferReader(bufferedSource)
                 }
 
-//            val charset = charsetName?.let { Charset.forName(it) } ?: Charsets.UTF_8
+//            val charset = charsetName?.let { Charsets.forName(it) } ?: Charsets.UTF_8
 //            val inputData = bufferedSource.readString()
             parseInputSource(
                 bufferReader,
@@ -259,7 +259,7 @@ public object DataUtil {
                 if (effectiveCharsetName == defaultCharsetName) {
                     Charsets.UTF_8
                 } else {
-                    Charset.forName(
+                    Charsets.forName(
                         effectiveCharsetName,
                     )
                 }

@@ -425,7 +425,7 @@ public class Document(private val namespace: String, private val location: Strin
          * @return the document's output settings, for chaining
          */
         public fun charset(charset: String): OutputSettings {
-            charset(Charset.forName(charset))
+            charset(Charsets.forName(charset))
             return this
         }
 

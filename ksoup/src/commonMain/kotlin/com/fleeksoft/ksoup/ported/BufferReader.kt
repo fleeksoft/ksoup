@@ -32,7 +32,7 @@ public open class BufferReader : Closeable {
         buffer.write(byteArray)
         _source = buffer
         if (charset != null) {
-            _charset = Charset.forName(charset)
+            _charset = Charsets.forName(charset)
         }
     }
 
@@ -267,7 +267,7 @@ public open class BufferReader : Closeable {
     }
 
     public fun setCharSet(charset: String) {
-        this._charset = Charset.forName(charset)
+        this._charset = Charsets.forName(charset)
     }
 
     public companion object {
