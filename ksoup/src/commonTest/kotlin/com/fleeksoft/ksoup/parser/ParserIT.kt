@@ -11,20 +11,6 @@ import kotlin.test.assertTrue
  * Longer running Parser tests.
  */
 class ParserIT {
-    @Test
-    @Ignore // disabled by default now, as there more specific unconsume tests
-    fun testIssue1251() {
-        // https://github.com/jhy/Ksoup/issues/1251
-        val str = StringBuilder("<a href=\"\"ca")
-        for (countSpaces in 0..99999) {
-            try {
-                Parser.htmlParser().setTrackErrors(1).parseInput(str.toString(), "")
-            } catch (e: Exception) {
-                throw AssertionError("failed at length " + str.length, e)
-            }
-            str.insert(countSpaces, ' ')
-        }
-    }
 
     @Test
     fun handlesDeepStack() {
