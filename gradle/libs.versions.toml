@@ -1,15 +1,14 @@
 [versions]
-agp = "8.2.0" #kmp max gradle support 8.2 right now
-kotlin = "1.9.24"
+agp = "8.2.2" #kmp max gradle support 8.2 right now
+kotlin = "2.0.0"
 compileSdk = "34"
 minSdk = "21"
 libraryVersion = "0.1.2"
-ktor = "2.3.11"
+ktor = "3.0.0-beta-2"
 coroutines = "1.8.1"
 okio = "3.9.0"
 kotlinxDatetime = "0.6.0"
-kotlinx-io = "0.3.0"
-codepoints = "0.6.1"
+codepoints = "0.9.0"
 dokka = "1.9.20"
 
 
@@ -26,7 +25,6 @@ ktor-client-win = { module = "io.ktor:ktor-client-winhttp", version.ref = "ktor"
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 okio-nodefilesystem = { module = "com.squareup.okio:okio-nodefilesystem", version.ref = "okio" }
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }
-kotlinx-io = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version.ref = "kotlinx-io" }
 codepoints = { module = "de.cketti.unicode:kotlin-codepoints-deluxe", version.ref = "codepoints" }
 
 [plugins]
