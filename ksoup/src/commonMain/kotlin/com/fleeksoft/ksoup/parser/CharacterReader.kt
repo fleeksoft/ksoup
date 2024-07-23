@@ -4,7 +4,7 @@ import com.fleeksoft.ksoup.UncheckedIOException
 import com.fleeksoft.ksoup.ported.BufferReader
 import com.fleeksoft.ksoup.ported.buildString
 import io.ktor.utils.io.core.*
-import okio.IOException
+import kotlinx.io.IOException
 import kotlin.math.abs
 import kotlin.math.min
 
@@ -75,10 +75,9 @@ internal class CharacterReader {
         while (read <= minReadAheadLen) {
             val toReadSize = charBuf!!.size - read
             var readBytes = 0
-            val thisRead =
-                reader.readCharArray(charArray = charBuf!!, off = read, len = toReadSize) {
-                    readBytes = it
-                }
+            val thisRead = reader.readCharArray(charArray = charBuf!!, off = read, len = toReadSize) {
+                readBytes = it
+            }
 
             if (thisRead > 0) {
                 byteDiff += (readBytes - thisRead)

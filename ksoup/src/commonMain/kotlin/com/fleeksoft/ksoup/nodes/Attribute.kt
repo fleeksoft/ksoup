@@ -5,7 +5,7 @@ import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.nodes.Document.OutputSettings.Syntax
 import com.fleeksoft.ksoup.ported.KCloneable
-import okio.IOException
+import kotlinx.io.IOException
 
 /**
  * A single key + value attribute. (Only used for presentation.)
@@ -142,7 +142,6 @@ public open class Attribute : Map.Entry<String, String?>, KCloneable<Attribute> 
         return parent!!.sourceRange(key)!!
     }
 
-    @Throws(IOException::class)
     protected fun html(
         accum: Appendable,
         out: Document.OutputSettings,
@@ -235,7 +234,6 @@ public open class Attribute : Map.Entry<String, String?>, KCloneable<Attribute> 
                 "typemustmatch",
             )
 
-        @Throws(IOException::class)
         protected fun html(
             key: String,
             value: String?,
@@ -246,7 +244,6 @@ public open class Attribute : Map.Entry<String, String?>, KCloneable<Attribute> 
             htmlNoValidate(resultKey, value, accum, out)
         }
 
-        @Throws(IOException::class)
         fun htmlNoValidate(
             key: String,
             value: String?,

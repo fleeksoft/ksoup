@@ -6,7 +6,7 @@ package com.fleeksoft.ksoup.internal
  */
 import com.fleeksoft.ksoup.ported.BufferReader
 import com.fleeksoft.ksoup.ported.System
-import okio.Buffer
+import kotlinx.io.Buffer
 
 internal class ConstrainableSource(
     bufferReader: BufferReader,

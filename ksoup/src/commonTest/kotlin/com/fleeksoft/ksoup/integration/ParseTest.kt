@@ -6,8 +6,8 @@ import com.fleeksoft.ksoup.Ksoup.parseFile
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.ported.BufferReader
-import io.ktor.utils.io.charsets.name
-import okio.Path.Companion.toPath
+import io.ktor.utils.io.charsets.*
+import kotlinx.io.files.Path
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
@@ -144,7 +144,7 @@ class ParseTest {
             return
         }
         val input = TestHelper.getResourceAbsolutePath("htmltests/xwiki-edit.html.gz")
-        val html = TestHelper.getFileAsString(input.toPath())
+        val html = TestHelper.getFileAsString(Path(input))
         val doc = parse(html)
         assertEquals("XWiki Jetty HSQLDB 12.1-SNAPSHOT", doc.select("#xwikiplatformversion").text())
         val wantHtml =
@@ -159,7 +159,7 @@ class ParseTest {
             return
         }
         val input = TestHelper.getResourceAbsolutePath("htmltests/xwiki-1324.html.gz")
-        val html = TestHelper.getFileAsString(input.toPath())
+        val html = TestHelper.getFileAsString(Path(input))
         val doc = parse(html)
         assertEquals("XWiki Jetty HSQLDB 12.1-SNAPSHOT", doc.select("#xwikiplatformversion").text())
         val wantHtml =

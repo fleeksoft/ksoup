@@ -15,7 +15,7 @@ import com.fleeksoft.ksoup.ported.canEncode
 import de.cketti.codepoints.deluxe.CodePoint
 import de.cketti.codepoints.deluxe.codePointAt
 import io.ktor.utils.io.charsets.*
-import okio.IOException
+import kotlinx.io.IOException
 
 /**
  * HTML entities, and escape routines. Source: [W3C
@@ -130,7 +130,6 @@ public object Entities {
         null // lazy-init, to break circular dependency with OutputSettings
 
     // this method does a lot, but other breakups cause rescanning and stringbuilder generations
-    @Throws(IOException::class)
     public fun escape(
         accum: Appendable,
         string: String,
@@ -241,7 +240,6 @@ public object Entities {
         }
     }
 
-    @Throws(IOException::class)
     private fun appendEncoded(
         accum: Appendable,
         escapeMode: EscapeMode,

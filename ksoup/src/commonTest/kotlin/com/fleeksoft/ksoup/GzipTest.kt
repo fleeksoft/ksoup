@@ -1,6 +1,9 @@
 package com.fleeksoft.ksoup
 
-import okio.Path.Companion.toPath
+import kotlinx.io.buffered
+import kotlinx.io.files.Path
+import kotlinx.io.readByteString
+import kotlinx.io.readString
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -12,8 +15,7 @@ class GzipTest {
             return
         }
         val gzipFileStr =
-            readGzipFile(TestHelper.getResourceAbsolutePath("htmltests/gzip.html.gz").toPath())
-                .readByteString().utf8()
+            readGzipFile(Path(TestHelper.getResourceAbsolutePath("htmltests/gzip.html.gz"))).buffered().readString()
         val expected = """<title>Gzip test</title>
 
 <p>This is a gzipped HTML file.</p>

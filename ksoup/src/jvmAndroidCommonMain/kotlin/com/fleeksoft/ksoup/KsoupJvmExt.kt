@@ -3,7 +3,7 @@ package com.fleeksoft.ksoup
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.ported.BufferReader
-import okio.source
+import kotlinx.io.asSource
 import java.io.InputStream
 
 /**
@@ -23,7 +23,7 @@ public fun Ksoup.parseInputStream(
     parser: Parser = Parser.htmlParser(),
 ): Document {
     return parse(
-        bufferReader = BufferReader(source = inputStream.source()),
+        bufferReader = BufferReader(source = inputStream.asSource()),
         charsetName = charsetName,
         baseUri = baseUri,
         parser = parser,

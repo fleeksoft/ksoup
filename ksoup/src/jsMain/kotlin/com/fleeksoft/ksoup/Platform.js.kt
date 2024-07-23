@@ -2,17 +2,17 @@ package com.fleeksoft.ksoup
 
 import com.fleeksoft.ksoup.zlib.initializeZlib
 import com.fleeksoft.ksoup.zlib.zlib
-import okio.*
+import kotlinx.io.Buffer
+import kotlinx.io.RawSource
+import kotlinx.io.buffered
+import kotlinx.io.files.Path
+import kotlinx.io.readByteArray
 
-internal actual fun readGzipFile(file: Path): BufferedSource {
+internal actual fun readGzipFile(file: Path): RawSource {
     initializeZlib()
     return Buffer().apply {
-        write(zlib.gunzipSync(readFile(file).readByteArray()))
+        write(zlib.gunzipSync(readFile(file).buffered().readByteArray()))
     }
-}
-
-internal actual fun readFile(file: Path): BufferedSource {
-    return NodeJsFileSystem.source(file).buffer()
 }
 
 public actual object Platform {

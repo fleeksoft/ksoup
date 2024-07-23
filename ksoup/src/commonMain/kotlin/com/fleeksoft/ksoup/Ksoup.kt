@@ -7,8 +7,8 @@ import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.ported.BufferReader
 import com.fleeksoft.ksoup.safety.Cleaner
 import com.fleeksoft.ksoup.safety.Safelist
-import okio.IOException
-import okio.Path.Companion.toPath
+import kotlinx.io.IOException
+import kotlinx.io.files.Path
 
 /**
  * The core public access point to the com.fleeksoft.ksoup functionality.
@@ -88,13 +88,12 @@ public object Ksoup {
      * @return sane HTML
      * @throws IOException if the file could not be found, or read, or if the charsetName is invalid.
      */
-    @Throws(IOException::class)
     public fun parseFile(
         file: String,
         baseUri: String,
         charsetName: String? = null,
     ): Document {
-        val filePath = file.toPath()
+        val filePath = Path(file)
         return DataUtil.load(filePath, charsetName, baseUri)
     }
 
@@ -108,12 +107,11 @@ public object Ksoup {
      * @throws IOException if the file could not be found, or read, or if the charsetName is invalid.
      * @see .parse
      */
-    @Throws(IOException::class)
     public fun parseFile(
         file: String,
         charsetName: String? = null,
     ): Document {
-        val filePath = file.toPath()
+        val filePath = Path(file)
         return DataUtil.load(filePath, charsetName, filePath.toString())
     }
 
@@ -130,9 +128,8 @@ public object Ksoup {
      * @throws IOException if the file could not be found or read.
      * @see .parse
      */
-    @Throws(IOException::class)
     public fun parseFile(file: String): Document {
-        val filePath = file.toPath()
+        val filePath = Path(file)
         return DataUtil.load(filePath, null, filePath.toString())
     }
 
@@ -147,14 +144,13 @@ public object Ksoup {
      * @return sane HTML
      * @throws IOException if the file could not be found, or read, or if the charsetName is invalid.
      */
-    @Throws(IOException::class)
     public fun parseFile(
         file: String,
         baseUri: String,
         charsetName: String?,
         parser: Parser,
     ): Document {
-        return DataUtil.load(file.toPath(), charsetName, baseUri, parser)
+        return DataUtil.load(Path(file), charsetName, baseUri, parser)
     }
 
     /**
@@ -167,7 +163,6 @@ public object Ksoup {
      * @return sane HTML
      * @throws IOException if the file could not be found, or read, or if the charsetName is invalid.
      */
-    @Throws(IOException::class)
     public fun parse(
         bufferReader: BufferReader,
         baseUri: String,
@@ -188,7 +183,6 @@ public object Ksoup {
      * @return sane HTML
      * @throws IOException if the file could not be found, or read, or if the charsetName is invalid.
      */
-    @Throws(IOException::class)
     public fun parse(
         bufferReader: BufferReader,
         baseUri: String,
@@ -270,7 +264,7 @@ public object Ksoup {
      *
      * // html is: 5 is &lt; 6.
      * // text is: 5 is < 6.
-     `</pre> *
+    `</pre> *
      *
      * @param bodyHtml input untrusted HTML (body fragment)
      * @param safelist list of permitted HTML elements
@@ -327,7 +321,7 @@ public object Ksoup {
      * <pre>`val safelist = Safelist.relaxed()
      * val isValid = Ksoup.isValid(sourceBodyHtml, safelist)
      * val normalizedHtml = Ksoup.clean(sourceBodyHtml, "https://example.com/", safelist)
-     `</pre> *
+    `</pre> *
      *
      * Assumes the HTML is a body fragment (i.e. will be used in an existing HTML document body.)
      * @param bodyHtml HTML to test

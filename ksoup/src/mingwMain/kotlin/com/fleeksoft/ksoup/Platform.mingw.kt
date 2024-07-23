@@ -1,16 +1,10 @@
 package com.fleeksoft.ksoup
 
-import okio.BufferedSource
-import okio.FileSystem
-import okio.Path
-import okio.buffer
+import kotlinx.io.RawSource
+import kotlinx.io.files.Path
 
-internal actual fun readGzipFile(file: Path): BufferedSource {
+internal actual fun readGzipFile(file: Path): RawSource {
     TODO("Not yet implemented")
-}
-
-internal actual fun readFile(file: Path): BufferedSource {
-    return FileSystem.SYSTEM.source(file).buffer()
 }
 
 public actual object Platform {

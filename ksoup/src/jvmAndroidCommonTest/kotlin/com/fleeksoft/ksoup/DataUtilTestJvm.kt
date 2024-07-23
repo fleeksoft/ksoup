@@ -5,8 +5,7 @@ import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.ported.BufferReader
 import io.ktor.utils.io.charsets.*
-import okio.gzip
-import okio.source
+import kotlinx.io.asSource
 import java.io.*
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
@@ -35,7 +34,7 @@ class DataUtilTestJvm {
             )
         val doc: Document =
             DataUtil.parseInputSource(
-                BufferReader(sequenceStream.source()),
+                BufferReader(sequenceStream.asSource()),
                 null,
                 "",
                 Parser.htmlParser(),
@@ -63,7 +62,7 @@ class DataUtilTestJvm {
             )
         val doc: Document =
             Ksoup.parse(
-                bufferReader = BufferReader(FileInputStream(file).source().gzip()),
+                bufferReader = BufferReader(GZIPInputStream(FileInputStream(file)).asSource()),
                 charsetName = null,
                 baseUri = "https://example.com",
             )
@@ -101,7 +100,7 @@ class DataUtilTestJvm {
             )
         val docThree: Document =
             Ksoup.parse(
-                bufferReader = BufferReader(FileInputStream(file).source().gzip()),
+                bufferReader = BufferReader(GZIPInputStream(FileInputStream(file)).asSource()),
                 charsetName = null,
                 baseUri = "https://example.com",
             )
@@ -116,7 +115,7 @@ class DataUtilTestJvm {
             val bytes: ByteArray =
                 if (file.getName().endsWith(".gz")) {
                     val stream: InputStream = GZIPInputStream(FileInputStream(file))
-                    val byteBuffer: ByteArray = DataUtil.readToByteBuffer(BufferReader(stream.source()), 0)
+                    val byteBuffer: ByteArray = DataUtil.readToByteBuffer(BufferReader(stream.asSource()), 0)
                     byteBuffer
                 } else {
                     Files.readAllBytes(file.toPath())

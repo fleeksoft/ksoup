@@ -12,7 +12,9 @@ import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.ported.*
 import com.fleeksoft.ksoup.select.Elements
 import io.ktor.utils.io.charsets.*
-import okio.*
+import kotlinx.io.Buffer
+import kotlinx.io.buffered
+import kotlinx.io.files.Path
 import kotlin.random.Random
 
 /**
@@ -39,7 +41,6 @@ public object DataUtil {
      * @return Document
      * @throws IOException on IO error
      */
-    @Throws(IOException::class)
     public fun load(
         path: Path,
         charsetName: String?,
@@ -61,7 +62,6 @@ public object DataUtil {
      * @return Document
      * @throws IOException on IO error
      */
-    @Throws(IOException::class)
     public fun load(
         filePath: Path,
         charsetName: String?,
@@ -76,7 +76,7 @@ public object DataUtil {
                 if (name.endsWith(".gz") || name.endsWith(".z")) {
                     val zipped: Boolean =
                         runCatching {
-                            bufferedSource.peek().use { peekSource ->
+                            bufferedSource.buffered().peek().use { peekSource ->
 //                    In Kotlin, a Byte is signed and ranges from -128 to 127. In contrast, in Java, a byte is an unsigned type and ranges from 0 to 255.
 //                    in kotlin use readUByte to get unsigned byte
                                 peekSource.readByte().toUByte().toInt() == 0x1f && peekSource.readByte()
@@ -112,7 +112,6 @@ public object DataUtil {
      * @return Document
      * @throws IOException on IO error
      */
-    @Throws(IOException::class)
     public fun load(
         bufferReader: BufferReader,
         charsetName: String?,
@@ -130,7 +129,6 @@ public object DataUtil {
      * @return Document
      * @throws IOException on IO error
      */
-    @Throws(IOException::class)
     public fun load(
         bufferReader: BufferReader,
         charsetName: String?,
@@ -146,7 +144,6 @@ public object DataUtil {
      * @param outSource output stream to write to
      * @throws IOException on IO error
      */
-    @Throws(IOException::class)
     public fun crossStreams(
         source: ByteArray,
         outSource: Buffer,
@@ -154,7 +151,6 @@ public object DataUtil {
         outSource.write(source)
     }
 
-    @Throws(IOException::class)
     public fun parseInputSource(
         bufferReader: BufferReader?,
         charsetName: String?,
@@ -281,7 +277,6 @@ public object DataUtil {
      * @return the filled byte buffer
      * @throws IOException if an exception occurs whilst reading from the input stream.
      */
-    @Throws(IOException::class)
     public fun readToByteBuffer(
         bufferReader: BufferReader,
         maxSize: Long,

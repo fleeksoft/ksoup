@@ -7,7 +7,7 @@ import com.fleeksoft.ksoup.ported.*
 import com.fleeksoft.ksoup.select.NodeFilter
 import com.fleeksoft.ksoup.select.NodeTraversor
 import com.fleeksoft.ksoup.select.NodeVisitor
-import okio.IOException
+import kotlinx.io.IOException
 import kotlin.js.JsName
 import kotlin.reflect.KClass
 
@@ -723,14 +723,12 @@ public abstract class Node protected constructor() : KCloneable<Node> {
      * @param accum accumulator to place HTML into
      * @throws IOException if appending to the given accumulator fails.
      */
-    @Throws(IOException::class)
     internal abstract fun outerHtmlHead(
         accum: Appendable,
         depth: Int,
         out: Document.OutputSettings,
     )
 
-    @Throws(IOException::class)
     internal abstract fun outerHtmlTail(
         accum: Appendable,
         depth: Int,
@@ -777,7 +775,6 @@ public abstract class Node protected constructor() : KCloneable<Node> {
         return outerHtml()
     }
 
-    @Throws(IOException::class)
     protected fun indent(
         accum: Appendable,
         depth: Int,

@@ -1,14 +1,27 @@
+@file:OptIn(InternalIoApi::class)
+
 package com.fleeksoft.ksoup.ported
 
 import com.fleeksoft.ksoup.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
-import okio.IOException
+import kotlinx.io.*
+import kotlinx.io.Buffer
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
 class BufferReaderTest {
+
+    @Test
+    fun testBufferPeek() {
+        val inputData = "ä<a>ä</a>"
+        val buffer = BufferReader(inputData)
+        assertEquals(inputData, buffer.peek().readString())
+        assertEquals(inputData, buffer.readString())
+        assertEquals("", buffer.readString())
+    }
+
     @Test
     fun testMixCharReader() {
         if (Platform.current != PlatformType.JVM && !TestHelper.forceAllTestsRun) {

@@ -6,7 +6,7 @@ minSdk = "21"
 libraryVersion = "0.1.2"
 ktor = "3.0.0-beta-2"
 coroutines = "1.8.1"
-okio = "3.9.0"
+kotlinx-io = "0.5.1"
 kotlinxDatetime = "0.6.0"
 codepoints = "0.9.0"
 dokka = "1.9.20"
@@ -23,8 +23,7 @@ ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
 ktor-client-js = { module = "io.ktor:ktor-client-js", version.ref = "ktor" }
 ktor-client-win = { module = "io.ktor:ktor-client-winhttp", version.ref = "ktor" }
-okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
-okio-nodefilesystem = { module = "com.squareup.okio:okio-nodefilesystem", version.ref = "okio" }
+kotlinx-io = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version.ref = "kotlinx-io" }
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }
 codepoints = { module = "de.cketti.unicode:kotlin-codepoints-deluxe", version.ref = "codepoints" }
 

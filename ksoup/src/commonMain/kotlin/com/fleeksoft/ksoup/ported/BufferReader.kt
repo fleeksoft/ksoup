@@ -1,36 +1,36 @@
+@file:OptIn(InternalIoApi::class)
+
 package com.fleeksoft.ksoup.ported
 
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
-import okio.*
-import okio.Buffer
-import okio.Closeable
-import okio.EOFException
+import kotlinx.io.*
+import kotlinx.io.Buffer
 
 public open class BufferReader : Closeable {
-    private val _source: BufferedSource
+    private val _bufferSource: Source
     private var closed: Boolean = false
     private var _charset: Charset? = null
 
     public constructor() {
-        this._source = Buffer()
+        this._bufferSource = Buffer()
     }
 
-    public constructor(buffer: BufferedSource) {
-        this._source = buffer
+    public constructor(source: RawSource) {
+        this._bufferSource = source.buffered()
     }
 
     public constructor(source: Source) {
-        this._source = source.buffer()
+        this._bufferSource = source
     }
 
     // TODO: not sure if copy it or direct assign it
-    public constructor(bufferReader: BufferReader) : this(bufferReader._source)
+    public constructor(bufferReader: BufferReader) : this(bufferReader._bufferSource)
 
     public constructor(byteArray: ByteArray, charset: String? = null) {
         val buffer = Buffer()
         buffer.write(byteArray)
-        _source = buffer
+        _bufferSource = buffer
         if (charset != null) {
             _charset = Charsets.forName(charset)
         }
@@ -38,16 +38,15 @@ public open class BufferReader : Closeable {
 
     public constructor(data: String, charset: String? = null) : this(data.toByteArray(), charset)
 
-    public fun remaining(): Int = getSource().buffer.size.toInt()
+    public fun remaining(): Int = getSourceBuffer().buffer.size.toInt()
 
-    public fun exhausted(): Boolean = getSource().exhausted()
+    public fun exhausted(): Boolean = getSourceBuffer().exhausted()
 
-    private fun getSource(): BufferedSource {
+    private fun getSourceBuffer(): Source {
         if (closed) {
             throw IOException("Buffer closed!")
         }
-
-        return _source
+        return _bufferSource
     }
 
     public fun getBuffer(): BufferReader {
@@ -55,10 +54,10 @@ public open class BufferReader : Closeable {
             throw IOException("Buffer closed!")
         }
 
-        return BufferReader(_source)
+        return BufferReader(_bufferSource)
     }
 
-    public fun size(): Long = _source.buffer.size
+    public fun size(): Long = _bufferSource.buffer.size
 
     public open fun read(
         sink: ByteArray,
@@ -66,10 +65,10 @@ public open class BufferReader : Closeable {
         byteCount: Int,
     ): Int {
         var read = 0
-        if (byteCount == 0 && getSource().exhausted()) return -1
+        if (byteCount == 0 && getSourceBuffer().exhausted()) return -1
         while (read < byteCount) {
             val readData = ByteArray(byteCount)
-            val thisRead: Int = readInternal(readData, offset, byteCount - read) // okio limit max 8192
+            val thisRead: Int = readInternal(readData, offset, byteCount - read) // some source limit max 8192
             if (thisRead > 0) {
                 readData.copyOfRange(0, thisRead).copyInto(sink, destinationOffset = read)
             }
@@ -90,21 +89,21 @@ public open class BufferReader : Closeable {
     ): Int {
         if (_charset != null) {
             val byteArray = ByteArray(sink.size)
-            val result = getSource().read(sink = byteArray, offset = offset, byteCount = byteCount)
+            val result = getSourceBuffer().readAvailable(buffer = byteArray, offset = offset, length = byteCount)
             if (result > 0) {
                 String(bytes = byteArray.copyOfRange(0, result), charset = _charset!!).toByteArray().copyInto(sink)
             }
             return result
         }
-        return getSource().read(sink = sink, offset = offset, byteCount = byteCount)
+        return getSourceBuffer().readAvailable(buffer = sink, offset = offset, length = byteCount)
     }
 
     public open fun read(): Int {
-        return getSource().readByte().toInt()
+        return getSourceBuffer().readByte().toInt()
     }
 
     public open fun readByteArray(byteCount: Long? = null): ByteArray {
-        var byteArray = if (byteCount != null) getSource().readByteArray(byteCount) else getSource().readByteArray()
+        var byteArray = if (byteCount != null) getSourceBuffer().readByteArray(byteCount.toInt()) else getSourceBuffer().readByteArray()
         if (_charset != null && byteArray.isNotEmpty()) {
             byteArray =
                 String(
@@ -116,22 +115,22 @@ public open class BufferReader : Closeable {
     }
 
     public fun skip(byteCount: Long) {
-        getSource().skip(byteCount)
+        getSourceBuffer().skip(byteCount)
     }
 
     public fun skipFirstUnicodeChar(length: Int) {
         //        ignore x characters which can be 2-4 byte each for UTF-8
-        val firstByte = getSource().peek().readByte().toInt()
+        val firstByte = getSourceBuffer().peek().readByte().toInt()
 
         // Determine the length of the first character in UTF-8
         val firstCharLength = determineCharSize(firstByte)
 
         // Skip the first character and return the rest of the array
-        getSource().skip((firstCharLength * length).toLong())
+        getSourceBuffer().skip((firstCharLength * length).toLong())
     }
 
     public fun peek(): BufferReader {
-        val bufferReader = BufferReader(getSource().peek())
+        val bufferReader = BufferReader(getSourceBuffer().peek())
         bufferReader._charset = this._charset
         return bufferReader
     }
@@ -139,11 +138,11 @@ public open class BufferReader : Closeable {
     public open fun read(b: ByteArray): Int = this[b]
 
     public operator fun get(pos: Int): Byte {
-        return getSource().buffer[pos.toLong()]
+        return getSourceBuffer().buffer[pos.toLong()]
     }
 
     public operator fun get(byteArray: ByteArray): Int {
-        return getSource().read(byteArray)
+        return getSourceBuffer().readAvailable(byteArray)
     }
 
     public fun readCharArray(
@@ -166,21 +165,21 @@ public open class BufferReader : Closeable {
             } else {
                 Charsets.UTF_8
             }
-        val peekSource = getSource().peek()
+        val peekSource = getSourceBuffer().peek()
         val tempBuffer = Buffer()
 //                read buffer until required size or exhausted
         while (!peekSource.exhausted() && readBytes < charToReadSize) {
-            readBytes += peekSource.read(tempBuffer, charToReadSize - readBytes)
+            readBytes += peekSource.readAtMostTo(tempBuffer, charToReadSize - readBytes)
         }
 
         var removeExtraChar = false
         while (!peekSource.exhausted()) {
-            peekSource.peek().read(tempBuffer, 1)
+            peekSource.peek().readAtMostTo(tempBuffer, 1)
 
 //                jvm don't throw exception but nodejs is throwing exception here
             val str: String =
                 runCatching {
-                    io.ktor.utils.io.core.String(bytes = tempBuffer.peek().readByteArray(), charset = charset)
+                    String(bytes = tempBuffer.peek().readByteArray(), charset = charset)
                 }.getOrNull() ?: ""
 //                    not sure how many bytes have this char for this encoding.
             if (str.length > charToReadSize) {
@@ -193,16 +192,16 @@ public open class BufferReader : Closeable {
         }
         if (readBytes > 0) {
             val strArray =
-                io.ktor.utils.io.core.String(
+                String(
                     bytes =
-                        tempBuffer.readByteArray().let {
-                            if (removeExtraChar) it.dropLast(1).toByteArray() else it
-                        },
+                    tempBuffer.readByteArray().let {
+                        if (removeExtraChar) it.dropLast(1).toByteArray() else it
+                    },
                     charset = charset,
                 ).toCharArray()
             readChars = strArray.size
             strArray.copyInto(charArray, off)
-            getSource().skip(readBytes)
+            getSourceBuffer().skip(readBytes)
         }
 
         if (charToReadSize > 0 && readBytes == 0L) {
@@ -216,22 +215,24 @@ public open class BufferReader : Closeable {
 
     // TODO: need some improvements for unicode
     public fun readString(charCount: Long? = null): String {
+//        todo:// test this
+//        return getSourceBuffer().readText(charset = _charset ?: Charsets.UTF_8, max = charCount?.toInt() ?: Int.MAX_VALUE)
         if (_charset != null && _charset != Charsets.UTF_8) {
             if (charCount != null) {
                 val bytes: MutableList<Byte> = mutableListOf()
-                while (!getSource().exhausted()) {
+                while (!getSourceBuffer().exhausted()) {
                     val byteArray = ByteArray(8192)
-                    val readBytes = getSource().read(byteArray, 0, 8192)
+                    val readBytes = getSourceBuffer().readAvailable(byteArray, offset = 0, length = 8192)
                     if (readBytes > 0) {
                         bytes.addAll(byteArray.copyOfRange(0, readBytes).toList())
                     }
-                    if (getSource().exhausted()) {
+                    if (getSourceBuffer().exhausted()) {
                         break
                     }
 
                     if (_charset != null) {
                         // TODO: need some improvements here:  _charset != null then counting by byte may be not correct if its unicode, in that case decode and then count it
-                        if (io.ktor.utils.io.core.String(
+                        if (String(
                                 bytes = bytes.toByteArray(),
                                 charset = _charset!!,
                             ).length >= charCount
@@ -242,19 +243,19 @@ public open class BufferReader : Closeable {
                         break
                     }
                 }
-                return io.ktor.utils.io.core.String(bytes = bytes.toByteArray(), charset = _charset!!)
+                return String(bytes = bytes.toByteArray(), charset = _charset!!)
             } else {
-                return io.ktor.utils.io.core.String(bytes = getSource().readByteArray(), charset = _charset!!)
+                return String(bytes = getSourceBuffer().readByteArray(), charset = _charset!!)
             }
         } else {
             return if (charCount != null) {
                 try {
-                    getSource().readUtf8(charCount)
+                    getSourceBuffer().readText(max = charCount.toInt())
                 } catch (ex: EOFException) {
-                    getSource().readUtf8()
+                    getSourceBuffer().readText()
                 }
             } else {
-                getSource().readUtf8()
+                getSourceBuffer().readText()
             }
         }
     }
@@ -263,7 +264,7 @@ public open class BufferReader : Closeable {
 
     override fun close() {
         closed = true
-        _source.close()
+        _bufferSource.close()
     }
 
     public fun setCharSet(charset: String) {

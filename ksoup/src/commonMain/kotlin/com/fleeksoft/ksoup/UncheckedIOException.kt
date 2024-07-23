@@ -1,6 +1,6 @@
 package com.fleeksoft.ksoup
 
-import okio.IOException
+import kotlinx.io.IOException
 
 public class UncheckedIOException : Exception {
     public constructor(cause: IOException?) : super(cause)

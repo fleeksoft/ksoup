@@ -1,8 +1,9 @@
 package com.fleeksoft.ksoup
 
 import com.fleeksoft.ksoup.ported.BufferReader
-import okio.Path
-import okio.Path.Companion.toPath
+import kotlinx.io.buffered
+import kotlinx.io.files.Path
+import kotlinx.io.readByteArray
 
 object TestHelper {
     //    some tests ignored for specific platform
@@ -15,16 +16,16 @@ object TestHelper {
     fun getFileAsString(file: Path): String {
         val bytes: ByteArray =
             if (file.name.endsWith(".gz")) {
-                readGzipFile(file).readByteArray()
+                readGzipFile(file).buffered().readByteArray()
             } else {
-                readFile(file).readByteArray()
+                readFile(file).buffered().readByteArray()
             }
         return bytes.decodeToString()
     }
 
     fun resourceFilePathToBufferReader(path: String): BufferReader {
         val file = this.getResourceAbsolutePath(path)
-        return pathToBufferReader(file.toPath())
+        return pathToBufferReader(Path(file))
     }
 
     fun pathToBufferReader(file: Path): BufferReader {

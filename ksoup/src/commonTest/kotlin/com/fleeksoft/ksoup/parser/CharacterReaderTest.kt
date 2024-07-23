@@ -2,8 +2,7 @@ package com.fleeksoft.ksoup.parser
 
 import com.fleeksoft.ksoup.*
 import com.fleeksoft.ksoup.ported.BufferReader
-import okio.IOException
-import okio.Path.Companion.toPath
+import kotlinx.io.files.Path
 import kotlin.test.*
 
 /**
@@ -14,9 +13,6 @@ import kotlin.test.*
 class CharacterReaderTest {
     @Test
     fun testReadMixSpecialChar() {
-        if (Platform.current != PlatformType.JVM && !TestHelper.forceAllTestsRun) {
-            return
-        }
         val input = "ä<a>ä</a>"
         val charReader = CharacterReader(BufferReader(input), 1)
         input.forEachIndexed { index, char ->
@@ -515,7 +511,6 @@ class CharacterReaderTest {
     }
 
     @Test
-    @Throws(IOException::class)
     fun linenumbersAgreeWithEditor() {
         if (Platform.isWindows()) {
 //            gzip not supported yet
@@ -523,7 +518,7 @@ class CharacterReaderTest {
         }
         val content: String =
             TestHelper.getFileAsString(
-                TestHelper.getResourceAbsolutePath("htmltests/large.html.gz").toPath(),
+                Path(TestHelper.getResourceAbsolutePath("htmltests/large.html.gz")),
             )
         val reader = CharacterReader(content)
         reader.trackNewlines(true)

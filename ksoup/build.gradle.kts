@@ -61,7 +61,7 @@ kotlin {
             implementation(libs.ktor.client.core)
             implementation(libs.kotlinx.datetime)
             implementation(libs.codepoints)
-            api(libs.okio)
+            api(libs.kotlinx.io)
         }
         commonTest {
             this.kotlin.srcDir(layout.buildDirectory.file(rootPath))
@@ -84,7 +84,6 @@ kotlin {
         }
 
         jsMain.dependencies {
-            implementation(libs.okio.nodefilesystem)
         }
 
         val jvmAndroidCommonMain by creating {

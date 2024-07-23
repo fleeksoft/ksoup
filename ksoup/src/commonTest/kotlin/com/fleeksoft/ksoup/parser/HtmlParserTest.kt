@@ -8,7 +8,6 @@ import com.fleeksoft.ksoup.ported.System
 import com.fleeksoft.ksoup.safety.Safelist
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
-import okio.IOException
 import kotlin.test.*
 
 /**
@@ -1306,7 +1305,6 @@ class HtmlParserTest {
     }
 
     @Test
-    @Throws(IOException::class)
     fun testInvalidTableContents() {
         val input: String = TestHelper.getResourceAbsolutePath("htmltests/table-invalid-elements.html")
         val doc: Document = Ksoup.parseFile(input, "UTF-8")
@@ -1519,7 +1517,6 @@ class HtmlParserTest {
     }
 
     @Test
-    @Throws(IOException::class)
     fun testTemplateInsideTable() {
         val input: String = TestHelper.getResourceAbsolutePath("htmltests/table-polymer-template.html")
         val doc: Document = Ksoup.parseFile(input, "UTF-8")
@@ -1557,7 +1554,6 @@ class HtmlParserTest {
     }
 
     @Test
-    @Throws(IOException::class)
     fun handlesXmlDeclAndCommentsBeforeDoctype() {
         val `in`: String = TestHelper.getResourceAbsolutePath("htmltests/comments.html")
         val doc: Document = Ksoup.parseFile(`in`, "UTF-8")
@@ -1569,7 +1565,6 @@ class HtmlParserTest {
     }
 
     @Test
-    @Throws(IOException::class)
     fun fallbackToUtfIfCantEncode() {
         // that charset can't be encoded, so make sure we flip to utf
         val input = "<html><meta charset=\"ISO-2022-CN\"/>One</html>"
@@ -1596,7 +1591,6 @@ class HtmlParserTest {
     }
 
     @Test
-    @Throws(IOException::class)
     fun characterReaderBuffer() {
         if (Platform.isWindows()) {
 //            gzip not supported yet

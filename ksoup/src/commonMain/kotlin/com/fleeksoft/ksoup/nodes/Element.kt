@@ -15,7 +15,6 @@ import com.fleeksoft.ksoup.ported.Collections
 import com.fleeksoft.ksoup.ported.Consumer
 import com.fleeksoft.ksoup.ported.PatternSyntaxException
 import com.fleeksoft.ksoup.select.*
-import okio.IOException
 import kotlin.js.JsName
 import kotlin.jvm.JvmOverloads
 
@@ -1667,8 +1666,7 @@ public open class Element : Node {
                 parentNode,
             )
     }
-
-    @Throws(IOException::class)
+    
     override fun outerHtmlHead(
         accum: Appendable,
         depth: Int,
@@ -1698,7 +1696,6 @@ public open class Element : Node {
         }
     }
 
-    @Throws(IOException::class)
     override fun outerHtmlTail(
         accum: Appendable,
         depth: Int,

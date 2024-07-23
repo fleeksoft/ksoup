@@ -1,11 +1,14 @@
 package com.fleeksoft.ksoup
 
-import okio.BufferedSource
-import okio.Path
+import kotlinx.io.RawSource
+import kotlinx.io.files.Path
+import kotlinx.io.files.SystemFileSystem
 
-internal expect fun readGzipFile(file: Path): BufferedSource
+internal expect fun readGzipFile(file: Path): RawSource
 
-internal expect fun readFile(file: Path): BufferedSource
+internal fun readFile(file: Path): RawSource {
+    return SystemFileSystem.source(file)
+}
 
 // js don't support ?i
 internal fun jsSupportedRegex(regex: String): Regex {
@@ -22,6 +25,7 @@ public enum class PlatformType {
     IOS,
     LINUX,
     JS,
+    WASM,
     MAC,
     WINDOWS,
 }

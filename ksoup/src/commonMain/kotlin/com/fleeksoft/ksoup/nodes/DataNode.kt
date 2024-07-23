@@ -1,7 +1,5 @@
 package com.fleeksoft.ksoup.nodes
 
-import okio.IOException
-
 /**
  * Create a new DataNode.
  * A data node, for contents of style, script tags etc, where contents should not show in text().
@@ -29,7 +27,6 @@ public class DataNode(data: String) : LeafNode() {
         return this
     }
 
-    @Throws(IOException::class)
     override fun outerHtmlHead(
         accum: Appendable,
         depth: Int,

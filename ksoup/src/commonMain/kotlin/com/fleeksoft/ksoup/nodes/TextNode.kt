@@ -2,7 +2,6 @@ package com.fleeksoft.ksoup.nodes
 
 import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.internal.StringUtil
-import okio.IOException
 
 /**
  * A text node.
@@ -68,7 +67,6 @@ public open class TextNode(text: String) : LeafNode() {
         return tailNode
     }
 
-    @Throws(IOException::class)
     override fun outerHtmlHead(
         accum: Appendable,
         depth: Int,
@@ -104,7 +102,6 @@ public open class TextNode(text: String) : LeafNode() {
         Entities.escape(accum, coreValue(), out, false, normaliseWhite, trimLeading, trimTrailing)
     }
 
-    @Throws(IOException::class)
     override fun outerHtmlTail(
         accum: Appendable,
         depth: Int,

@@ -5,7 +5,7 @@ import com.fleeksoft.ksoup.Platform
 import com.fleeksoft.ksoup.TestHelper
 import com.fleeksoft.ksoup.isWindows
 import kotlinx.coroutines.test.runTest
-import okio.Path.Companion.toPath
+import kotlinx.io.files.Path
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -18,7 +18,8 @@ class GithubIssuesTests {
         }
         //    https://github.com/fleeksoft/ksoup/issues/20
         runTest {
-            Ksoup.parse(TestHelper.getFileAsString(TestHelper.getResourceAbsolutePath("htmltests/issue20.html.gz").toPath()))
+            val file: Path = Path(TestHelper.getResourceAbsolutePath("htmltests/issue20.html.gz"))
+            Ksoup.parse(TestHelper.getFileAsString(file))
 //            Ksoup.parseGetRequest("https://www.dm530w.org/")
                 .apply {
                     body().select("div[class=firs l]")

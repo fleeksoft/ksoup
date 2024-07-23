@@ -3,7 +3,8 @@ package com.fleeksoft.ksoup.ported
 import de.cketti.codepoints.appendCodePoint
 import io.ktor.http.*
 import io.ktor.utils.io.charsets.*
-import okio.Buffer
+import kotlinx.io.Buffer
+import kotlinx.io.writeString
 
 internal fun String.isCharsetSupported(): Boolean {
     val result = runCatching { Charsets.forName(this) }.getOrNull()
@@ -127,9 +128,9 @@ internal fun CharsetEncoder.canEncode(s: String): Boolean {
 
 internal fun String.isValidResourceUrl() =
     this.startsWith("http", ignoreCase = true) || this.startsWith("ftp://", ignoreCase = true) ||
-        this.startsWith("ftps://", ignoreCase = true) ||
-        this.startsWith("file:/", ignoreCase = true) ||
-        this.startsWith("//")
+            this.startsWith("ftps://", ignoreCase = true) ||
+            this.startsWith("file:/", ignoreCase = true) ||
+            this.startsWith("//")
 
 internal fun String.isAbsResource(): Boolean = Regex("\\w+:").containsMatchIn(this)
 
@@ -146,5 +147,5 @@ internal fun IntArray.codePointsToString(): String {
 }
 
 internal fun String.toBuffer(): Buffer {
-    return Buffer().apply { writeUtf8(this@toBuffer) }
+    return Buffer().apply { writeString(this@toBuffer) }
 }

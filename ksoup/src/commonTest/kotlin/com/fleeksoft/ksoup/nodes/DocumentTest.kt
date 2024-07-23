@@ -6,7 +6,6 @@ import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.ported.BufferReader
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
-import okio.IOException
 import kotlin.test.*
 
 /**
@@ -144,7 +143,6 @@ class DocumentTest {
     }
 
     @Test
-    @Throws(IOException::class)
     fun testLocation() {
         // tests location vs base href
         val `in`: String = TestHelper.getResourceAbsolutePath("htmltests/basehref.html")

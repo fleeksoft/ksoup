@@ -2,7 +2,7 @@ package com.fleeksoft.ksoup.nodes
 
 import com.fleeksoft.ksoup.SerializationException
 import com.fleeksoft.ksoup.internal.StringUtil
-import okio.IOException
+import kotlinx.io.IOException
 
 /**
  * An XML Declaration.
@@ -43,7 +43,6 @@ public class XmlDeclaration(name: String, isProcessingInstruction: Boolean) : Le
         return StringUtil.releaseBuilder(sb).trim()
     }
 
-    @Throws(IOException::class)
     private fun getWholeDeclaration(
         accum: Appendable,
         out: Document.OutputSettings,
@@ -64,7 +63,6 @@ public class XmlDeclaration(name: String, isProcessingInstruction: Boolean) : Le
         }
     }
 
-    @Throws(IOException::class)
     override fun outerHtmlHead(
         accum: Appendable,
         depth: Int,
