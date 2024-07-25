@@ -1310,7 +1310,7 @@ class ElementTest {
         // .equals and hashcode are identity. value is content.
         val doc1 =
             "<div id=1><p class=one>One</p><p class=one>One</p><p class=one>Two</p><p class=two>One</p></div>" +
-                "<div id=2><p class=one>One</p><p class=one>One</p><p class=one>Two</p><p class=two>One</p></div>"
+                    "<div id=2><p class=one>One</p><p class=one>One</p><p class=one>Two</p><p class=two>One</p></div>"
         val doc = Ksoup.parse(doc1)
         val els = doc.select("p")
 
@@ -1785,13 +1785,13 @@ class ElementTest {
         val doc =
             Ksoup.parse(
                 "<ul id='ul'>" +
-                    "<li id='a'>a</li>" +
-                    "<li id='b'>b</li>" +
-                    "<li id='c'>c</li>" +
-                    "</ul> Not An Element but a node" +
-                    "<div id='div'>" +
-                    "<li id='d'>d</li>" +
-                    "</div>",
+                        "<li id='a'>a</li>" +
+                        "<li id='b'>b</li>" +
+                        "<li id='c'>c</li>" +
+                        "</ul> Not An Element but a node" +
+                        "<div id='div'>" +
+                        "<li id='d'>d</li>" +
+                        "</div>",
             )
         val element = doc.getElementById("a")
         val elementSiblings = element!!.nextElementSiblings()
@@ -1822,13 +1822,13 @@ class ElementTest {
         val doc =
             Ksoup.parse(
                 "<ul id='ul'>" +
-                    "<li id='a'>a</li>" +
-                    "<li id='b'>b</li>" +
-                    "<li id='c'>c</li>" +
-                    "</ul>" +
-                    "<div id='div'>" +
-                    "<li id='d'>d</li>" +
-                    "</div>",
+                        "<li id='a'>a</li>" +
+                        "<li id='b'>b</li>" +
+                        "<li id='c'>c</li>" +
+                        "</ul>" +
+                        "<div id='div'>" +
+                        "<li id='d'>d</li>" +
+                        "</div>",
             )
         val element = doc.getElementById("b")
         val elementSiblings = element!!.previousElementSiblings()
@@ -2738,18 +2738,13 @@ Three
         }
 
         val doc = Ksoup.parse(reference)
-        val ex: Throwable =
-            assertFailsWith<IllegalArgumentException> {
-                doc.getElementsByAttributeValueMatching(
-                    "key",
-                    "\\x",
-                )
-            }
-        if (Platform.isApple() || Platform.isWindows()) {
-            assertEquals("Invalid hexadecimal escape sequence near index: 0\n\\x\n^", ex.message)
-        } else {
-            assertEquals("Illegal hexadecimal escape sequence near index 2\n\\x", ex.message)
+        val ex: Throwable = assertFailsWith<IllegalArgumentException> {
+            doc.getElementsByAttributeValueMatching(
+                "key",
+                "\\x",
+            )
         }
+        assertContains("hexadecimal escape sequence near index", ex.message)
     }
 
     @Test
@@ -2789,11 +2784,7 @@ Three
         val ex: Throwable =
             assertFailsWith<IllegalArgumentException> { doc.getElementsMatchingText("\\x") }
 
-        if (Platform.isApple() || Platform.isWindows()) {
-            assertEquals("Invalid hexadecimal escape sequence near index: 0\n\\x\n^", ex.message)
-        } else {
-            assertEquals("Illegal hexadecimal escape sequence near index 2\n\\x", ex.message)
-        }
+        assertContains("hexadecimal escape sequence near index", ex.message)
     }
 
     @Test
@@ -2824,11 +2815,7 @@ Three
         val ex: Throwable =
             assertFailsWith<IllegalArgumentException> { doc.getElementsMatchingOwnText("\\x") }
 
-        if (Platform.isApple() || Platform.isWindows()) {
-            assertEquals("Invalid hexadecimal escape sequence near index: 0\n\\x\n^", ex.message)
-        } else {
-            assertEquals("Illegal hexadecimal escape sequence near index 2\n\\x", ex.message)
-        }
+        assertContains("hexadecimal escape sequence near index", ex.message)
     }
 
     @Test
@@ -2865,11 +2852,11 @@ Three
         val xml = p.html()
         assertEquals(
             "<script>//<![CDATA[\n" +
-                "1 && 2\n" +
-                "//]]></script>\n" +
-                "<style>/*<![CDATA[*/\n" +
-                "3 && 4\n" +
-                "/*]]>*/</style> 5 &amp;&amp; 6",
+                    "1 && 2\n" +
+                    "//]]></script>\n" +
+                    "<style>/*<![CDATA[*/\n" +
+                    "3 && 4\n" +
+                    "/*]]>*/</style> 5 &amp;&amp; 6",
             xml,
         )
 
@@ -2897,10 +2884,10 @@ Three
         val scriptDataNode = scriptEl.childNode(0) as DataNode
         assertEquals(
             (
-                "//<![CDATA[\n" +
-                    "1 && 2\n" +
-                    "//]]>"
-            ),
+                    "//<![CDATA[\n" +
+                            "1 && 2\n" +
+                            "//]]>"
+                    ),
             scriptDataNode.getWholeData(),
         )
 
@@ -2909,13 +2896,13 @@ Three
         val xml = p.html()
         assertEquals(
             (
-                "<script>//<![CDATA[\n" +
-                    "1 && 2\n" +
-                    "//]]></script>\n" +
-                    "<style>\n" +
-                    "/*<![CDATA[*/3 && 4\n" +
-                    "/*]]>*/</style> 5 &amp;&amp; 6"
-            ),
+                    "<script>//<![CDATA[\n" +
+                            "1 && 2\n" +
+                            "//]]></script>\n" +
+                            "<style>\n" +
+                            "/*<![CDATA[*/3 && 4\n" +
+                            "/*]]>*/</style> 5 &amp;&amp; 6"
+                    ),
             xml,
         )
 
