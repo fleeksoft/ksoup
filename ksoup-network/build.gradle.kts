@@ -132,8 +132,8 @@ publishing {
         maven {
             url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2")
             credentials {
-                username = gradleLocalProperties(rootDir).getProperty("mavenCentralUsername")
-                password = gradleLocalProperties(rootDir).getProperty("mavenCentralPassword")
+                username = gradleLocalProperties(rootDir).getProperty("mavenCentralUsername") ?: System.getenv("MAVEN_USERNAME")
+                password = gradleLocalProperties(rootDir).getProperty("mavenCentralPassword") ?: System.getenv("MAVEN_PASSWORD")
             }
         }
     }
@@ -182,14 +182,9 @@ publishing {
 
 signing {
     useInMemoryPgpKeys(
-//        File(rootDir, "gpg/private.key").readText(),
-        gradleLocalProperties(rootDir).getProperty("gpgKeySecret"),
-        gradleLocalProperties(rootDir).getProperty("gpgKeyPassword"),
+        File(rootDir, "gpg/private.key").readText(),
+        gradleLocalProperties(rootDir).getProperty("gpgKeySecret") ?: System.getenv("GPG_KEY_SECRET"),
+        gradleLocalProperties(rootDir).getProperty("gpgKeyPassword") ?: System.getenv("GPG_KEY_PASSWORD"),
     )
     sign(publishing.publications)
-}
-
-// TODO: remove after https://youtrack.jetbrains.com/issue/KT-46466 is fixed
-project.tasks.withType(AbstractPublishToMaven::class.java).configureEach {
-    dependsOn(project.tasks.withType(Sign::class.java))
 }

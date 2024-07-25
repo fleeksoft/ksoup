@@ -1,0 +1,27 @@
+name: Publish to Maven
+
+on:
+  workflow_dispatch: # Allows the workflow to be manually triggered
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up JDK 11
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: '11'
+
+      - name: Build and publish
+        run: |
+          ./gradlew build publishAllPublicationsToMavenRepository
+        env:
+          MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
+          GPG_KEY_PASSWORD: ${{ secrets.GPG_KEY_PASSWORD }}
+          GPG_KEY_SECRET: ${{ secrets.GPG_KEY_SECRET }}

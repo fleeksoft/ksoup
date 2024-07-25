@@ -26,10 +26,10 @@ jobs:
     name: Build ${{ matrix.config.target }}
     steps:
       - uses: actions/checkout@v3
-      - name: Setup JDK 17
+      - name: Setup JDK 11
         uses: actions/setup-java@v3
         with:
-          java-version: '17'
+          java-version: '11'
           distribution: 'temurin'
 
       - name: Setup gradle
@@ -52,10 +52,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Setup JDK 17
+      - name: Setup JDK 11
         uses: actions/setup-java@v3
         with:
-          java-version: '17'
+          java-version: '11'
           distribution: 'temurin'
 
       - name: Setup gradle
@@ -67,13 +67,13 @@ jobs:
       #      - name: Write secrets to local.properties
       #        if: ${{ github.event_name != 'pull_request' }}
       #        run: |
-      #          echo mavenCentralUsername="${SONATYPE_USERNAME}" >> "local.properties"
-      #          echo mavenCentralUsername="${SONATYPE_PASSWORD}" >> "local.properties"
+      #          echo mavenCentralUsername="${MAVEN_USERNAME}" >> "local.properties"
+      #          echo mavenCentralUsername="${MAVEN_PASSWORD}" >> "local.properties"
       #          echo gpgKeyPassword="${GPG_KEY_PASSWORD}" >> "local.properties"
       #          echo gpgKeySecret="${GPG_KEY_SECRET}" >> "local.properties"
       #        env:
-      #          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
-      #          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+      #          MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
+      #          MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
       #          GPG_KEY_PASSWORD: ${{ secrets.GPG_KEY_PASSWORD }}
       #          GPG_KEY_SECRET: ${{ secrets.GPG_KEY_SECRET }}
 
