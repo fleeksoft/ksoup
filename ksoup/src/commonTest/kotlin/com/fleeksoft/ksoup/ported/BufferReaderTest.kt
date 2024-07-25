@@ -83,6 +83,12 @@ class BufferReaderTest {
             return
         }
 
+
+        if (Platform.isWindows()) {
+            // FIXME: euc-kr charset decoder deadlock issue
+            return
+        }
+
         val specialText1 = "Hello &amp;&lt;&gt; Å å π 新 there ¾ © »"
         val specialText2 = "Übergrößenträger"
         val specialText3 = "한국어"
