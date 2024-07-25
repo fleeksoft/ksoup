@@ -10,6 +10,7 @@ kotlinx-io = "0.5.1"
 kotlinxDatetime = "0.6.0"
 codepoints = "0.9.0"
 dokka = "1.9.20"
+mavenPublish = "0.29.0"
 
 
 [libraries]
@@ -31,3 +32,4 @@ codepoints = { module = "de.cketti.unicode:kotlin-codepoints-deluxe", version.re
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
+mavenPublish = { id = "com.vanniktech.maven.publish", version.ref = "mavenPublish" }
