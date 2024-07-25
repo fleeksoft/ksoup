@@ -20,6 +20,10 @@ kotlin {
         nodejs()
     }
 
+    wasmJs {
+        nodejs()
+    }
+
     linuxX64()
     linuxArm64()
 

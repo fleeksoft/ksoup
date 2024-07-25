@@ -1,7 +1,4 @@
-import com.fleeksoft.ksoup.Ksoup
-import com.fleeksoft.ksoup.Platform
-import com.fleeksoft.ksoup.TestHelper
-import com.fleeksoft.ksoup.isWindows
+import com.fleeksoft.ksoup.*
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.select.Elements
 import kotlin.io.encoding.Base64
@@ -16,7 +13,7 @@ class GithubIssue19 {
 
     @Test
     fun testAttributeIncorrectMixCharsetIssue() {
-        if (Platform.isWindows()) {
+        if (Platform.isWindows() || Platform.isWasmJs()) {
 //            gzip not supported yet
             return
         }

@@ -21,7 +21,7 @@ import kotlin.test.assertTrue
 class ParseTest {
     @Test
     fun testHtml5Charset() {
-        if (Platform.isJS() || Platform.isApple() || Platform.isWindows()) {
+        if (Platform.isJS() || Platform.isApple() || Platform.isWindows() || Platform.isWasmJs()) {
             // FIXME: gb2312 charset not supported
             return
         }
@@ -86,7 +86,7 @@ class ParseTest {
 
     @Test
     fun testXwiki() {
-        if (Platform.isWindows()) {
+        if (Platform.isWindows() || Platform.isWasmJs()) {
 //            gzip not supported yet
             return
         }
@@ -110,7 +110,7 @@ class ParseTest {
 
     @Test
     fun testXwikiExpanded() {
-        if (Platform.isWindows()) {
+        if (Platform.isWindows() || Platform.isWasmJs()) {
 //            gzip not supported yet
             return
         }
@@ -139,7 +139,7 @@ class ParseTest {
 
     @Test
     fun testWikiExpandedFromString() {
-        if (Platform.isWindows()) {
+        if (Platform.isWindows() || Platform.isWasmJs()) {
 //            gzip not supported yet
             return
         }
@@ -154,7 +154,7 @@ class ParseTest {
 
     @Test
     fun testWikiFromString() {
-        if (Platform.isWindows()) {
+        if (Platform.isWindows() || Platform.isWasmJs()) {
 //            gzip not supported yet
             return
         }
@@ -169,7 +169,7 @@ class ParseTest {
 
     @Test
     fun testFileParseNoCharsetMethod() {
-        if (Platform.isWindows()) {
+        if (Platform.isWindows() || Platform.isWasmJs()) {
 //            gzip not supported yet
             return
         }

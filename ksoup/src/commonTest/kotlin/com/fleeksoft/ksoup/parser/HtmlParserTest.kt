@@ -1576,7 +1576,7 @@ class HtmlParserTest {
         }
         assertEquals("One", doc.text())
         val html = doc.outerHtml()
-        if (Platform.isJS() || Platform.isApple() || Platform.isWindows()) {
+        if (Platform.isJS() || Platform.isApple() || Platform.isWindows() || Platform.isWasmJs()) {
 //            ISO-2022-CN not supported so it will use UTF-8 by default
             assertEquals(
                 "<html><head><meta charset=\"ISO-2022-CN\"></head><body>One</body></html>",
@@ -1592,7 +1592,7 @@ class HtmlParserTest {
 
     @Test
     fun characterReaderBuffer() {
-        if (Platform.isWindows()) {
+        if (Platform.isWindows() || Platform.isWasmJs()) {
 //            gzip not supported yet
             return
         }

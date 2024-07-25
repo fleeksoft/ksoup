@@ -92,7 +92,7 @@ To report any issues, visit our [GitHub issues](https://github.com/fleeksoft/kso
 | JS             | Alpha        | Does not support few charsets.                |
 | Native MacOS   | Alpha        |                                               |
 | Native Windows | Experimental | Does not support gzip file.                   |
-| Wasm           | Coming Soon  |                                               |
+| WasmJs         | Experimental | Does not support gzip file.                   |
 
 
 

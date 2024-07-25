@@ -512,7 +512,7 @@ class CharacterReaderTest {
 
     @Test
     fun linenumbersAgreeWithEditor() {
-        if (Platform.isWindows()) {
+        if (Platform.isWindows() || Platform.isWasmJs()) {
 //            gzip not supported yet
             return
         }

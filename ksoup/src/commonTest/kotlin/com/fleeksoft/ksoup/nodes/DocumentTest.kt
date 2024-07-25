@@ -217,7 +217,7 @@ class DocumentTest {
 
     @Test
     fun testOverflowClone() {
-        if (Platform.isJS()) {
+        if (Platform.isJS() || Platform.isWasmJs()) {
             // FIXME: timeout error for js
             return
         }

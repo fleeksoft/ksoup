@@ -1,9 +1,6 @@
 package com.fleeksoft.ksoup.issues
 
-import com.fleeksoft.ksoup.Ksoup
-import com.fleeksoft.ksoup.Platform
-import com.fleeksoft.ksoup.TestHelper
-import com.fleeksoft.ksoup.isWindows
+import com.fleeksoft.ksoup.*
 import kotlinx.coroutines.test.runTest
 import kotlinx.io.files.Path
 import kotlin.test.Test
@@ -12,7 +9,7 @@ import kotlin.test.assertEquals
 class GithubIssuesTests {
     @Test
     fun testIssue20DuplicateElements() {
-        if (Platform.isWindows()) {
+        if (Platform.isWindows() || Platform.isWasmJs()) {
 //            gzip not supported yet
             return
         }

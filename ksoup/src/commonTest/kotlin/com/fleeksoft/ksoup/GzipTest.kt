@@ -10,7 +10,7 @@ import kotlin.test.assertEquals
 class GzipTest {
     @Test
     fun testReadGzipFile() {
-        if (Platform.isWindows()) {
+        if (Platform.isWindows() || Platform.isWasmJs()) {
 //            gzip not supported yet
             return
         }

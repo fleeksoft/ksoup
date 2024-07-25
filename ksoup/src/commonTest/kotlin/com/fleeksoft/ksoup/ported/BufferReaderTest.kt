@@ -78,7 +78,7 @@ class BufferReaderTest {
 
     @Test
     fun testSpecialCharsBufferReader() {
-        if (Platform.isJS() || Platform.isApple()) {
+        if (Platform.isJS() || Platform.isApple() || Platform.isWasmJs()) {
             // FIXME: euc-kr charset not supported
             return
         }

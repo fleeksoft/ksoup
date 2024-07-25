@@ -132,7 +132,7 @@ class DataUtilTest {
     @Test
     @Throws(Exception::class)
     fun secondMetaElementWithContentTypeContainsCharsetParameter() {
-        if (Platform.isJS() || Platform.isApple() || Platform.isWindows()) {
+        if (Platform.isJS() || Platform.isApple() || Platform.isWindows() || Platform.isWasmJs()) {
             // FIXME: euc-kr charset not supported
             return
         }
@@ -175,7 +175,7 @@ class DataUtilTest {
 
     @Test
     fun supportsBOMinFiles() {
-        if (Platform.isJS() || Platform.isWindows() || Platform.isApple()) {
+        if (Platform.isJS() || Platform.isWindows() || Platform.isApple() || Platform.isWasmJs()) {
             // FIXME: utf-16 charset not supported
             // FIXME: failing for iosX64˚
             return
@@ -219,7 +219,7 @@ class DataUtilTest {
 
     @Test
     fun supportsZippedUTF8BOM() {
-        if (Platform.isWindows()) {
+        if (Platform.isWindows() || Platform.isWasmJs()) {
 //            gzip not supported yet
             return
         }
@@ -260,7 +260,7 @@ class DataUtilTest {
 
     @Test
     fun lLoadsGzipFile() {
-        if (Platform.isWindows()) {
+        if (Platform.isWindows() || Platform.isWasmJs()) {
 //            gzip not supported yet
             return
         }
@@ -273,7 +273,7 @@ class DataUtilTest {
 
     @Test
     fun loadsZGzipFile() {
-        if (Platform.isWindows()) {
+        if (Platform.isWindows() || Platform.isWasmJs()) {
 //            gzip not supported yet
             return
         }
@@ -286,7 +286,7 @@ class DataUtilTest {
 
     @Test
     fun handlesFakeGzipFile() {
-        if (Platform.isWindows()) {
+        if (Platform.isWindows() || Platform.isWasmJs()) {
 //            gzip not supported yet
             return
         }
@@ -298,7 +298,7 @@ class DataUtilTest {
 
     @Test
     fun handlesChunkedInputStream() {
-        if (Platform.isWindows()) {
+        if (Platform.isWindows() || Platform.isWasmJs()) {
 //            gzip not supported yet
             return
         }
@@ -314,7 +314,7 @@ class DataUtilTest {
 
     @Test
     fun handlesUnlimitedRead() {
-        if (Platform.isWindows()) {
+        if (Platform.isWindows() || Platform.isWasmJs()) {
 //            gzip not supported yet
             return
         }
