@@ -10,11 +10,12 @@ coroutines = "1.8.1"
 okio = "3.9.0"
 kotlinxDatetime = "0.6.0"
 kotlinx-io = "0.3.5"
-codepoints = "0.8.0"
+codepoints = "0.9.0"
 dokka = "1.9.20"
 
-korlibs = "999.0.0.999" # 999.0.0.999 is local version
-#korlibs = "6.0.0-alpha9"
+#korlibs = "999.0.0.999" # 999.0.0.999 is local version
+korlibs = "6.0.0"
+mavenPublish = "0.29.0"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -38,3 +39,5 @@ korlibs-io = { module = "com.soywiz:korlibs-io", version.ref = "korlibs" }
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
+power-assert = { id = "org.jetbrains.kotlin.plugin.power-assert", version.ref = "kotlin" }
+mavenPublish = { id = "com.vanniktech.maven.publish", version.ref = "mavenPublish" }

@@ -1,79 +1,37 @@
-import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
-import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
-
 plugins {
     alias(libs.plugins.dokka)
-    id("maven-publish")
-    id("signing")
+    alias(libs.plugins.mavenPublish)
 }
 
 group = "com.fleeksoft.ksoup"
 version = libs.versions.libraryVersion.get()
 
-
-publishing {
-    repositories {
-        maven {
-            url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2")
-            credentials {
-                username = gradleLocalProperties(rootDir).getProperty("mavenCentralUsername")
-                password = gradleLocalProperties(rootDir).getProperty("mavenCentralPassword")
+mavenPublishing {
+    coordinates("com.fleeksoft.ksoup", "ksoup-network", libs.versions.libraryVersion.get())
+    pom {
+        name.set("ksoup-network")
+        description.set("Ksoup is a Kotlin Multiplatform library for working with HTML and XML, and offers an easy-to-use API for URL fetching, data parsing, extraction, and manipulation using DOM and CSS selectors.")
+        licenses {
+            license {
+                name.set("Apache-2.0")
+                url.set("https://opensource.org/licenses/Apache-2.0")
+            }
+        }
+        url.set("https://github.com/fleeksoft/ksoup")
+        issueManagement {
+            system.set("Github")
+            url.set("https://github.com/fleeksoft/ksoup/issues")
+        }
+        scm {
+            connection.set("https://github.com/fleeksoft/ksoup.git")
+            url.set("https://github.com/fleeksoft/ksoup")
+        }
+        developers {
+            developer {
+                name.set("Sabeeh Ul Hussnain Anjum")
+                email.set("fleeksoft@gmail.com")
+                organization.set("Fleek Soft")
             }
         }
     }
-
-    val javadocJar =
-        tasks.register<Jar>("javadocJar") {
-            dependsOn(tasks.dokkaHtml)
-            archiveClassifier.set("javadoc")
-            from("${layout.buildDirectory}/dokka")
-        }
-
-    publications {
-        withType<MavenPublication> {
-            artifact(javadocJar)
-            pom {
-                name.set("ksoup-network")
-                description.set(
-                    "Ksoup is a Kotlin Multiplatform library for working with HTML and XML, and offers an easy-to-use API for URL fetching, data parsing, extraction, and manipulation using DOM and CSS selectors.",
-                )
-                licenses {
-                    license {
-                        name.set("Apache-2.0")
-                        url.set("https://opensource.org/licenses/Apache-2.0")
-                    }
-                }
-                url.set("https://github.com/fleeksoft/ksoup")
-                issueManagement {
-                    system.set("Github")
-                    url.set("https://github.com/fleeksoft/ksoup/issues")
-                }
-                scm {
-                    connection.set("https://github.com/fleeksoft/ksoup.git")
-                    url.set("https://github.com/fleeksoft/ksoup")
-                }
-                developers {
-                    developer {
-                        name.set("Sabeeh Ul Hussnain")
-                        email.set("fleeksoft@gmail.com")
-                        organization.set("Fleek Soft")
-                    }
-                }
-            }
-        }
-    }
-}
-
-signing {
-    useInMemoryPgpKeys(
-//        File(rootDir, "gpg/private.key").readText(),
-        gradleLocalProperties(rootDir).getProperty("gpgKeySecret"),
-        gradleLocalProperties(rootDir).getProperty("gpgKeyPassword"),
-    )
-    sign(publishing.publications)
-}
-
-// TODO: remove after https://youtrack.jetbrains.com/issue/KT-46466 is fixed
-project.tasks.withType(AbstractPublishToMaven::class.java).configureEach {
-    dependsOn(project.tasks.withType(Sign::class.java))
 }
