@@ -3,7 +3,6 @@ package com.fleeksoft.ksoup
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parser.Parser
 import korlibs.io.stream.openSync
-import java.io.File
 import java.io.InputStream
 
 /**
@@ -41,7 +40,7 @@ public fun Ksoup.parseInputStream(
  * @param baseUri  The URL where the HTML was retrieved from, to resolve relative links against.
  * @return sane HTML
  */
-
+/*
 public fun Ksoup.parseFile(
     file: File,
     charsetName: String? = null,
@@ -54,4 +53,4 @@ public fun Ksoup.parseFile(
         baseUri = baseUri,
         parser = parser,
     )
-}
+}*/

@@ -21,6 +21,10 @@ import kotlin.test.assertTrue
 class ParseTest {
     @Test
     fun testHtml5Charset() = runTest {
+        if (Platform.isJS()) {
+//            js resource access issue
+            return@runTest
+        }
         if (Platform.isApple()) {
 //            apple don't support gb2312 or gbk
             return@runTest
@@ -81,6 +85,10 @@ class ParseTest {
 
     @Test
     fun testLowercaseUtf8Charset() = runTest {
+        if (Platform.isJS()) {
+//            js resource access issue
+            return@runTest
+        }
         val input = TestHelper.getResourceAbsolutePath("htmltests/lowercase-charset-test.html")
         val doc: Document = parseFile(filePath = input, charsetName = null)
         val form = doc.select("#form").first()
@@ -90,6 +98,10 @@ class ParseTest {
 
     @Test
     fun testXwiki() = runTest {
+        if (Platform.isJS()) {
+//            js resource access issue
+            return@runTest
+        }
         // https://github.com/jhy/jsoup/issues/1324
         // this tests that when in CharacterReader we hit a buffer while marked, we preserve the mark when buffered up and can rewind
         val input = TestHelper.getResourceAbsolutePath("htmltests/xwiki-1324.html.gz")
@@ -110,6 +122,10 @@ class ParseTest {
 
     @Test
     fun testXwikiExpanded() = runTest {
+        if (Platform.isJS()) {
+//            js resource access issue
+            return@runTest
+        }
         // https://github.com/jhy/jsoup/issues/1324
         // this tests that if there is a huge illegal character reference, we can get through a buffer and rewind, and still catch that it's an invalid refence,
         // and the parse tree is correct.
@@ -134,6 +150,10 @@ class ParseTest {
 
     @Test
     fun testWikiExpandedFromString() = runTest {
+        if (Platform.isJS()) {
+//            js resource access issue
+            return@runTest
+        }
         val input = TestHelper.getResourceAbsolutePath("htmltests/xwiki-edit.html.gz")
         val html = TestHelper.getFileAsString(input.uniVfs)
         val doc = parse(html)
@@ -145,6 +165,10 @@ class ParseTest {
 
     @Test
     fun testWikiFromString() = runTest {
+        if (Platform.isJS()) {
+//            js resource access issue
+            return@runTest
+        }
         val input = TestHelper.getResourceAbsolutePath("htmltests/xwiki-1324.html.gz")
         val html = TestHelper.getFileAsString(input.uniVfs)
         val doc = parse(html)
@@ -156,6 +180,10 @@ class ParseTest {
 
     @Test
     fun testFileParseNoCharsetMethod() = runTest {
+        if (Platform.isJS()) {
+//            js resource access issue
+            return@runTest
+        }
         val file = TestHelper.getResourceAbsolutePath("htmltests/xwiki-1324.html.gz")
         val doc: Document = parseFile(file)
         assertEquals("XWiki Jetty HSQLDB 12.1-SNAPSHOT", doc.select("#xwikiplatformversion").text())

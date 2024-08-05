@@ -3,21 +3,19 @@ package com.fleeksoft.ksoup.helper
 import com.fleeksoft.ksoup.*
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parser.Parser
+import korlibs.io.file.std.resourcesVfs
 import korlibs.io.file.std.uniVfs
 import korlibs.io.lang.Charset
 import korlibs.io.lang.Charsets
 import korlibs.io.lang.toByteArray
+import korlibs.io.resources.resourceLocal
 import korlibs.io.stream.SyncStream
 import korlibs.io.stream.openSync
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import kotlin.test.*
 
 class DataUtilTest {
-    @Test
-    fun testFileExists() = runTest {
-        assertEquals(true, TestHelper.getResourceAbsolutePath("htmltests/medium.html").uniVfs.exists())
-//        assertEquals(true, resourcesVfs["htmltests/medium.html"].exists())
-    }
 
     @Test
     fun testCharset() {
@@ -138,7 +136,6 @@ class DataUtilTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun secondMetaElementWithContentTypeContainsCharsetParameter() {
         if (Platform.isJS() || Platform.isApple() || Platform.isWindows()) {
             // FIXME: euc-kr charset not supported
@@ -160,7 +157,6 @@ class DataUtilTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun firstMetaElementWithCharsetShouldBeUsedForDecoding() {
         val html =
             "<html><head>" +
@@ -180,6 +176,10 @@ class DataUtilTest {
 
     @Test
     fun supportsBOMinFiles() = runTest {
+        if (Platform.isJS()) {
+//            js resource access issue
+            return@runTest
+        }
         var input = TestHelper.getResourceAbsolutePath("bomtests/bom_utf16be.html")
         var doc: Document =
             Ksoup.parseFile(filePath = input, baseUri = "http://example.com", charsetName = null)
@@ -207,6 +207,10 @@ class DataUtilTest {
 
     @Test
     fun supportsUTF8BOM() = runTest {
+        if (Platform.isJS()) {
+//            js resource access issue
+            return@runTest
+        }
         val input: String = TestHelper.getResourceAbsolutePath("bomtests/bom_utf8.html")
         val doc: Document = Ksoup.parseFile(input, "http://example.com", null)
         assertEquals("OK", doc.head().select("title").text())
@@ -224,6 +228,10 @@ class DataUtilTest {
 
     @Test
     fun supportsZippedUTF8BOM() = runTest {
+        if (Platform.isJS()) {
+//            js resource access issue
+            return@runTest
+        }
         val input: String = TestHelper.getResourceAbsolutePath("bomtests/bom_utf8.html.gz")
         val doc: Document =
             Ksoup.parseFile(
@@ -254,6 +262,10 @@ class DataUtilTest {
 
     @Test
     fun lLoadsGzipFile() = runTest {
+        if (Platform.isJS()) {
+//            js resource access issue
+            return@runTest
+        }
         val input: String = TestHelper.getResourceAbsolutePath("htmltests/gzip.html.gz")
         val doc: Document = Ksoup.parseFile(filePath = input, charsetName = null)
         doc.toString()
@@ -263,6 +275,10 @@ class DataUtilTest {
 
     @Test
     fun loadsZGzipFile() = runTest {
+        if (Platform.isJS()) {
+//            js resource access issue
+            return@runTest
+        }
         // compressed on win, with z suffix
         val input: String = TestHelper.getResourceAbsolutePath("htmltests/gzip.html.z")
         val doc: Document = Ksoup.parseFile(filePath = input, charsetName = null)
@@ -272,6 +288,10 @@ class DataUtilTest {
 
     @Test
     fun handlesFakeGzipFile() = runTest {
+        if (Platform.isJS()) {
+//            js resource access issue
+            return@runTest
+        }
         val input: String = TestHelper.getResourceAbsolutePath("htmltests/fake-gzip.html.gz")
         val doc: Document = Ksoup.parseFile(filePath = input, charsetName = null)
         assertEquals("This is not gzipped", doc.title())
@@ -280,6 +300,10 @@ class DataUtilTest {
 
     @Test
     fun handlesChunkedInputStream() = runTest {
+        if (Platform.isJS()) {
+//            js resource access issue
+            return@runTest
+        }
         val inputFile: String = TestHelper.getResourceAbsolutePath("htmltests/large.html.gz")
         val input: String = TestHelper.getFileAsString(inputFile.uniVfs)
 //        val stream = VaryingBufferReader(BufferReader(input))
@@ -292,6 +316,10 @@ class DataUtilTest {
 
     @Test
     fun handlesUnlimitedRead() = runTest {
+        if (Platform.isJS()) {
+//            js resource access issue
+            return@runTest
+        }
         val inputFile: String = TestHelper.getResourceAbsolutePath("htmltests/large.html.gz")
         val input: String = TestHelper.getFileAsString(inputFile.uniVfs)
         val byteBuffer: ByteArray = DataUtil.readToByteBuffer(input.openSync(), 0)

@@ -2,8 +2,6 @@ package com.fleeksoft.ksoup
 
 import korlibs.io.file.VfsFile
 import korlibs.io.file.fullName
-import korlibs.io.file.std.resourcesVfs
-import korlibs.io.file.std.resourcesVfsDebug
 import korlibs.io.file.std.uniVfs
 import korlibs.io.stream.SyncStream
 import korlibs.io.stream.readAll
@@ -15,7 +13,7 @@ object TestHelper {
     }
 
     fun getResourceAbsolutePath(resourceName: String): String {
-        if (Platform.current == PlatformType.WASMJS) {
+        if (Platform.current == PlatformType.WASM_JS) {
             return resourceName
         }
         return "${BuildConfig.PROJECT_ROOT}/ksoup-test/testResources/$resourceName"

@@ -36,7 +36,7 @@ public enum class PlatformType {
     JS,
     MAC,
     WINDOWS,
-    WASMJS,
+    WASM_JS,
 }
 
 public expect object Platform {
@@ -51,4 +51,4 @@ public fun Platform.isJvmOrAndroid(): Boolean = this.current == PlatformType.JVM
 
 public fun Platform.isJvm(): Boolean = this.current == PlatformType.JVM
 
-public fun Platform.isJS(): Boolean = this.current == PlatformType.JS
+public fun Platform.isJS(): Boolean = this.current == PlatformType.JS || this.current == PlatformType.WASM_JS

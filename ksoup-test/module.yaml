@@ -16,6 +16,7 @@ test-dependencies:
     - $libs.korlibs.io
     - $libs.codepoints
     - $libs.kotlinx.coroutines.test
+
 settings:
     kotlin:
         optIns: [ kotlinx.cinterop.BetaInteropApi, kotlinx.cinterop.UnsafeNumber, kotlinx.cinterop.ExperimentalForeignApi, kotlin.experimental.ExperimentalNativeApi ]

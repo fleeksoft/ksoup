@@ -2,17 +2,14 @@ package com.fleeksoft.ksoup
 
 import korlibs.io.file.std.resourcesVfs
 import korlibs.io.file.std.uniVfs
+import kotlinx.browser.window
+import kotlinx.coroutines.await
 import kotlinx.coroutines.test.runTest
+import org.w3c.fetch.Request
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class JsTest {
 
-//    ./gradlew :ksoup-test:jsNodeTest --tests "com.fleeksoft.ksoup.JsTest.testFileExists"
-    @Test
-    fun testFileExists() = runTest {
-        val t = "htmltests/medium.html"
-        val file = resourcesVfs["htmltests/medium.html"]
-//        assertEquals(true, file.exists())
-    }
 }

@@ -1,10 +1,11 @@
 package com.fleeksoft.ksoup.parser
 
 import com.fleeksoft.ksoup.Ksoup
-import com.fleeksoft.ksoup.TestHelper
 import com.fleeksoft.ksoup.TextUtil
 import com.fleeksoft.ksoup.nodes.*
+import korlibs.io.lang.Charset
 import korlibs.io.lang.Charsets
+import korlibs.io.stream.openSync
 import kotlinx.coroutines.test.runTest
 import kotlin.test.*
 
@@ -61,11 +62,10 @@ class XmlTreeBuilderTest {
 
     @Test
     fun testSupplyParserToDataStream() = runTest {
-//
-        val inStream = TestHelper.resourceFilePathToStream("htmltests/xml-test.xml")
+        val xmlTest = """<doc><val>One<val>Two</val>Three</val></doc>"""
         val doc =
             Ksoup.parse(
-                syncStream = inStream,
+                syncStream = xmlTest.openSync(),
                 baseUri = "http://foo.com",
                 charsetName = null,
                 parser = Parser.xmlParser(),
@@ -119,14 +119,16 @@ class XmlTreeBuilderTest {
 
     @Test
     fun testDetectCharsetEncodingDeclaration() = runTest {
-        val inStream = TestHelper.resourceFilePathToStream("htmltests/xml-charset.xml")
-        val doc =
-            Ksoup.parse(
-                syncStream = inStream,
-                baseUri = "http://example.com/",
-                charsetName = null,
-                parser = Parser.xmlParser(),
-            )
+        val xmlCharset = """
+            <?xml version="1.0" encoding="ISO-8859-1"?>
+            <data>äöåéü</data>
+        """.trimIndent()
+        val doc = Ksoup.parse(
+            syncStream = xmlCharset.openSync(charset = Charset.forName("ISO-8859-1")),
+            baseUri = "http://example.com/",
+            charsetName = null,
+            parser = Parser.xmlParser(),
+        )
         assertEquals("ISO-8859-1", doc.charset().name.uppercase())
         assertEquals(
             "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><data>äöåéü</data>",

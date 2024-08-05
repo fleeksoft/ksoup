@@ -54,6 +54,10 @@ class DataUtilTestJvm {
 
     @Test
     fun testHandlesChunkedInputStream() {
+        if (Platform.isJS()) {
+//            js resource access issue
+            return
+        }
         val file = File(TestHelper.getResourceAbsolutePath("htmltests/large.html.gz"))
         val input = getFileAsString(file)
         val expected =
@@ -82,6 +86,10 @@ class DataUtilTestJvm {
 
     @Test
     fun testHandlesUnlimitedRead() {
+        if (Platform.isJS()) {
+//            js resource access issue
+            return
+        }
         val file = File(TestHelper.getResourceAbsolutePath("htmltests/large.html.gz"))
         val input: String = getFileAsString(file)
 

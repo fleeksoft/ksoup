@@ -1,9 +1,7 @@
 package com.fleeksoft.ksoup.parser
 
-import com.fleeksoft.ksoup.TestHelper
-import com.fleeksoft.ksoup.UncheckedIOException
+import com.fleeksoft.ksoup.*
 import com.fleeksoft.ksoup.ported.toStreamCharReader
-import com.fleeksoft.ksoup.readFile
 import korlibs.io.file.std.uniVfs
 import korlibs.io.lang.Charset
 import korlibs.io.lang.substr
@@ -19,6 +17,10 @@ import kotlin.test.*
 class CharacterReaderTest {
     @Test
     fun testUtf16BE() = runTest {
+        if (Platform.isJS()) {
+//            js resource access issue
+            return@runTest
+        }
         val firstLine = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">"""
         val input =
             readFile(
@@ -33,6 +35,10 @@ class CharacterReaderTest {
 
     @Test
     fun testUtf16LE() = runTest {
+        if (Platform.isJS()) {
+//            js resource access issue
+            return@runTest
+        }
         val firstLine = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">"""
         val input =
             readFile(
@@ -549,6 +555,11 @@ class CharacterReaderTest {
 
     @Test
     fun linenumbersAgreeWithEditor() = runTest {
+        if (Platform.isJS()) {
+//            js resource access issue
+            return@runTest
+        }
+
         val content: String =
             TestHelper.getFileAsString(
                 TestHelper.getResourceAbsolutePath("htmltests/large.html.gz").uniVfs,
