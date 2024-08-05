@@ -48,7 +48,6 @@ class DocumentTestJvm {
     }
 
     @Test
-    @Throws(Exception::class)
     fun testShiftJisRoundtrip() {
         val input = (
             "<html>" +
