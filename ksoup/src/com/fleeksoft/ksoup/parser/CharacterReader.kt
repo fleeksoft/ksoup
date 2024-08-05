@@ -7,7 +7,7 @@ import com.fleeksoft.ksoup.ported.toStreamCharReader
 import korlibs.io.lang.Charset
 import korlibs.io.lang.Charsets
 import korlibs.io.lang.IOException
-import korlibs.io.stream.*
+import korlibs.io.stream.openSync
 import kotlin.math.abs
 import kotlin.math.min
 
@@ -76,9 +76,8 @@ public class CharacterReader {
         charReader!!.mark(maxBufferLen)
         var read: Int = 0
         while (read <= minReadAheadLen) {
-            var thisRead = 0
             val toReadSize = charBuf!!.size - read
-            thisRead = charReader!!.readCharArray(charBuf!!, offset = read, count = toReadSize)
+            val thisRead = charReader!!.readCharArray(charBuf!!, offset = read, count = toReadSize)
 //            charReader!!.read(1)
 
 //            println("bufferUp thisRead: $thisRead");

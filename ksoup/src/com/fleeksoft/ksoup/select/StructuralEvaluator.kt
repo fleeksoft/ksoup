@@ -183,13 +183,13 @@ public abstract class StructuralEvaluator(public val evaluator: Evaluator) : Eva
             root: Element,
             element: Element,
         ): Boolean {
-            var element: Element? = element
-            if (element === root) return false // cannot match as the second eval (first parent test) would be above the root
+            var el: Element? = element
+            if (el === root) return false // cannot match as the second eval (first parent test) would be above the root
             for (i in evaluators.indices.reversed()) {
-                if (element == null) return false
+                if (el == null) return false
                 val eval: Evaluator = evaluators.get(i)
-                if (!eval.matches(root, element)) return false
-                element = element.parent()
+                if (!eval.matches(root, el)) return false
+                el = el.parent()
             }
             return true
         }

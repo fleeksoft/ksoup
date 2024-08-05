@@ -60,7 +60,7 @@ public class Cleaner(private val safelist: Safelist) {
      * Cleaner cleaner = new Cleaner(Safelist.relaxed());
      * boolean isValid = cleaner.isValid(inputDoc);
      * Document normalizedDoc = cleaner.clean(inputDoc);
-     `</pre> *
+    `</pre> *
      *
      * @param dirtyDocument document to test
      * @return true if no tags or attributes need to be removed; false if they do
@@ -89,7 +89,7 @@ public class Cleaner(private val safelist: Safelist) {
      * Cleaner cleaner = new Cleaner(Safelist.relaxed());
      * boolean isValid = cleaner.isValidBodyHtml(inputHtml);
      * Document normalizedDoc = cleaner.clean(inputDoc);
-     `</pre> *
+    `</pre> *
      *
      * @param bodyHtml HTML fragment to test
      * @return true if no tags or attributes need to be removed; false if they do
@@ -118,10 +118,8 @@ public class Cleaner(private val safelist: Safelist) {
             depth: Int,
         ) {
             if (node is Element) {
-                val sourceEl = node as Element
-
-                if (safelist.isSafeTag(sourceEl.normalName())) { // safe, clone and copy safe attrs
-                    val meta: ElementMeta = createSafeElement(sourceEl)
+                if (safelist.isSafeTag(node.normalName())) { // safe, clone and copy safe attrs
+                    val meta: ElementMeta = createSafeElement(node)
                     val destChild: Element = meta.el
                     destination.appendChild(destChild)
 
@@ -131,11 +129,10 @@ public class Cleaner(private val safelist: Safelist) {
                     numDiscarded++
                 }
             } else if (node is TextNode) {
-                val sourceText = node as TextNode
-                val destText = TextNode(sourceText.getWholeText())
+                val destText = TextNode(node.getWholeText())
                 destination.appendChild(destText)
             } else if (node is DataNode && safelist.isSafeTag(node.parent()!!.normalName())) {
-                val sourceData = node as DataNode
+                val sourceData = node
                 val destData = DataNode(sourceData.getWholeData())
                 destination.appendChild(destData)
             } else { // else, we don't care about comments, xml proc instructions, etc

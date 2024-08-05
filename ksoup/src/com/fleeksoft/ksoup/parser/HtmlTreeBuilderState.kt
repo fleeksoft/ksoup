@@ -1632,7 +1632,6 @@ public enum class HtmlTreeBuilderState {
                 }
 
                 Token.TokenType.EOF -> if (!tb.currentElementIs("html")) tb.error(this)
-                else -> return anythingElse(t, tb)
             }
             return true
         }

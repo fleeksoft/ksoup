@@ -68,7 +68,6 @@ public open class XmlTreeBuilder : TreeBuilder() {
             Token.TokenType.Character -> insertCharacterFor(token.asCharacter())
             Token.TokenType.Doctype -> insertDoctypeFor(token.asDoctype())
             Token.TokenType.EOF -> {}
-            else -> Validate.fail("Unexpected token type: " + token.type)
         }
         return true
     }
