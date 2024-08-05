@@ -2,7 +2,7 @@
 
 **Ksoup** is a Kotlin Multiplatform library for working with real-world HTML and XML. It's a port of the renowned Java library, **jsoup**, and offers an easy-to-use API for URL fetching, data parsing, extraction, and manipulation using DOM and CSS selectors.
 
-[![Kotlin](https://img.shields.io/badge/Kotlin-2.0.0.RC3-blue.svg?style=flat&logo=kotlin)](https://kotlinlang.org)
+[![Kotlin](https://img.shields.io/badge/Kotlin-2.0.0-blue.svg?style=flat&logo=kotlin)](https://kotlinlang.org)
 [![Maven Central](https://img.shields.io/maven-central/v/com.fleeksoft.ksoup/ksoup.svg)](https://mvnrepository.com/artifact/com.fleeksoft.ksoup)
 
 ![badge-android](http://img.shields.io/badge/platform-android-6EDB8D.svg?style=flat)
@@ -13,7 +13,8 @@
 ![badge-jvm](http://img.shields.io/badge/platform-jvm-DB413D.svg?style=flat)
 ![badge-linux](http://img.shields.io/badge/platform-linux-2D3F6C.svg?style=flat)
 ![badge-windows](http://img.shields.io/badge/platform-windows-4D76CD.svg?style=flat)
-![badge-nodejs](https://img.shields.io/badge/platform-jsNode-F8DB5D.svg?style=flat)
+![badge-js](https://img.shields.io/badge/platform-js-F8DB5D.svg?style=flat)
+![badge-wasm](https://img.shields.io/badge/platform-wasm-F8DB5D.svg?style=flat)
 
 Ksoup implements the [WHATWG HTML5](https://html.spec.whatwg.org/multipage/) specification, parsing HTML to the same DOM as modern browsers do, but with support for Android, JVM, and native platforms.
 
@@ -83,16 +84,16 @@ To report any issues, visit our [GitHub issues](https://github.com/fleeksoft/kso
 
 ## Library Status
 
-| Platform       | Status       | Notes                                         |
-|----------------|--------------|-----------------------------------------------|
-| Android        | Beta         |                                               |
-| JVM            | Beta         |                                               |
-| iOS            | Alpha        | Does not support few charsets.                |
-| Linux          | Experimental | Does not support gzip files and few charsets. |
-| JS             | Alpha        | Does not support few charsets.                |
-| Native MacOS   | Alpha        |                                               |
-| Native Windows | Experimental | Does not support gzip file.                   |
-| WasmJs         | Alpha        |                                               |
+| Platform       | Status       | Notes |
+|----------------|--------------|-------|
+| Android        | Stable       |       |
+| JVM            | Stable       |       |
+| iOS            | Stable       |       |
+| JS             | Alpha        |       |
+| WasmJs         | Alpha        |       |
+| Native MacOS   | Alpha        |       |
+| Linux          | Experimental |       |
+| Native Windows | Experimental |       |
 
 
 
