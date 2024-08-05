@@ -3,8 +3,11 @@ package com.fleeksoft.ksoup.network
 import com.fleeksoft.ksoup.Ksoup
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parser.Parser
+import korlibs.io.async.CIO
 import korlibs.io.net.http.HttpBodyContent
 import korlibs.io.net.http.HttpClient
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * Use to fetch and parse a HTML page.
@@ -22,7 +25,7 @@ public suspend fun Ksoup.parseGetRequest(
     headers: Map<String, String> = emptyMap(),
     requestConfig: HttpClient.RequestConfig = HttpClient.RequestConfig.DEFAULT,
     parser: Parser = Parser.htmlParser(),
-): Document {
+): Document = withContext(Dispatchers.CIO) {
     val httpResponse = NetworkHelperKorIo.instance.get(
         url,
         headers = headers,
@@ -31,7 +34,7 @@ public suspend fun Ksoup.parseGetRequest(
 //        url can be changed after redirection
     val finalUrl = httpResponse.headers["location"] ?: url
     val response = httpResponse.readAllString()
-    return parse(html = response, parser = parser, baseUri = finalUrl)
+    return@withContext parse(html = response, parser = parser, baseUri = finalUrl)
 }
 
 /**
@@ -51,7 +54,7 @@ public suspend fun Ksoup.parseSubmitRequest(
     headers: Map<String, String> = emptyMap(),
     requestConfig: HttpClient.RequestConfig = HttpClient.RequestConfig.DEFAULT,
     parser: Parser = Parser.htmlParser(),
-): Document {
+): Document = withContext(Dispatchers.CIO) {
     val httpResponse = NetworkHelperKorIo.instance.submitForm(
         url = url,
         params = params,
@@ -61,7 +64,7 @@ public suspend fun Ksoup.parseSubmitRequest(
 //            url can be changed after redirection
     val finalUrl = httpResponse.headers["location"] ?: url
     val response = httpResponse.readAllString()
-    return parse(html = response, parser = parser, baseUri = finalUrl)
+    return@withContext parse(html = response, parser = parser, baseUri = finalUrl)
 }
 
 /**
@@ -81,7 +84,7 @@ public suspend fun Ksoup.parsePostRequest(
     headers: Map<String, String> = emptyMap(),
     requestConfig: HttpClient.RequestConfig = HttpClient.RequestConfig.DEFAULT,
     parser: Parser = Parser.htmlParser(),
-): Document {
+): Document = withContext(Dispatchers.CIO) {
     val httpResponse = NetworkHelperKorIo.instance.post(
         url = url,
         body = body,
@@ -91,5 +94,5 @@ public suspend fun Ksoup.parsePostRequest(
 //            url can be changed after redirection
     val finalUrl = httpResponse.headers["location"] ?: url
     val response = httpResponse.readAllString()
-    return parse(html = response, parser = parser, baseUri = finalUrl)
+    return@withContext parse(html = response, parser = parser, baseUri = finalUrl)
 }
