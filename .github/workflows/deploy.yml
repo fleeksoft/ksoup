@@ -3,25 +3,22 @@ name: Build
 on:
   push:
     branches: [ "main" ]
+    paths-ignore: [ "**.md" ]
   pull_request:
     branches: [ "main" ]
-
-permissions:
-  contents: read
-  pages: write
-  id-token: write
+    paths-ignore: [ "**.md" ]
 
 jobs:
   build:
     strategy:
       matrix:
         config: [
-            { target: android, os: ubuntu-latest, tasks: testDebugUnitTest testReleaseUnitTest, continueOnError: false },
-            { target: apple, os: macos-latest, tasks: iosX64Test iosSimulatorArm64Test macosX64Test macosArm64Test tvosX64Test tvosSimulatorArm64Test, continueOnError: false },
-            { target: nodejs, os: ubuntu-latest, tasks: jsNodeTest, continueOnError: false },
-            { target: desktop, os: ubuntu-latest, tasks: jvmTest, continueOnError: false },
-            { target: windows, os: windows-latest, tasks: mingwX64Test, continueOnError: false },
-          ]
+          { target: android, os: ubuntu-latest, tasks: testDebugUnitTest testReleaseUnitTest, continueOnError: false },
+          { target: apple, os: macos-latest, tasks: iosX64Test iosSimulatorArm64Test macosX64Test macosArm64Test tvosX64Test tvosSimulatorArm64Test watchosX64Test watchosSimulatorArm64Test, continueOnError: false },
+          { target: js, os: ubuntu-latest, tasks: jsTest wasmTest, continueOnError: false },
+          { target: desktop, os: ubuntu-latest, tasks: jvmTest, continueOnError: false },
+          { target: windows, os: windows-latest, tasks: mingwX64Test, continueOnError: false },
+        ]
     runs-on: ${{ matrix.config.os }}
     name: Build ${{ matrix.config.target }}
     steps:
@@ -40,8 +37,33 @@ jobs:
         run: ./gradlew ${{ matrix.config.tasks }} --info
         working-directory: ${{ github.workspace }}
 
-  release:
-    if: ${{ github.event_name != 'pull_request' }}
+#  deploy:
+#    if: github.ref == 'refs/heads/main'
+#
+#    runs-on: macos-latest
+#    needs: [ build ]
+#
+#    steps:
+#      - uses: actions/checkout@v4
+#
+#      - name: Setup JDK
+#        uses: actions/setup-java@v4
+#        with:
+#          distribution: 'temurin'
+#          java-version: 17
+#
+#      - uses: gradle/gradle-build-action@v3
+#
+#      - name: Deploy to Sonatype
+#        run: ./gradlew publish --no-configuration-cache
+#        env:
+#          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+#          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+#          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.GPG_KEY }}
+#          ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ secrets.GPG_KEY_ID }}
+#          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.GPG_KEY_PASSWORD }}
+#
+  deploy_docs:
     runs-on: macos-latest
     needs:
       - build
@@ -63,22 +85,6 @@ jobs:
 
       - name: Setup Pages
         uses: actions/configure-pages@v3
-
-      #      - name: Write secrets to local.properties
-      #        if: ${{ github.event_name != 'pull_request' }}
-      #        run: |
-      #          echo mavenCentralUsername="${SONATYPE_USERNAME}" >> "local.properties"
-      #          echo mavenCentralUsername="${SONATYPE_PASSWORD}" >> "local.properties"
-      #          echo gpgKeyPassword="${GPG_KEY_PASSWORD}" >> "local.properties"
-      #          echo gpgKeySecret="${GPG_KEY_SECRET}" >> "local.properties"
-      #        env:
-      #          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
-      #          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
-      #          GPG_KEY_PASSWORD: ${{ secrets.GPG_KEY_PASSWORD }}
-      #          GPG_KEY_SECRET: ${{ secrets.GPG_KEY_SECRET }}
-
-      #      - name: Release to sonatype
-      #        run: ./gradlew publishAllPublicationsToMavenRepository
 
       - name: Generate docs with dokka
         run: ./gradlew dokkaHtmlMultiModule
