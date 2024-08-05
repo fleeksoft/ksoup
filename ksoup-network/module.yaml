@@ -13,4 +13,3 @@ repositories:
 
 dependencies:
   - ../ksoup: compile-only
-  - $libs.korlibs.io: exported

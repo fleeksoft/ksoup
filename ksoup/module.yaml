@@ -13,4 +13,4 @@ repositories:
 dependencies:
   - $libs.kotlinx.datetime
   - $libs.codepoints
-  - $libs.korlibs.io
+  - $libs.korlibs.io: exported
