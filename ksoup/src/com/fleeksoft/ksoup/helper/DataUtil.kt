@@ -309,12 +309,12 @@ public object DataUtil {
 
     private fun detectCharsetFromBom(firstByteArray: ByteArray): BomCharset? {
         // .mark and rewind used to return Buffer, now ByteBuffer, so cast for backward compat
-        val bom =
-            if (firstByteArray.size >= 4) {
-                firstByteArray.copyOf(4)
-            } else {
-                ByteArray(4)
-            }
+        val bom = if (firstByteArray.size >= 4) {
+            firstByteArray.copyOf(4)
+        } else {
+            ByteArray(4)
+        }
+
         if (bom[0].toInt() == 0x00 && bom[1].toInt() == 0x00 && bom[2] == 0xFE.toByte() && bom[3] == 0xFF.toByte()) { // BE
             return BomCharset("UTF-32BE", Platform.isApple()) // and I hope it's on your system
         } else if (bom[0] == 0xFF.toByte() && bom[1] == 0xFE.toByte() && bom[2].toInt() == 0x00 && bom[3].toInt() == 0x00) { // LE
