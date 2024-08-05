@@ -3,7 +3,7 @@ settings:
     apiVersion: 1.9
     languageVersion: 1.9
   android:
-    compileSdk: 33
+    compileSdk: 34
     namespace: "com.fleeksoft.ksoup"
 
 test-dependencies:
