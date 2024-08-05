@@ -2,10 +2,10 @@ name: Build
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "release" ]
     paths-ignore: [ "**.md" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "release" ]
     paths-ignore: [ "**.md" ]
 
 jobs:
@@ -38,7 +38,7 @@ jobs:
         working-directory: ${{ github.workspace }}
 
 #  deploy:
-#    if: github.ref == 'refs/heads/main'
+#    if: github.ref == 'refs/heads/release'
 #
 #    runs-on: macos-latest
 #    needs: [ build ]
