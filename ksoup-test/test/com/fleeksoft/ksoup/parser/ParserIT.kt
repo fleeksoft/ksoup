@@ -3,7 +3,7 @@ package com.fleeksoft.ksoup.parser
 import com.fleeksoft.ksoup.BuildConfig
 import com.fleeksoft.ksoup.Platform
 import com.fleeksoft.ksoup.isJS
-import com.fleeksoft.ksoup.ported.System
+import com.fleeksoft.ksoup.System
 import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals

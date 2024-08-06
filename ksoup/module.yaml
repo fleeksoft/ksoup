@@ -11,6 +11,5 @@ repositories:
   - mavenLocal
 
 dependencies:
-  - $libs.kotlinx.datetime
   - $libs.codepoints
   - $libs.korlibs.io: exported

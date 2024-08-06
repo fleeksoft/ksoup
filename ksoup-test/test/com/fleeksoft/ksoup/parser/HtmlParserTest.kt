@@ -3,7 +3,7 @@ package com.fleeksoft.ksoup.parser
 import com.fleeksoft.ksoup.*
 import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.nodes.*
-import com.fleeksoft.ksoup.ported.System
+import com.fleeksoft.ksoup.System
 import com.fleeksoft.ksoup.safety.Safelist
 import korlibs.io.lang.IOException
 import korlibs.io.stream.openSync

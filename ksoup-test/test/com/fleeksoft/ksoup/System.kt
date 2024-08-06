@@ -1,4 +1,4 @@
-package com.fleeksoft.ksoup.ported
+package com.fleeksoft.ksoup
 
 import kotlinx.datetime.Clock
 import kotlin.time.Duration.Companion.seconds
