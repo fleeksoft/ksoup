@@ -1,5 +1,6 @@
 package com.fleeksoft.ksoup.select
 
+import co.touchlab.stately.concurrency.ThreadLocalRef
 import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.nodes.Element
 import com.fleeksoft.ksoup.nodes.NodeIterator
@@ -56,19 +57,41 @@ public abstract class StructuralEvaluator(public val evaluator: Evaluator) : Eva
     }
 
     internal class Has(evaluator: Evaluator) : StructuralEvaluator(evaluator) {
-        val it: NodeIterator<Element> = NodeIterator(Element("html"), Element::class)
+        companion object {
+            private val nodeIterator: ThreadLocalRef<NodeIterator<Element>> = ThreadLocalRef()
+        }
 
-        override fun matches(
-            root: Element,
-            element: Element,
-        ): Boolean {
-            // for :has, we only want to match children (or below), not the input element. And we want to minimize GCs
-            it.restart(element)
-            while (it.hasNext()) {
-                val el = it.next()
-                if (el === element) continue // don't match self, only descendants
+        private val checkSiblings = evalWantsSiblings(evaluator) // evaluating against siblings (or children)
 
-                if (evaluator.matches(element, el)) return true
+        override fun matches(root: Element, element: Element): Boolean {
+            if (checkSiblings) { // evaluating against siblings
+                var sib = element.firstElementSibling()
+                while (sib != null) {
+                    if (sib !== element && evaluator.matches(element, sib)) { // don't match against self
+                        return true
+                    }
+                    sib = sib.nextElementSibling()
+                }
+            } else {
+                // otherwise we only want to match children (or below), and not the input element. And we want to minimize GCs so reusing the Iterator obj
+                val it = nodeIterator.get() ?: NodeIterator(Element("html"), Element::class).also { nodeIterator.set(it) }
+                it.restart(element)
+                while (it.hasNext()) {
+                    val el = it.next()
+                    if (el === element) continue  // don't match self, only descendants
+
+                    if (evaluator.matches(element, el)) return true
+                }
+            }
+            return false
+        }
+
+        /* Test if the :has sub-clause wants sibling elements (vs nested elements) - will be a Combining eval */
+        private fun evalWantsSiblings(eval: Evaluator): Boolean {
+            if (eval is CombiningEvaluator) {
+                for (innerEval in eval.evaluators) {
+                    if (innerEval is PreviousSibling || innerEval is ImmediatePreviousSibling) return true
+                }
             }
             return false
         }

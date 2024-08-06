@@ -17,9 +17,11 @@ dokka = "1.9.20"
 korlibs = "6.0.0"
 mavenPublish = "0.29.0"
 
+stately-concurrent = "2.0.7"
+
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
-kotlinx-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
@@ -34,6 +36,7 @@ kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.
 kotlinx-io = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version.ref = "kotlinx-io" }
 codepoints = { module = "de.cketti.unicode:kotlin-codepoints-deluxe", version.ref = "codepoints" }
 korlibs-io = { module = "com.soywiz:korlibs-io", version.ref = "korlibs" }
+stately-concurrent = { module = "co.touchlab:stately-concurrent-collections", version.ref = "stately-concurrent" }
 
 [plugins]
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
