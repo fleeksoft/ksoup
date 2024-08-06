@@ -4,6 +4,7 @@ package com.fleeksoft.ksoup.safety
     this safe-list configuration, and the initial defaults.
  */
 import com.fleeksoft.ksoup.helper.Validate
+import com.fleeksoft.ksoup.helper.computeIfAbsent
 import com.fleeksoft.ksoup.internal.Normalizer.lowerCase
 import com.fleeksoft.ksoup.nodes.Attribute
 import com.fleeksoft.ksoup.nodes.Attributes
@@ -53,27 +54,12 @@ XSS attack examples (that jsoup will safegaurd against the default Cleaner and S
 </p>
  */
 public open class Safelist() {
-    private val tagNames: MutableSet<TagName>
-    private val attributes: MutableMap<TagName, MutableSet<AttributeKey>> // tag -> attribute[]. allowed attributes [href] for a tag.
-    private val enforcedAttributes: MutableMap<TagName, MutableMap<AttributeKey, AttributeValue>>
-    private val protocols: MutableMap<TagName, MutableMap<AttributeKey, MutableSet<Protocol>>>
+    private val tagNames: MutableSet<TagName> = HashSet()
+    private val attributes: MutableMap<TagName, MutableSet<AttributeKey>> = mutableMapOf() // tag -> attribute[]. allowed attributes [href] for a tag.
+    private val enforcedAttributes: MutableMap<TagName, MutableMap<AttributeKey, AttributeValue>> = mutableMapOf()
+    private val protocols: MutableMap<TagName, MutableMap<AttributeKey, MutableSet<Protocol>>> = mutableMapOf()
     private var preserveRelativeLinks = // option to preserve relative links
         false
-
-    /**
-     * Create a new, empty safelist. Generally it will be better to start with a default prepared safelist instead.
-     *
-     * @see .basic
-     * @see .basicWithImages
-     * @see .simpleText
-     * @see .relaxed
-     */
-    init {
-        tagNames = HashSet<TagName>()
-        attributes = mutableMapOf()
-        enforcedAttributes = mutableMapOf()
-        protocols = mutableMapOf()
-    }
 
     /**
      * Deep copy an existing Safelist to a new Safelist.
@@ -82,22 +68,16 @@ public open class Safelist() {
     public constructor(copy: Safelist) : this() {
         tagNames.addAll(copy.tagNames)
         for ((key, value) in copy.attributes) {
-            attributes[key] = HashSet<AttributeKey>(value)
+            attributes[key] = HashSet(value)
         }
         for ((key, value) in copy.enforcedAttributes) {
-            enforcedAttributes[key] =
-                HashMap<AttributeKey, AttributeValue>(
-                    value,
-                )
+            enforcedAttributes[key] = HashMap(value)
         }
         for ((key, value) in copy.protocols) {
             val attributeProtocolsCopy: MutableMap<AttributeKey, MutableSet<Protocol>> =
                 mutableMapOf()
             for ((key1, value1) in value) {
-                attributeProtocolsCopy[key1] =
-                    HashSet<Protocol>(
-                        value1,
-                    )
+                attributeProtocolsCopy[key1] = HashSet(value1)
             }
             protocols[key] = attributeProtocolsCopy
         }
@@ -167,18 +147,15 @@ public open class Safelist() {
 
         addTags(tag)
         val tagName: TagName = TagName.valueOf(tag)
-        val attributeSet: MutableSet<AttributeKey> = HashSet<AttributeKey>()
+        val attributeSet: MutableSet<AttributeKey> = HashSet()
         for (key in attributes) {
             Validate.notEmpty(key)
             attributeSet.add(AttributeKey.valueOf(key))
         }
-        if (this.attributes.containsKey(tagName)) {
-            val currentSet: MutableSet<AttributeKey> =
-                this.attributes[tagName]!!
-            currentSet.addAll(attributeSet)
-        } else {
-            this.attributes[tagName] = attributeSet
-        }
+
+        val attr = this.attributes.computeIfAbsent(tagName) { mutableSetOf() }
+        attr.addAll(attributeSet)
+
         return this
     }
 
@@ -206,7 +183,7 @@ public open class Safelist() {
         Validate.notEmpty(tag)
         Validate.isTrue(attributes.isNotEmpty(), "No attribute names supplied.")
         val tagName = TagName.valueOf(tag)
-        val attributeSet: MutableSet<AttributeKey> = HashSet<AttributeKey>()
+        val attributeSet: MutableSet<AttributeKey> = HashSet()
         for (key in attributes) {
             Validate.notEmpty(key)
             attributeSet.add(AttributeKey.valueOf(key))
@@ -264,7 +241,7 @@ public open class Safelist() {
             enforcedAttributes[tagName]?.set(attrKey, attrVal)
         } else {
             val attrMap: MutableMap<AttributeKey, AttributeValue> =
-                HashMap<AttributeKey, AttributeValue>()
+                HashMap()
             attrMap[attrKey] = attrVal
             enforcedAttributes[tagName] = attrMap
         }
@@ -345,20 +322,8 @@ public open class Safelist() {
         Validate.notEmpty(attribute)
         val tagName = TagName.valueOf(tag)
         val attrKey = AttributeKey.valueOf(attribute)
-        val attrMap: MutableMap<AttributeKey, MutableSet<Protocol>>
-        val protSet: MutableSet<Protocol>
-        if (this.protocols.containsKey(tagName)) {
-            attrMap = this.protocols[tagName]!!
-        } else {
-            attrMap = mutableMapOf()
-            this.protocols[tagName] = attrMap
-        }
-        if (attrMap.containsKey(attrKey)) {
-            protSet = attrMap[attrKey]!!
-        } else {
-            protSet = HashSet<Protocol>()
-            attrMap[attrKey] = protSet
-        }
+        val attrMap = this.protocols.computeIfAbsent(tagName) { mutableMapOf() }
+        val protSet = attrMap.computeIfAbsent(attrKey) { hashSetOf() }
         for (protocol in protocols) {
             Validate.notEmpty(protocol)
             val prot = Protocol.valueOf(protocol)
@@ -540,24 +505,15 @@ public open class Safelist() {
         }
     }
 
-    internal abstract class TypedValue(value: String) {
-        private val value: String
-
-        init {
-            this.value = value
-        }
+    internal abstract class TypedValue(private val value: String) {
 
         override fun hashCode(): Int {
-            val prime = 31
-            var result = 1
-            result = prime * result + value.hashCode()
-            return result
+            return value.hashCode()
         }
 
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
-            if (other == null) return false
-            if (this::class != other::class) return false
+            if (other == null || this::class != other::class) return false
             val obj = other as TypedValue
             return value == obj.value
         }
@@ -588,7 +544,7 @@ public open class Safelist() {
          *
          * // html is: 5 is &lt; 6.
          * // text is: 5 is < 6.
-         `</pre> *
+        `</pre> *
          *
          * @return safelist
          */
