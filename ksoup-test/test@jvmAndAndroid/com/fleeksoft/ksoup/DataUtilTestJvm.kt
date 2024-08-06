@@ -10,14 +10,41 @@ import korlibs.io.stream.openSync
 import korlibs.io.stream.readAll
 import kotlinx.coroutines.test.runTest
 import java.io.*
+import java.nio.file.Path
 import java.util.zip.GZIPInputStream
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
+
 class DataUtilTestJvm {
     private fun inputStream(data: String): ByteArrayInputStream {
         return ByteArrayInputStream(data.encodeToByteArray())
+    }
+
+    @Test
+    fun loadsGzipPath() = runTest {
+        val `in`: Path = ParserHelper.getPath("/htmltests/gzip.html.gz")
+        val doc: Document = Ksoup.parsePath(`in`)
+        assertEquals("Gzip test", doc.title())
+        assertEquals("This is a gzipped HTML file.", doc.selectFirst("p")!!.text())
+    }
+
+    @Test
+    fun loadsZGzipPath() = runTest {
+        // compressed on win, with z suffix
+        val `in`: Path = ParserHelper.getPath("htmltests/gzip.html.z")
+        val doc: Document = Ksoup.parsePath(`in`)
+        assertEquals("Gzip test", doc.title())
+        assertEquals("This is a gzipped HTML file.", doc.selectFirst("p")!!.text())
+    }
+
+    @Test
+    fun handlesFakeGzipPath() = runTest {
+        val `in`: Path = ParserHelper.getPath("htmltests/fake-gzip.html.gz")
+        val doc: Document = Ksoup.parsePath(`in`)
+        assertEquals("This is not gzipped", doc.title())
+        assertEquals("And should still be readable.", doc.selectFirst("p")!!.text())
     }
 
     @Test

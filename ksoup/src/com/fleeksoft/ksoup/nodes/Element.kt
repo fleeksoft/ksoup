@@ -11,13 +11,14 @@ import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.parser.Tag
 import com.fleeksoft.ksoup.parser.TokenQueue.Companion.escapeCssIdentifier
 import com.fleeksoft.ksoup.ported.AtomicBoolean
-import com.fleeksoft.ksoup.ported.Collections
 import com.fleeksoft.ksoup.ported.Consumer
 import com.fleeksoft.ksoup.ported.PatternSyntaxException
 import com.fleeksoft.ksoup.select.*
 import korlibs.io.lang.IOException
 import kotlin.js.JsName
 import kotlin.jvm.JvmOverloads
+import kotlin.reflect.KClass
+import kotlin.reflect.cast
 
 /**
  * An HTML Element consists of a tag name, attributes, and child nodes (including text nodes and other elements).
@@ -396,6 +397,12 @@ public open class Element : Node {
         return NodeUtils.stream(this, Element::class)
     }
 
+    private inline fun <reified T : Any> filterNodes(clazz: KClass<T>): List<T> {
+        return _childNodes.filterIsInstance<T>()
+            .map { clazz.cast(it) }
+            .toList()
+    }
+
     /**
      * Get this element's child text nodes. The list is unmodifiable but the text nodes may be manipulated.
      *
@@ -414,11 +421,7 @@ public open class Element : Node {
      *
      */
     public fun textNodes(): List<TextNode> {
-        val textNodes: MutableList<TextNode> = ArrayList()
-        for (node in _childNodes) {
-            if (node is TextNode) textNodes.add(node)
-        }
-        return Collections.unmodifiableList(textNodes)
+        return filterNodes(TextNode::class)
     }
 
     /**
@@ -432,11 +435,7 @@ public open class Element : Node {
      * @see .data
      */
     public fun dataNodes(): List<DataNode> {
-        val dataNodes: MutableList<DataNode> = ArrayList()
-        for (node in _childNodes) {
-            if (node is DataNode) dataNodes.add(node)
-        }
-        return Collections.unmodifiableList(dataNodes)
+        return filterNodes(DataNode::class)
     }
 
     /**
@@ -1663,9 +1662,7 @@ public open class Element : Node {
 
     public fun shouldIndent(out: Document.OutputSettings): Boolean {
         return out.prettyPrint() && isFormatAsBlock(out) && !isInlineable(out) &&
-            !preserveWhitespace(
-                _parentNode,
-            )
+                !preserveWhitespace(_parentNode)
     }
 
     @Throws(IOException::class)
@@ -1706,9 +1703,9 @@ public open class Element : Node {
     ) {
         if (!(_childNodes.isEmpty() && tag.isSelfClosing())) {
             if (out.prettyPrint() && _childNodes.isNotEmpty() && (
-                    tag.formatAsBlock() && !preserveWhitespace(_parentNode) || out.outline() &&
-                        (_childNodes.size > 1 || _childNodes.size == 1 && _childNodes[0] is Element)
-                )
+                        tag.formatAsBlock() && !preserveWhitespace(_parentNode) || out.outline() &&
+                                (_childNodes.size > 1 || _childNodes.size == 1 && _childNodes[0] is Element)
+                        )
             ) {
                 indent(accum, depth, out)
             }
@@ -1836,8 +1833,7 @@ public open class Element : Node {
 
     private fun isFormatAsBlock(out: Document.OutputSettings): Boolean {
         return tag.isBlock || parent() != null &&
-            parent()!!.tag()
-                .formatAsBlock() || out.outline()
+                parent()!!.tag().formatAsBlock() || out.outline()
     }
 
     private fun isInlineable(out: Document.OutputSettings): Boolean {
@@ -1845,11 +1841,11 @@ public open class Element : Node {
             false
         } else {
             (
-                (parent() == null || parent()!!.isBlock()) &&
-                    !isEffectivelyFirst() &&
-                    !out.outline() &&
-                    !nameIs("br")
-            )
+                    (parent() == null || parent()!!.isBlock()) &&
+                            !isEffectivelyFirst() &&
+                            !out.outline() &&
+                            !nameIs("br")
+                    )
         }
     }
 

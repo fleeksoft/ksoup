@@ -2,7 +2,6 @@ package com.fleeksoft.ksoup
 
 import com.fleeksoft.ksoup.helper.DataUtil
 import com.fleeksoft.ksoup.nodes.Document
-import com.fleeksoft.ksoup.nodes.Element
 import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.safety.Cleaner
 import com.fleeksoft.ksoup.safety.Safelist
@@ -25,7 +24,7 @@ public object Ksoup {
      */
     public fun parse(
         html: String,
-        baseUri: String,
+        baseUri: String = "",
     ): Document {
         return Parser.parse(html, baseUri)
     }
@@ -53,7 +52,7 @@ public object Ksoup {
      * (non-HTML) parser.  As no base URI is specified, absolute URL resolution, if required, relies on the HTML including
      * a `<base href>` tag.
      *
-     * @param html    HTML to parse
+     * @param html HTML to parse
      * before the HTML declares a `<base href>` tag.
      * @param parser alternate [parser][Parser.xmlParser] to use.
      * @return sane HTML
@@ -63,18 +62,6 @@ public object Ksoup {
         parser: Parser,
     ): Document {
         return parser.parseInput(html, "")
-    }
-
-    /**
-     * Parse HTML into a Document. As no base URI is specified, absolute URL resolution, if required, relies on the HTML
-     * including a `<base href>` tag.
-     *
-     * @param html HTML to parse
-     * @return sane HTML
-     * @see .parse
-     */
-    public fun parse(html: String): Document {
-        return Parser.parse(html, "")
     }
 
     /**
@@ -91,7 +78,7 @@ public object Ksoup {
         baseUri: String,
         charsetName: String? = null,
     ): Document {
-        return DataUtil.load(filePath, charsetName, baseUri)
+        return DataUtil.load(filePath = filePath, baseUri = baseUri, charsetName = charsetName)
     }
 
     /**
@@ -107,23 +94,7 @@ public object Ksoup {
         filePath: String,
         charsetName: String? = null,
     ): Document {
-        return DataUtil.load(filePath, charsetName, filePath.uniVfs.absolutePath)
-    }
-
-    /**
-     * Parse the contents of a file as HTML. The location of the file is used as the base URI to qualify relative URLs.
-     * The charset used to read the file will be determined by the byte-order-mark (BOM), or a `<meta charset>` tag,
-     * or if neither is present, will be `UTF-8`.
-     *
-     *
-     * This is the equivalent of calling [parse(file, null)][.parse]
-     *
-     * @param filePath the file to load HTML from. Supports gzipped files (ending in .z or .gz).
-     * @return sane HTML
-     * @see .parse
-     */
-    public suspend fun parseFile(filePath: String): Document {
-        return DataUtil.load(filePath, null, filePath.uniVfs.absolutePath)
+        return DataUtil.load(filePath = filePath, baseUri = filePath.uniVfs.absolutePath, charsetName = charsetName)
     }
 
     /**
@@ -138,28 +109,11 @@ public object Ksoup {
      */
     public suspend fun parseFile(
         filePath: String,
-        baseUri: String,
-        charsetName: String?,
-        parser: Parser,
+        baseUri: String = filePath.uniVfs.absolutePath,
+        charsetName: String? = null,
+        parser: Parser = Parser.htmlParser(),
     ): Document {
-        return DataUtil.load(filePath, charsetName, baseUri, parser)
-    }
-
-    /**
-     * Read an buffer reader, and parse it to a Document.
-     *
-     * @param syncStream buffer reader to read. The stream will be closed after reading.
-     * @param baseUri     The URL where the HTML was retrieved from, to resolve relative links against.
-     * @param charsetName (optional) character set of file contents. Set to `null` to determine from `http-equiv` meta tag, if
-     * present, or fall back to `UTF-8` (which is often safe to do).
-     * @return sane HTML
-     */
-    public fun parse(
-        syncStream: SyncStream,
-        baseUri: String,
-        charsetName: String?,
-    ): Document {
-        return DataUtil.load(syncStream, charsetName, baseUri)
+        return DataUtil.load(filePath = filePath, baseUri = baseUri, charsetName = charsetName, parser = parser)
     }
 
     /**
@@ -177,9 +131,9 @@ public object Ksoup {
         syncStream: SyncStream,
         baseUri: String,
         charsetName: String?,
-        parser: Parser,
+        parser: Parser = Parser.htmlParser(),
     ): Document {
-        return DataUtil.load(syncStream, charsetName, baseUri, parser)
+        return DataUtil.load(syncStream = syncStream, baseUri = baseUri, charsetName = charsetName, parser = parser)
     }
 
     /**
@@ -192,80 +146,9 @@ public object Ksoup {
      */
     public fun parseBodyFragment(
         bodyHtml: String,
-        baseUri: String?,
+        baseUri: String = "",
     ): Document {
-        return Parser.parseBodyFragment(bodyHtml, baseUri ?: "")
-    }
-
-    /**
-     * Parse a fragment of HTML, with the assumption that it forms the `body` of the HTML.
-     *
-     * @param bodyHtml body HTML fragment
-     * @return sane HTML document
-     * @see Document.body
-     */
-    public fun parseBodyFragment(bodyHtml: String): Document {
-        return Parser.parseBodyFragment(bodyHtml, "")
-    }
-
-    /**
-     * Get safe HTML from untrusted input HTML, by parsing input HTML and filtering it through an allow-list of safe
-     * tags and attributes.
-     *
-     * @param bodyHtml  input untrusted HTML (body fragment)
-     * @param baseUri   URL to resolve relative URLs against
-     * @param safelist  list of permitted HTML elements
-     * @return safe HTML (body fragment)
-     * @see Cleaner.clean
-     */
-    public fun clean(
-        bodyHtml: String,
-        baseUri: String?,
-        safelist: Safelist,
-    ): String {
-        val dirty: Document = parseBodyFragment(bodyHtml, baseUri)
-        val cleaner = Cleaner(safelist)
-        val clean: Document = cleaner.clean(dirty)
-        return clean.body().html()
-    }
-
-    /**
-     * Get safe HTML from untrusted input HTML, by parsing input HTML and filtering it through a safe-list of permitted
-     * tags and attributes.
-     *
-     *
-     * Note that as this method does not take a base href URL to resolve attributes with relative URLs against, those
-     * URLs will be removed, unless the input HTML contains a `<base href> tag`. If you wish to preserve those, use
-     * the [Ksoup.clean] method instead, and enable
-     * [Safelist.preserveRelativeLinks].
-     *
-     *
-     * Note that the output of this method is still **HTML** even when using the TextNode only
-     * [Safelist.none], and so any HTML entities in the output will be appropriately escaped.
-     * If you want plain text, not HTML, you should use a text method such as [Element.text] instead, after
-     * cleaning the document.
-     *
-     * Example:
-     * <pre>`val sourceBodyHtml = "<p>5 is &lt; 6.</p>";
-     * val html = Ksoup.clean(sourceBodyHtml, Safelist.none())
-     *
-     * val cleaner = Cleaner(Safelist.none());
-     * val text = cleaner.clean(Ksoup.parse(sourceBodyHtml)).text()
-     *
-     * // html is: 5 is &lt; 6.
-     * // text is: 5 is < 6.
-     `</pre> *
-     *
-     * @param bodyHtml input untrusted HTML (body fragment)
-     * @param safelist list of permitted HTML elements
-     * @return safe HTML (body fragment)
-     * @see Cleaner.clean
-     */
-    public fun clean(
-        bodyHtml: String,
-        safelist: Safelist,
-    ): String {
-        return clean(bodyHtml, "", safelist)
+        return Parser.parseBodyFragment(bodyHtml, baseUri)
     }
 
     /**
@@ -277,22 +160,24 @@ public object Ksoup {
      * structural tags (`html, head, body` etc) to the safelist.
      *
      * @param bodyHtml input untrusted HTML (body fragment)
-     * @param baseUri URL to resolve relative URLs against
      * @param safelist list of permitted HTML elements
+     * @param baseUri URL to resolve relative URLs against
      * @param outputSettings document output settings; use to control pretty-printing and entity escape modes
      * @return safe HTML (body fragment)
      * @see Cleaner.clean
      */
     public fun clean(
         bodyHtml: String,
-        baseUri: String?,
         safelist: Safelist,
-        outputSettings: Document.OutputSettings,
+        baseUri: String = "",
+        outputSettings: Document.OutputSettings? = null,
     ): String {
         val dirty: Document = parseBodyFragment(bodyHtml, baseUri)
         val cleaner = Cleaner(safelist)
         val clean: Document = cleaner.clean(dirty)
-        clean.outputSettings(outputSettings)
+        if (outputSettings != null) {
+            clean.outputSettings(outputSettings)
+        }
         return clean.body().html()
     }
 
@@ -311,7 +196,7 @@ public object Ksoup {
      * <pre>`val safelist = Safelist.relaxed()
      * val isValid = Ksoup.isValid(sourceBodyHtml, safelist)
      * val normalizedHtml = Ksoup.clean(sourceBodyHtml, "https://example.com/", safelist)
-     `</pre> *
+    `</pre> *
      *
      * Assumes the HTML is a body fragment (i.e. will be used in an existing HTML document body.)
      * @param bodyHtml HTML to test

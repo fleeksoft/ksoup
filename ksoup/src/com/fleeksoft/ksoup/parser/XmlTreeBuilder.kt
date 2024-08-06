@@ -120,21 +120,6 @@ public open class XmlTreeBuilder : TreeBuilder() {
         insertLeafNode(doctypeNode)
     }
 
-    @Deprecated("unused and will be removed. ")
-    protected fun insertNode(node: Node?) {
-        currentElement().appendChild(node!!)
-        onNodeInserted(node)
-    }
-
-    @Deprecated("unused and will be removed. ")
-    protected fun insertNode(
-        node: Node?,
-        token: Token?,
-    ) {
-        currentElement().appendChild(node!!)
-        onNodeInserted(node)
-    }
-
     /**
      * If the stack contains an element with this tag's name, pop up the stack to remove the first occurrence. If not
      * found, skips.

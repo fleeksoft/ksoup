@@ -3,15 +3,12 @@ package com.fleeksoft.ksoup.helper
 import com.fleeksoft.ksoup.*
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parser.Parser
-import korlibs.io.file.std.resourcesVfs
 import korlibs.io.file.std.uniVfs
 import korlibs.io.lang.Charset
 import korlibs.io.lang.Charsets
 import korlibs.io.lang.toByteArray
-import korlibs.io.resources.resourceLocal
 import korlibs.io.stream.SyncStream
 import korlibs.io.stream.openSync
-import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import kotlin.test.*
 
@@ -71,10 +68,10 @@ class DataUtilTest {
         val html = "\uFEFF<html><head><title>One</title></head><body>Two</body></html>"
         val doc: Document =
             DataUtil.parseInputSource(
-                html.openSync(),
-                null,
-                "http://foo.com/",
-                Parser.htmlParser(),
+                syncStream = html.openSync(),
+                baseUri = "http://foo.com/",
+                charsetName = null,
+                parser = Parser.htmlParser(),
             )
         assertEquals("One", doc.head().text())
         assertEquals("UTF-8", doc.outputSettings().charset().name.uppercase())
@@ -121,10 +118,10 @@ class DataUtilTest {
         val html = "<html><head><meta charset=iso-8></head><body></body></html>"
         val doc: Document =
             DataUtil.parseInputSource(
-                this.bufferByteArrayCharset(html),
-                null,
-                "http://example.com",
-                Parser.htmlParser(),
+                syncStream = this.bufferByteArrayCharset(html),
+                baseUri = "http://example.com",
+                charsetName = null,
+                parser = Parser.htmlParser(),
             )
         val expected = """<html>
  <head>
@@ -143,15 +140,15 @@ class DataUtilTest {
         }
         val html =
             "<html><head>" +
-                "<meta http-equiv=\"Content-Type\" content=\"text/html\">" +
-                "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=euc-kr\">" +
-                "</head><body>한국어</body></html>"
+                    "<meta http-equiv=\"Content-Type\" content=\"text/html\">" +
+                    "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=euc-kr\">" +
+                    "</head><body>한국어</body></html>"
         val doc: Document =
             DataUtil.parseInputSource(
-                bufferByteArrayCharset(html, "euc-kr"),
-                null,
-                "http://example.com",
-                Parser.htmlParser(),
+                syncStream = bufferByteArrayCharset(data = html, charset = "euc-kr"),
+                baseUri = "http://example.com",
+                charsetName = null,
+                parser = Parser.htmlParser(),
             )
         assertEquals("한국어", doc.body().text())
     }
@@ -160,15 +157,15 @@ class DataUtilTest {
     fun firstMetaElementWithCharsetShouldBeUsedForDecoding() {
         val html =
             "<html><head>" +
-                "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=iso-8859-1\">" +
-                "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=koi8-u\">" +
-                "</head><body>Übergrößenträger</body></html>"
+                    "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=iso-8859-1\">" +
+                    "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=koi8-u\">" +
+                    "</head><body>Übergrößenträger</body></html>"
         val docByteArrayCharset: Document =
             DataUtil.parseInputSource(
-                bufferByteArrayCharset(html, "iso-8859-1"),
-                null,
-                "http://example.com",
-                Parser.htmlParser(),
+                syncStream = bufferByteArrayCharset(data = html, charset = "iso-8859-1"),
+                baseUri = "http://example.com",
+                charsetName = null,
+                parser = Parser.htmlParser(),
             )
 
         assertEquals("Übergrößenträger", docByteArrayCharset.body().text())
@@ -251,17 +248,17 @@ class DataUtilTest {
         val encoding = "iso-8859-1"
         val soup =
             (
-                "<?xml version=\"1.0\" encoding=\"iso-8859-1\"?>" +
-                    "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">" +
-                    "<html xmlns=\"http://www.w3.org/1999/xhtml\" lang=\"en\" xml:lang=\"en\">Hellö Wörld!</html>"
-                )
+                    "<?xml version=\"1.0\" encoding=\"iso-8859-1\"?>" +
+                            "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">" +
+                            "<html xmlns=\"http://www.w3.org/1999/xhtml\" lang=\"en\" xml:lang=\"en\">Hellö Wörld!</html>"
+                    )
                 .toByteArray(Charset.forName(encoding)).openSync()
         val doc: Document = Ksoup.parse(soup, baseUri = "", charsetName = null)
         assertEquals("Hellö Wörld!", doc.body().text())
     }
 
     @Test
-    fun lLoadsGzipFile() = runTest {
+    fun loadsGzipFile() = runTest {
         if (Platform.isJS()) {
 //            js resource access issue
             return@runTest

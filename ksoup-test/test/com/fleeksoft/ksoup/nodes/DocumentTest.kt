@@ -1,6 +1,9 @@
 package com.fleeksoft.ksoup.nodes
 
-import com.fleeksoft.ksoup.*
+import com.fleeksoft.ksoup.Ksoup
+import com.fleeksoft.ksoup.Platform
+import com.fleeksoft.ksoup.TestHelper
+import com.fleeksoft.ksoup.isJS
 import com.fleeksoft.ksoup.parser.ParseSettings
 import com.fleeksoft.ksoup.parser.Parser
 import korlibs.io.lang.Charset
@@ -154,12 +157,11 @@ class DocumentTest {
         }
         // tests location vs base href
         val `in`: String = TestHelper.getResourceAbsolutePath("htmltests/basehref.html")
-        val doc: Document =
-            Ksoup.parseFile(
-                filePath = `in`,
-                baseUri = "http://example.com/",
-                charsetName = "UTF-8",
-            )
+        val doc: Document = Ksoup.parseFile(
+            filePath = `in`,
+            baseUri = "http://example.com/",
+            charsetName = "UTF-8",
+        )
         val location = doc.location()
         val baseUri = doc.baseUri()
         assertEquals("http://example.com/", location)
@@ -477,15 +479,15 @@ class DocumentTest {
             return
         }
         val input = (
-            "<html>" +
-                "<head>" +
-                "<meta http-equiv=\"content-type\" content=\"text/html; charset=Shift_JIS\" />" +
-                "</head>" +
-                "<body>" +
-                "before&nbsp;after" +
-                "</body>" +
-                "</html>"
-            )
+                "<html>" +
+                        "<head>" +
+                        "<meta http-equiv=\"content-type\" content=\"text/html; charset=Shift_JIS\" />" +
+                        "</head>" +
+                        "<body>" +
+                        "before&nbsp;after" +
+                        "</body>" +
+                        "</html>"
+                )
         val inputStream = input.encodeToByteArray().openSync()
         val doc: Document = Ksoup.parse(syncStream = inputStream, baseUri = "http://example.com", charsetName = null)
         doc.outputSettings().escapeMode(Entities.EscapeMode.xhtml)

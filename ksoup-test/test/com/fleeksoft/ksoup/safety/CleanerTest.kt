@@ -244,7 +244,7 @@ class CleanerTest {
     @Test
     fun resolvesRelativeLinks() {
         val html = "<a href='/foo'>Link</a><img src='/bar'>"
-        val clean = Ksoup.clean(html, "http://example.com/", Safelist.basicWithImages())
+        val clean = Ksoup.clean(bodyHtml = html, safelist = Safelist.basicWithImages(), baseUri = "http://example.com/")
         assertEquals(
             "<a href=\"http://example.com/foo\" rel=\"nofollow\">Link</a><img src=\"http://example.com/bar\">",
             clean,
@@ -254,7 +254,7 @@ class CleanerTest {
     @Test
     fun preservesRelativeLinksIfConfigured() {
         val html = "<a href='/foo'>Link</a><img src='/bar'> <img src='javascript:alert()'>"
-        val clean = Ksoup.clean(html, "http://example.com/", Safelist.basicWithImages().preserveRelativeLinks(true))
+        val clean = Ksoup.clean(bodyHtml = html, safelist = Safelist.basicWithImages().preserveRelativeLinks(true), baseUri = "http://example.com/")
         assertEquals("<a href=\"/foo\" rel=\"nofollow\">Link</a><img src=\"/bar\"> <img>", clean)
     }
 
@@ -269,10 +269,10 @@ class CleanerTest {
     fun dropsConcealedJavascriptProtocolWhenRelativesLinksEnabled() {
         val safelist = Safelist.basic().preserveRelativeLinks(true)
         val html = "<a href=\"&#0013;ja&Tab;va&Tab;script&#0010;:alert(1)\">Link</a>"
-        val clean = Ksoup.clean(html, "https://", safelist)
+        val clean = Ksoup.clean(bodyHtml = html, safelist = safelist, baseUri = "https://")
         assertEquals("<a rel=\"nofollow\">Link</a>", clean)
         val colon = "<a href=\"ja&Tab;va&Tab;script&colon;alert(1)\">Link</a>"
-        val cleanColon = Ksoup.clean(colon, "https://", safelist)
+        val cleanColon = Ksoup.clean(bodyHtml = colon, safelist = safelist, baseUri = "https://")
         assertEquals("<a rel=\"nofollow\">Link</a>", cleanColon)
     }
 
@@ -280,7 +280,7 @@ class CleanerTest {
     fun dropsConcealedJavascriptProtocolWhenRelativesLinksDisabled() {
         val safelist = Safelist.basic().preserveRelativeLinks(false)
         val html = "<a href=\"ja&Tab;vas&#0013;cript:alert(1)\">Link</a>"
-        val clean = Ksoup.clean(html, "https://", safelist)
+        val clean = Ksoup.clean(bodyHtml = html, safelist = safelist, baseUri = "https://")
         assertEquals("<a rel=\"nofollow\">Link</a>", clean)
     }
 
@@ -324,8 +324,8 @@ class CleanerTest {
         os.escapeMode(Entities.EscapeMode.extended)
         os.charset("ISO-8859-1")
         val html = "<div><p>&bernou;</p></div>"
-        val customOut = Ksoup.clean(html, "http://foo.com/", Safelist.relaxed(), os)
-        val defaultOut = Ksoup.clean(html, "http://foo.com/", Safelist.relaxed())
+        val customOut = Ksoup.clean(bodyHtml = html, safelist = Safelist.relaxed(), baseUri = "http://foo.com/", outputSettings = os)
+        val defaultOut = Ksoup.clean(bodyHtml = html, safelist = Safelist.relaxed(), baseUri = "http://foo.com/")
         assertNotSame(defaultOut, customOut)
         assertEquals("<div><p>&Bscr;</p></div>", customOut) // entities now prefers shorted names if aliased
         assertEquals(
@@ -336,7 +336,7 @@ class CleanerTest {
         )
         os.charset("ISO-8859-1")
         os.escapeMode(Entities.EscapeMode.base)
-        val customOut2 = Ksoup.clean(html, "http://foo.com/", Safelist.relaxed(), os)
+        val customOut2 = Ksoup.clean(bodyHtml = html, safelist = Safelist.relaxed(), baseUri = "http://foo.com/", outputSettings = os)
         assertEquals("<div><p>&#x212c;</p></div>", customOut2)
     }
 
