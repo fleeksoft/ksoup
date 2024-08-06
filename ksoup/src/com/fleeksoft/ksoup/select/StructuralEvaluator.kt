@@ -164,26 +164,6 @@ public abstract class StructuralEvaluator(public val evaluator: Evaluator) : Eva
         }
     }
 
-    @Deprecated("replaced by {@link  ImmediateParentRun}")
-    internal class ImmediateParent(evaluator: Evaluator) : StructuralEvaluator(evaluator) {
-        override fun matches(
-            root: Element,
-            element: Element,
-        ): Boolean {
-            if (root === element) return false
-            val parent: Element? = element.parent()
-            return parent != null && memoMatches(root, parent)
-        }
-
-        override fun cost(): Int {
-            return 1 + evaluator.cost()
-        }
-
-        override fun toString(): String {
-            return "$evaluator > "
-        }
-    }
-
     /**
      * Holds a list of evaluators for one > two > three immediate parent matches, and the final direct evaluator under
      * test. To match, these are effectively ANDed together, starting from the last, matching up to the first.
