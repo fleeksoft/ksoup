@@ -171,7 +171,7 @@ class EntitiesTest {
 
     @Test
     fun escapesGtInXmlAttributesButNotInHtml() {
-        // https://github.com/jhy/jsoup/issues/528 - < is OK in HTML attribute values, but not in XML
+        //< is OK in HTML attribute values, but not in XML
         val docHtml = "<a title='<p>One</p>'>One</a>"
         val doc = parse(docHtml)
         val element = doc.select("a").first()
@@ -183,7 +183,6 @@ class EntitiesTest {
 
     @Test
     fun controlCharactersAreEscaped() {
-        // https://github.com/jhy/jsoup/issues/1556
         // we escape ascii control characters in both HTML and XML for compatibility. Required in XML and probably
         // easier to read in HTML
         val input = "<a foo=\"&#x1b;esc&#x7;bell\">Text &#x1b; &#x7;</a>"

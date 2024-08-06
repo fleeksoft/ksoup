@@ -296,7 +296,6 @@ public object Entities {
      * Wiki: 1895, 16
      * CNN: 6378, 55
      * Alterslash: 3013, 28
-     * Jsoup: 167, 2
      */
     private fun canEncode(
         charset: CoreCharset,

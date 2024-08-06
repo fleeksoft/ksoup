@@ -385,7 +385,6 @@ class CleanerTest {
 
     @Test
     fun handlesAttributesWithNoValue() {
-        // https://github.com/jhy/jsoup/issues/973
         val clean = Ksoup.clean("<a href>Clean</a>", Safelist.basic())
         assertEquals("<a rel=\"nofollow\">Clean</a>", clean)
     }
@@ -400,7 +399,6 @@ class CleanerTest {
 
     @Test
     fun handlesNestedQuotesInAttribute() {
-        // https://github.com/jhy/jsoup/issues/1243 - no repro
         val orig = "<div style=\"font-family: 'Calibri'\">Will (not) fail</div>"
         val allow =
             Safelist.relaxed()
@@ -434,7 +432,6 @@ class CleanerTest {
     @Test
     fun cleansCaseSensitiveElements() {
         parameterizedTest(listOf(true, false)) { preserveCase ->
-            // https://github.com/jhy/jsoup/issues/2049
             val html =
                 "<svg><feMerge baseFrequency=2><feMergeNode kernelMatrix=1 /><feMergeNode><clipPath /></feMergeNode><feMergeNode />"
             var tags = arrayOf("svg", "feMerge", "feMergeNode", "clipPath")

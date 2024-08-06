@@ -49,7 +49,6 @@ class DataUtilTestJvm {
 
     @Test
     fun testParseSequenceBufferReader() = runTest {
-        // https://github.com/jhy/jsoup/pull/1671
         val stream: SyncStream = TestHelper.resourceFilePathToStream("htmltests/medium.html")
         val fileContent = String(stream.readAll())
         val halfLength = fileContent.length / 2

@@ -106,7 +106,6 @@ class HtmlParserTest {
 
     @Test
     fun allDashCommentsAreNotParseErrors() {
-        // https://github.com/jhy/jsoup/issues/1667
         // <!-----> is not a parse error
         val html = "<!------>"
         val parser = Parser.htmlParser().setTrackErrors(10)
@@ -130,7 +129,7 @@ class HtmlParserTest {
 
     @Test
     fun dropsUnterminatedAttribute() {
-        // jsoup used to parse this to <p id="foo">, but whatwg, webkit will drop.
+        // ksoup used to parse this to <p id="foo">, but whatwg, webkit will drop.
         val h1 = "<p id=\"foo"
         val doc = Ksoup.parse(h1)
         assertEquals("", doc.text())
@@ -171,7 +170,7 @@ class HtmlParserTest {
 
     @Test
     fun createsDocumentStructure() {
-        val html = "<meta name=keywords /><link rel=stylesheet /><title>jsoup</title><p>Hello world</p>"
+        val html = "<meta name=keywords /><link rel=stylesheet /><title>ksoup</title><p>Hello world</p>"
         val doc = Ksoup.parse(html)
         val head = doc.head()
         val body = doc.body()
@@ -181,7 +180,7 @@ class HtmlParserTest {
         assertEquals(1, body.children().size)
         assertEquals("keywords", head.getElementsByTag("meta")[0].attr("name"))
         assertEquals(0, body.getElementsByTag("meta").size)
-        assertEquals("jsoup", doc.title())
+        assertEquals("ksoup", doc.title())
         assertEquals("Hello world", body.text())
         assertEquals("Hello world", body.children()[0].text())
     }
@@ -262,7 +261,7 @@ class HtmlParserTest {
 
     @Test
     fun doesNotCreateImplicitLists() {
-        // old jsoup used to wrap this in <ul>, but that's not to spec
+        // old ksoup used to wrap this in <ul>, but that's not to spec
         val h = "<li>Point one<li>Point two"
         val doc = Ksoup.parse(h)
         val ol = doc.select("ul") // should NOT have created a default ul.
@@ -283,7 +282,7 @@ class HtmlParserTest {
 
     @Test
     fun discardsNakedTds() {
-        // jsoup used to make this into an implicit table; but browsers make it into a text run
+        // ksoup used to make this into an implicit table; but browsers make it into a text run
         val h = "<td>Hello<td><p>There<p>now"
         val doc = Ksoup.parse(h)
         assertEquals("Hello<p>There</p><p>now</p>", TextUtil.stripNewlines(doc.body().html()))
@@ -432,7 +431,7 @@ class HtmlParserTest {
 
     @Test
     fun handlesUnclosedCdataAtEOF() {
-        // https://github.com/jhy/jsoup/issues/349 would crash, as character reader would try to seek past EOF
+        // would crash, as character reader would try to seek past EOF
         val h = "<![CDATA[]]"
         val doc = Ksoup.parse(h)
         assertEquals(1, doc.body().childNodeSize())
@@ -501,7 +500,6 @@ class HtmlParserTest {
 
     @Test
     fun parseBodyIsIndexNoAttributes() {
-        // https://github.com/jhy/jsoup/issues/1404
         val expectedHtml = """<form>
  <hr><label>This is a searchable index. Enter search keywords: <input name="isindex"></label>
  <hr>
@@ -595,7 +593,7 @@ class HtmlParserTest {
 
     @Test
     fun handlesUnclosedDefinitionLists() {
-        // jsoup used to create a <dl>, but that's not to spec
+        // ksoup used to create a <dl>, but that's not to spec
         val h = "<dt>Foo<dd>Bar<dt>Qux<dd>Zug"
         val doc = Ksoup.parse(h)
         assertEquals(0, doc.select("dl").size) // no auto dl
@@ -705,7 +703,7 @@ class HtmlParserTest {
 
     @Test
     fun testHgroup() {
-        // jsoup used to not allow hgroup in h{n}, but that's not in spec, and browsers are OK
+        // ksoup used to not allow hgroup in h{n}, but that's not in spec, and browsers are OK
         val doc =
             Ksoup.parse("<h1>Hello <h2>There <hgroup><h1>Another<h2>headline</hgroup> <hgroup><h1>More</h1><p>stuff</p></hgroup>")
         assertEquals(
@@ -743,7 +741,7 @@ class HtmlParserTest {
 
     @Test
     fun testNoImagesInNoScriptInHead() {
-        // jsoup used to allow, but against spec if parsing with noscript
+        // ksoup used to allow, but against spec if parsing with noscript
         val doc = Ksoup.parse("<html><head><noscript><img src='foo'></noscript></head><body><p>Hello</p></body></html>")
         assertEquals(
             "<html><head><noscript>&lt;img src=\"foo\"&gt;</noscript></head><body><p>Hello</p></body></html>",
@@ -1022,7 +1020,7 @@ class HtmlParserTest {
 
     @Test
     fun noImplicitFormForTextAreas() {
-        // old jsoup parser would create implicit forms for form children like <textarea>, but no more
+        // old ksoup parser would create implicit forms for form children like <textarea>, but no more
         val doc = Ksoup.parse("<textarea>One</textarea>")
         assertEquals("<textarea>One</textarea>", doc.body().html())
     }
@@ -1209,9 +1207,9 @@ class HtmlParserTest {
 
     @Test
     fun handlesTagsInTextarea() {
-        val html = "<textarea><p>Jsoup</p></textarea>"
+        val html = "<textarea><p>Ksoup</p></textarea>"
         val doc = Ksoup.parse(html)
-        assertEquals("<textarea>&lt;p&gt;Jsoup&lt;/p&gt;</textarea>", doc.body().html())
+        assertEquals("<textarea>&lt;p&gt;Ksoup&lt;/p&gt;</textarea>", doc.body().html())
     }
 
     // form tests
@@ -1613,7 +1611,6 @@ class HtmlParserTest {
 
     @Test
     fun selfClosingTextAreaDoesntLeaveDroppings() {
-        // https://github.com/jhy/jsoup/issues/1220
         val doc = Ksoup.parse("<div><div><textarea/></div></div>")
         assertFalse(doc.body().html().contains("&lt;"))
         assertFalse(doc.body().html().contains("&gt;"))
@@ -1663,7 +1660,6 @@ class HtmlParserTest {
 
     @Test
     fun testH20() {
-        // https://github.com/jhy/jsoup/issues/731
         val html = "H<sub>2</sub>O"
         val clean = Ksoup.clean(html, Safelist.basic())
         assertEquals("H<sub>2</sub>O", clean)
@@ -1673,7 +1669,6 @@ class HtmlParserTest {
 
     @Test
     fun testUNewlines() {
-        // https://github.com/jhy/jsoup/issues/851
         val html = "t<u>es</u>t <b>on</b> <i>f</i><u>ir</u>e"
         val clean = Ksoup.clean(html, Safelist.basic())
         assertEquals("t<u>es</u>t <b>on</b> <i>f</i><u>ir</u>e", clean)
@@ -1683,7 +1678,6 @@ class HtmlParserTest {
 
     @Test
     fun testFarsi() {
-        // https://github.com/jhy/jsoup/issues/1227
         val text = "نیمه\u200Cشب"
         val doc = Ksoup.parse("<p>$text")
         assertEquals(text, doc.text())
@@ -1691,7 +1685,6 @@ class HtmlParserTest {
 
     @Test
     fun testStartOptGroup() {
-        // https://github.com/jhy/jsoup/issues/1313
         val html = """<select>
   <optgroup label="a">
   <option>one
@@ -1768,7 +1761,7 @@ class HtmlParserTest {
 
     @Test
     fun preservesTabs() {
-        // testcase to demonstrate tab retention - https://github.com/jhy/jsoup/issues/1240
+        // testcase to demonstrate tab retention
         val html = "<pre>One\tTwo</pre><span>\tThree\tFour</span>"
         val doc = Ksoup.parse(html)
         val pre = doc.selectFirst("pre")
@@ -1820,7 +1813,6 @@ class HtmlParserTest {
 
     @Test
     fun canSetHtmlOnCreatedTableElements() {
-        // https://github.com/jhy/jsoup/issues/1603
         val element = Element("tr")
         element.html("<tr><td>One</td></tr>")
         assertEquals("<tr>\n <tr>\n  <td>One</td>\n </tr>\n</tr>", element.outerHtml())
@@ -1828,7 +1820,6 @@ class HtmlParserTest {
 
     @Test
     fun parseFragmentOnCreatedDocument() {
-        // https://github.com/jhy/jsoup/issues/1601
         val bareFragment = "<h2>text</h2>"
         val nodes = Document("").parser()!!.parseFragmentInput(bareFragment, Element("p"), "")
         assertEquals(1, nodes.size)
@@ -1839,7 +1830,6 @@ class HtmlParserTest {
 
     @Test
     fun nestedPFragments() {
-        // https://github.com/jhy/jsoup/issues/1602
         val bareFragment = "<p></p><a></a>"
         val nodes = Document("").parser()!!.parseFragmentInput(bareFragment, Element("p"), "")
         assertEquals(2, nodes.size)
@@ -1852,7 +1842,6 @@ class HtmlParserTest {
 
     @Test
     fun nestedAnchorAdoption() {
-        // https://github.com/jhy/jsoup/issues/1608
         val html = "<a>\n<b>\n<div>\n<a>test</a>\n</div>\n</b>\n</a>"
         val doc = Ksoup.parse(html)
         assertNotNull(doc)
@@ -1861,7 +1850,6 @@ class HtmlParserTest {
 
     @Test
     fun tagsMustStartWithAscii() {
-        // https://github.com/jhy/jsoup/issues/1006
         val valid = arrayOf("a一", "a会员挂单金额5", "table(╯°□°)╯")
         val invalid = arrayOf("一", "会员挂单金额5", "(╯°□°)╯")
         for (tag in valid) {
@@ -1951,7 +1939,7 @@ class HtmlParserTest {
 
     @Test
     fun templateTableRowFragment() {
-        // https://github.com/jhy/jsoup/issues/1409 (per the fragment <tr> use case)
+        // (per the fragment <tr> use case)
         val doc = Ksoup.parse("<body><table><template></template></table></body")
         val html = "<tr><td><img></td></tr>"
         val tmpl = doc.selectFirst("template")
@@ -1965,7 +1953,7 @@ class HtmlParserTest {
 
     @Test
     fun templateNotInTableRowFragment() {
-        // https://github.com/jhy/jsoup/issues/1409 (per the fragment <tr> use case)
+        // (per the fragment <tr> use case)
         val doc = Ksoup.parse("<body><template></template></body")
         val html = "<tr><td><img></td></tr>"
         val tmpl = doc.selectFirst("template")
@@ -1979,7 +1967,6 @@ class HtmlParserTest {
 
     @Test
     fun templateFragment() {
-        // https://github.com/jhy/jsoup/issues/1315
         val html = "<template id=\"lorem-ipsum\"><tr><td>Lorem</td><td>Ipsum</td></tr></template>"
         val frag = Ksoup.parseBodyFragment(html)
         val want = "<template id=\"lorem-ipsum\"><tr><td>Lorem</td><td>Ipsum</td></tr></template>"
@@ -1988,7 +1975,6 @@ class HtmlParserTest {
 
     @Test
     fun templateInferredForm() {
-        // https://github.com/jhy/jsoup/issues/1637 | https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=38987
         val doc = Ksoup.parse("<template><isindex action>")
         assertNotNull(doc)
         assertEquals(
@@ -1999,7 +1985,6 @@ class HtmlParserTest {
 
     @Test
     fun trimNormalizeElementNamesInBuilder() {
-        // https://github.com/jhy/jsoup/issues/1637 | https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=38983
         // This is interesting - in TB state, the element name was "template\u001E", so no name checks matched. Then,
         // when the Element is created, the name got normalized to "template" and so looked like there should be a
         // template on the stack during resetInsertionMode for the select.
@@ -2139,7 +2124,6 @@ class HtmlParserTest {
 
     @Test
     fun htmlClose() {
-        // https://github.com/jhy/jsoup/issues/1851
         val html = "<body><div>One</html>Two</div></body>"
         val doc = Ksoup.parse(html)
         assertEquals("OneTwo", doc.expectFirst("body > div").text())
@@ -2147,7 +2131,6 @@ class HtmlParserTest {
 
     @Test
     fun largeTextareaContents() {
-        // https://github.com/jhy/jsoup/issues/1929
         val sb = StringBuilder()
         val num = 2000
         for (i in 0..num) {

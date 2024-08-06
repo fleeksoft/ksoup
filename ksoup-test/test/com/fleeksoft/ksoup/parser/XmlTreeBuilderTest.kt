@@ -255,7 +255,6 @@ class XmlTreeBuilderTest {
 
     @Test
     fun handlesLTinScript() {
-        // https://github.com/jhy/jsoup/issues/1139
         val html = "<script> var a=\"<?\"; var b=\"?>\"; </script>"
         val doc = Ksoup.parse(html, "", Parser.xmlParser())
         assertEquals(
@@ -289,7 +288,6 @@ class XmlTreeBuilderTest {
     @Test
     fun xmlParserEnablesXmlOutputAndEscapes() {
         // Test that when using the XML parser, the output mode and escape mode default to XHTML entities
-        // https://github.com/jhy/jsoup/issues/1420
         val doc = Ksoup.parse("<p one='&lt;two&gt;&copy'>Three</p>", "", Parser.xmlParser())
         assertEquals(doc.outputSettings().syntax(), Document.OutputSettings.Syntax.xml)
         assertEquals(doc.outputSettings().escapeMode(), Entities.EscapeMode.xhtml)

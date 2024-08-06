@@ -102,7 +102,7 @@ class ParseTest {
 //            js resource access issue
             return@runTest
         }
-        // https://github.com/jhy/jsoup/issues/1324
+
         // this tests that when in CharacterReader we hit a buffer while marked, we preserve the mark when buffered up and can rewind
         val input = TestHelper.getResourceAbsolutePath("htmltests/xwiki-1324.html.gz")
         val doc: Document =
@@ -126,7 +126,6 @@ class ParseTest {
 //            js resource access issue
             return@runTest
         }
-        // https://github.com/jhy/jsoup/issues/1324
         // this tests that if there is a huge illegal character reference, we can get through a buffer and rewind, and still catch that it's an invalid refence,
         // and the parse tree is correct.
         val parser = Parser.htmlParser()

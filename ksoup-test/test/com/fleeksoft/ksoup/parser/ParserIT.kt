@@ -34,7 +34,7 @@ class ParserIT {
 //            The GitHub action is taking too much time.
             return
         }
-        // inspired by http://sv.stargate.wikia.com/wiki/M2J and https://github.com/jhy/jsoup/issues/955
+        // inspired by http://sv.stargate.wikia.com/wiki/M2J
         // I didn't put it in the integration tests, because explorer and intellij kept dieing trying to preview/index it
 
         // Arrange

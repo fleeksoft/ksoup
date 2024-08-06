@@ -155,7 +155,6 @@ class TraversorTest {
 
     @Test
     fun replaceElement() {
-        // https://github.com/jhy/jsoup/issues/1289
         // test we can replace an element during traversal
         val html = "<div><p>One <i>two</i> <i>three</i> four.</p></div>"
         val doc = Ksoup.parse(html)

@@ -160,39 +160,39 @@ class ElementsTest {
 
     @Test
     fun before() {
-        val doc = Ksoup.parse("<p>This <a>is</a> <a>jsoup</a>.</p>")
+        val doc = Ksoup.parse("<p>This <a>is</a> <a>ksoup</a>.</p>")
         doc.select("a").before("<span>foo</span>")
         assertEquals(
-            "<p>This <span>foo</span><a>is</a> <span>foo</span><a>jsoup</a>.</p>",
+            "<p>This <span>foo</span><a>is</a> <span>foo</span><a>ksoup</a>.</p>",
             TextUtil.stripNewlines(doc.body().html()),
         )
     }
 
     @Test
     fun after() {
-        val doc = Ksoup.parse("<p>This <a>is</a> <a>jsoup</a>.</p>")
+        val doc = Ksoup.parse("<p>This <a>is</a> <a>ksoup</a>.</p>")
         doc.select("a").after("<span>foo</span>")
         assertEquals(
-            "<p>This <a>is</a><span>foo</span> <a>jsoup</a><span>foo</span>.</p>",
+            "<p>This <a>is</a><span>foo</span> <a>ksoup</a><span>foo</span>.</p>",
             TextUtil.stripNewlines(doc.body().html()),
         )
     }
 
     @Test
     fun wrap() {
-        val h = "<p><b>This</b> is <b>jsoup</b></p>"
+        val h = "<p><b>This</b> is <b>ksoup</b></p>"
         val doc = Ksoup.parse(h)
         doc.select("b").wrap("<i></i>")
-        assertEquals("<p><i><b>This</b></i> is <i><b>jsoup</b></i></p>", doc.body().html())
+        assertEquals("<p><i><b>This</b></i> is <i><b>ksoup</b></i></p>", doc.body().html())
     }
 
     @Test
     fun wrapDiv() {
-        val h = "<p><b>This</b> is <b>jsoup</b>.</p> <p>How do you like it?</p>"
+        val h = "<p><b>This</b> is <b>ksoup</b>.</p> <p>How do you like it?</p>"
         val doc = Ksoup.parse(h)
         doc.select("p").wrap("<div></div>")
         assertEquals(
-            "<div>\n <p><b>This</b> is <b>jsoup</b>.</p>\n</div>\n<div>\n <p>How do you like it?</p>\n</div>",
+            "<div>\n <p><b>This</b> is <b>ksoup</b>.</p>\n</div>\n<div>\n <p>How do you like it?</p>\n</div>",
             doc.body().html(),
         )
     }
@@ -236,10 +236,10 @@ class ElementsTest {
 
     @Test
     fun remove() {
-        val doc = Ksoup.parse("<div><p>Hello <b>there</b></p> jsoup <p>now!</p></div>")
+        val doc = Ksoup.parse("<div><p>Hello <b>there</b></p> ksoup <p>now!</p></div>")
         doc.outputSettings().prettyPrint(false)
         doc.select("p").remove()
-        assertEquals("<div> jsoup </div>", doc.body().html())
+        assertEquals("<div> ksoup </div>", doc.body().html())
     }
 
     @Test

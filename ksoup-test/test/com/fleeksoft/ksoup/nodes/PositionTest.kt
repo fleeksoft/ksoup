@@ -168,7 +168,7 @@ class PositionTest {
 
     @Test
     fun tracksMarkup() {
-        val html = "<!doctype\nhtml>\n<title>jsoup &copy;\n2022</title><body>\n<![CDATA[\n<jsoup>\n]]>"
+        val html = "<!doctype\nhtml>\n<title>ksoup &copy;\n2022</title><body>\n<![CDATA[\n<ksoup>\n]]>"
         val doc: Document = Ksoup.parse(html, TrackingHtmlParser)
 
         val doctype = doc.documentType()
@@ -179,13 +179,13 @@ class PositionTest {
         val title = doc.expectFirst("title")
         val titleText = title.firstChild() as TextNode?
         assertNotNull(titleText)
-        assertEquals("jsoup ©\n2022", title.text())
+        assertEquals("ksoup ©\n2022", title.text())
         assertEquals(titleText.getWholeText(), title.text())
         assertEquals("3,1:16-3,8:23", title.sourceRange().toString())
         assertEquals("3,8:23-4,5:40", titleText.sourceRange().toString())
 
         val cdata = doc.body().childNode(1) as CDataNode
-        assertEquals("\n<jsoup>\n", cdata.text())
+        assertEquals("\n<ksoup>\n", cdata.text())
         assertEquals("5,1:55-7,4:76", cdata.sourceRange().toString())
     }
 
@@ -249,7 +249,6 @@ class PositionTest {
 
     @Test
     fun tracksClosingHtmlTagsInXml() {
-        // verifies https://github.com/jhy/jsoup/issues/1935
         val xml = "<p>One</p><title>Two</title><data>Three</data>"
         val doc: Document = Ksoup.parse(xml, TrackingXmlParser)
         val els: Elements = doc.children()
@@ -261,7 +260,6 @@ class PositionTest {
 
     @Test
     fun tracksClosingHeadingTags() {
-        // https://github.com/jhy/jsoup/issues/1987
         val html = "<h1>One</h1><h2>Two</h2><h10>Ten</h10>"
         val doc: Document = Ksoup.parse(html, TrackingHtmlParser)
 
@@ -464,7 +462,6 @@ class PositionTest {
 
     @Test
     fun tracksFrag() {
-        // https://github.com/jhy/jsoup/issues/2068
         val html = "<h1 id=1>One</h1>\n<h2 id=2>Two</h2><h10>Ten</h10>"
         val shellDoc = Document.createShell("")
 

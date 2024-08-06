@@ -134,7 +134,6 @@ class NodeTest {
 
     @Test
     fun handlesAbsOnUnknownProtocols() {
-        // https://github.com/jhy/jsoup/issues/1610
         // URL would throw on unknown protocol tel: as no stream handler is registered
         val urls = arrayOf("mailto:example@example.com", "tel:867-5309") // mail has a handler, tel doesn't
         for (url in urls) {
@@ -157,7 +156,6 @@ class NodeTest {
 
     @Test
     fun removeOnOrphanIsNoop() {
-        // https://github.com/jhy/jsoup/issues/1898
         val node = Element("div")
         assertNull(node.parentNode())
         node.remove()
@@ -210,7 +208,6 @@ class NodeTest {
 
     @Test
     fun beforeShuffle() {
-        // https://github.com/jhy/jsoup/issues/1898
         val doc = Ksoup.parse("<div><p>One<p>Two<p>Three</div>")
         val div = doc.select("div")[0]
         val ps = doc.select("p")
@@ -239,7 +236,6 @@ class NodeTest {
 
     @Test
     fun afterShuffle() {
-        // https://github.com/jhy/jsoup/issues/1898
         val doc = Ksoup.parse("<div><p>One<p>Two<p>Three</div>")
         val div = doc.select("div")[0]
         val ps = doc.select("p")
@@ -409,7 +405,6 @@ class NodeTest {
 
     @Test
     fun clonedNodesHaveOwnerDocsAndIndependentSettings() {
-        // https://github.com/jhy/jsoup/issues/763
         val doc = Ksoup.parse("<div>Text</div><div>Two</div>")
         doc.outputSettings().prettyPrint(false)
         val div = doc.selectFirst("div")
