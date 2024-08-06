@@ -82,7 +82,7 @@ public class NodeIterator<T : Node>(
         while (true) {
             if (node!!.childNodeSize() > 0) {
                 node = node.childNode(0) // descend children
-            } else if (root!!.equals(node)) {
+            } else if (root == node) {
                 node = null // complete when all children of root are fully visited
             } else if (node.nextSibling() != null) {
                 node =

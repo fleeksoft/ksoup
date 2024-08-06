@@ -4,9 +4,6 @@ import com.fleeksoft.ksoup.ported.Character
 import de.cketti.codepoints.deluxe.CodePoint
 import de.cketti.codepoints.deluxe.appendCodePoint
 import de.cketti.codepoints.deluxe.codePointAt
-import korlibs.datastructure.iterators.fastForEachWithIndex
-import korlibs.io.file.PathInfo
-import korlibs.io.file.pathInfo
 import korlibs.io.net.URL
 import kotlin.math.min
 
@@ -46,7 +43,7 @@ public object StringUtil {
      * @param sep string to place between strings
      * @return joined string
      */
-    public fun join(strings: Collection<*>, sep: String?): String {
+    public fun join(strings: Collection<*>, sep: String): String {
         return join(strings.iterator(), sep)
     }
 
@@ -56,7 +53,7 @@ public object StringUtil {
      * @param sep string to place between strings
      * @return joined string
      */
-    public fun join(strings: Iterator<*>, sep: String?): String {
+    public fun join(strings: Iterator<*>, sep: String): String {
         if (!strings.hasNext()) return ""
         val start = strings.next().toString()
         if (!strings.hasNext()) {
@@ -286,14 +283,13 @@ public object StringUtil {
 
     /**
      * A StringJoiner allows incremental / filtered joining of a set of stringable objects.
-     */
-    public class StringJoiner
-    /**
+     *
      * Create a new joiner, that uses the specified separator. MUST call [.complete] or will leak a thread
      * local string builder.
      *
      * @param separator the token to insert between strings
-     */(private val separator: String?) {
+     */
+    public class StringJoiner(private val separator: String) {
 
         // sets null on builder release so can't accidentally be reused
         private var sb: StringBuilder? = borrowBuilder()
