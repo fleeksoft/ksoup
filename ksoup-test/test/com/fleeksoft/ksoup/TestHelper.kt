@@ -13,8 +13,8 @@ object TestHelper {
     }
 
     fun getResourceAbsolutePath(resourceName: String): String {
-        if (Platform.current == PlatformType.WASM_JS) {
-            return resourceName
+        if (Platform.current == PlatformType.WINDOWS) {
+            return "../../../../testResources/$resourceName"
         }
         return "${BuildConfig.PROJECT_ROOT}/ksoup-test/testResources/$resourceName"
     }
