@@ -4,7 +4,7 @@ import com.fleeksoft.ksoup.BuildConfig
 import com.fleeksoft.ksoup.Ksoup.parse
 import com.fleeksoft.ksoup.Platform
 import com.fleeksoft.ksoup.isJS
-import com.fleeksoft.ksoup.ported.System
+import com.fleeksoft.ksoup.System
 import kotlin.test.*
 import kotlin.test.Test
 
