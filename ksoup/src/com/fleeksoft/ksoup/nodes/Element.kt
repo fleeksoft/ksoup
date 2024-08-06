@@ -11,7 +11,6 @@ import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.parser.Tag
 import com.fleeksoft.ksoup.parser.TokenQueue.Companion.escapeCssIdentifier
 import com.fleeksoft.ksoup.ported.AtomicBoolean
-import com.fleeksoft.ksoup.ported.Collections
 import com.fleeksoft.ksoup.ported.Consumer
 import com.fleeksoft.ksoup.ported.PatternSyntaxException
 import com.fleeksoft.ksoup.select.*
@@ -418,7 +417,7 @@ public open class Element : Node {
         for (node in _childNodes) {
             if (node is TextNode) textNodes.add(node)
         }
-        return Collections.unmodifiableList(textNodes)
+        return textNodes.toList()
     }
 
     /**
@@ -436,7 +435,7 @@ public open class Element : Node {
         for (node in _childNodes) {
             if (node is DataNode) dataNodes.add(node)
         }
-        return Collections.unmodifiableList(dataNodes)
+        return dataNodes.toList()
     }
 
     /**
