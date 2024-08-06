@@ -3,6 +3,7 @@ package com.fleeksoft.ksoup.ported
 import com.fleeksoft.ksoup.Platform
 import com.fleeksoft.ksoup.isApple
 import com.fleeksoft.ksoup.isJS
+import com.fleeksoft.ksoup.isWindows
 import korlibs.io.lang.Charset
 import korlibs.io.lang.toByteArray
 import korlibs.io.stream.openSync
@@ -42,7 +43,7 @@ class AsyncStreamTest {
 
     @Test
     fun testSpecialCharsBufferReader() {
-        if (Platform.isJS() || Platform.isApple()) {
+        if (Platform.isJS() || Platform.isApple() || Platform.isWindows()) {
             // FIXME: euc-kr charset not supported
             return
         }
