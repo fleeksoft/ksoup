@@ -78,7 +78,7 @@ public object Ksoup {
         baseUri: String,
         charsetName: String? = null,
     ): Document {
-        return DataUtil.load(filePath, charsetName, baseUri)
+        return DataUtil.load(filePath = filePath, baseUri = baseUri, charsetName = charsetName)
     }
 
     /**
@@ -94,7 +94,7 @@ public object Ksoup {
         filePath: String,
         charsetName: String? = null,
     ): Document {
-        return DataUtil.load(filePath, charsetName, filePath.uniVfs.absolutePath)
+        return DataUtil.load(filePath = filePath, baseUri = filePath.uniVfs.absolutePath, charsetName = charsetName)
     }
 
     /**
@@ -113,7 +113,7 @@ public object Ksoup {
         charsetName: String? = null,
         parser: Parser = Parser.htmlParser(),
     ): Document {
-        return DataUtil.load(filePath, charsetName, baseUri, parser)
+        return DataUtil.load(filePath = filePath, baseUri = baseUri, charsetName = charsetName, parser = parser)
     }
 
     /**
@@ -133,7 +133,7 @@ public object Ksoup {
         charsetName: String?,
         parser: Parser = Parser.htmlParser(),
     ): Document {
-        return DataUtil.load(syncStream, charsetName, baseUri, parser)
+        return DataUtil.load(syncStream = syncStream, baseUri = baseUri, charsetName = charsetName, parser = parser)
     }
 
     /**

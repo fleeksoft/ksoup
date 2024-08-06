@@ -1,9 +1,11 @@
 package com.fleeksoft.ksoup.helper
 
-import com.fleeksoft.ksoup.*
+import com.fleeksoft.ksoup.Platform
+import com.fleeksoft.ksoup.UncheckedIOException
 import com.fleeksoft.ksoup.internal.Normalizer
 import com.fleeksoft.ksoup.internal.SharedConstants
 import com.fleeksoft.ksoup.internal.StringUtil
+import com.fleeksoft.ksoup.isApple
 import com.fleeksoft.ksoup.nodes.Comment
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.nodes.Node
@@ -13,8 +15,11 @@ import com.fleeksoft.ksoup.ported.IllegalCharsetNameException
 import com.fleeksoft.ksoup.ported.canEncode
 import com.fleeksoft.ksoup.ported.isCharsetSupported
 import com.fleeksoft.ksoup.ported.toStreamCharReader
+import com.fleeksoft.ksoup.readGzipFile
 import com.fleeksoft.ksoup.select.Elements
+import korlibs.io.file.VfsFile
 import korlibs.io.file.fullName
+import korlibs.io.file.readAsSyncStream
 import korlibs.io.file.std.uniVfs
 import korlibs.io.lang.Charset
 import korlibs.io.lang.Charsets
@@ -42,40 +47,41 @@ public object DataUtil {
      * are supported in addition to uncompressed files.
      *
      * @param filePath file to load
+     * @param baseUri base URI of document, to resolve relative links against
      * @param charsetName (optional) character set of input; specify `null` to attempt to autodetect. A BOM in
      * the file will always override this setting.
-     * @param baseUri base URI of document, to resolve relative links against
      * @return Document
      */
     public suspend fun load(
         filePath: String,
-        charsetName: String?,
         baseUri: String,
+        charsetName: String? = null,
+        parser: Parser = Parser.htmlParser(),
     ): Document {
-        return load(filePath, charsetName, baseUri, Parser.htmlParser())
+        return load(file = filePath.uniVfs, charsetName = charsetName, baseUri = baseUri, parser = parser)
     }
 
     /**
      * Loads and parses a file to a Document. Files that are compressed with gzip (and end in `.gz` or `.z`)
      * are supported in addition to uncompressed files.
      *
-     * @param filePath file to load
+     * @param file file to load
+     * @param baseUri base URI of document, to resolve relative links against
      * @param charsetName (optional) character set of input; specify `null` to attempt to autodetect. A BOM in
      * the file will always override this setting.
-     * @param baseUri base URI of document, to resolve relative links against
      * @param parser alternate [parser][Parser.xmlParser] to use.
      *
      * @return Document
      */
     public suspend fun load(
-        filePath: String,
-        charsetName: String?,
-        baseUri: String,
-        parser: Parser,
+        file: VfsFile,
+        baseUri: String = file.absolutePath,
+        charsetName: String? = null,
+        parser: Parser = Parser.htmlParser(),
     ): Document {
-        val name: String = Normalizer.lowerCase(filePath.uniVfs.fullName)
+        val name: String = Normalizer.lowerCase(file.fullName)
 
-        val source = readFile(filePath)
+        val source = file.readAsSyncStream()
         return source.useThis {
             val syncStream: SyncStream =
                 if (name.endsWith(".gz") || name.endsWith(".z")) {
@@ -87,7 +93,7 @@ public object DataUtil {
                     this.reset()
                     if (zipped) {
                         this.close()
-                        readGzipFile(filePath)
+                        readGzipFile(file)
                     } else {
                         this
                     }
@@ -98,10 +104,10 @@ public object DataUtil {
 //            val charset = charsetName?.let { Charset.forName(it) } ?: Charsets.UTF8
 //            val inputData = bufferedSource.readString()
             parseInputSource(
-                syncStream,
-                charsetName,
-                baseUri,
-                parser,
+                syncStream = syncStream,
+                baseUri = baseUri,
+                charsetName = charsetName,
+                parser = parser,
             ) // Assuming there's a method called parseInputString
         }
     }
@@ -109,39 +115,39 @@ public object DataUtil {
     /**
      * Parses a Document from an input steam.
      * @param syncStream buffer reader to parse. The stream will be closed after reading.
-     * @param charsetName character set of input (optional)
      * @param baseUri base URI of document, to resolve relative links against
+     * @param charsetName character set of input (optional)
      * @return Document
      */
     public fun load(
         syncStream: SyncStream,
-        charsetName: String?,
         baseUri: String,
+        charsetName: String?,
     ): Document {
-        return parseInputSource(syncStream, charsetName, baseUri, Parser.htmlParser())
+        return parseInputSource(syncStream = syncStream, baseUri = baseUri, charsetName = charsetName, parser = Parser.htmlParser())
     }
 
     /**
      * Parses a Document from an input steam, using the provided Parser.
      * @param syncStream buffer reader to parse. The stream will be closed after reading.
-     * @param charsetName character set of input (optional)
      * @param baseUri base URI of document, to resolve relative links against
+     * @param charsetName character set of input (optional)
      * @param parser alternate [parser][Parser.xmlParser] to use.
      * @return Document
      */
     public fun load(
         syncStream: SyncStream,
-        charsetName: String?,
         baseUri: String,
+        charsetName: String?,
         parser: Parser,
     ): Document {
-        return parseInputSource(syncStream, charsetName, baseUri, parser)
+        return parseInputSource(syncStream = syncStream, baseUri = baseUri, charsetName = charsetName, parser = parser)
     }
 
     public fun parseInputSource(
         syncStream: SyncStream,
-        charsetName: String?,
         baseUri: String,
+        charsetName: String?,
         parser: Parser,
     ): Document {
         var effectiveCharsetName: String? = charsetName
@@ -188,20 +194,13 @@ public object DataUtil {
                     val comment: Comment = first
                     if (comment.isXmlDeclaration()) decl = comment.asXmlDeclaration()
                 }
-                if (decl != null) {
-                    if (decl.name().equals("xml", ignoreCase = true)) {
-                        foundCharset =
-                            decl.attr("encoding")
-                    }
+                if (decl?.name()?.equals("xml", ignoreCase = true) == true) {
+                    foundCharset = decl.attr("encoding")
                 }
             }
             foundCharset = validateCharset(foundCharset)
-            if (foundCharset != null &&
-                !foundCharset.equals(
-                    defaultCharsetName,
-                    ignoreCase = true,
-                )
-            ) { // need to re-decode. (case insensitive check here to match how validate works)
+            if (foundCharset != null && !foundCharset.equals(defaultCharsetName, ignoreCase = true)) {
+                // need to re-decode. (case insensitive check here to match how validate works)
                 foundCharset = foundCharset.trim { it <= ' ' }.replace("[\"']".toRegex(), "")
                 effectiveCharsetName = foundCharset
                 doc = null
