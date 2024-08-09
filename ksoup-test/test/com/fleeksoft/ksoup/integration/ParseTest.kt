@@ -21,8 +21,8 @@ import kotlin.test.assertTrue
 class ParseTest {
     @Test
     fun testHtml5Charset() = runTest {
-        if (Platform.isApple()) {
-//            apple don't support gb2312 or gbk
+        if (Platform.isApple() || Platform.isWindows()) {
+//            don't support gb2312 or gbk
             return@runTest
         }
         // test that <meta charset="gb2312"> works
