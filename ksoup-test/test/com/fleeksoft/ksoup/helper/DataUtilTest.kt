@@ -140,9 +140,9 @@ class DataUtilTest {
         }
         val html =
             "<html><head>" +
-                    "<meta http-equiv=\"Content-Type\" content=\"text/html\">" +
-                    "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=euc-kr\">" +
-                    "</head><body>한국어</body></html>"
+                "<meta http-equiv=\"Content-Type\" content=\"text/html\">" +
+                "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=euc-kr\">" +
+                "</head><body>한국어</body></html>"
         val doc: Document =
             DataUtil.parseInputSource(
                 syncStream = bufferByteArrayCharset(data = html, charset = "euc-kr"),
@@ -157,9 +157,9 @@ class DataUtilTest {
     fun firstMetaElementWithCharsetShouldBeUsedForDecoding() {
         val html =
             "<html><head>" +
-                    "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=iso-8859-1\">" +
-                    "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=koi8-u\">" +
-                    "</head><body>Übergrößenträger</body></html>"
+                "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=iso-8859-1\">" +
+                "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=koi8-u\">" +
+                "</head><body>Übergrößenträger</body></html>"
         val docByteArrayCharset: Document =
             DataUtil.parseInputSource(
                 syncStream = bufferByteArrayCharset(data = html, charset = "iso-8859-1"),
@@ -203,9 +203,44 @@ class DataUtilTest {
     }
 
     @Test
+    fun streamerSupportsBOMinFiles() = runTest {
+        if (Platform.isJS()) {
+            // js resource access issue
+            return@runTest
+        }
+        // test files from http://www.i18nl10n.com/korean/utftest/
+        var file = TestHelper.getResourceAbsolutePath("bomtests/bom_utf16be.html").uniVfs
+        val parser = Parser.htmlParser()
+
+        var doc: Document =
+            DataUtil.streamParser(file = file, baseUri = "http://example.com", charset = null, parser = parser)
+                .complete()
+        assertTrue(doc.title().contains("UTF-16BE"))
+        assertTrue(doc.text().contains("가각갂갃간갅"))
+
+        file = TestHelper.getResourceAbsolutePath("bomtests/bom_utf16le.html").uniVfs
+        doc = DataUtil.streamParser(file = file, baseUri = "http://example.com", charset = null, parser = parser)
+            .complete()
+        assertTrue(doc.title().contains("UTF-16LE"))
+        assertTrue(doc.text().contains("가각갂갃간갅"))
+
+        file = TestHelper.getResourceAbsolutePath("bomtests/bom_utf32be.html").uniVfs
+        doc = DataUtil.streamParser(file = file, baseUri = "http://example.com", charset = null, parser = parser)
+            .complete()
+        assertTrue(doc.title().contains("UTF-32BE"))
+        assertTrue(doc.text().contains("가각갂갃간갅"))
+
+        file = TestHelper.getResourceAbsolutePath("bomtests/bom_utf32le.html").uniVfs
+        doc = DataUtil.streamParser(file = file, baseUri = "http://example.com", charset = null, parser = parser)
+            .complete()
+        assertTrue(doc.title().contains("UTF-32LE"))
+        assertTrue(doc.text().contains("가각갂갃간갅"))
+    }
+
+    @Test
     fun supportsUTF8BOM() = runTest {
         if (Platform.isJS()) {
-//            js resource access issue
+            // js resource access issue
             return@runTest
         }
         val input: String = TestHelper.getResourceAbsolutePath("bomtests/bom_utf8.html")
@@ -215,10 +250,8 @@ class DataUtilTest {
 
     @Test
     fun noExtraNULLBytes() {
-        val b =
-            "<html><head><meta charset=\"UTF-8\"></head><body><div><u>ü</u>ü</div></body></html>".toByteArray(
-                Charsets.UTF8,
-            )
+        val b = "<html><head><meta charset=\"UTF-8\"></head><body><div><u>ü</u>ü</div></body></html>"
+            .toByteArray(Charsets.UTF8)
         val doc = Ksoup.parse(b.openSync(), baseUri = "", charsetName = null)
         assertFalse(doc.outerHtml().contains("\u0000"))
     }
@@ -226,7 +259,7 @@ class DataUtilTest {
     @Test
     fun supportsZippedUTF8BOM() = runTest {
         if (Platform.isJS()) {
-//            js resource access issue
+            // js resource access issue
             return@runTest
         }
         val input: String = TestHelper.getResourceAbsolutePath("bomtests/bom_utf8.html.gz")
@@ -244,14 +277,34 @@ class DataUtilTest {
     }
 
     @Test
+    fun streamerSupportsZippedUTF8BOM() = runTest {
+        if (Platform.isJS()) {
+            // js resource access issue
+            return@runTest
+        }
+        val file = TestHelper.getResourceAbsolutePath("bomtests/bom_utf8.html.gz").uniVfs
+        val doc = DataUtil.streamParser(
+            file = file,
+            baseUri = "http://example.com",
+            charset = null,
+            parser = Parser.htmlParser()
+        ).complete();
+        assertEquals("OK", doc.head().select("title").text());
+        assertEquals(
+            "There is a UTF8 BOM at the top (before the XML decl). If not read correctly, will look like a non-joining space.",
+            doc.body().text()
+        );
+    }
+
+    @Test
     fun supportsXmlCharsetDeclaration() {
         val encoding = "iso-8859-1"
         val soup =
             (
-                    "<?xml version=\"1.0\" encoding=\"iso-8859-1\"?>" +
-                            "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">" +
-                            "<html xmlns=\"http://www.w3.org/1999/xhtml\" lang=\"en\" xml:lang=\"en\">Hellö Wörld!</html>"
-                    )
+                "<?xml version=\"1.0\" encoding=\"iso-8859-1\"?>" +
+                    "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">" +
+                    "<html xmlns=\"http://www.w3.org/1999/xhtml\" lang=\"en\" xml:lang=\"en\">Hellö Wörld!</html>"
+                )
                 .toByteArray(Charset.forName(encoding)).openSync()
         val doc: Document = Ksoup.parse(soup, baseUri = "", charsetName = null)
         assertEquals("Hellö Wörld!", doc.body().text())

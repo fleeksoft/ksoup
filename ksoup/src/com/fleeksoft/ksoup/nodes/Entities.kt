@@ -11,17 +11,26 @@ import com.fleeksoft.ksoup.nodes.Entities.EscapeMode.extended
 import com.fleeksoft.ksoup.parser.CharacterReader
 import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.ported.Character
+import com.fleeksoft.ksoup.ported.ThreadLocal
 import com.fleeksoft.ksoup.ported.canEncode
 import de.cketti.codepoints.deluxe.CodePoint
 import de.cketti.codepoints.deluxe.codePointAt
 import korlibs.io.lang.Charset
 import korlibs.io.lang.IOException
 
+
 /**
  * HTML entities, and escape routines. Source: [W3C
  * HTML named character references](http://www.w3.org/TR/html5/named-character-references.html#named-character-references).
  */
 public object Entities {
+    // constants for escape options:
+    const val ForText: Int = 0x1
+    const val ForAttribute: Int = 0x2
+    const val Normalise: Int = 0x4
+    const val TrimLeading: Int = 0x8
+    const val TrimTrailing: Int = 0x10
+
     private const val empty = -1
     private const val emptyName = ""
     private const val codepointRadix = 36
@@ -86,11 +95,13 @@ public object Entities {
     }
 
     /**
-     * HTML escape an input string. That is, `<` is returned as `&lt;`
-     *
-     * @param string the un-escaped string to escape
-     * @param out the output settings to use
-     * @return the escaped string
+    HTML escape an input string. That is, {@code <} is returned as {@code &lt;}. The escaped string is suitable for use
+    both in attributes and in text data.
+    @param string the un-escaped string to escape
+    @param out the output settings to use. This configures the character set escaped against (that is, if a
+    character is supported in the output character set, it doesn't have to be escaped), and also HTML or XML
+    settings.
+    @return the escaped string
      */
     public fun escape(
         string: String?,
@@ -103,11 +114,8 @@ public object Entities {
                 accum,
                 string,
                 out,
-                inAttribute = false,
-                normaliseWhite = false,
-                stripLeadingWhite = false,
-                trimTrailing = false,
-            )
+                ForText or ForAttribute
+            ) // for text and for attribute; preserve whitespaces
         } catch (e: IOException) {
             throw SerializationException(e) // doesn't happen
         }
@@ -115,11 +123,12 @@ public object Entities {
     }
 
     /**
-     * HTML escape an input string, using the default settings (UTF-8, base entities). That is, `<` is returned as
-     * `&lt;`
+     * HTML escape an input string, using the default settings (UTF-8, base entities). That is, {@code <} is returned as
+     * {@code &lt;}. The escaped string is suitable for use both in attributes and in text data.
      *
      * @param string the un-escaped string to escape
      * @return the escaped string
+     * @see #escape(String, OutputSettings)
      */
     public fun escape(string: String?): String {
         if (DefaultOutput == null) DefaultOutput = OutputSettings()
@@ -130,30 +139,22 @@ public object Entities {
         null // lazy-init, to break circular dependency with OutputSettings
 
     // this method does a lot, but other breakups cause rescanning and stringbuilder generations
-    @Throws(IOException::class)
-    public fun escape(
-        accum: Appendable,
-        string: String,
-        out: OutputSettings?,
-        inAttribute: Boolean,
-        normaliseWhite: Boolean,
-        stripLeadingWhite: Boolean,
-        trimTrailing: Boolean,
-    ) {
-        var lastWasWhite = false
-        var reachedNonWhite = false
+    public fun escape(accum: Appendable, string: String, out: OutputSettings?, options: Int) {
         val escapeMode: EscapeMode = out!!.escapeMode()
         val encoder: Charset = out.encoder()
         val coreCharset: CoreCharset = out.coreCharset // init in out.prepareEncoder()
         val length = string.length
         var codePoint: CodePoint
+        var lastWasWhite = false
+        var reachedNonWhite = false
         var skipped = false
         var offset = 0
         while (offset < length) {
             codePoint = string.codePointAt(offset)
-            if (normaliseWhite) {
+
+            if (options and Normalise != 0) {
                 if (StringUtil.isWhitespace(codePoint.value)) {
-                    if (stripLeadingWhite && !reachedNonWhite) {
+                    if ((options and TrimLeading) != 0 && !reachedNonWhite) {
                         offset += codePoint.charCount
                         continue
                     }
@@ -161,7 +162,7 @@ public object Entities {
                         offset += codePoint.charCount
                         continue
                     }
-                    if (trimTrailing) {
+                    if (options and TrimTrailing != 0) {
                         skipped = true
                         offset += codePoint.charCount
                         continue
@@ -179,69 +180,113 @@ public object Entities {
                     }
                 }
             }
+
+            appendEscaped(accum, out, options, codePoint, escapeMode, encoder, coreCharset)
             // surrogate pairs, split implementation for efficiency on single char common case (saves creating strings, char[]):
-            if (codePoint.value < Character.MIN_SUPPLEMENTARY_CODE_POINT || encoder.name.uppercase() == "ASCII" || encoder.name.uppercase() == "US-ASCII" || encoder.name.uppercase() == "ISO-8859-1") {
-                val c = codePoint.value.toChar()
-                when {
-                    c == '&' -> {
-                        accum.append("&amp;")
-                    }
-
-                    c.code == 0xA0 -> {
-                        if (escapeMode != EscapeMode.xhtml) {
-                            accum.append("&nbsp;")
-                        } else {
-                            accum.append("&#xa0;")
-                        }
-                    }
-
-                    c == '<' -> // escape when in character data or when in a xml attribute val or XML syntax; not needed in html attr val
-                        {
-                            if (!inAttribute || escapeMode == EscapeMode.xhtml || out.syntax() === OutputSettings.Syntax.xml) {
-                                accum.append("&lt;")
-                            } else {
-                                accum.append(c)
-                            }
-                        }
-
-                    c == '>' -> {
-                        if (!inAttribute) accum.append("&gt;") else accum.append(c)
-                    }
-
-                    c == '"' -> {
-                        if (inAttribute) accum.append("&quot;") else accum.append(c)
-                    }
-
-                    c.code == 0x9 || c.code == 0xA || c.code == 0xD -> {
-                        accum.append(c)
-                    }
-
-                    else -> {
-                        if (c.code < 0x20 || !canEncode(coreCharset, c, encoder)) {
-                            appendEncoded(
-                                accum,
-                                escapeMode,
-                                codePoint.value,
-                            )
-                        } else {
-                            accum.append(c)
-                        }
-                    }
-                }
-            } else {
-                val c = codePoint.toChars().concatToString()
-                if (encoder.canEncode(c)) {
-                    // uses fallback encoder for simplicity
-                    accum.append(c)
-                } else {
-                    appendEncoded(accum, escapeMode, codePoint.value)
-                }
-            }
             offset += codePoint.charCount
         }
     }
 
-    @Throws(IOException::class)
+    private fun appendEscaped(
+        accum: Appendable, out: OutputSettings, options: Int,
+        codePoint: CodePoint, escapeMode: EscapeMode, encoder: Charset, coreCharset: CoreCharset
+    ) {
+        val c = codePoint.value.toChar()
+        if (codePoint.value < Character.MIN_SUPPLEMENTARY_CODE_POINT || encoder.name.uppercase() == "ASCII" || encoder.name.uppercase() == "US-ASCII" || encoder.name.uppercase() == "ISO-8859-1") {
+            when {
+                c == '&' -> {
+                    accum.append("&amp;")
+                }
+
+                c.code == 0xA0 -> {
+                    appendNbsp(accum, escapeMode)
+                    /*if (escapeMode != EscapeMode.xhtml) {
+                        accum.append("&nbsp;")
+                    } else {
+                        accum.append("&#xa0;")
+                    }*/
+                }
+
+                c == '<' -> {
+
+                    // escape when in character data or when in a xml attribute val or XML syntax; not needed in html attr val
+                    appendLt(accum, options, escapeMode, out)
+                    /*if (!inAttribute || escapeMode == EscapeMode.xhtml || out.syntax() === OutputSettings.Syntax.xml) {
+                        accum.append("&lt;")
+                    } else {
+                        accum.append(c)
+                    }*/
+                }
+
+                c == '>' -> {
+                    if ((options and ForText) != 0) accum.append("&gt;")
+                    else accum.append(c)
+                }
+
+                c == '"' -> {
+                    if ((options and ForAttribute) != 0) accum.append("&quot;")
+                    else accum.append(c)
+                }
+
+                c == '\'' -> {
+                    // special case for the Entities.escape(string) method when we are maximally escaping. Otherwise, because we output attributes in "", there's no need to escape.
+                    appendApos(accum, options, escapeMode)
+                }
+
+                // we escape ascii control <x20 (other than tab, line-feed, carriage return) for XML compliance (required) and HTML ease of reading (not required) - https://www.w3.org/TR/xml/#charsets
+                c.code == 0x9 || c.code == 0xA || c.code == 0xD -> {
+                    accum.append(c)
+                }
+
+                else -> {
+                    if (c.code < 0x20 || !canEncode(coreCharset, c, encoder)) {
+                        appendEncoded(
+                            accum,
+                            escapeMode,
+                            codePoint.value,
+                        )
+                    } else {
+                        accum.append(c)
+                    }
+                }
+            }
+        } else {
+            if (encoder.canEncode(codePoint.toChars().concatToString())) {
+                val chars = charBuf.get()
+                val len = codePoint.toChars(chars, 0)
+                if (accum is StringBuilder) {
+                    accum.append(chars)
+                } else {
+                    accum.append(chars.concatToString(0, len))
+                }
+            } else {
+                appendEncoded(accum, escapeMode, codePoint.value)
+            }
+        }
+    }
+
+    private val charBuf: ThreadLocal<CharArray> = ThreadLocal { CharArray(2) }
+
+    private fun appendNbsp(accum: Appendable, escapeMode: EscapeMode) {
+        if (escapeMode != EscapeMode.xhtml) accum.append("&nbsp;")
+        else accum.append("&#xa0;")
+    }
+
+    private fun appendLt(accum: Appendable, options: Int, escapeMode: EscapeMode, out: OutputSettings) {
+        if ((options and ForText) != 0 || (escapeMode == EscapeMode.xhtml) || (out.syntax() === OutputSettings.Syntax.xml)) {
+            accum.append("&lt;")
+        } else accum.append('<')
+    }
+
+    private fun appendApos(accum: Appendable, options: Int, escapeMode: EscapeMode) {
+        if ((options and ForAttribute) != 0 && (options and ForText) != 0) {
+            if (escapeMode == EscapeMode.xhtml) accum.append("&#x27;")
+            else accum.append("&apos;")
+        } else {
+            accum.append('\'')
+        }
+    }
+
     private fun appendEncoded(
         accum: Appendable,
         escapeMode: EscapeMode,
@@ -305,7 +350,7 @@ public object Entities {
         // todo add more charset tests if impacted by Android's bad perf in canEncode
         return when (charset) {
             CoreCharset.asciiExt -> c.code <= 0xFF // ISO-8859-1 range from 0x00 to 0xFF
-            CoreCharset.utf -> true // real is:!(Character.isLowSurrogate(c) || Character.isHighSurrogate(c)); - but already check above
+            CoreCharset.utf -> !(c >= Character.MIN_SURROGATE && c.code < (Character.MAX_SURROGATE.code + 1)) // !Character.isSurrogate(c); but not in Android 10 desugar;
             else -> fallback.canEncode(c)
         }
     }
@@ -398,10 +443,6 @@ public object Entities {
                 emptyName
             }
         }
-
-        private fun size(): Int {
-            return nameKeys.size
-        }
     }
 
     public enum class CoreCharset {
@@ -411,6 +452,7 @@ public object Entities {
         ;
 
         public companion object {
+
             public fun byName(name: String): CoreCharset {
                 if (name.uppercase() == "US-ASCII" || name.uppercase() == "ASCII" || name.uppercase() == "ISO-8859-1") return asciiExt
                 return if (name.startsWith("UTF-")) utf else fallback
