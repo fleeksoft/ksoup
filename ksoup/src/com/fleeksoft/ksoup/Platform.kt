@@ -4,19 +4,14 @@ import korlibs.io.compression.deflate.GZIP
 import korlibs.io.compression.uncompress
 import korlibs.io.file.VfsFile
 import korlibs.io.file.readAsSyncStream
-import korlibs.io.file.std.uniVfs
 import korlibs.io.stream.*
-
-public suspend fun readGzipFile(filePath: String): SyncStream {
-    return readGzipFile(filePath.uniVfs)
-}
 
 public suspend fun readGzipFile(file: VfsFile): SyncStream {
     return file.readAsSyncStream().readAll().uncompress(GZIP).openSync()
 }
 
-public suspend fun readFile(filePath: String): SyncStream {
-    return filePath.uniVfs.readAsSyncStream()
+public suspend fun readFile(file: VfsFile): SyncStream {
+    return file.readAsSyncStream()
 }
 
 // js don't support ?i

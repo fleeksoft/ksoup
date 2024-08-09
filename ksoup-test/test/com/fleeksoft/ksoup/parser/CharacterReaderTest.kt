@@ -18,10 +18,8 @@ class CharacterReaderTest {
     @Test
     fun testUtf16BE() = runTest {
         val firstLine = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">"""
-        val input =
-            readFile(
-                TestHelper.getResourceAbsolutePath("bomtests/bom_utf16be.html"),
-            ).toStreamCharReader(charset = Charset.forName("UTF-16BE"))
+        val input = readFile(TestHelper.getResourceAbsolutePath("bomtests/bom_utf16be.html").uniVfs)
+            .toStreamCharReader(charset = Charset.forName("UTF-16BE"))
 
 //            ignore first char (ZWNBSP)\uFEFF:65279
         val actualReadLine = input.read(firstLine.length + 1)
@@ -32,9 +30,8 @@ class CharacterReaderTest {
     @Test
     fun testUtf16LE() = runTest {
         val firstLine = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">"""
-        val input = readFile(
-            TestHelper.getResourceAbsolutePath("bomtests/bom_utf16le.html"),
-        ).toStreamCharReader(charset = Charset.forName("UTF-16LE"))
+        val input = readFile(TestHelper.getResourceAbsolutePath("bomtests/bom_utf16le.html").uniVfs)
+            .toStreamCharReader(charset = Charset.forName("UTF-16LE"))
 
         //            ignore first char (ZWNBSP)\uFEFF:65279
         val actualReadLine = input.read(firstLine.length + 1)
