@@ -224,8 +224,7 @@ class StreamParser(private val parser: Parser) {
     fun expectFirst(query: String): Element {
         return Validate.ensureNotNull(
             selectFirst(query),
-            "No elements matched the query '%s' in the document.",
-            query
+            "No elements matched the query '$query' in the document."
         ) as Element
     }
 
@@ -268,8 +267,7 @@ class StreamParser(private val parser: Parser) {
     fun expectNext(query: String): Element {
         return Validate.ensureNotNull(
             selectNext(query),
-            "No elements matched the query '%s' in the document.",
-            query
+            "No elements matched the query '$query' in the document."
         ) as Element
     }
 

@@ -1,7 +1,5 @@
 package com.fleeksoft.ksoup.helper
 
-import korlibs.util.format
-
 /**
  * Validators to check that method arguments meet expectations.
  */
@@ -61,19 +59,14 @@ internal object Validate {
      * null object. (Works around lack of Objects.requestNonNull in Android version.)
      * @param obj nullable object to case to not-null
      * @param msg the String format message to include in the validation exception when thrown
-     * @param args the arguments to the msg
      * @return the object, or throws an exception if it is null
      * @throws ValidationException if the object is null
      */
     fun ensureNotNull(
         obj: Any?,
-        msg: String?,
-        vararg args: Any?
+        msg: String?
     ): Any {
-        val formattedMessage = if (args.isNotEmpty()) {
-            msg?.format(args)
-        } else msg
-        return obj ?: throw ValidationException(formattedMessage)
+        return obj ?: throw ValidationException(msg)
     }
 
     /**
