@@ -14,10 +14,6 @@ class GithubIssue19 {
 
     @Test
     fun testAttributeIncorrectMixCharsetIssue() = runTest {
-        if (Platform.isJS()) {
-//            js resource access issue
-            return@runTest
-        }
         val document: Document = Ksoup.parseFile(TestHelper.getResourceAbsolutePath("htmltests/issue19.html.gz"))
         val imagesEls: Elements = document.select("img")
         for (imagesEl in imagesEls) {
@@ -30,9 +26,6 @@ class GithubIssue19 {
                 throw Exception("Base64 string length is not a multiple of 4.")
             }
         }
-        /*
-        val doc = Ksoup.parseFile(TestHelper.getResourceAbsolutePath("htmltests/issue19.html"))
-        resolveFolderChildInfos(doc)*/
     }
 
     fun resolveFolderChildInfos(doc: Document) {

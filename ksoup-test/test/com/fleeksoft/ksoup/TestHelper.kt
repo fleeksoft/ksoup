@@ -13,8 +13,10 @@ object TestHelper {
     }
 
     fun getResourceAbsolutePath(resourceName: String): String {
-        if (Platform.current == PlatformType.WINDOWS) {
+        if (Platform.isWindows()) {
             return "../../../../testResources/$resourceName"
+        } else if (Platform.isJS()) {
+            return "https://raw.githubusercontent.com/fleeksoft/ksoup/release/ksoup-test/testResources/$resourceName"
         }
         return "${BuildConfig.PROJECT_ROOT}/ksoup-test/testResources/$resourceName"
     }

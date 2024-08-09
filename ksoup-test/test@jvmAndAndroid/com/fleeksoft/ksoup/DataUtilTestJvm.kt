@@ -80,10 +80,6 @@ class DataUtilTestJvm {
 
     @Test
     fun testHandlesChunkedInputStream() {
-        if (Platform.isJS()) {
-//            js resource access issue
-            return
-        }
         val file = File(TestHelper.getResourceAbsolutePath("htmltests/large.html.gz"))
         val input = getFileAsString(file)
         val expected = Ksoup.parse(html = input, baseUri = "https://example.com")
@@ -106,10 +102,6 @@ class DataUtilTestJvm {
 
     @Test
     fun testHandlesUnlimitedRead() {
-        if (Platform.isJS()) {
-//            js resource access issue
-            return
-        }
         val file = File(TestHelper.getResourceAbsolutePath("htmltests/large.html.gz"))
         val input: String = getFileAsString(file)
 

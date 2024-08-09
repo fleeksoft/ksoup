@@ -4,6 +4,7 @@ import com.fleeksoft.ksoup.Ksoup
 import com.fleeksoft.ksoup.Platform
 import com.fleeksoft.ksoup.TestHelper
 import com.fleeksoft.ksoup.isJS
+import com.fleeksoft.ksoup.isWasmJs
 import com.fleeksoft.ksoup.parser.ParseSettings
 import com.fleeksoft.ksoup.parser.Parser
 import korlibs.io.lang.Charset
@@ -151,10 +152,6 @@ class DocumentTest {
 
     @Test
     fun testLocation() = runTest {
-        if (Platform.isJS()) {
-//            js resource access issue
-            return@runTest
-        }
         // tests location vs base href
         val `in`: String = TestHelper.getResourceAbsolutePath("htmltests/basehref.html")
         val doc: Document = Ksoup.parseFile(
@@ -226,8 +223,8 @@ class DocumentTest {
 
     @Test
     fun testOverflowClone() {
-        if (Platform.isJS()) {
-            // FIXME: timeout error for js
+        if (Platform.isWasmJs()) {
+            // FIXME: timeout error for wasmjs
             return
         }
 

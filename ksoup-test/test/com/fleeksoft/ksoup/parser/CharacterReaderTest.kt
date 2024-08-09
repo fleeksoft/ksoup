@@ -17,10 +17,6 @@ import kotlin.test.*
 class CharacterReaderTest {
     @Test
     fun testUtf16BE() = runTest {
-        if (Platform.isJS()) {
-//            js resource access issue
-            return@runTest
-        }
         val firstLine = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">"""
         val input =
             readFile(
@@ -35,15 +31,10 @@ class CharacterReaderTest {
 
     @Test
     fun testUtf16LE() = runTest {
-        if (Platform.isJS()) {
-//            js resource access issue
-            return@runTest
-        }
         val firstLine = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">"""
-        val input =
-            readFile(
-                TestHelper.getResourceAbsolutePath("bomtests/bom_utf16le.html"),
-            ).toStreamCharReader(charset = Charset.forName("UTF-16LE"))
+        val input = readFile(
+            TestHelper.getResourceAbsolutePath("bomtests/bom_utf16le.html"),
+        ).toStreamCharReader(charset = Charset.forName("UTF-16LE"))
 
         //            ignore first char (ZWNBSP)\uFEFF:65279
         val actualReadLine = input.read(firstLine.length + 1)
@@ -555,15 +546,9 @@ class CharacterReaderTest {
 
     @Test
     fun linenumbersAgreeWithEditor() = runTest {
-        if (Platform.isJS()) {
-//            js resource access issue
-            return@runTest
-        }
-
-        val content: String =
-            TestHelper.getFileAsString(
-                TestHelper.getResourceAbsolutePath("htmltests/large.html.gz").uniVfs,
-            )
+        val content: String = TestHelper.getFileAsString(
+            TestHelper.getResourceAbsolutePath("htmltests/large.html.gz").uniVfs
+        )
         val reader = CharacterReader(content)
         reader.trackNewlines(true)
         val scan = "<p>VESTIBULUM" // near the end of the file

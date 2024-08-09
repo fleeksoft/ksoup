@@ -34,4 +34,13 @@ kotlin {
             this.kotlin.srcDir(layout.buildDirectory.file(rootPath))
         }
     }
+    js(IR) {
+        browser {
+            testTask {
+                useMocha {
+                    timeout = "9s"
+                }
+            }
+        }
+    }
 }

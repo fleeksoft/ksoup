@@ -306,11 +306,6 @@ class StreamParserTest {
 
     @Test
     fun canParseFileReader() = runTest() {
-        if (Platform.isJS()) {
-            // js resource access issue
-            return@runTest
-        }
-
         val file = TestHelper.getResourceAbsolutePath("htmltests/large.html.gz").uniVfs
 
 
@@ -330,10 +325,6 @@ class StreamParserTest {
 
     @Test
     fun canParseFile() = runTest {
-        if (Platform.isJS()) {
-            // js resource access issue
-            return@runTest
-        }
 
         val file = TestHelper.getResourceAbsolutePath("htmltests/large.html.gz").uniVfs
         val streamer: StreamParser =

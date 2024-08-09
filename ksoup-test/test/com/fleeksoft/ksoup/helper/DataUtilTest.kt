@@ -140,9 +140,9 @@ class DataUtilTest {
         }
         val html =
             "<html><head>" +
-                "<meta http-equiv=\"Content-Type\" content=\"text/html\">" +
-                "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=euc-kr\">" +
-                "</head><body>한국어</body></html>"
+                    "<meta http-equiv=\"Content-Type\" content=\"text/html\">" +
+                    "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=euc-kr\">" +
+                    "</head><body>한국어</body></html>"
         val doc: Document =
             DataUtil.parseInputSource(
                 syncStream = bufferByteArrayCharset(data = html, charset = "euc-kr"),
@@ -157,9 +157,9 @@ class DataUtilTest {
     fun firstMetaElementWithCharsetShouldBeUsedForDecoding() {
         val html =
             "<html><head>" +
-                "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=iso-8859-1\">" +
-                "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=koi8-u\">" +
-                "</head><body>Übergrößenträger</body></html>"
+                    "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=iso-8859-1\">" +
+                    "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=koi8-u\">" +
+                    "</head><body>Übergrößenträger</body></html>"
         val docByteArrayCharset: Document =
             DataUtil.parseInputSource(
                 syncStream = bufferByteArrayCharset(data = html, charset = "iso-8859-1"),
@@ -173,10 +173,6 @@ class DataUtilTest {
 
     @Test
     fun supportsBOMinFiles() = runTest {
-        if (Platform.isJS()) {
-//            js resource access issue
-            return@runTest
-        }
         var input = TestHelper.getResourceAbsolutePath("bomtests/bom_utf16be.html")
         var doc: Document =
             Ksoup.parseFile(filePath = input, baseUri = "http://example.com", charsetName = null)
@@ -204,10 +200,6 @@ class DataUtilTest {
 
     @Test
     fun streamerSupportsBOMinFiles() = runTest {
-        if (Platform.isJS()) {
-            // js resource access issue
-            return@runTest
-        }
         // test files from http://www.i18nl10n.com/korean/utftest/
         var file = TestHelper.getResourceAbsolutePath("bomtests/bom_utf16be.html").uniVfs
         val parser = Parser.htmlParser()
@@ -224,6 +216,11 @@ class DataUtilTest {
         assertTrue(doc.title().contains("UTF-16LE"))
         assertTrue(doc.text().contains("가각갂갃간갅"))
 
+        if (Platform.isJS()) {
+            // FIXME: UTF-32 charset not supported
+            return@runTest
+        }
+
         file = TestHelper.getResourceAbsolutePath("bomtests/bom_utf32be.html").uniVfs
         doc = DataUtil.streamParser(file = file, baseUri = "http://example.com", charset = null, parser = parser)
             .complete()
@@ -239,10 +236,6 @@ class DataUtilTest {
 
     @Test
     fun supportsUTF8BOM() = runTest {
-        if (Platform.isJS()) {
-            // js resource access issue
-            return@runTest
-        }
         val input: String = TestHelper.getResourceAbsolutePath("bomtests/bom_utf8.html")
         val doc: Document = Ksoup.parseFile(input, "http://example.com", null)
         assertEquals("OK", doc.head().select("title").text())
@@ -258,10 +251,6 @@ class DataUtilTest {
 
     @Test
     fun supportsZippedUTF8BOM() = runTest {
-        if (Platform.isJS()) {
-            // js resource access issue
-            return@runTest
-        }
         val input: String = TestHelper.getResourceAbsolutePath("bomtests/bom_utf8.html.gz")
         val doc: Document =
             Ksoup.parseFile(
@@ -278,10 +267,6 @@ class DataUtilTest {
 
     @Test
     fun streamerSupportsZippedUTF8BOM() = runTest {
-        if (Platform.isJS()) {
-            // js resource access issue
-            return@runTest
-        }
         val file = TestHelper.getResourceAbsolutePath("bomtests/bom_utf8.html.gz").uniVfs
         val doc = DataUtil.streamParser(
             file = file,
@@ -301,10 +286,10 @@ class DataUtilTest {
         val encoding = "iso-8859-1"
         val soup =
             (
-                "<?xml version=\"1.0\" encoding=\"iso-8859-1\"?>" +
-                    "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">" +
-                    "<html xmlns=\"http://www.w3.org/1999/xhtml\" lang=\"en\" xml:lang=\"en\">Hellö Wörld!</html>"
-                )
+                    "<?xml version=\"1.0\" encoding=\"iso-8859-1\"?>" +
+                            "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">" +
+                            "<html xmlns=\"http://www.w3.org/1999/xhtml\" lang=\"en\" xml:lang=\"en\">Hellö Wörld!</html>"
+                    )
                 .toByteArray(Charset.forName(encoding)).openSync()
         val doc: Document = Ksoup.parse(soup, baseUri = "", charsetName = null)
         assertEquals("Hellö Wörld!", doc.body().text())
@@ -312,10 +297,6 @@ class DataUtilTest {
 
     @Test
     fun loadsGzipFile() = runTest {
-        if (Platform.isJS()) {
-//            js resource access issue
-            return@runTest
-        }
         val input: String = TestHelper.getResourceAbsolutePath("htmltests/gzip.html.gz")
         val doc: Document = Ksoup.parseFile(filePath = input, charsetName = null)
         doc.toString()
@@ -325,10 +306,6 @@ class DataUtilTest {
 
     @Test
     fun loadsZGzipFile() = runTest {
-        if (Platform.isJS()) {
-//            js resource access issue
-            return@runTest
-        }
         // compressed on win, with z suffix
         val input: String = TestHelper.getResourceAbsolutePath("htmltests/gzip.html.z")
         val doc: Document = Ksoup.parseFile(filePath = input, charsetName = null)
@@ -338,10 +315,6 @@ class DataUtilTest {
 
     @Test
     fun handlesFakeGzipFile() = runTest {
-        if (Platform.isJS()) {
-//            js resource access issue
-            return@runTest
-        }
         val input: String = TestHelper.getResourceAbsolutePath("htmltests/fake-gzip.html.gz")
         val doc: Document = Ksoup.parseFile(filePath = input, charsetName = null)
         assertEquals("This is not gzipped", doc.title())
@@ -350,10 +323,6 @@ class DataUtilTest {
 
     @Test
     fun handlesChunkedInputStream() = runTest {
-        if (Platform.isJS()) {
-//            js resource access issue
-            return@runTest
-        }
         val inputFile: String = TestHelper.getResourceAbsolutePath("htmltests/large.html.gz")
         val input: String = TestHelper.getFileAsString(inputFile.uniVfs)
 //        val stream = VaryingBufferReader(BufferReader(input))
@@ -366,10 +335,6 @@ class DataUtilTest {
 
     @Test
     fun handlesUnlimitedRead() = runTest {
-        if (Platform.isJS()) {
-//            js resource access issue
-            return@runTest
-        }
         val inputFile: String = TestHelper.getResourceAbsolutePath("htmltests/large.html.gz")
         val input: String = TestHelper.getFileAsString(inputFile.uniVfs)
         val byteBuffer: ByteArray = DataUtil.readToByteBuffer(input.openSync(), 0)

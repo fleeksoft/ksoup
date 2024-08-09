@@ -1289,10 +1289,6 @@ class HtmlParserTest {
 
     @Test
     fun testInvalidTableContents() = runTest {
-        if (Platform.isJS()) {
-//            js resource access issue
-            return@runTest
-        }
         val input: String = TestHelper.getResourceAbsolutePath("htmltests/table-invalid-elements.html")
         val doc: Document = Ksoup.parseFile(input, "UTF-8")
         doc.outputSettings().prettyPrint(true)
@@ -1505,10 +1501,6 @@ class HtmlParserTest {
     @Test
     @Throws(IOException::class)
     fun testTemplateInsideTable() = runTest {
-        if (Platform.isJS()) {
-//            js resource access issue
-            return@runTest
-        }
         val input: String = TestHelper.getResourceAbsolutePath("htmltests/table-polymer-template.html")
         val doc: Document = Ksoup.parseFile(input, "UTF-8")
         doc.outputSettings().prettyPrint(true)
@@ -1546,10 +1538,6 @@ class HtmlParserTest {
 
     @Test
     fun handlesXmlDeclAndCommentsBeforeDoctype() = runTest {
-        if (Platform.isJS()) {
-//            js resource access issue
-            return@runTest
-        }
         val `in`: String = TestHelper.getResourceAbsolutePath("htmltests/comments.html")
         val doc: Document = Ksoup.parseFile(`in`, "UTF-8")
         assertEquals(
@@ -1577,10 +1565,6 @@ class HtmlParserTest {
 
     @Test
     fun characterReaderBuffer() = runTest {
-        if (Platform.isJS()) {
-//            js resource access issue
-            return@runTest
-        }
         val input: String = TestHelper.getResourceAbsolutePath("htmltests/character-reader-buffer.html.gz")
         val doc: Document = Ksoup.parseFile(input, "UTF-8")
         val expectedHref = "http://www.domain.com/path?param_one=value&param_two=value"

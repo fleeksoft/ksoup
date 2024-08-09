@@ -2620,7 +2620,7 @@ Three
 
     @Test
     fun cssSelectorDoesntStackOverflow() {
-        if (Platform.isJS()) {
+        if (Platform.isWasmJs()) {
             // FIXME: timeout error for js
             return
         }
