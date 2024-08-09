@@ -187,6 +187,16 @@ class ElementTest {
     }
 
     @Test
+    fun buttonTextHasSpace() {
+        val doc = Ksoup.parse("<html><button>Reply</button><button>All</button></html>")
+        val text = doc.body().text()
+        val wholetext = doc.body().wholeText()
+
+        assertEquals("Reply All", text)
+        assertEquals("ReplyAll", wholetext)
+    }
+
+    @Test
     fun testGetSiblings() {
         val doc = Ksoup.parse("<div><p>Hello<p id=1>there<p>this<p>is<p>an<p id=last>element</div>")
         val p = doc.getElementById("1")
@@ -467,7 +477,7 @@ class ElementTest {
     fun testIndentLevel() {
         // deep to test default and extended max
         val divs = StringBuilder()
-        for (i in 0..39) {
+        (0..39).forEach { i ->
             divs.append("<div>")
         }
         divs.append("Foo")
@@ -2632,6 +2642,45 @@ Three
             root.select(selector) // would overflow in nested And ImmediateParent chain eval
         assertEquals(1, elements.size)
         assertEquals(element, elements.first())
+    }
+
+    @Test
+    fun cssSelectorWithBracket() {
+        val doc = Ksoup.parse("<div class='a[foo]'>One</div><div class='b[bar]'>Two</div>")
+        val div = doc.expectFirst("div")
+        val selector = div.cssSelector()
+        assertEquals(
+            "html > body > div.a\\[foo\\]",
+            selector
+        ) // would fail with "Did not find balanced marker", consumeSubquery was not handling escapes
+
+        val selected = doc.select(selector)
+        assertEquals(1, selected.size)
+        assertEquals(selected.first(), div)
+    }
+
+    @Test
+    fun cssSelectorUnbalanced() {
+        val doc = Ksoup.parse("<div class='a(foo'>One</div><div class='a-bar'>Two</div>")
+        val div = doc.expectFirst("div")
+        val selector = div.cssSelector()
+        assertEquals("html > body > div.a\\(foo", selector)
+
+        val selected = doc.select(selector)
+        assertEquals(1, selected.size)
+        assertEquals(selected.first(), div)
+    }
+
+    @Test
+    fun cssSelectorWithAstrix() {
+        val doc = Ksoup.parse("<div class='vds-items_flex-end [&amp;_>_*:first-child]:vds-pt_0'>One</div><div class='vds-items_flex-end'>Two</div>")
+        val div = doc.expectFirst("div")
+        val selector = div.cssSelector()
+        assertEquals("html > body > div.vds-items_flex-end.\\[\\&_\\>_\\*\\:first-child\\]\\:vds-pt_0", selector)
+
+        val selected = doc.select(selector)
+        assertEquals(1, selected.size)
+        assertEquals(selected.first(), div)
     }
 
     @Test
