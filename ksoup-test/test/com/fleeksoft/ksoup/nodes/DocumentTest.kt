@@ -181,8 +181,7 @@ class DocumentTest {
 
     @Test
     fun testHtmlAndXmlSyntax() {
-        val h =
-            "<!DOCTYPE html><body><img async checked='checked' src='&<>\"'>&lt;&gt;&amp;&quot;<foo />bar"
+        val h = "<!DOCTYPE html><body><img async checked='checked' src='&<>\"'>&lt;&gt;&amp;&quot;<foo />bar"
         val doc = Ksoup.parse(h)
         doc.outputSettings().syntax(Document.OutputSettings.Syntax.html)
         assertEquals(

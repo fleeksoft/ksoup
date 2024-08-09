@@ -63,10 +63,8 @@ public abstract class Node protected constructor() : KCloneable<Node> {
         normalName: String,
         namespace: String,
     ): Boolean {
-        return (
-                _parentNode != null && _parentNode is Element &&
-                        (_parentNode as Element).elementIs(normalName, namespace)
-                )
+        return _parentNode != null && _parentNode is Element &&
+            (_parentNode as Element).elementIs(normalName, namespace)
     }
 
     /**
@@ -113,8 +111,8 @@ public abstract class Node protected constructor() : KCloneable<Node> {
     }
 
     /**
-     * Get each of the element's attributes.
-     * @return attributes (which implements iterable, in same order as presented in original HTML).
+     * Get each of the Element's attributes.
+     * @return attributes (which implements Iterable, with the same order as presented in the original HTML).
      */
     public abstract fun attributes(): Attributes
 
@@ -230,7 +228,6 @@ public abstract class Node protected constructor() : KCloneable<Node> {
      * could not be made successfully into a URL.
      * @see .attr
      *
-     * @see java.net.URL.URL
      */
     public open fun absUrl(attributeKey: String): String {
         Validate.notEmpty(attributeKey)
@@ -264,8 +261,8 @@ public abstract class Node protected constructor() : KCloneable<Node> {
     public fun childNodes(): List<Node> {
         if (childNodeSize() == 0) return EmptyNodes
         val children: List<Node> = ensureChildNodes()
-        val rewrap: MutableList<Node> =
-            ArrayList<Node>(children.size) // wrapped so that looping and moving will not throw a CME as the source changes
+        // wrapped so that looping and moving will not throw a CME as the source changes
+        val rewrap: MutableList<Node> = ArrayList<Node>(children.size)
         rewrap.addAll(children)
         return rewrap // TODO: unmodified list
     }
@@ -329,7 +326,7 @@ public abstract class Node protected constructor() : KCloneable<Node> {
      */
     public fun ownerDocument(): Document? {
         val root = root()
-        return if (root is Document) root else null
+        return root as? Document
     }
 
     /**
@@ -414,7 +411,7 @@ public abstract class Node protected constructor() : KCloneable<Node> {
 
         // Parse context - parent (because wrapping), this, or null
         val context: Element =
-            if (_parentNode != null && _parentNode is Element) _parentNode as Element else (if (this is Element) this else null)!!
+            if (_parentNode != null && _parentNode is Element) _parentNode as Element else (this as? Element)!!
         val wrapChildren: List<Node> =
             NodeUtils.parser(this)
                 .parseFragmentInput(html, context, baseUri())
@@ -796,7 +793,7 @@ public abstract class Node protected constructor() : KCloneable<Node> {
      * @see Node.hasSameValue
      */
     override fun equals(other: Any?): Boolean {
-        // implemented just so that javadoc is clear this is an identity test
+        // implemented just so that is clear this is an identity test
         return this === other
     }
 
@@ -806,7 +803,7 @@ public abstract class Node protected constructor() : KCloneable<Node> {
      * @return an object identity based hashcode for this Node
      */
     override fun hashCode(): Int {
-        // implemented so that javadoc and scanners are clear this is an identity test
+        // implemented so scanners are clear this is an identity test
         return super.hashCode()
     }
 
