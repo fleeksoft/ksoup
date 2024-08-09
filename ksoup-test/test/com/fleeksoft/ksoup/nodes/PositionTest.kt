@@ -145,23 +145,23 @@ class PositionTest {
             val el = node
             println(
                 (
-                    (
                         (
-                            el.tagName() + "\t" +
-                                el.sourceRange().start().pos()
-                        ).toString() + "-" + el.sourceRange().end().pos()
-                    ).toString() + "\t... " +
-                        el.endSourceRange().start().pos()
-                ).toString() + "-" + el.endSourceRange().end().pos(),
+                                (
+                                        el.tagName() + "\t" +
+                                                el.sourceRange().start().pos()
+                                        ).toString() + "-" + el.sourceRange().end().pos()
+                                ).toString() + "\t... " +
+                                el.endSourceRange().start().pos()
+                        ).toString() + "-" + el.endSourceRange().end().pos(),
             )
         } else {
             println(
                 (
-                    (
-                        node.nodeName() + "\t" +
-                            node.sourceRange().start().pos()
-                    ).toString() + "-" + node.sourceRange().end().pos()
-                ),
+                        (
+                                node.nodeName() + "\t" +
+                                        node.sourceRange().start().pos()
+                                ).toString() + "-" + node.sourceRange().end().pos()
+                        ),
             )
         }
     }
@@ -368,7 +368,7 @@ class PositionTest {
     fun trackAttributePositionWithCase() {
         val pomXml =
             "<project xmlns=\"http://maven.apache.org/POM/4.0.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd\">\n" +
-                "    <modelVersion>4.0.0</modelVersion>"
+                    "    <modelVersion>4.0.0</modelVersion>"
 
         val htmlDoc: Document = Ksoup.parse(pomXml, TrackingHtmlParser)
         val htmlPos: StringBuilder = StringBuilder()
@@ -483,6 +483,27 @@ class PositionTest {
     }
 
     @Test
+    fun tracksAfterPSelfClose() {
+        val html = "foo<p/>bar &amp; 2"
+        val doc = Ksoup.parse(html, TrackingHtmlParser)
+        val track = StringBuilder()
+        doc.body().forEachNode { node -> accumulatePositions(node, track) }
+        assertEquals("body:0-0~18-18; #text:0-3; p:3-7~3-7; #text:7-18; ", track.toString())
+    }
+
+    @Test
+    fun tracksFirstTextnode() {
+        val html = "foo<p></p>bar<p></p><div><b>baz</b></div>"
+        val doc = Ksoup.parse(html, TrackingHtmlParser)
+        val track = StringBuilder()
+        doc.body().forEachNode { node -> accumulatePositions(node, track) }
+        assertEquals(
+            "body:0-0~41-41; #text:0-3; p:3-6~6-10; #text:10-13; p:13-16~16-20; div:20-25~35-41; b:25-28~31-35; #text:28-31; ",
+            track.toString()
+        )
+    }
+
+    @Test
     fun updateKeyMaintainsRangeLc() {
         val html = "<p xsi:CLASS=On>One</p>"
         val doc: Document = Ksoup.parse(html, TrackingHtmlParser)
@@ -495,6 +516,27 @@ class PositionTest {
         attr.setKey("class")
         assertEquals(expectedRange, attr.sourceRange().toString())
         assertEquals("class=\"On\"", attr.html())
+    }
+
+    @Test
+    fun tracksDocument() {
+        val html = "<!doctype html><title>Foo</title><p>Bar."
+        val doc = Ksoup.parse(html, TrackingHtmlParser)
+        val track = StringBuilder()
+        doc.forEachNode { node -> accumulatePositions(node, track) }
+        assertEquals(
+            "#document:0-0~40-40; #doctype:0-15; html:15-15~40-40; head:15-15~33-33; title:15-22~15-33; #text:22-25; body:33-33~40-40; p:33-36~40-40; #text:36-40; ",
+            track.toString()
+        )
+    }
+
+    @Test
+    fun tracksDocumentXml() {
+        val html = "<!doctype html><title>Foo</title><p>Bar."
+        val doc = Ksoup.parse(html, TrackingXmlParser)
+        val track = StringBuilder()
+        doc.forEachNode { node -> accumulatePositions(node, track) }
+        assertEquals("#document:0-0~40-40; #doctype:0-15; title:15-22~25-33; #text:22-25; p:33-36~40-40; #text:36-40; ", track.toString())
     }
 
     @Test
