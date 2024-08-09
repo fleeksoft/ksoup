@@ -75,7 +75,7 @@ public class Parser {
     public fun parseFragmentInput(
         fragment: String,
         context: Element?,
-        baseUri: String?,
+        baseUri: String,
     ): List<Node> {
         return treeBuilder.parseFragment(fragment, context, baseUri, this)
     }
@@ -203,7 +203,7 @@ public class Parser {
         public fun parseFragment(
             fragmentHtml: String,
             context: Element?,
-            baseUri: String?,
+            baseUri: String,
         ): List<Node> {
             val treeBuilder = HtmlTreeBuilder()
             return treeBuilder.parseFragment(fragmentHtml, context, baseUri, Parser(treeBuilder))
@@ -223,7 +223,7 @@ public class Parser {
         public fun parseFragment(
             fragmentHtml: String,
             context: Element?,
-            baseUri: String?,
+            baseUri: String,
             errorList: ParseErrorList,
         ): List<Node> {
             val treeBuilder = HtmlTreeBuilder()
@@ -241,10 +241,10 @@ public class Parser {
          */
         public fun parseXmlFragment(
             fragmentXml: String,
-            baseUri: String?,
+            baseUri: String,
         ): List<Node> {
             val treeBuilder = XmlTreeBuilder()
-            return treeBuilder.parseFragment(fragmentXml, baseUri, Parser(treeBuilder))
+            return treeBuilder.parseFragment(fragmentXml, null, baseUri, Parser(treeBuilder))
         }
 
         /**

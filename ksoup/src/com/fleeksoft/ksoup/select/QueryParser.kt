@@ -136,6 +136,9 @@ public class QueryParser private constructor(query: String) {
                 sq.append("(").append(tq.chompBalanced('(', ')')).append(")")
             } else if (tq.matches("[")) {
                 sq.append("[").append(tq.chompBalanced('[', ']')).append("]")
+            } else if (tq.matches("\\")) { // bounce over escapes
+                sq.append(tq.consume())
+                if (!tq.isEmpty()) sq.append(tq.consume())
             } else {
                 sq.append(tq.consume())
             }
@@ -225,22 +228,19 @@ public class QueryParser private constructor(query: String) {
         // consistency - both the selector and the element tag
         var tagName: String = normalize(tq.consumeElementSelector())
         Validate.notEmpty(tagName)
-        val eval: Evaluator
 
-        // namespaces: wildcard match equals(tagName) or ending in ":"+tagName
-        if (tagName.startsWith("*|")) {
-            val plainTag = tagName.substring(2) // strip *|
-            eval =
-                CombiningEvaluator.Or(
-                    Evaluator.Tag(plainTag),
-                    Evaluator.TagEndsWith(tagName.replace("*|", ":")),
-                )
-        } else {
-            // namespaces: if element name is "abc:def", selector must be "abc|def", so flip:
-            if (tagName.contains("|")) tagName = tagName.replace("|", ":")
-            eval = Evaluator.Tag(tagName)
+        // namespaces:
+        if (tagName.startsWith("*|")) { // namespaces: wildcard match equals(tagName) or ending in ":"+tagName
+            val plainTag = tagName.substring(2); // strip *|
+            return CombiningEvaluator.Or(Evaluator.Tag(plainTag), Evaluator.TagEndsWith(":$plainTag"))
+        } else if (tagName.endsWith("|*")) { // ns|*
+            val ns = "${tagName.substring(0, tagName.length - 2)}:"; // strip |*, to ns:
+            return Evaluator.TagStartsWith(ns);
+        } else if (tagName.contains("|")) { // flip "abc|def" to "abc:def"
+            tagName = tagName.replace("|", ":");
         }
-        return eval
+
+        return Evaluator.Tag(tagName);
     }
 
     private fun byAttribute(): Evaluator {
