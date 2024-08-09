@@ -384,11 +384,11 @@ public class TokenQueue(data: String) {
     Given a CSS identifier (such as a tag, ID, or class), escape any CSS special characters that would otherwise not be
     valid in a selector.
          */
-        public fun escapeCssIdentifier(`in`: String): String {
+        public fun escapeCssIdentifier(input: String): String {
             val out: StringBuilder = StringUtil.borrowBuilder()
-            val q = TokenQueue(`in`)
+            val q = TokenQueue(input)
             while (!q.isEmpty()) {
-                if (q.matchesCssIdentifier(*ElementSelectorChars)) {
+                if (q.matchesCssIdentifier(*CssIdentifierChars)) {
                     out.append(q.consume())
                 } else {
                     out.append(ESC).append(q.consume())
@@ -397,7 +397,7 @@ public class TokenQueue(data: String) {
             return StringUtil.releaseBuilder(out)
         }
 
-        private val ElementSelectorChars = arrayOf("*|", "|", "_", "-")
+        private val ElementSelectorChars = arrayOf("*", "|", "_", "-")
         private val CssIdentifierChars = arrayOf("-", "_")
     }
 }

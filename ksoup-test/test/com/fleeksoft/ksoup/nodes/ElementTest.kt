@@ -125,7 +125,6 @@ class ElementTest {
 
     @Test
     fun doesNotWrapBlocksInPre() {
-        // https://github.com/jhy/jsoup/issues/1891
         val h = "<pre><span><foo><div>TEST\n TEST</div></foo></span></pre>"
         val doc = Ksoup.parse(h)
         assertEquals("TEST\n TEST", doc.wholeText())
@@ -185,6 +184,16 @@ class ElementTest {
         assertEquals("", p1.wholeText())
         assertEquals(" ", p2.wholeText())
         assertEquals(".  ", p3.wholeText())
+    }
+
+    @Test
+    fun buttonTextHasSpace() {
+        val doc = Ksoup.parse("<html><button>Reply</button><button>All</button></html>")
+        val text = doc.body().text()
+        val wholetext = doc.body().wholeText()
+
+        assertEquals("Reply All", text)
+        assertEquals("ReplyAll", wholetext)
     }
 
     @Test
@@ -446,10 +455,10 @@ class ElementTest {
     @Test
     fun testFormatOutline() {
         val doc =
-            Ksoup.parse("<title>Format test</title><div><p>Hello <span>jsoup <span>users</span></span></p><p>Good.</p></div>")
+            Ksoup.parse("<title>Format test</title><div><p>Hello <span>ksoup <span>users</span></span></p><p>Good.</p></div>")
         doc.outputSettings().outline(true)
         assertEquals(
-            "<html>\n <head>\n  <title>Format test</title>\n </head>\n <body>\n  <div>\n   <p>\n    Hello \n    <span>\n     jsoup \n     <span>users</span>\n    </span>\n   </p>\n   <p>Good.</p>\n  </div>\n </body>\n</html>",
+            "<html>\n <head>\n  <title>Format test</title>\n </head>\n <body>\n  <div>\n   <p>\n    Hello \n    <span>\n     ksoup \n     <span>users</span>\n    </span>\n   </p>\n   <p>Good.</p>\n  </div>\n </body>\n</html>",
             doc.html(),
         )
     }
@@ -468,7 +477,7 @@ class ElementTest {
     fun testIndentLevel() {
         // deep to test default and extended max
         val divs = StringBuilder()
-        for (i in 0..39) {
+        (0..39).forEach { i ->
             divs.append("<div>")
         }
         divs.append("Foo")
@@ -918,22 +927,22 @@ class ElementTest {
     @Test
     fun dataset() {
         val doc =
-            Ksoup.parse("<div id=1 data-name=jsoup class=new data-package=jar>Hello</div><p id=2>Hello</p>")
+            Ksoup.parse("<div id=1 data-name=ksoup class=new data-package=jar>Hello</div><p id=2>Hello</p>")
         val div = doc.select("div").first()!!
         val dataset: Attributes.Dataset = div.dataset()
         val attributes = div.attributes()
 
         // size, get, set, add, remove
         assertEquals(2, dataset.size)
-        assertEquals("jsoup", dataset["name"])
+        assertEquals("ksoup", dataset["name"])
         assertEquals("jar", dataset["package"])
-        dataset["name"] = "jsoup updated"
+        dataset["name"] = "ksoup updated"
         dataset["language"] = "java"
         dataset.remove("package")
         assertEquals(2, dataset.size)
         assertEquals(4, attributes.size())
-        assertEquals("jsoup updated", attributes["data-name"])
-        assertEquals("jsoup updated", dataset["name"])
+        assertEquals("ksoup updated", attributes["data-name"])
+        assertEquals("ksoup updated", dataset["name"])
         assertEquals("java", attributes["data-language"])
         assertEquals("java", dataset["language"])
         attributes.put("data-food", "bacon")
@@ -1119,7 +1128,6 @@ class ElementTest {
 
     @Test
     fun moveByAppend() {
-        // test for https://github.com/jhy/jsoup/issues/239
         // can empty an element and append its children to another element
         val doc = Ksoup.parse("<div id=1>Text <p>One</p> Text <p>Two</p></div><div id=2></div>")
         val div1 = doc.select("div")[0]
@@ -1218,9 +1226,7 @@ class ElementTest {
 
     @Test
     fun testCssPathDuplicateIds() {
-        // https://github.com/jhy/jsoup/issues/1147 - multiple elements with same ID, use the non-ID form
-        val doc =
-            Ksoup.parse("<article><div id=dupe>A</div><div id=dupe>B</div><div id=dupe class=c1>")
+        val doc = Ksoup.parse("<article><div id=dupe>A</div><div id=dupe>B</div><div id=dupe class=c1>")
         val divA = doc.select("div")[0]
         val divB = doc.select("div")[1]
         val divC = doc.select("div")[2]
@@ -1234,7 +1240,6 @@ class ElementTest {
 
     @Test
     fun cssSelectorEscaped() {
-        // https://github.com/jhy/jsoup/issues/1742
         val doc =
             Ksoup.parse("<p\\p>One</p\\p> <p id='one.two'>Two</p> <p class='one.two:three/four'>Three</p>")
         val one = doc.expectFirst("p\\\\p")
@@ -1264,7 +1269,6 @@ class ElementTest {
 
     @Test
     fun cssSelectorEscapedClass() {
-        // example in https://github.com/jhy/jsoup/issues/838
         val html = "<div class='B\\&W\\?'><div class=test>Text</div></div>"
         val parse = Ksoup.parse(html)
         val el = parse.expectFirst(".test")
@@ -1726,7 +1730,6 @@ class ElementTest {
 
     @Test
     fun testNextElementSiblingAfterClone() {
-        // via https://github.com/jhy/jsoup/issues/951
         val html =
             "<!DOCTYPE html><html lang=\"en\"><head></head><body><div>Initial element</div></body></html>"
         val expectedText = "New element"
@@ -1749,7 +1752,6 @@ class ElementTest {
 
     @Test
     fun testRemovingEmptyClassAttributeWhenLastClassRemoved() {
-        // https://github.com/jhy/jsoup/issues/947
         val doc = Ksoup.parse("<img class=\"one two\" />")
         val img = doc.select("img").first()
         img!!.removeClass("one")
@@ -2108,7 +2110,6 @@ class ElementTest {
 
     @Test
     fun testShallowCloneToString() {
-        // https://github.com/jhy/jsoup/issues/1410
         val doc = Ksoup.parse("<p><i>Hello</i></p>")
         val p = doc.selectFirst("p")
         val i = doc.selectFirst("i")
@@ -2265,7 +2266,6 @@ class ElementTest {
 
     @Test
     fun clonedElementsHaveOwnerDocsAndIndependentSettings() {
-        // https://github.com/jhy/jsoup/issues/763
         val doc = Ksoup.parse("<div>Text</div><div>Two</div>")
         doc.outputSettings().prettyPrint(false)
         val div = doc.selectFirst("div")
@@ -2292,7 +2292,6 @@ class ElementTest {
     @Test
     fun prettySerializationRoundTrips() {
         parameterizedTest(testOutputSettings()) { settings ->
-            // https://github.com/jhy/jsoup/issues/1688
             // tests that repeated html() and parse() does not accumulate errant spaces / newlines
             val doc =
                 Ksoup.parse("<div>\nFoo\n<p>\nBar\nqux</p></div>\n<script>\n alert('Hello!');\n</script>")
@@ -2323,7 +2322,6 @@ class ElementTest {
 
     @Test
     fun elementBrText() {
-        // testcase for https://github.com/jhy/jsoup/issues/1437
         val html = "<p>Hello<br>World</p>"
         val doc = Ksoup.parse(html)
         doc.outputSettings().prettyPrint(false) // otherwise html serializes as Hello<br>\n World.
@@ -2336,7 +2334,6 @@ class ElementTest {
 
     @Test
     fun wrapTextAfterBr() {
-        // https://github.com/jhy/jsoup/issues/1858
         val html = "<p>Hello<br>there<br>now.</p>"
         val doc = Ksoup.parse(html)
         assertEquals("<p>Hello<br>\n there<br>\n now.</p>", doc.body().html())
@@ -2351,7 +2348,6 @@ class ElementTest {
 
     @Test
     fun prettyprintBrWhenNotFirstChild() {
-        // https://github.com/jhy/jsoup/issues/1911
         val h = "<div><p><br>Foo</p><br></div>"
         val doc = Ksoup.parse(h)
         assertEquals(
@@ -2367,7 +2363,6 @@ class ElementTest {
 
     @Test
     fun preformatFlowsToChildTextNodes() {
-        // https://github.com/jhy/jsoup/issues/1776
         val html =
             "<div><pre>One\n<span>\nTwo</span>\n <span>  \nThree</span>\n <span>Four <span>Five</span>\n  Six\n</pre>"
         val doc = Ksoup.parse(html)
@@ -2473,7 +2468,6 @@ Three
 
     @Test
     fun spanRunsMaintainSpace() {
-        // https://github.com/jhy/jsoup/issues/1787
         val doc = Ksoup.parse("<p><span>One</span>\n<span>Two</span>\n<span>Three</span></p>")
         val text = "One Two Three"
         val body = doc.body()
@@ -2487,7 +2481,6 @@ Three
 
     @Test
     fun doctypeIsPrettyPrinted() {
-        // resolves underlying issue raised in https://github.com/jhy/jsoup/pull/1664
         val doc1 = Ksoup.parse("<!--\nlicense\n-->\n \n<!doctype html>\n<html>")
         val doc2 = Ksoup.parse("\n  <!doctype html><html>")
         val doc3 = Ksoup.parse("<!doctype html>\n<html>")
@@ -2567,7 +2560,6 @@ Three
 
     @Test
     fun noDanglingSpaceAfterCustomElement() {
-        // https://github.com/jhy/jsoup/issues/1852
         var html = "<bar><p/>\n</bar>"
         var doc = Ksoup.parse(html)
         assertEquals("<bar>\n <p></p>\n</bar>", doc.body().html())
@@ -2586,7 +2578,6 @@ Three
 
     @Test
     fun replaceWithSelf() {
-        // https://github.com/jhy/jsoup/issues/1843
         val doc = Ksoup.parse("<p>One<p>Two")
         val ps = doc.select("p")
         val first = ps.first()
@@ -2629,11 +2620,10 @@ Three
 
     @Test
     fun cssSelectorDoesntStackOverflow() {
-        if (Platform.isJS()) {
+        if (Platform.isWasmJs()) {
             // FIXME: timeout error for js
             return
         }
-        // https://github.com/jhy/jsoup/issues/2001
         var element = Element("element")
         val root = element
 
@@ -2652,6 +2642,45 @@ Three
             root.select(selector) // would overflow in nested And ImmediateParent chain eval
         assertEquals(1, elements.size)
         assertEquals(element, elements.first())
+    }
+
+    @Test
+    fun cssSelectorWithBracket() {
+        val doc = Ksoup.parse("<div class='a[foo]'>One</div><div class='b[bar]'>Two</div>")
+        val div = doc.expectFirst("div")
+        val selector = div.cssSelector()
+        assertEquals(
+            "html > body > div.a\\[foo\\]",
+            selector
+        ) // would fail with "Did not find balanced marker", consumeSubquery was not handling escapes
+
+        val selected = doc.select(selector)
+        assertEquals(1, selected.size)
+        assertEquals(selected.first(), div)
+    }
+
+    @Test
+    fun cssSelectorUnbalanced() {
+        val doc = Ksoup.parse("<div class='a(foo'>One</div><div class='a-bar'>Two</div>")
+        val div = doc.expectFirst("div")
+        val selector = div.cssSelector()
+        assertEquals("html > body > div.a\\(foo", selector)
+
+        val selected = doc.select(selector)
+        assertEquals(1, selected.size)
+        assertEquals(selected.first(), div)
+    }
+
+    @Test
+    fun cssSelectorWithAstrix() {
+        val doc = Ksoup.parse("<div class='vds-items_flex-end [&amp;_>_*:first-child]:vds-pt_0'>One</div><div class='vds-items_flex-end'>Two</div>")
+        val div = doc.expectFirst("div")
+        val selector = div.cssSelector()
+        assertEquals("html > body > div.vds-items_flex-end.\\[\\&_\\>_\\*\\:first-child\\]\\:vds-pt_0", selector)
+
+        val selected = doc.select(selector)
+        assertEquals(1, selected.size)
+        assertEquals(selected.first(), div)
     }
 
     @Test
@@ -2950,8 +2979,7 @@ Three
 
     @Test
     fun nestedFormatAsInlinePrintsAsBlock() {
-        // https://github.com/jhy/jsoup/issues/1926
-        val h = """        <table>
+        val h = """<table>
             <tr>
                 <td>
                     <p style="display:inline;">A</p>

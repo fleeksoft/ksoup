@@ -27,8 +27,8 @@ public class Tokeniser(treeBuilder: TreeBuilder) {
     public val commentPending: Token.Comment = Token.Comment()
     private var lastStartTag: String? = null
     private var lastStartCloseSeq: String? = null
-    private var markupStartPos = Unset
-    private var charStartPos = Unset
+    private var markupStartPos = 0
+    private var charStartPos = 0
 
     private val codepointHolder = IntArray(1) // holder to not have to keep creating arrays
     private val multipointHolder = IntArray(2)
@@ -63,7 +63,7 @@ public class Tokeniser(treeBuilder: TreeBuilder) {
         isEmitPending = true
         token.startPos(markupStartPos)
         token.endPos(reader.pos())
-        charStartPos = Unset
+        charStartPos = reader.pos() // update char start when we complete a token emit
 
         when (token.type) {
             Token.TokenType.StartTag -> {
@@ -136,11 +136,9 @@ public class Tokeniser(treeBuilder: TreeBuilder) {
     }
 
     public fun transition(newState: TokeniserState) {
-        when (newState) {
-            TokeniserState.TagOpen -> markupStartPos = reader.pos()
-            TokeniserState.Data -> if (charStartPos == Unset) charStartPos = reader.pos()
-            else -> {}
-        }
+        // track markup position on state transitions
+        if (newState === TokeniserState.TagOpen) markupStartPos = reader.pos()
+
         this._state = newState
     }
 
@@ -354,8 +352,6 @@ public class Tokeniser(treeBuilder: TreeBuilder) {
             0x0090, 0x2018, 0x2019, 0x201C, 0x201D, 0x2022, 0x2013, 0x2014,
             0x02DC, 0x2122, 0x0161, 0x203A, 0x0153, 0x009D, 0x017E, 0x0178,
         )
-
-        private const val Unset = -1
 
         public fun currentNodeInHtmlNS(): Boolean {
             // todo: implement namespaces correctly

@@ -65,7 +65,23 @@ public abstract class Evaluator protected constructor() {
     }
 
     /**
-     * Evaluator for tag name that ends with
+     * Evaluator for tag name that starts with prefix; used for ns|*
+     */
+    public class TagStartsWith(private val tagName: String) : Evaluator() {
+        override fun matches(
+            root: Element,
+            element: Element,
+        ): Boolean {
+            return element.normalName().startsWith(tagName)
+        }
+
+        override fun toString(): String {
+            return tagName
+        }
+    }
+
+    /**
+     * Evaluator for tag name that ends with suffix; used for *|el
      */
     public class TagEndsWith(private val tagName: String) : Evaluator() {
         override fun matches(
@@ -604,11 +620,17 @@ public abstract class Evaluator protected constructor() {
             root: Element,
             element: Element,
         ): Boolean {
-            val family: List<Node> = element.childNodes()
-            for (n in family) {
-                if (n is TextNode) return n.isBlank()
-                if (!(n is Comment || n is XmlDeclaration || n is DocumentType)) return false
+            var n = element.firstChild()
+            while (n != null) {
+                if (n is TextNode) {
+                    if (!n.isBlank()) return false // non-blank text: not empty
+                } else if (!(n is Comment || n is XmlDeclaration || n is DocumentType)) {
+                    return false; // non "blank" element: not empty
+                }
+
+                n = n.nextSibling()
             }
+
             return true
         }
 

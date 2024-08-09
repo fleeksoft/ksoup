@@ -1,5 +1,7 @@
 package com.fleeksoft.ksoup.helper
 
+import korlibs.util.format
+
 /**
  * Validators to check that method arguments meet expectations.
  */
@@ -9,11 +11,8 @@ internal object Validate {
      * @param obj object to test
      * @throws ValidationException if the object is null
      */
-    @Throws(ValidationException::class)
     fun notNull(obj: Any?) {
-        if (obj == null) {
-            throw ValidationException(msg = "Object must not be null")
-        }
+        requireNotNull(obj) { "Object must not be null" }
     }
 
     /**
@@ -69,8 +68,12 @@ internal object Validate {
     fun ensureNotNull(
         obj: Any?,
         msg: String?,
+        vararg args: Any?
     ): Any {
-        return obj ?: throw ValidationException(msg)
+        val formattedMessage = if (args.isNotEmpty()) {
+            msg?.format(args)
+        } else msg
+        return obj ?: throw ValidationException(formattedMessage)
     }
 
     /**

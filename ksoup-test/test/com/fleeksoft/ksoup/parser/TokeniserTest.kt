@@ -12,7 +12,6 @@ import kotlin.test.assertTrue
 class TokeniserTest {
     @Test
     fun bufferUpInAttributeVal() {
-        // https://github.com/jhy/jsoup/issues/967
 
         // check each double, singlem, unquoted impls
         val quotes = arrayOf("\"", "'", "")

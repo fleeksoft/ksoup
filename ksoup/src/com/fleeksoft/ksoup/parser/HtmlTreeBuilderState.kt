@@ -395,7 +395,7 @@ public enum class HtmlTreeBuilderState {
 
                 "li" -> {
                     tb.framesetOk(false)
-                    stack = tb.stack
+                    stack = tb.getStack()
                     var i: Int = stack.size - 1
                     while (i > 0) {
                         el = stack[i]!!
@@ -423,9 +423,9 @@ public enum class HtmlTreeBuilderState {
                     tb.error(this)
                     if (tb.onStack("template")) return false // ignore
                     // otherwise, merge attributes onto real html (if present)
-                    stack = tb.stack
+                    stack = tb.getStack()
                     if (stack.size > 0) {
-                        val html: Element = tb.stack[0]!!
+                        val html: Element = tb.getStack()[0]!!
                         if (startTag.hasAttributes()) {
                             for (attribute in (startTag.attributes ?: emptyList())) {
                                 if (!html.hasAttr(attribute.key)) {
@@ -439,7 +439,7 @@ public enum class HtmlTreeBuilderState {
 
                 "body" -> {
                     tb.error(this)
-                    stack = tb.stack
+                    stack = tb.getStack()
                     if (stack.size == 1 || stack.size > 2 && !stack[1]!!.nameIs("body") ||
                         tb.onStack("template")
                     ) {
@@ -464,7 +464,7 @@ public enum class HtmlTreeBuilderState {
 
                 "frameset" -> {
                     tb.error(this)
-                    stack = tb.stack
+                    stack = tb.getStack()
                     if (stack.size == 1 || stack.size > 2 && !stack[1]!!.nameIs("body")) {
                         // only in fragment case
                         return false // ignore
@@ -680,7 +680,7 @@ public enum class HtmlTreeBuilderState {
 
                 "dd", "dt" -> {
                     tb.framesetOk(false)
-                    stack = tb.stack
+                    stack = tb.getStack()
                     val bottom: Int = stack.size - 1
                     val upper = if (bottom >= MaxStackScan) bottom - MaxStackScan else 0
                     var i = bottom
@@ -911,11 +911,7 @@ public enum class HtmlTreeBuilderState {
         ): Boolean {
             // case insensitive search - goal is to preserve output case, not for the parse to be case sensitive
             val name: String = t.asEndTag().normalName!!
-            val stack: ArrayList<Element> =
-                arrayListOf(
-                    *tb.stack.mapNotNull { it }.toList()
-                        .toTypedArray(),
-                )
+            val stack: ArrayList<Element> = arrayListOf(*tb.getStack().mapNotNull { it }.toList().toTypedArray())
 
             // deviate from spec slightly to speed when super deeply nested
             val elFromStack: Element? = tb.getFromStack(name)
@@ -947,7 +943,7 @@ public enum class HtmlTreeBuilderState {
         ): Boolean {
             val endTag: Token.EndTag = t.asEndTag()
             val name: String = endTag.retrieveNormalName()
-            val stack: ArrayList<Element> = tb.stack as ArrayList<Element>
+            val stack: ArrayList<Element> = tb.getStack() as ArrayList<Element>
             var el: Element
             for (i in 0..7) {
                 val formatEl: Element? = tb.getActiveFormattingElement(name)
@@ -1118,12 +1114,12 @@ public enum class HtmlTreeBuilderState {
                     return tb.process(t, InHead)
                 } else if (name == "input") {
                     if (!(
-                                startTag.hasAttributes() &&
-                                        startTag.attributes!!["type"].equals(
-                                            "hidden",
-                                            ignoreCase = true,
-                                        )
+                            startTag.hasAttributes() &&
+                                startTag.attributes!!["type"].equals(
+                                    "hidden",
+                                    ignoreCase = true,
                                 )
+                            )
                     ) {
                         return anythingElse(t, tb)
                     } else {
@@ -1241,10 +1237,10 @@ public enum class HtmlTreeBuilderState {
                     tb.transition(InTable)
                 }
             } else if ((
-                        t.isStartTag() &&
-                                StringUtil.inSorted(t.asStartTag().retrieveNormalName(), Constants.InCellCol) ||
-                                t.isEndTag() && t.asEndTag().retrieveNormalName() == "table"
-                        )
+                    t.isStartTag() &&
+                        StringUtil.inSorted(t.asStartTag().retrieveNormalName(), Constants.InCellCol) ||
+                        t.isEndTag() && t.asEndTag().retrieveNormalName() == "table"
+                    )
             ) {
                 // same as above but processes after transition
                 if (!tb.inTableScope("caption")) { // fragment case
@@ -1950,10 +1946,10 @@ public enum class HtmlTreeBuilderState {
                         return processAsHtml(t, tb)
                     }
                     if (start.normalName.equals("font") && (
-                                start.hasAttributeIgnoreCase("color") ||
-                                        start.hasAttributeIgnoreCase("face") ||
-                                        start.hasAttributeIgnoreCase("size")
-                                )
+                            start.hasAttributeIgnoreCase("color") ||
+                                start.hasAttributeIgnoreCase("face") ||
+                                start.hasAttributeIgnoreCase("size")
+                            )
                     ) {
                         return processAsHtml(t, tb)
                     }
@@ -1984,10 +1980,7 @@ public enum class HtmlTreeBuilderState {
 
                     // Any other end tag
                     val stack: ArrayList<Element> =
-                        arrayListOf(
-                            *tb.stack.mapNotNull { it }.toList()
-                                .toTypedArray(),
-                        )
+                        arrayListOf(*tb.getStack().mapNotNull { it }.toList().toTypedArray())
                     if (stack.isEmpty()) Validate.wtf("Stack unexpectedly empty")
                     var i: Int = stack.size - 1
                     var el: Element = stack[i]
@@ -2031,7 +2024,8 @@ public enum class HtmlTreeBuilderState {
         public val InHeadEnd: Array<String> = arrayOf("body", "br", "html")
         public val AfterHeadBody: Array<String> = arrayOf("body", "br", "html")
         public val BeforeHtmlToHead: Array<String> = arrayOf("body", "br", "head", "html")
-        public val InHeadNoScriptHead: Array<String> = arrayOf("basefont", "bgsound", "link", "meta", "noframes", "style")
+        public val InHeadNoScriptHead: Array<String> =
+            arrayOf("basefont", "bgsound", "link", "meta", "noframes", "style")
         public val InBodyStartToHead: Array<String> = arrayOf(
             "base",
             "basefont",
@@ -2164,14 +2158,17 @@ public enum class HtmlTreeBuilderState {
         )
         public val InTableFoster: Array<String> = arrayOf("table", "tbody", "tfoot", "thead", "tr")
         public val InTableBodyExit: Array<String> = arrayOf("caption", "col", "colgroup", "tbody", "tfoot", "thead")
-        public val InTableBodyEndIgnore: Array<String> = arrayOf("body", "caption", "col", "colgroup", "html", "td", "th", "tr")
+        public val InTableBodyEndIgnore: Array<String> =
+            arrayOf("body", "caption", "col", "colgroup", "html", "td", "th", "tr")
         public val InRowMissing: Array<String> = arrayOf("caption", "col", "colgroup", "tbody", "tfoot", "thead", "tr")
         public val InRowIgnore: Array<String> = arrayOf("body", "caption", "col", "colgroup", "html", "td", "th")
         public val InSelectEnd: Array<String> = arrayOf("input", "keygen", "textarea")
-        public val InSelectTableEnd: Array<String> = arrayOf("caption", "table", "tbody", "td", "tfoot", "th", "thead", "tr")
+        public val InSelectTableEnd: Array<String> =
+            arrayOf("caption", "table", "tbody", "td", "tfoot", "th", "thead", "tr")
         public val InTableEndIgnore: Array<String> = arrayOf("tbody", "tfoot", "thead")
         public val InHeadNoscriptIgnore: Array<String> = arrayOf("head", "noscript")
-        public val InCaptionIgnore: Array<String> = arrayOf("body", "col", "colgroup", "html", "tbody", "td", "tfoot", "th", "thead", "tr")
+        public val InCaptionIgnore: Array<String> =
+            arrayOf("body", "col", "colgroup", "html", "tbody", "td", "tfoot", "th", "thead", "tr")
         public val InTemplateToHead: Array<String> = arrayOf(
             "base",
             "basefont",

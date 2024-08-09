@@ -142,7 +142,6 @@ public open class Attribute : Map.Entry<String, String?>, KCloneable<Attribute> 
         return parent!!.sourceRange(key)
     }
 
-    @Throws(IOException::class)
     protected fun html(
         accum: Appendable,
         out: Document.OutputSettings,
@@ -173,13 +172,11 @@ public open class Attribute : Map.Entry<String, String?>, KCloneable<Attribute> 
         if (other == null || this::class != other::class) return false
         val attribute: Attribute = other as Attribute
         if (attributeKey != attribute.attributeKey) return false
-        return if (attributeValue != null) attributeValue == attribute.attributeValue else attribute.attributeValue == null
+        return attributeKey == attribute.key && attributeValue == attribute.attributeValue
     }
 
     override fun hashCode(): Int { // note parent not considered
-        var result = attributeKey.hashCode()
-        result = 31 * result + if (attributeValue != null) attributeValue.hashCode() else 0
-        return result
+        return arrayOf(attributeKey, attributeValue).contentHashCode()
     }
 
     override fun clone(): Attribute {
@@ -235,7 +232,6 @@ public open class Attribute : Map.Entry<String, String?>, KCloneable<Attribute> 
                 "typemustmatch",
             )
 
-        @Throws(IOException::class)
         protected fun html(
             key: String,
             value: String?,
@@ -246,38 +242,25 @@ public open class Attribute : Map.Entry<String, String?>, KCloneable<Attribute> 
             htmlNoValidate(resultKey, value, accum, out)
         }
 
-        @Throws(IOException::class)
-        public fun htmlNoValidate(
-            key: String,
-            value: String?,
-            accum: Appendable,
-            out: Document.OutputSettings,
-        ) {
+        public fun htmlNoValidate(key: String, value: String?, accum: Appendable, out: Document.OutputSettings) {
             // structured like this so that Attributes can check we can write first, so it can add whitespace correctly
             accum.append(key)
             if (!shouldCollapseAttribute(key, value, out)) {
                 accum.append("=\"")
-                Entities.escape(
-                    accum,
-                    Attributes.checkNotNull(value),
-                    out,
-                    inAttribute = true,
-                    normaliseWhite = false,
-                    stripLeadingWhite = false,
-                    trimTrailing = false,
-                )
+                Entities.escape(accum = accum, string = value ?: "", out = out, options = Entities.ForAttribute)
                 accum.append('"')
             }
         }
 
-        private val xmlKeyValid: Regex =
-            Regex("[a-zA-Z_:][-a-zA-Z0-9_:.]*")
-        private val xmlKeyReplace: Regex =
-            Regex("[^-a-zA-Z0-9_:.]")
-        private val htmlKeyValid: Regex =
-            Regex("[^\\x00-\\x1f\\x7f-\\x9f \"'/=]+")
-        private val htmlKeyReplace: Regex =
-            Regex("[\\x00-\\x1f\\x7f-\\x9f \"'/=]")
+        private val xmlKeyReplace: Regex = Regex("[^-a-zA-Z0-9_:.]+")
+        private val htmlKeyReplace: Regex = Regex("[\\x00-\\x1f\\x7f-\\x9f \"'/=]+")
+
+        /**
+         * Get a valid attribute key for the given syntax. If the key is not valid, it will be coerced into a valid key.
+         * @param key the original attribute key
+         * @param syntax HTML or XML
+         * @return the original key if it's valid; a key with invalid characters replaced with "_" otherwise; or null if a valid key could not be created.
+         */
 
         public fun getValidKey(
             key: String,
@@ -285,23 +268,49 @@ public open class Attribute : Map.Entry<String, String?>, KCloneable<Attribute> 
         ): String? {
             return when (syntax) {
                 Syntax.xml -> {
-                    if (!xmlKeyValid.matches(key)) {
-                        val newKey = xmlKeyReplace.replace(key, "")
-                        if (xmlKeyValid.matches(newKey)) newKey else null
+                    if (!isValidXmlKey(key)) {
+                        val newKey = xmlKeyReplace.replace(key, "_")
+                        if (isValidXmlKey(newKey)) newKey else null
                     } else {
                         key
                     }
                 }
 
                 Syntax.html -> {
-                    if (!htmlKeyValid.matches(key)) {
-                        val newKey = htmlKeyReplace.replace(key, "")
-                        if (htmlKeyValid.matches(newKey)) newKey else null
+                    if (!isValidHtmlKey(key)) {
+                        val newKey = htmlKeyReplace.replace(key, "_")
+                        if (isValidHtmlKey(newKey)) newKey else null
                     } else {
                         key
                     }
                 }
             }
+        }
+
+        // perf critical in html() so using manual scan vs regex:
+        // note that we aren't using anything in supplemental space, so OK to iter charAt
+        private fun isValidXmlKey(key: String): Boolean {
+            // =~ [a-zA-Z_:][-a-zA-Z0-9_:.]*
+            val length = key.length
+            if (length == 0) return false
+            var c = key[0]
+            if (!((c in 'a'..'z') || (c in 'A'..'Z') || (c == '_') || (c == ':'))) return false
+            for (i in 1 until length) {
+                c = key[i]
+                if (!((c in 'a'..'z') || (c in 'A'..'Z') || (c == '_') || (c == ':'))) return false
+            }
+            return true
+        }
+
+        private fun isValidHtmlKey(key: String): Boolean {
+            // =~ [\x00-\x1f\x7f-\x9f "'/=]+
+            val length = key.length
+            if (length == 0) return false
+            for (i in 0 until length) {
+                val c = key[i]
+                if (c.code <= 0x1f || c.code in 0x7f..0x9f || c == ' ' || c == '"' || c == '\'' || c == '/' || c == '=') return false
+            }
+            return true
         }
 
         /**
@@ -328,16 +337,14 @@ public open class Attribute : Map.Entry<String, String?>, KCloneable<Attribute> 
             value: String?,
             out: Document.OutputSettings,
         ): Boolean {
-            return out.syntax() === Syntax.html &&
-                (
-                    value == null || (
-                        value.isEmpty() ||
+            return out.syntax() === Syntax.html && (value == null || (
+                    value.isEmpty() ||
                             value.equals(
                                 key,
                                 ignoreCase = true,
                             )
                     ) && isBooleanAttribute(key)
-                )
+                    )
         }
 
         /**

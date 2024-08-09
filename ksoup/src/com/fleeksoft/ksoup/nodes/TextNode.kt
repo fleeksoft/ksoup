@@ -68,21 +68,17 @@ public open class TextNode(text: String) : LeafNode() {
         return tailNode
     }
 
-    @Throws(IOException::class)
-    override fun outerHtmlHead(
-        accum: Appendable,
-        depth: Int,
-        out: Document.OutputSettings,
-    ) {
+    override fun outerHtmlHead(accum: Appendable, depth: Int, out: Document.OutputSettings) {
         val prettyPrint: Boolean = out.prettyPrint()
-        val parent: Element? = if (_parentNode is Element) _parentNode as Element? else null
         val normaliseWhite = prettyPrint && !Element.preserveWhitespace(_parentNode)
-        val trimLikeBlock = parent != null && (parent.tag().isBlock || parent.tag().formatAsBlock())
-        var trimLeading = false
-        var trimTrailing = false
+        var escape = Entities.ForText
         if (normaliseWhite) {
-            trimLeading = trimLikeBlock && _siblingIndex == 0 || _parentNode is Document
-            trimTrailing = trimLikeBlock && nextSibling() == null
+            escape = escape or Entities.Normalise
+            val parent: Element? = if (_parentNode is Element) _parentNode as Element? else null
+            val trimLikeBlock = parent != null && (parent.tag().isBlock || parent.tag().formatAsBlock())
+
+            if ((trimLikeBlock && _siblingIndex == 0) || _parentNode is Document) escape = escape or Entities.TrimLeading
+            if (trimLikeBlock && nextSibling() == null) escape = escape or Entities.TrimTrailing
 
             // if this text is just whitespace, and the next node will cause an indent, skip this text:
             val next: Node? = nextSibling()
@@ -90,8 +86,8 @@ public open class TextNode(text: String) : LeafNode() {
             val isBlank = isBlank()
             val couldSkip =
                 next is Element && next.shouldIndent(out) || next is TextNode && next.isBlank() || prev is Element && (
-                    prev.isBlock() || prev.nameIs("br")
-                ) // br is a bit special - make sure we don't get a dangling blank line, but not a block otherwise wraps in head
+                        prev.isBlock() || prev.nameIs("br")
+                        ) // br is a bit special - make sure we don't get a dangling blank line, but not a block otherwise wraps in head
             if (couldSkip && isBlank) return
             if (
                 (prev == null && parent != null && parent.tag().formatAsBlock() && !isBlank) ||
@@ -101,7 +97,7 @@ public open class TextNode(text: String) : LeafNode() {
                 indent(accum, depth, out)
             }
         }
-        Entities.escape(accum, coreValue(), out, false, normaliseWhite, trimLeading, trimTrailing)
+        Entities.escape(accum, coreValue(), out, escape)
     }
 
     @Throws(IOException::class)

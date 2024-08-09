@@ -22,7 +22,7 @@ val generateBuildConfigFile: Task by tasks.creating {
     }
 }
 
-tasks.all {
+tasks.configureEach {
     if (name != generateBuildConfigFile.name && !name.contains("publish", ignoreCase = true)) {
         dependsOn(generateBuildConfigFile.name)
     }
@@ -32,6 +32,15 @@ kotlin {
     sourceSets {
         commonTest {
             this.kotlin.srcDir(layout.buildDirectory.file(rootPath))
+        }
+    }
+    js(IR) {
+        browser {
+            testTask {
+                useMocha {
+                    timeout = "9s"
+                }
+            }
         }
     }
 }

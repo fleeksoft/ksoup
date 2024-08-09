@@ -1,10 +1,11 @@
 package com.fleeksoft.ksoup.select
 
-import co.touchlab.stately.concurrency.ThreadLocalRef
+import com.fleeksoft.ksoup.helper.computeIfAbsent
 import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.nodes.Element
 import com.fleeksoft.ksoup.nodes.NodeIterator
 import com.fleeksoft.ksoup.ported.IdentityHashMap
+import com.fleeksoft.ksoup.ported.ThreadLocal
 
 /**
  * Base structural evaluator.
@@ -12,30 +13,20 @@ import com.fleeksoft.ksoup.ported.IdentityHashMap
 public abstract class StructuralEvaluator(public val evaluator: Evaluator) : Evaluator() {
     // Memoize inner matches, to save repeated re-evaluations of parent, sibling etc.
     // root + element: Boolean matches. ThreadLocal in case the Evaluator is compiled then reused across multi threads
-    public val threadMemo: IdentityHashMap<Element, IdentityHashMap<Element, Boolean>> =
-        IdentityHashMap()
+    public val threadMemo: ThreadLocal<IdentityHashMap<Element, IdentityHashMap<Element, Boolean>>> =
+        ThreadLocal { IdentityHashMap() }
 
     public fun memoMatches(
         root: Element,
         element: Element,
     ): Boolean {
-        // not using computeIfAbsent, as the lambda impl requires a new Supplier closure object on every hit: tons of GC
-        val rootMemo: IdentityHashMap<Element, IdentityHashMap<Element, Boolean>> = threadMemo
-        var memo: IdentityHashMap<Element, Boolean>? = rootMemo[root]
-        if (memo == null) {
-            memo = IdentityHashMap<Element, Boolean>()
-            rootMemo[root] = memo
-        }
-        var matches: Boolean? = memo.get(element)
-        if (matches == null) {
-            matches = evaluator.matches(root, element)
-            memo[element] = matches
-        }
-        return matches
+        val rootMemo = threadMemo.get()
+        val memo: MutableMap<Element, Boolean> = rootMemo.computeIfAbsent(root) { IdentityHashMap() }
+        return memo.computeIfAbsent(element) { key -> evaluator.matches(root, key) }
     }
 
     override fun reset() {
-        threadMemo.clear()
+        threadMemo.get()?.clear()
         super.reset()
     }
 
@@ -58,7 +49,8 @@ public abstract class StructuralEvaluator(public val evaluator: Evaluator) : Eva
 
     internal class Has(evaluator: Evaluator) : StructuralEvaluator(evaluator) {
         companion object {
-            private val nodeIterator: ThreadLocalRef<NodeIterator<Element>> = ThreadLocalRef()
+            private val nodeIterator: ThreadLocal<NodeIterator<Element>> =
+                ThreadLocal { NodeIterator(Element("html"), Element::class) }
         }
 
         private val checkSiblings = evalWantsSiblings(evaluator) // evaluating against siblings (or children)
@@ -74,7 +66,7 @@ public abstract class StructuralEvaluator(public val evaluator: Evaluator) : Eva
                 }
             } else {
                 // otherwise we only want to match children (or below), and not the input element. And we want to minimize GCs so reusing the Iterator obj
-                val it = nodeIterator.get() ?: NodeIterator(Element("html"), Element::class).also { nodeIterator.set(it) }
+                val it = nodeIterator.get()
                 it.restart(element)
                 while (it.hasNext()) {
                     val el = it.next()

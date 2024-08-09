@@ -1,7 +1,6 @@
 package com.fleeksoft.ksoup.select
 
 import com.fleeksoft.ksoup.helper.Validate
-import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.nodes.Comment
 import com.fleeksoft.ksoup.nodes.DataNode
 import com.fleeksoft.ksoup.nodes.Element
@@ -200,12 +199,7 @@ public class Elements(private val delegateList: MutableList<Element> = mutableLi
      * @see .eachText
      */
     public fun text(): String {
-        val sb: StringBuilder = StringUtil.borrowBuilder()
-        for (element in this) {
-            if (sb.length != 0) sb.append(" ")
-            sb.append(element.text())
-        }
-        return StringUtil.releaseBuilder(sb)
+        return this.map(Element::text).joinToString(" ")
     }
 
     /**
@@ -214,10 +208,7 @@ public class Elements(private val delegateList: MutableList<Element> = mutableLi
      * @see Element.hasText
      */
     public fun hasText(): Boolean {
-        for (element in this) {
-            if (element.hasText()) return true
-        }
-        return false
+        return this.any { it.hasText() }
     }
 
     /**
@@ -229,11 +220,7 @@ public class Elements(private val delegateList: MutableList<Element> = mutableLi
      * @see .text
      */
     public fun eachText(): List<String> {
-        val texts: ArrayList<String> = ArrayList(size)
-        for (el in this) {
-            if (el.hasText()) texts.add(el.text())
-        }
-        return texts
+        return this.mapNotNull { if (it.hasText()) it.text() else null }.toList()
     }
 
     /**
@@ -243,12 +230,7 @@ public class Elements(private val delegateList: MutableList<Element> = mutableLi
      * @see .outerHtml
      */
     public fun html(): String {
-        val sb: StringBuilder = StringUtil.borrowBuilder()
-        for (element in this) {
-            if (sb.length != 0) sb.append("\n")
-            sb.append(element.html())
-        }
-        return StringUtil.releaseBuilder(sb)
+        return this.map { it.html() }.joinToString("\n")
     }
 
     /**
@@ -258,12 +240,7 @@ public class Elements(private val delegateList: MutableList<Element> = mutableLi
      * @see .html
      */
     public fun outerHtml(): String {
-        val sb: StringBuilder = StringUtil.borrowBuilder()
-        for (element in this) {
-            if (sb.length != 0) sb.append("\n")
-            sb.append(element.outerHtml())
-        }
-        return StringUtil.releaseBuilder(sb)
+        return this.map { it.outerHtml() }.joinToString("\n")
     }
 
     /**

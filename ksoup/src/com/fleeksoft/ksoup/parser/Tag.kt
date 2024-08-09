@@ -2,6 +2,7 @@ package com.fleeksoft.ksoup.parser
 
 import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.internal.Normalizer
+import com.fleeksoft.ksoup.internal.SharedConstants
 import com.fleeksoft.ksoup.ported.Consumer
 import com.fleeksoft.ksoup.ported.KCloneable
 import kotlin.jvm.JvmOverloads
@@ -207,238 +208,50 @@ public data class Tag(
 
         // internal static initialisers:
         // prepped from http://www.w3.org/TR/REC-html40/sgml/dtd.html and other sources
-        private val blockTags =
-            arrayOf(
-                "html",
-                "head",
-                "body",
-                "frameset",
-                "script",
-                "noscript",
-                "style",
-                "meta",
-                "link",
-                "title",
-                "frame",
-                "noframes",
-                "section",
-                "nav",
-                "aside",
-                "hgroup",
-                "header",
-                "footer",
-                "p",
-                "h1",
-                "h2",
-                "h3",
-                "h4",
-                "h5",
-                "h6",
-                "ul",
-                "ol",
-                "pre",
-                "div",
-                "blockquote",
-                "hr",
-                "address",
-                "figure",
-                "figcaption",
-                "form",
-                "fieldset",
-                "ins",
-                "del",
-                "dl",
-                "dt",
-                "dd",
-                "li",
-                "table",
-                "caption",
-                "thead",
-                "tfoot",
-                "tbody",
-                "colgroup",
-                "col",
-                "tr",
-                "th",
-                "td",
-                "video",
-                "audio",
-                "canvas",
-                "details",
-                "menu",
-                "plaintext",
-                "template",
-                "article",
-                "main",
-                "svg",
-                "math",
-                "center",
-                "template",
-                "dir",
-                "applet",
-                "marquee",
-                "listing", // deprecated but still known / special handling
-            )
-        private val inlineTags =
-            arrayOf(
-                "object",
-                "base",
-                "font",
-                "tt",
-                "i",
-                "b",
-                "u",
-                "big",
-                "small",
-                "em",
-                "strong",
-                "dfn",
-                "code",
-                "samp",
-                "kbd",
-                "var",
-                "cite",
-                "abbr",
-                "time",
-                "acronym",
-                "mark",
-                "ruby",
-                "rt",
-                "rp",
-                "rtc",
-                "a",
-                "img",
-                "br",
-                "wbr",
-                "map",
-                "q",
-                "sub",
-                "sup",
-                "bdo",
-                "iframe",
-                "embed",
-                "span",
-                "input",
-                "select",
-                "textarea",
-                "label",
-                "button",
-                "optgroup",
-                "option",
-                "legend",
-                "datalist",
-                "keygen",
-                "output",
-                "progress",
-                "meter",
-                "area",
-                "param",
-                "source",
-                "track",
-                "summary",
-                "command",
-                "device",
-                "area",
-                "basefont",
-                "bgsound",
-                "menuitem",
-                "param",
-                "source",
-                "track",
-                "data",
-                "bdi",
-                "s",
-                "strike",
-                "nobr",
-                "rb", // deprecated but still known / special handling
-                "text", // in SVG NS
-                "mi",
-                "mo",
-                "msup",
-                "mn",
-                "mtext", // in MathML NS, to ensure inline
-            )
-        private val emptyTags =
-            arrayOf(
-                "meta",
-                "link",
-                "base",
-                "frame",
-                "img",
-                "br",
-                "wbr",
-                "embed",
-                "hr",
-                "input",
-                "keygen",
-                "col",
-                "command",
-                "device",
-                "area",
-                "basefont",
-                "bgsound",
-                "menuitem",
-                "param",
-                "source",
-                "track",
-            )
+        private val blockTags = arrayOf(
+            "html", "head", "body", "frameset", "script", "noscript", "style", "meta", "link", "title", "frame",
+            "noframes", "section", "nav", "aside", "hgroup", "header", "footer", "p", "h1", "h2", "h3", "h4", "h5", "h6",
+            "ul", "ol", "pre", "div", "blockquote", "hr", "address", "figure", "figcaption", "form", "fieldset", "ins",
+            "del", "dl", "dt", "dd", "li", "table", "caption", "thead", "tfoot", "tbody", "colgroup", "col", "tr", "th",
+            "td", "video", "audio", "canvas", "details", "menu", "plaintext", "template", "article", "main",
+            "svg", "math", "center", "template",
+            "dir", "applet", "marquee", "listing" // deprecated but still known / special handling
+        )
+        private val inlineTags = arrayOf(
+            "object", "base", "font", "tt", "i", "b", "u", "big", "small", "em", "strong", "dfn", "code", "samp", "kbd",
+            "var", "cite", "abbr", "time", "acronym", "mark", "ruby", "rt", "rp", "rtc", "a", "img", "br", "wbr", "map", "q",
+            "sub", "sup", "bdo", "iframe", "embed", "span", "input", "select", "textarea", "label", "optgroup",
+            "option", "legend", "datalist", "keygen", "output", "progress", "meter", "area", "param", "source", "track",
+            "summary", "command", "device", "area", "basefont", "bgsound", "menuitem", "param", "source", "track",
+            "data", "bdi", "s", "strike", "nobr",
+            "rb", // deprecated but still known / special handling
+            "text", // in SVG NS
+            "mi", "mo", "msup", "mn", "mtext" // in MathML NS, to ensure inline
+        )
+        private val emptyTags = arrayOf(
+            "meta", "link", "base", "frame", "img", "br", "wbr", "embed", "hr", "input", "keygen", "col", "command",
+            "device", "area", "basefont", "bgsound", "menuitem", "param", "source", "track"
+        )
 
         // todo - rework this to format contents as inline; and update html emitter in Element. Same output, just neater.
-        private val formatAsInlineTags =
-            arrayOf(
-                "title",
-                "a",
-                "p",
-                "h1",
-                "h2",
-                "h3",
-                "h4",
-                "h5",
-                "h6",
-                "pre",
-                "address",
-                "li",
-                "th",
-                "td",
-                "script",
-                "style",
-                "ins",
-                "del",
-                "s",
-            )
-        private val preserveWhitespaceTags =
-            arrayOf(
-                "pre",
-                "plaintext",
-                "title",
-                "textarea", // script is not here as it is a data node, which always preserve whitespace
-            )
+        private val formatAsInlineTags = arrayOf(
+            "title", "a", "p", "h1", "h2", "h3", "h4", "h5", "h6", "pre", "address", "li", "th", "td", "script", "style",
+            "ins", "del", "s", "button"
+        )
+        private val preserveWhitespaceTags = arrayOf(
+            "pre", "plaintext", "title", "textarea"
+            // script is not here as it is a data node, which always preserve whitespace
+        )
 
         // todo: I think we just need submit tags, and can scrub listed
-        private val formListedTags =
-            arrayOf(
-                "button",
-                "fieldset",
-                "input",
-                "keygen",
-                "object",
-                "output",
-                "select",
-                "textarea",
-            )
-        private val formSubmitTags =
-            arrayOf(
-                "input",
-                "keygen",
-                "object",
-                "select",
-                "textarea",
-            )
+        private val formListedTags = arrayOf(
+            "button", "fieldset", "input", "keygen", "object", "output", "select", "textarea"
+        )
+        private val formSubmitTags = SharedConstants.FormSubmitTags
         private val namespaces: MutableMap<String, Array<String>> = HashMap<String, Array<String>>()
 
         init {
-            namespaces[Parser.NamespaceMathml] =
-                arrayOf<String>("math", "mi", "mo", "msup", "mn", "mtext")
+            namespaces[Parser.NamespaceMathml] = arrayOf<String>("math", "mi", "mo", "msup", "mn", "mtext")
             namespaces[Parser.NamespaceSvg] = arrayOf<String>("svg", "text")
             // We don't need absolute coverage here as other cases will be inferred by the HtmlTreeBuilder
         }
@@ -458,37 +271,21 @@ public data class Tag(
         }
 
         init {
-            setupTags(
-                blockTags,
-            ) { tag: Tag ->
+            setupTags(blockTags) { tag: Tag ->
                 tag.isBlock = true
                 tag.formatAsBlock = true
             }
-            setupTags(
-                inlineTags,
-            ) { tag: Tag ->
+            setupTags(inlineTags) { tag: Tag ->
                 tag.isBlock = false
                 tag.formatAsBlock = false
             }
-            setupTags(
-                emptyTags,
-            ) { tag: Tag -> tag.isEmpty = true }
-            setupTags(
-                formatAsInlineTags,
-            ) { tag: Tag -> tag.formatAsBlock = false }
-            setupTags(
-                preserveWhitespaceTags,
-            ) { tag: Tag -> tag.preserveWhitespace = true }
-            setupTags(
-                formListedTags,
-            ) { tag: Tag -> tag.isFormListed = true }
-            setupTags(
-                formSubmitTags,
-            ) { tag: Tag -> tag.isFormSubmittable = true }
+            setupTags(emptyTags) { tag: Tag -> tag.isEmpty = true }
+            setupTags(formatAsInlineTags) { tag: Tag -> tag.formatAsBlock = false }
+            setupTags(preserveWhitespaceTags) { tag: Tag -> tag.preserveWhitespace = true }
+            setupTags(formListedTags) { tag: Tag -> tag.isFormListed = true }
+            setupTags(formSubmitTags) { tag: Tag -> tag.isFormSubmittable = true }
             for ((key, value) in namespaces) {
-                setupTags(
-                    value,
-                ) { tag: Tag -> tag.namespace = key }
+                setupTags(value) { tag: Tag -> tag.namespace = key }
             }
         }
     }

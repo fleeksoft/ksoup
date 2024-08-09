@@ -385,7 +385,6 @@ class CleanerTest {
 
     @Test
     fun handlesAttributesWithNoValue() {
-        // https://github.com/jhy/jsoup/issues/973
         val clean = Ksoup.clean("<a href>Clean</a>", Safelist.basic())
         assertEquals("<a rel=\"nofollow\">Clean</a>", clean)
     }
@@ -400,7 +399,6 @@ class CleanerTest {
 
     @Test
     fun handlesNestedQuotesInAttribute() {
-        // https://github.com/jhy/jsoup/issues/1243 - no repro
         val orig = "<div style=\"font-family: 'Calibri'\">Will (not) fail</div>"
         val allow =
             Safelist.relaxed()
@@ -413,11 +411,12 @@ class CleanerTest {
 
     @Test
     fun preservesSourcePositionViaUserData() {
-        val orig: Document =
-            Ksoup.parse("<script>xss</script>\n <p id=1>Hello</p>", Parser.htmlParser().setTrackPosition(true))
+        val orig: Document = Ksoup.parse(html = "<script>xss</script>\n <p id=1>Hello</p>", parser = Parser.htmlParser().setTrackPosition(true))
         val p: Element = orig.expectFirst("p")
         val origRange: Range = p.sourceRange()
         assertEquals("2,2:22-2,10:30", origRange.toString())
+        assertEquals("1,1:0-1,1:0", orig.sourceRange().toString())
+        assertEquals("2,19:39-2,19:39", orig.endSourceRange().toString())
 
         val attributeRange: Range.AttributeRange = p.attributes().sourceRange("id")
         assertEquals("2,5:25-2,7:27=2,8:28-2,9:29", attributeRange.toString())
@@ -427,14 +426,13 @@ class CleanerTest {
         assertEquals("1", cleanP.id())
         val cleanRange: Range = cleanP.sourceRange()
         assertEquals(origRange, cleanRange)
-        assertEquals(orig.endSourceRange(), clean.endSourceRange())
+        assertEquals(p.endSourceRange(), cleanP.endSourceRange())
         assertEquals(attributeRange, cleanP.attributes().sourceRange("id"))
     }
 
     @Test
     fun cleansCaseSensitiveElements() {
         parameterizedTest(listOf(true, false)) { preserveCase ->
-            // https://github.com/jhy/jsoup/issues/2049
             val html =
                 "<svg><feMerge baseFrequency=2><feMergeNode kernelMatrix=1 /><feMergeNode><clipPath /></feMergeNode><feMergeNode />"
             var tags = arrayOf("svg", "feMerge", "feMergeNode", "clipPath")

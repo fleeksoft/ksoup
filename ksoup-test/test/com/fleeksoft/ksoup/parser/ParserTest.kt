@@ -27,7 +27,6 @@ class ParserTest {
 
     @Test
     fun testUtf8() {
-        // testcase for https://github.com/jhy/jsoup/issues/1557. no repro.
         val parsed: Document =
             parse(
                 syncStream = "<p>H\u00E9llo, w\u00F6rld!".toByteArray(Charsets.UTF8).openSync(),

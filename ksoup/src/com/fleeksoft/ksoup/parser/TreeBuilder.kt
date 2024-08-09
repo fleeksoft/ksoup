@@ -4,6 +4,9 @@ import com.fleeksoft.ksoup.internal.SharedConstants
 import com.fleeksoft.ksoup.nodes.*
 import com.fleeksoft.ksoup.parser.Parser.Companion.NamespaceHtml
 import com.fleeksoft.ksoup.ported.StreamCharReader
+import com.fleeksoft.ksoup.ported.toStreamCharReader
+import com.fleeksoft.ksoup.select.NodeVisitor
+import korlibs.io.stream.openSync
 
 /**
  * @author Sabeeh
@@ -16,22 +19,26 @@ public abstract class TreeBuilder {
     public var tokeniser: Tokeniser? = null
         private set
 
-    protected lateinit var doc: Document // current doc we are building into
+    lateinit var doc: Document // current doc we are building into
         private set
 
-    public lateinit var stack: ArrayList<Element?> // the stack of open elements
+    public var _stack: ArrayList<Element?>? = null // the stack of open elements
     public open var baseUri: String? = null // current base uri, for creating new elements
     public var currentToken: Token? = null // currentToken is used only for error tracking.
     public var settings: ParseSettings? = null
 
     // tags we've used in this parse; saves tag GC for custom tags.
     private var seenTags: MutableMap<String, Tag>? = null
+    var nodeListener: NodeVisitor? = null // optional listener for node add / removes
+
     private lateinit var start: Token.StartTag // start tag to process
     private lateinit var end: Token.EndTag
 
     public abstract fun defaultSettings(): ParseSettings?
 
     public var trackSourceRange: Boolean = false // optionally tracks the source range of nodes
+
+    fun getStack() = _stack!!
 
     public open fun initialiseParse(
         input: StreamCharReader,
@@ -49,56 +56,82 @@ public abstract class TreeBuilder {
             parser.isTrackErrors() || trackSourceRange,
         ) // when tracking errors or source ranges, enable newline tracking for better legibility
         tokeniser = Tokeniser(this)
-        stack = ArrayList(32)
+        _stack = ArrayList(32)
         seenTags = HashMap()
         start = Token.StartTag(this)
         currentToken = start // init current token to the virtual start token.
         this.baseUri = baseUri
+        onNodeInserted(doc)
     }
 
-    public fun parse(
-        input: StreamCharReader,
-        baseUri: String,
-        parser: Parser,
-    ): Document {
-        initialiseParse(input, baseUri, parser)
-        runParser()
-
+    public fun completeParse() {
         // tidy up - as the Parser and Treebuilder are retained in document for settings / fragments
+        if (::reader.isInitialized.not()) return
         reader.close()
         tokeniser = null
-        stack.clear()
+        _stack = null
         seenTags = null
+    }
+
+    public fun parse(input: StreamCharReader, baseUri: String, parser: Parser): Document {
+        initialiseParse(input, baseUri, parser)
+        runParser()
         return doc
+    }
+
+    public fun parseFragment(
+        inputFragment: String,
+        context: Element?,
+        baseUri: String,
+        parser: Parser,
+    ): List<Node> {
+        initialiseParse(inputFragment.openSync().toStreamCharReader(), baseUri, parser)
+        initialiseParseFragment(context)
+        runParser()
+        return completeParseFragment()
+    }
+
+    open fun initialiseParseFragment(context: Element?) {
+        // in Html, sets up context; no-op in XML
+    }
+
+    abstract fun completeParseFragment(): List<Node>
+
+    /** Set the node listener, which will then get callbacks for node insert and removals.  */
+    fun nodeListener(nodeListener: NodeVisitor?) {
+        this.nodeListener = nodeListener
     }
 
     /**
      * Create a new copy of this TreeBuilder
      * @return copy, ready for a new parse
      */
-    public abstract fun newInstance(): TreeBuilder
+    abstract fun newInstance(): TreeBuilder
 
-    public abstract fun parseFragment(
-        inputFragment: String,
-        context: Element?,
-        baseUri: String?,
-        parser: Parser,
-    ): List<Node>
+    fun runParser() {
+        do {
+        } while (stepParser())
+        completeParse()
+    }
 
-    protected fun runParser() {
-        val tokeniser = this.tokeniser!!
-        val eof = Token.TokenType.EOF
-
-        while (true) {
-            val token = tokeniser.read()
-            currentToken = token
-            process(token)
-            if (token.type === eof) break
-            token.reset()
+    fun stepParser(): Boolean {
+        // if we have reached the end already, step by popping off the stack, to hit nodeRemoved callbacks:
+        if (currentToken?.type === Token.TokenType.EOF) {
+            if (_stack == null) {
+                return false
+            } else if (_stack?.isEmpty() == true) {
+                onNodeClosed(doc) // the root doc is not on the stack, so let this final step close it
+                _stack = null
+                return true
+            }
+            pop()
+            return true
         }
-
-        // once we hit the end, pop remaining items off the stack
-        while (!stack.isEmpty()) pop()
+        val token = tokeniser!!.read()
+        currentToken = token
+        process(token)
+        token.reset()
+        return true
     }
 
     public abstract fun process(token: Token): Boolean
@@ -137,10 +170,10 @@ public abstract class TreeBuilder {
      * @return
      */
     public fun pop(): Element {
-        val size = stack.size
-        val removed = stack.removeAt(size - 1)!!
-        onNodeClosed(removed)
-        return removed
+        val size = _stack?.size
+        val removed = if (size != null) _stack?.removeAt(size - 1) else null
+        removed?.let { onNodeClosed(it) }
+        return removed!!
     }
 
     /**
@@ -148,7 +181,7 @@ public abstract class TreeBuilder {
      * @param element
      */
     public fun push(element: Element) {
-        stack.add(element)
+        getStack().add(element)
         onNodeInserted(element)
     }
 
@@ -158,8 +191,8 @@ public abstract class TreeBuilder {
      * @return the last element on the stack, if any; or the root document
      */
     public fun currentElement(): Element {
-        val size: Int = stack.size
-        return if (size > 0) stack[size - 1]!! else doc
+        val size: Int = _stack?.size ?: 0
+        return if (size > 0) _stack!![size - 1]!! else doc
     }
 
     /**
@@ -168,11 +201,11 @@ public abstract class TreeBuilder {
      * @return true if there is a current element on the stack, and its name equals the supplied
      */
     public fun currentElementIs(normalName: String?): Boolean {
-        if (stack.size == 0) return false
+        if ((_stack?.size ?: 0) == 0) return false
         val current: Element = currentElement()
         return (
             current.normalName() == normalName && current.tag().namespace() == NamespaceHtml
-        )
+            )
     }
 
     /**
@@ -185,11 +218,11 @@ public abstract class TreeBuilder {
         normalName: String?,
         namespace: String?,
     ): Boolean {
-        if (stack.size == 0) return false
+        if ((_stack?.size ?: 0) == 0) return false
         val current: Element = currentElement()
         return (
             current.normalName() == normalName && current.tag().namespace() == namespace
-        )
+            )
     }
 
     /**
@@ -246,6 +279,8 @@ public abstract class TreeBuilder {
      */
     public fun onNodeInserted(node: Node) {
         trackNodePosition(node, true)
+
+        nodeListener?.head(node, getStack().size)
     }
 
     /**
@@ -254,6 +289,8 @@ public abstract class TreeBuilder {
      */
     public fun onNodeClosed(node: Node) {
         trackNodePosition(node, false)
+
+        nodeListener?.tail(node, getStack().size)
     }
 
     private fun trackNodePosition(

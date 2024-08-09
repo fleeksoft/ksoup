@@ -3,8 +3,10 @@ package com.fleeksoft.ksoup
 import com.fleeksoft.ksoup.helper.DataUtil
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parser.Parser
+import korlibs.io.file.std.toVfs
 import korlibs.io.file.std.uniVfs
 import korlibs.io.stream.openSync
+import korlibs.io.stream.toSyncStream
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
@@ -46,14 +48,14 @@ public fun Ksoup.parseInputStream(
  * @param baseUri  The URL where the HTML was retrieved from, to resolve relative links against.
  * @return sane HTML
  */
-public fun Ksoup.parseFile(
+public suspend fun Ksoup.parseFile(
     file: File,
     baseUri: String = file.absolutePath,
     charsetName: String? = null,
     parser: Parser = Parser.htmlParser(),
 ): Document {
-    return parse(
-        syncStream = file.openSync(),
+    return parseFile(
+        file = file.toVfs(),
         charsetName = charsetName,
         baseUri = baseUri,
         parser = parser,

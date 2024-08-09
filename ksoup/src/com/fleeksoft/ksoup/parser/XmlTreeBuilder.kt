@@ -1,6 +1,5 @@
 package com.fleeksoft.ksoup.parser
 
-import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.nodes.*
 import com.fleeksoft.ksoup.parser.Parser.Companion.NamespaceXml
 import com.fleeksoft.ksoup.ported.StreamCharReader
@@ -26,14 +25,14 @@ public open class XmlTreeBuilder : TreeBuilder() {
         parser: Parser,
     ) {
         super.initialiseParse(input, baseUri, parser)
-
-        // place the document onto the stack. differs from HtmlTreeBuilder (not on stack). Note not push()ed, so not onNodeInserted.
-        stack.add(doc)
-
         doc.outputSettings()
             .syntax(Document.OutputSettings.Syntax.xml)
             .escapeMode(Entities.EscapeMode.xhtml)
             .prettyPrint(false) // as XML, we don't understand what whitespace is significant or not
+    }
+
+    override fun completeParseFragment(): List<Node> {
+        return doc.childNodes()
     }
 
     public fun parse(
@@ -131,12 +130,12 @@ public open class XmlTreeBuilder : TreeBuilder() {
         val elName = settings!!.normalizeTag(endTag.tagName!!)
         var firstFound: Element? = null
 
-        val bottom: Int = stack.size - 1
+        val bottom: Int = getStack().size - 1
         val upper =
             if (bottom >= XmlTreeBuilder.maxQueueDepth) bottom - XmlTreeBuilder.maxQueueDepth else 0
 
-        for (pos in stack.size - 1 downTo upper) {
-            val next = stack[pos]!!
+        for (pos in getStack().size - 1 downTo upper) {
+            val next = _stack!![pos]!!
             if (next.nodeName() == elName) {
                 firstFound = next
                 break
@@ -144,31 +143,12 @@ public open class XmlTreeBuilder : TreeBuilder() {
         }
         if (firstFound == null) return // not found, skip
 
-        for (pos in stack.size - 1 downTo 0) {
+        for (pos in getStack().size - 1 downTo 0) {
             val next = pop()
             if (next === firstFound) {
                 break
             }
         }
-    }
-
-    override fun parseFragment(
-        inputFragment: String,
-        context: Element?,
-        baseUri: String?,
-        parser: Parser,
-    ): List<Node> {
-        return parseFragment(inputFragment, baseUri, parser)
-    }
-
-    public fun parseFragment(
-        inputFragment: String,
-        baseUri: String?,
-        parser: Parser,
-    ): List<Node> {
-        initialiseParse(inputFragment.openSync().toStreamCharReader(), baseUri ?: "", parser)
-        runParser()
-        return doc.childNodes()
     }
 
     public companion object {

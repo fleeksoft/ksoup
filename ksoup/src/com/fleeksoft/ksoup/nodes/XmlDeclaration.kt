@@ -55,9 +55,9 @@ public class XmlDeclaration(name: String, isProcessingInstruction: Boolean) : Le
                 accum.append(' ')
                 // basically like Attribute, but skip empty vals in XML
                 accum.append(key)
-                if (!value.isEmpty()) {
+                if (value.isNotEmpty()) {
                     accum.append("=\"")
-                    Entities.escape(accum, value, out, true, false, false, false)
+                    Entities.escape(accum, value, out, Entities.ForAttribute)
                     accum.append('"')
                 }
             }

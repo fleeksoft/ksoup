@@ -3,15 +3,16 @@ package com.fleeksoft.ksoup.nodes
 import com.fleeksoft.ksoup.BuildConfig
 import com.fleeksoft.ksoup.Ksoup.parse
 import com.fleeksoft.ksoup.Platform
-import com.fleeksoft.ksoup.isJS
 import com.fleeksoft.ksoup.System
+import com.fleeksoft.ksoup.isJS
+import com.fleeksoft.ksoup.isWasmJs
 import kotlin.test.*
 import kotlin.test.Test
 
 class ElementIT {
     @Test
     fun testFastReparent() {
-        if (Platform.isJS() && BuildConfig.isGithubActions) {
+        if (Platform.isWasmJs() && BuildConfig.isGithubActions) {
 //            failing on github action
             return
         }
@@ -141,7 +142,7 @@ class ElementIT {
 
     @Test
     fun wrapNoOverflow() {
-        if (BuildConfig.isGithubActions && Platform.isJS()) {
+        if (BuildConfig.isGithubActions && Platform.isWasmJs()) {
             // FIXME: timeout error for js
             return
         }

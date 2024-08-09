@@ -4,6 +4,7 @@ import com.fleeksoft.ksoup.Ksoup
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.nodes.Element
 import com.fleeksoft.ksoup.parser.Parser
+import com.fleeksoft.ksoup.ported.IdentityHashMap
 import de.cketti.codepoints.deluxe.toCodePoint
 import kotlin.test.*
 
@@ -139,12 +140,19 @@ class SelectorTest {
     }
 
     @Test
+    fun testNamespacedWildcardTag() {
+        val doc: Document = Ksoup.parse("<p>One</p> <ac:p id=2>Two</ac:p> <ac:img id=3>Three</ac:img>")
+        val byNs = doc.select("ac|*")
+        assertSelectedIds(byNs, "2", "3")
+    }
+
+    @Test
     fun testWildcardNamespacedXmlTag() {
         val doc =
             Ksoup.parse(
-                "<div><Abc:Def id=1>Hello</Abc:Def></div> <Abc:Def class=bold id=2>There</abc:def>",
-                "",
-                Parser.xmlParser(),
+                html = "<div><Abc:Def id=1>Hello</Abc:Def></div> <Abc:Def class=bold id=2>There</abc:def>",
+                baseUri = "",
+                parser = Parser.xmlParser(),
             )
         val byTag = doc.select("*|Def")
         assertSelectedIds(byTag, "1", "2")
@@ -158,7 +166,11 @@ class SelectorTest {
 
     @Test
     fun testWildCardNamespacedCaseVariations() {
-        val doc = Ksoup.parse("<One:Two>One</One:Two><three:four>Two</three:four>", "", Parser.xmlParser())
+        val doc = Ksoup.parse(
+            html = "<One:Two>One</One:Two><three:four>Two</three:four>",
+            baseUri = "",
+            parser = Parser.xmlParser()
+        )
         val els1 = doc.select("One|Two")
         val els2 = doc.select("one|two")
         val els3 = doc.select("Three|Four")
@@ -176,7 +188,7 @@ class SelectorTest {
         // TODO: mutlilocale test may move to jvm
 //        Locale.setDefault(locale)
         val doc =
-            Ksoup.parse("<div id=1 ATTRIBUTE data-name=jsoup>Hello</div><p data-val=5 id=2>There</p><p id=3>No</p>")
+            Ksoup.parse("<div id=1 ATTRIBUTE data-name=ksoup>Hello</div><p data-val=5 id=2>There</p><p id=3>No</p>")
         var withData = doc.select("[^data-]")
         assertEquals(2, withData.size)
         assertEquals("1", withData.first()!!.id())
@@ -430,7 +442,6 @@ class SelectorTest {
         assertEquals("Three", els.first()!!.text())
     }
 
-    // for http://github.com/jhy/jsoup/issues#issue/10
     @Test
     fun testCharactersInIdAndClass() {
         // using CSS spec for identifiers (id and class): a-z0-9, -, _. NOT . (which is OK in html spec, but not css)
@@ -446,7 +457,6 @@ class SelectorTest {
         assertEquals("Two", el4!!.text())
     }
 
-    // for http://github.com/jhy/jsoup/issues#issue/13
     @Test
     fun testSupportsLeadingCombinator() {
         var h = "<div><p><span>One</span><span>Two</span></p></div>"
@@ -559,6 +569,21 @@ class SelectorTest {
     }
 
     @Test
+    fun testHasSibling() {
+        var doc: Document = Ksoup.parse("<h1 id=1>One</h1> <h2>Two</h2> <h1>Three</h1>")
+        var els = doc.select("h1:has(+h2)")
+        assertSelectedIds(els, "1")
+
+        els = doc.select("h1:has(~h1)")
+        assertSelectedIds(els, "1")
+
+        // nested with sibling
+        doc = Ksoup.parse("<div id=1><p><i>One</i><i>Two</p><p><i>Three</p></div> <div><p><i>Four</div>")
+        els = doc.select("div:has(p:has(i:has(~i)))")
+        assertSelectedIds(els, "1")
+    }
+
+    @Test
     fun testPseudoContains() {
         // TODO: mutlilocale test may move to jvm
 //        Locale.setDefault(locale)
@@ -594,16 +619,16 @@ class SelectorTest {
 
     @Test
     fun containsWholeText() {
-        var doc = Ksoup.parse("<div><p> jsoup\n The <i>HTML</i> Parser</p><p>jsoup The HTML Parser</div>")
+        var doc = Ksoup.parse("<div><p> ksoup\n The <i>HTML</i> Parser</p><p>ksoup The HTML Parser</div>")
         val ps = doc.select("p")
-        val es1 = doc.select("p:containsWholeText( jsoup\n The HTML Parser)")
-        val es2 = doc.select("p:containsWholeText(jsoup The HTML Parser)")
+        val es1 = doc.select("p:containsWholeText( ksoup\n The HTML Parser)")
+        val es2 = doc.select("p:containsWholeText(ksoup The HTML Parser)")
         assertEquals(1, es1.size)
         assertEquals(1, es2.size)
         assertEquals(ps[0], es1.first())
         assertEquals(ps[1], es2.first())
-        assertEquals(0, doc.select("div:containsWholeText(jsoup the html parser)").size)
-        assertEquals(0, doc.select("div:containsWholeText(jsoup\n the html parser)").size)
+        assertEquals(0, doc.select("div:containsWholeText(ksoup the html parser)").size)
+        assertEquals(0, doc.select("div:containsWholeText(ksoup\n the html parser)").size)
         doc = Ksoup.parse("<div><p></p><p> </p><p>.  </p>")
         val blanks = doc.select("p:containsWholeText(  )")
         assertEquals(1, blanks.size)
@@ -612,16 +637,16 @@ class SelectorTest {
 
     @Test
     fun containsWholeOwnText() {
-        var doc = Ksoup.parse("<div><p> jsoup\n The <i>HTML</i> Parser</p><p>jsoup The HTML Parser<br></div>")
+        var doc = Ksoup.parse("<div><p> ksoup\n The <i>HTML</i> Parser</p><p>ksoup The HTML Parser<br></div>")
         val ps = doc.select("p")
-        val es1 = doc.select("p:containsWholeOwnText( jsoup\n The  Parser)")
-        val es2 = doc.select("p:containsWholeOwnText(jsoup The HTML Parser\n)")
+        val es1 = doc.select("p:containsWholeOwnText( ksoup\n The  Parser)")
+        val es2 = doc.select("p:containsWholeOwnText(ksoup The HTML Parser\n)")
         assertEquals(1, es1.size)
         assertEquals(1, es2.size)
         assertEquals(ps[0], es1.first())
         assertEquals(ps[1], es2.first())
-        assertEquals(0, doc.select("div:containsWholeOwnText(jsoup the html parser)").size)
-        assertEquals(0, doc.select("div:containsWholeOwnText(jsoup\n the  parser)").size)
+        assertEquals(0, doc.select("div:containsWholeOwnText(ksoup the html parser)").size)
+        assertEquals(0, doc.select("div:containsWholeOwnText(ksoup\n the  parser)").size)
         doc = Ksoup.parse("<div><p></p><p> </p><p>.  </p>")
         val blanks = doc.select("p:containsWholeOwnText(  )")
         assertEquals(1, blanks.size)
@@ -924,61 +949,59 @@ class SelectorTest {
         assertEquals(1, els.size)
     }
 
-    // https://github.com/jhy/jsoup/issues/1257
     private val mixedCase = "<html xmlns:n=\"urn:ns\"><n:mixedCase>text</n:mixedCase></html>"
     private val lowercase = "<html xmlns:n=\"urn:ns\"><n:lowercase>text</n:lowercase></html>"
 
     @Test
     fun html_mixed_case_simple_name() {
-        val doc = Ksoup.parse(mixedCase, "", Parser.htmlParser())
+        val doc = Ksoup.parse(html = mixedCase, baseUri = "", parser = Parser.htmlParser())
         assertEquals(0, doc.select("mixedCase").size)
     }
 
     @Test
     fun html_mixed_case_wildcard_name() {
-        val doc = Ksoup.parse(mixedCase, "", Parser.htmlParser())
+        val doc = Ksoup.parse(html = mixedCase, baseUri = "", parser = Parser.htmlParser())
         assertEquals(1, doc.select("*|mixedCase").size)
     }
 
     @Test
     fun html_lowercase_simple_name() {
-        val doc = Ksoup.parse(lowercase, "", Parser.htmlParser())
+        val doc = Ksoup.parse(html = lowercase, baseUri = "", parser = Parser.htmlParser())
         assertEquals(0, doc.select("lowercase").size)
     }
 
     @Test
     fun html_lowercase_wildcard_name() {
-        val doc = Ksoup.parse(lowercase, "", Parser.htmlParser())
+        val doc = Ksoup.parse(html = lowercase, baseUri = "", parser = Parser.htmlParser())
         assertEquals(1, doc.select("*|lowercase").size)
     }
 
     @Test
     fun xml_mixed_case_simple_name() {
-        val doc = Ksoup.parse(mixedCase, "", Parser.xmlParser())
+        val doc = Ksoup.parse(html = mixedCase, baseUri = "", parser = Parser.xmlParser())
         assertEquals(0, doc.select("mixedCase").size)
     }
 
     @Test
     fun xml_mixed_case_wildcard_name() {
-        val doc = Ksoup.parse(mixedCase, "", Parser.xmlParser())
+        val doc = Ksoup.parse(html = mixedCase, baseUri = "", parser = Parser.xmlParser())
         assertEquals(1, doc.select("*|mixedCase").size)
     }
 
     @Test
     fun xml_lowercase_simple_name() {
-        val doc = Ksoup.parse(lowercase, "", Parser.xmlParser())
+        val doc = Ksoup.parse(html = lowercase, baseUri = "", parser = Parser.xmlParser())
         assertEquals(0, doc.select("lowercase").size)
     }
 
     @Test
     fun xml_lowercase_wildcard_name() {
-        val doc = Ksoup.parse(lowercase, "", Parser.xmlParser())
+        val doc = Ksoup.parse(html = lowercase, baseUri = "", parser = Parser.xmlParser())
         assertEquals(1, doc.select("*|lowercase").size)
     }
 
     @Test
     fun trimSelector() {
-        // https://github.com/jhy/jsoup/issues/1274
         val doc = Ksoup.parse("<p><span>Hello")
         val els = doc.select(" p span ")
         assertEquals(1, els.size)
@@ -987,9 +1010,11 @@ class SelectorTest {
 
     @Test
     fun xmlWildcardNamespaceTest() {
-        // https://github.com/jhy/jsoup/issues/1208
-        val doc =
-            Ksoup.parse("<ns1:MyXmlTag>1111</ns1:MyXmlTag><ns2:MyXmlTag>2222</ns2:MyXmlTag>", "", Parser.xmlParser())
+        val doc = Ksoup.parse(
+            html = "<ns1:MyXmlTag>1111</ns1:MyXmlTag><ns2:MyXmlTag>2222</ns2:MyXmlTag>",
+            baseUri = "",
+            parser = Parser.xmlParser()
+        )
         val select = doc.select("*|MyXmlTag")
         assertEquals(2, select.size)
         assertEquals("1111", select[0].text())
@@ -998,7 +1023,6 @@ class SelectorTest {
 
     @Test
     fun childElements() {
-        // https://github.com/jhy/jsoup/issues/1292
         val html = "<body><span id=1>One <span id=2>Two</span></span></body>"
         val doc = Ksoup.parse(html)
         val outer = doc.selectFirst("span")
@@ -1013,7 +1037,6 @@ class SelectorTest {
 
     @Test
     fun selectFirstLevelChildrenOnly() {
-        // testcase for https://github.com/jhy/jsoup/issues/984
         val html = "<div><span>One <span>Two</span></span> <span>Three <span>Four</span></span>"
         val doc = Ksoup.parse(html)
         val div = doc.selectFirst("div")
@@ -1028,9 +1051,8 @@ class SelectorTest {
 
     @Test
     fun wildcardNamespaceMatchesNoNamespace() {
-        // https://github.com/jhy/jsoup/issues/1565
         val xml = "<package><meta>One</meta><opf:meta>Two</opf:meta></package>"
-        val doc = Ksoup.parse(xml, "", Parser.xmlParser())
+        val doc = Ksoup.parse(html = xml, baseUri = "", parser = Parser.xmlParser())
         val metaEls = doc.select("meta")
         assertEquals(1, metaEls.size)
         assertEquals("One", metaEls[0].text())
@@ -1067,8 +1089,7 @@ class SelectorTest {
         val eval = QueryParser.parse("p ~ p")
         val andEval = eval as CombiningEvaluator.And
         val prevEval = andEval.evaluators[0] as StructuralEvaluator.PreviousSibling
-        val map: com.fleeksoft.ksoup.ported.IdentityHashMap<Element, com.fleeksoft.ksoup.ported.IdentityHashMap<Element, Boolean>> =
-            prevEval.threadMemo
+        val map: IdentityHashMap<Element, IdentityHashMap<Element, Boolean>> = prevEval.threadMemo.get()
         assertEquals(0, map.size) // no memo yet
         val doc1 = Ksoup.parse("<p>One<p>Two<p>Three")
         val doc2 = Ksoup.parse("<p>One2<p>Two2<p>Three2")
@@ -1083,7 +1104,6 @@ class SelectorTest {
 
     @Test
     fun blankTextNodesAreConsideredEmpty() {
-        // https://github.com/jhy/jsoup/issues/1976
         val html = "<li id=1>\n </li><li id=2></li><li id=3> </li><li id=4>One</li><li id=5><span></li>"
         val doc = Ksoup.parse(html)
         val empty = doc.select("li:empty")
@@ -1093,8 +1113,20 @@ class SelectorTest {
     }
 
     @Test
+    fun emptyPseudo() {
+        val html = """<ul>  <li id='1'>
+ </li>  <li id='2'></li>  <li id='3'><!-- foo --></li>  <li id='4'>One</li>  <li id='5'><span></span></li>  <li id='6'>
+ <span></span></li>  <li id='7'><!-- foo --><i></i></li></ul>"""
+        val doc: Document = Ksoup.parse(html)
+        val empty = doc.select("li:empty")
+        assertSelectedIds(empty, "1", "2", "3")
+
+        val notEmpty = doc.select("li:not(:empty)")
+        assertSelectedIds(notEmpty, "4", "5", "6", "7")
+    }
+
+    @Test
     fun parentFromSpecifiedDescender() {
-        // https://github.com/jhy/jsoup/issues/2018
         val html = "<ul id=outer><li>Foo</li><li>Bar <ul id=inner><li>Baz</li><li>Qux</li></ul> </li></ul>"
         val doc = Ksoup.parse(html)
         val ul = doc.expectFirst("#outer")
@@ -1156,7 +1188,6 @@ class SelectorTest {
     @Test
     fun orAfterClass() {
         // see also QueryParserTest#parsesOrAfterAttribute
-        // https://github.com/jhy/jsoup/issues/2073
         val doc: Document =
             Ksoup.parse("<div id=parent><span class=child></span><span class=child></span><span class=child></span></div>")
         val q = "#parent [class*=child], .some-other-selector .nested"
@@ -1170,7 +1201,6 @@ class SelectorTest {
 
     @Test
     fun emptyAttributePrefix() {
-        // https://github.com/jhy/jsoup/issues/2079
         // Discovered feature: [^] should find elements with any attribute (any prefix)
         val html = "<p one>One<p one two>Two<p>Three"
         val doc: Document = Ksoup.parse(html)
@@ -1184,7 +1214,6 @@ class SelectorTest {
 
     @Test
     fun anyAttribute() {
-        // https://github.com/jhy/jsoup/issues/2079
         val html = "<div id=1><p one>One<p one two>Two<p>Three"
         val doc: Document = Ksoup.parse(html)
 

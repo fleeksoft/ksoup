@@ -49,7 +49,6 @@ class DataUtilTestJvm {
 
     @Test
     fun testParseSequenceBufferReader() = runTest {
-        // https://github.com/jhy/jsoup/pull/1671
         val stream: SyncStream = TestHelper.resourceFilePathToStream("htmltests/medium.html")
         val fileContent = String(stream.readAll())
         val halfLength = fileContent.length / 2
@@ -81,30 +80,20 @@ class DataUtilTestJvm {
 
     @Test
     fun testHandlesChunkedInputStream() {
-        if (Platform.isJS()) {
-//            js resource access issue
-            return
-        }
         val file = File(TestHelper.getResourceAbsolutePath("htmltests/large.html.gz"))
         val input = getFileAsString(file)
-        val expected =
-            Ksoup.parse(
-                html = input,
-                baseUri = "https://example.com",
-            )
-        val doc: Document =
-            Ksoup.parse(
-                syncStream = GZIPInputStream(FileInputStream(file)).readAllBytes().openSync(),
-                charsetName = null,
-                baseUri = "https://example.com",
-            )
+        val expected = Ksoup.parse(html = input, baseUri = "https://example.com")
+        val doc: Document = Ksoup.parse(
+            syncStream = GZIPInputStream(FileInputStream(file)).readAllBytes().openSync(),
+            charsetName = null,
+            baseUri = "https://example.com",
+        )
 
-        val doc2: Document =
-            Ksoup.parseInputStream(
-                inputStream = GZIPInputStream(FileInputStream(file)),
-                charsetName = null,
-                baseUri = "https://example.com",
-            )
+        val doc2: Document = Ksoup.parseInputStream(
+            inputStream = GZIPInputStream(FileInputStream(file)),
+            charsetName = null,
+            baseUri = "https://example.com"
+        )
 
         println("""docSize: ${doc.toString().length}, expectedSize: ${expected.toString().length}""")
         assertTrue(doc.hasSameValue(expected))
@@ -113,10 +102,6 @@ class DataUtilTestJvm {
 
     @Test
     fun testHandlesUnlimitedRead() {
-        if (Platform.isJS()) {
-//            js resource access issue
-            return
-        }
         val file = File(TestHelper.getResourceAbsolutePath("htmltests/large.html.gz"))
         val input: String = getFileAsString(file)
 

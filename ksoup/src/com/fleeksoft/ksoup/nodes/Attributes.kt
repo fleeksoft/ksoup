@@ -482,14 +482,7 @@ public class Attributes : Iterable<Attribute>, KCloneable<Attributes> {
         for (i in 0 until size) {
             val key = keys[i]!!
             val thatI = that.indexOfKey(key)
-            if (thatI == NotFound) return false
-            val value = vals[i]
-            val thatVal = that.vals[thatI]
-            if (value == null) {
-                if (thatVal != null) return false
-            } else if (value != thatVal) {
-                return false
-            }
+            if (thatI == NotFound || vals[i] != that.vals[thatI]) return false
         }
         return true
     }

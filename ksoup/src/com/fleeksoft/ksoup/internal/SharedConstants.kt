@@ -11,4 +11,6 @@ public object SharedConstants {
     public const val EndRangeKey: String = "ksoup.end"
 
     public const val DefaultBufferSize: Int = 1024 * 32
+
+    public val FormSubmitTags: Array<String> = arrayOf("input", "keygen", "object", "select", "textarea")
 }

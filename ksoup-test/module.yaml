@@ -17,6 +17,7 @@ test-dependencies:
     - $libs.codepoints
     - $libs.kotlinx.coroutines.test
     - $libs.kotlinx.datetime
+    - $libs.stately.concurrent
 
 settings:
     kotlin:

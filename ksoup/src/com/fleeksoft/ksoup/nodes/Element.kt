@@ -1369,10 +1369,9 @@ public open class Element : Node {
      * @see .wholeOwnText
      */
     public fun wholeText(): String {
-        val accum: StringBuilder = StringUtil.borrowBuilder()
-        nodeStream().forEach { node -> appendWholeText(node, accum) }
-        return StringUtil.releaseBuilder(accum)
+        return wholeTextOf(nodeStream())
     }
+
 
     /**
      * Get the non-normalized, decoded text of this element, <b>not including</b> any child elements, including any
@@ -1383,13 +1382,7 @@ public open class Element : Node {
      * @see .ownText
      */
     public fun wholeOwnText(): String {
-        val accum: StringBuilder = StringUtil.borrowBuilder()
-        val size = childNodeSize()
-        for (i in 0 until size) {
-            val node: Node = _childNodes[i]
-            appendWholeText(node, accum)
-        }
-        return StringUtil.releaseBuilder(accum)
+        return wholeTextOf(childNodes().asSequence());
     }
 
     /**
@@ -1877,15 +1870,14 @@ public open class Element : Node {
             return 0
         }
 
-        private fun appendWholeText(
-            node: Node?,
-            accum: StringBuilder,
-        ) {
-            if (node is TextNode) {
-                accum.append(node.getWholeText())
-            } else if (node!!.nameIs("br")) {
-                accum.append("\n")
-            }
+        private fun wholeTextOf(nodeStream: Sequence<Node>): String {
+            return nodeStream.map { node ->
+                when {
+                    node is TextNode -> node.getWholeText()
+                    node.nameIs("br") -> "\n"
+                    else -> ""
+                }
+            }.joinToString("")
         }
 
         private fun appendNormalisedText(

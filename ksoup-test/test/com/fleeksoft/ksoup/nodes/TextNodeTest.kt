@@ -109,7 +109,6 @@ class TextNodeTest {
 
     @Test
     fun testSpaceNormalise() {
-        // https://github.com/jhy/jsoup/issues/1309
         val whole = "Two  spaces"
         val norm = "Two spaces"
         val tn = TextNode(whole) // there are 2 spaces between the words
@@ -131,7 +130,6 @@ class TextNodeTest {
 
     @Test
     fun testClone() {
-        // https://github.com/jhy/jsoup/issues/1176
         val x = TextNode("zzz")
         val y = x.clone()
         assertNotSame(x, y)
@@ -147,7 +145,6 @@ class TextNodeTest {
 
     @Test
     fun testCloneAfterAttributesHit() {
-        // https://github.com/jhy/jsoup/issues/1176
         val x = TextNode("zzz")
         x.attributes() // moves content from leafnode value to attributes, which were missed in clone
         val y = x.clone()
@@ -158,7 +155,6 @@ class TextNodeTest {
 
     @Test
     fun testHasTextWhenIterating() {
-        // https://github.com/jhy/jsoup/issues/1170
         val doc = Ksoup.parse("<div>One <p>Two <p>Three")
         var foundFirst = false
         for (el in doc.getAllElements()) {

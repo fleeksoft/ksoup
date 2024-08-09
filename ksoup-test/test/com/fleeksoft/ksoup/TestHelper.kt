@@ -9,23 +9,24 @@ import korlibs.io.stream.readAll
 object TestHelper {
 
     suspend fun readGzipResource(file: String): SyncStream {
-        return readGzipFile(getResourceAbsolutePath(file))
+        return readGzipFile(getResourceAbsolutePath(file).uniVfs)
     }
 
     fun getResourceAbsolutePath(resourceName: String): String {
-        if (Platform.current == PlatformType.WINDOWS) {
+        if (Platform.isWindows()) {
             return "../../../../testResources/$resourceName"
+        } else if (Platform.isJS()) {
+            return "https://raw.githubusercontent.com/fleeksoft/ksoup/release/ksoup-test/testResources/$resourceName"
         }
         return "${BuildConfig.PROJECT_ROOT}/ksoup-test/testResources/$resourceName"
     }
 
     suspend fun getFileAsString(file: VfsFile): String {
-        val bytes: ByteArray =
-            if (file.fullName.endsWith(".gz")) {
-                readGzipFile(file.absolutePath).readAll()
-            } else {
-                readFile(file.absolutePath).readAll()
-            }
+        val bytes: ByteArray = if (file.fullName.endsWith(".gz")) {
+            readGzipFile(file).readAll()
+        } else {
+            readFile(file).readAll()
+        }
         return bytes.decodeToString()
     }
 
@@ -36,9 +37,9 @@ object TestHelper {
 
     suspend fun pathToStream(file: VfsFile): SyncStream {
         return if (file.fullName.endsWith(".gz")) {
-            readGzipFile(file.absolutePath)
+            readGzipFile(file)
         } else {
-            readFile(file.absolutePath)
+            readFile(file)
         }
     }
 }

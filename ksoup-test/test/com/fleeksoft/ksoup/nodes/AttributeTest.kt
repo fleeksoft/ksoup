@@ -80,7 +80,6 @@ class AttributeTest {
 
     @Test
     fun booleanAttributesAreNotCaseSensitive() {
-        // https://github.com/jhy/jsoup/issues/1656
         assertTrue(Attribute.isBooleanAttribute("required"))
         assertTrue(Attribute.isBooleanAttribute("REQUIRED"))
         assertTrue(Attribute.isBooleanAttribute("rEQUIREd"))

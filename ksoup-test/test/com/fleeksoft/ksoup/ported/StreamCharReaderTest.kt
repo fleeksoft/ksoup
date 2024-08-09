@@ -22,8 +22,6 @@ class StreamCharReaderTest {
 //        totChars % size = lastSegment
 
         parameterizedTest((3..100).toMutableList().apply { add(SharedConstants.DefaultBufferSize) }) { chunkSize ->
-//        parameterizedTest(listOf(SharedConstants.DefaultBufferSize)) { chunkSize ->
-            println("chunksize: $chunkSize")
             val charReader = "abcdefghijklm".openSync().toStreamCharReader(chunkSize = chunkSize)
 
             charReader.mark(1111)

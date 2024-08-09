@@ -93,7 +93,7 @@ class AttributeParseTest {
         var doc = parse(html)
         assertFalse(doc.select("img[onerror]").isEmpty(), "SelfClosingStartTag ignores last character")
         assertEquals("<img onerror=\"doMyJob\">", doc.body().html())
-        doc = parse(html, "", Parser.xmlParser())
+        doc = parse(html = html, baseUri = "", parser = Parser.xmlParser())
         assertEquals("<img onerror=\"doMyJob\" />", doc.html())
     }
 }

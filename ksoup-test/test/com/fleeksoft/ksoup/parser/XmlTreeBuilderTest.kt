@@ -19,7 +19,7 @@ class XmlTreeBuilderTest {
     fun testSimpleXmlParse() {
         val xml = "<doc id=2 href='/bar'>Foo <br /><link>One</link><link>Two</link></doc>"
         val tb = XmlTreeBuilder()
-        val doc = tb.parse(xml, "http://foo.com/")
+        val doc = tb.parse(input = xml, baseUri = "http://foo.com/")
         assertEquals(
             "<doc id=\"2\" href=\"/bar\">Foo <br /><link>One</link><link>Two</link></doc>",
             TextUtil.stripNewlines(doc.html()),
@@ -53,7 +53,7 @@ class XmlTreeBuilderTest {
     @Test
     fun testSupplyParserToKsoupClass() {
         val xml = "<doc><val>One<val>Two</val></bar>Three</doc>"
-        val doc = Ksoup.parse(xml, "http://foo.com/", Parser.xmlParser())
+        val doc = Ksoup.parse(html = xml, baseUri = "http://foo.com/", parser = Parser.xmlParser())
         assertEquals(
             "<doc><val>One<val>Two</val>Three</val></doc>",
             TextUtil.stripNewlines(doc.html()),
@@ -97,7 +97,7 @@ class XmlTreeBuilderTest {
     @Test
     fun xmlFragment() {
         val xml = "<one src='/foo/' />Two<three><four /></three>"
-        val nodes = Parser.parseXmlFragment(xml, baseUri = "http://example.com/")
+        val nodes = Parser.parseXmlFragment(fragmentXml = xml, baseUri = "http://example.com/")
         assertEquals(3, nodes.size)
         assertEquals(expected = "http://example.com/foo/", actual = nodes[0].absUrl("src"))
         assertEquals(expected = "one", actual = nodes[0].nodeName())
@@ -106,14 +106,14 @@ class XmlTreeBuilderTest {
 
     @Test
     fun xmlParseDefaultsToHtmlOutputSyntax() {
-        val doc = Ksoup.parse("x", "", Parser.xmlParser())
+        val doc = Ksoup.parse(html = "x", baseUri = "", parser = Parser.xmlParser())
         assertEquals(Document.OutputSettings.Syntax.xml, doc.outputSettings().syntax())
     }
 
     @Test
     fun testDoesHandleEOFInTag() {
         val html = "<img src=asdf onerror=\"alert(1)\" x="
-        val xmlDoc = Ksoup.parse(html, "", Parser.xmlParser())
+        val xmlDoc = Ksoup.parse(html = html, baseUri = "", parser = Parser.xmlParser())
         assertEquals("<img src=\"asdf\" onerror=\"alert(1)\" x=\"\"></img>", xmlDoc.html())
     }
 
@@ -139,7 +139,7 @@ class XmlTreeBuilderTest {
     @Test
     fun testParseDeclarationAttributes() {
         val xml = "<?xml version='1' encoding='UTF-8' something='else'?><val>One</val>"
-        val doc = Ksoup.parse(xml, "", Parser.xmlParser())
+        val doc = Ksoup.parse(html = xml, baseUri = "", parser = Parser.xmlParser())
         val decl = doc.childNode(0) as XmlDeclaration
         assertEquals("1", decl.attr("version"))
         assertEquals("UTF-8", decl.attr("encoding"))
@@ -155,7 +155,7 @@ class XmlTreeBuilderTest {
     fun testParseDeclarationWithoutAttributes() {
         val xml =
             "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<?myProcessingInstruction My Processing instruction.?>"
-        val doc = Ksoup.parse(xml, "", Parser.xmlParser())
+        val doc = Ksoup.parse(html = xml, baseUri = "", parser = Parser.xmlParser())
         val decl = doc.childNode(2) as XmlDeclaration
         assertEquals("myProcessingInstruction", decl.name())
         assertTrue(decl.hasAttr("My"))
@@ -165,7 +165,7 @@ class XmlTreeBuilderTest {
     @Test
     fun caseSensitiveDeclaration() {
         val xml = "<?XML version='1' encoding='UTF-8' something='else'?>"
-        val doc = Ksoup.parse(xml, "", Parser.xmlParser())
+        val doc = Ksoup.parse(html = xml, baseUri = "", parser = Parser.xmlParser())
         assertEquals("<?XML version=\"1\" encoding=\"UTF-8\" something=\"else\"?>", doc.outerHtml())
     }
 
@@ -187,7 +187,7 @@ class XmlTreeBuilderTest {
     @Test
     fun preservesCaseByDefault() {
         val xml = "<CHECK>One</CHECK><TEST ID=1>Check</TEST>"
-        val doc = Ksoup.parse(xml, "", Parser.xmlParser())
+        val doc = Ksoup.parse(html = xml, baseUri = "", parser = Parser.xmlParser())
         assertEquals(
             "<CHECK>One</CHECK><TEST ID=\"1\">Check</TEST>",
             TextUtil.stripNewlines(doc.html()),
@@ -197,7 +197,7 @@ class XmlTreeBuilderTest {
     @Test
     fun appendPreservesCaseByDefault() {
         val xml = "<One>One</One>"
-        val doc = Ksoup.parse(xml, "", Parser.xmlParser())
+        val doc = Ksoup.parse(html = xml, baseUri = "", parser = Parser.xmlParser())
         val one = doc.select("One")
         one.append("<Two ID=2>Two</Two>")
         assertEquals("<One>One<Two ID=\"2\">Two</Two></One>", TextUtil.stripNewlines(doc.html()))
@@ -206,21 +206,21 @@ class XmlTreeBuilderTest {
     @Test
     fun disablesPrettyPrintingByDefault() {
         val xml = "\n\n<div><one>One</one><one>\n Two</one>\n</div>\n "
-        val doc = Ksoup.parse(xml, "", Parser.xmlParser())
+        val doc = Ksoup.parse(html = xml, baseUri = "", parser = Parser.xmlParser())
         assertEquals(xml, doc.html())
     }
 
     @Test
     fun canNormalizeCase() {
         val xml = "<TEST ID=1>Check</TEST>"
-        val doc = Ksoup.parse(xml, "", Parser.xmlParser().settings(ParseSettings.htmlDefault))
+        val doc = Ksoup.parse(html = xml, baseUri = "", parser = Parser.xmlParser().settings(ParseSettings.htmlDefault))
         assertEquals("<test id=\"1\">Check</test>", TextUtil.stripNewlines(doc.html()))
     }
 
     @Test
     fun normalizesDiscordantTags() {
         val parser = Parser.xmlParser().settings(ParseSettings.htmlDefault)
-        val document = Ksoup.parse("<div>test</DIV><p></p>", "", parser)
+        val document = Ksoup.parse(html = "<div>test</DIV><p></p>", baseUri = "", parser = parser)
         assertEquals("<div>test</div><p></p>", document.html())
         // was failing -> toString() = "<div>\n test\n <p></p>\n</div>"
     }
@@ -228,7 +228,7 @@ class XmlTreeBuilderTest {
     @Test
     fun roundTripsCdata() {
         val xml = "<div id=1><![CDATA[\n<html>\n <foo><&amp;]]></div>"
-        val doc = Ksoup.parse(xml, "", Parser.xmlParser())
+        val doc = Ksoup.parse(html = xml, baseUri = "", parser = Parser.xmlParser())
         val div = doc.getElementById("1")
         assertEquals("<html>\n <foo><&amp;", div!!.text())
         assertEquals(0, div.children().size)
@@ -241,7 +241,7 @@ class XmlTreeBuilderTest {
     @Test
     fun cdataPreservesWhiteSpace() {
         val xml = "<script type=\"text/javascript\">//<![CDATA[\n\n  foo();\n//]]></script>"
-        val doc = Ksoup.parse(xml, "", Parser.xmlParser())
+        val doc = Ksoup.parse(html = xml, baseUri = "", parser = Parser.xmlParser())
         assertEquals(xml, doc.outerHtml())
         assertEquals("//\n\n  foo();\n//", doc.selectFirst("script")!!.text())
     }
@@ -249,15 +249,14 @@ class XmlTreeBuilderTest {
     @Test
     fun handlesDodgyXmlDecl() {
         val xml = "<?xml version='1.0'><val>One</val>"
-        val doc = Ksoup.parse(xml, "", Parser.xmlParser())
+        val doc = Ksoup.parse(html = xml, baseUri = "", parser = Parser.xmlParser())
         assertEquals("One", doc.select("val").text())
     }
 
     @Test
     fun handlesLTinScript() {
-        // https://github.com/jhy/jsoup/issues/1139
         val html = "<script> var a=\"<?\"; var b=\"?>\"; </script>"
-        val doc = Ksoup.parse(html, "", Parser.xmlParser())
+        val doc = Ksoup.parse(html = html, baseUri = "", parser = Parser.xmlParser())
         assertEquals(
             "<script> var a=\"<!--?\"; var b=\"?-->\"; </script>",
             doc.html(),
@@ -280,7 +279,7 @@ class XmlTreeBuilderTest {
 
     @Test
     fun readerClosedAfterParse() {
-        val doc = Ksoup.parse("Hello", "", Parser.xmlParser())
+        val doc = Ksoup.parse(html = "Hello", baseUri = "", parser = Parser.xmlParser())
         val treeBuilder = doc.parser()!!.getTreeBuilder()
         assertTrue(treeBuilder.reader.isClosed())
         assertNull(treeBuilder.tokeniser)
@@ -289,8 +288,7 @@ class XmlTreeBuilderTest {
     @Test
     fun xmlParserEnablesXmlOutputAndEscapes() {
         // Test that when using the XML parser, the output mode and escape mode default to XHTML entities
-        // https://github.com/jhy/jsoup/issues/1420
-        val doc = Ksoup.parse("<p one='&lt;two&gt;&copy'>Three</p>", "", Parser.xmlParser())
+        val doc = Ksoup.parse(html = "<p one='&lt;two&gt;&copy'>Three</p>", baseUri = "", parser = Parser.xmlParser())
         assertEquals(doc.outputSettings().syntax(), Document.OutputSettings.Syntax.xml)
         assertEquals(doc.outputSettings().escapeMode(), Entities.EscapeMode.xhtml)
         assertEquals("<p one=\"&lt;two>©\">Three</p>", doc.html()) // only the < should be escaped
@@ -299,7 +297,7 @@ class XmlTreeBuilderTest {
     @Test
     fun xmlSyntaxEscapesLtInAttributes() {
         // Regardless of the entity escape mode, make sure < is escaped in attributes when in XML
-        val doc = Ksoup.parse("<p one='&lt;two&gt;&copy'>Three</p>", "", Parser.xmlParser())
+        val doc = Ksoup.parse(html = "<p one='&lt;two&gt;&copy'>Three</p>", baseUri = "", parser = Parser.xmlParser())
         doc.outputSettings().escapeMode(Entities.EscapeMode.extended)
         doc.outputSettings().charset("ISO-8859-1") // to make sure &copy; is output
         assertEquals(doc.outputSettings().syntax(), Document.OutputSettings.Syntax.xml)
@@ -312,7 +310,7 @@ class XmlTreeBuilderTest {
         val doc = Ksoup.parse(xml, Parser.xmlParser())
         assertEquals(Document.OutputSettings.Syntax.xml, doc.outputSettings().syntax())
         val out = doc.html()
-        assertEquals("<body style=\"color: red\" name=\"\"><div></div></body>", out)
+        assertEquals("<body style=\"color: red\" _=\"\" name_=\"\"><div _=\"\"></div></body>", out);
     }
 
     @Test

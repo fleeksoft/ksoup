@@ -153,7 +153,6 @@ class QueryParserTest {
 
     @Test
     fun parsesOrAfterAttribute() {
-        // https://github.com/jhy/jsoup/issues/2073
         val q = "#parent [class*=child], .some-other-selector .nested"
         val parsed: String = EvaluatorDebug.sexpr(q)
         assertEquals(
