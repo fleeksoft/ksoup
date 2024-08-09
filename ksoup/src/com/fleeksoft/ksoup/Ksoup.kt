@@ -5,6 +5,7 @@ import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.safety.Cleaner
 import com.fleeksoft.ksoup.safety.Safelist
+import korlibs.io.file.VfsFile
 import korlibs.io.file.std.uniVfs
 import korlibs.io.stream.SyncStream
 
@@ -41,60 +42,30 @@ public object Ksoup {
      */
     public fun parse(
         html: String,
-        baseUri: String,
         parser: Parser,
+        baseUri: String = "",
     ): Document {
         return parser.parseInput(html, baseUri)
     }
 
     /**
-     * Parse HTML into a Document, using the provided Parser. You can provide an alternate parser, such as a simple XML
-     * (non-HTML) parser.  As no base URI is specified, absolute URL resolution, if required, relies on the HTML including
-     * a `<base href>` tag.
-     *
-     * @param html HTML to parse
-     * before the HTML declares a `<base href>` tag.
-     * @param parser alternate [parser][Parser.xmlParser] to use.
-     * @return sane HTML
-     */
-    public fun parse(
-        html: String,
-        parser: Parser,
-    ): Document {
-        return parser.parseInput(html, "")
-    }
-
-    /**
-     * Parse the contents of a file as HTML.
-     *
-     * @param filePath file to load HTML from. Supports gzipped files (ending in .z or .gz).
-     * @param charsetName (optional) character set of file contents. Set to `null` to determine from `http-equiv` meta tag, if
-     * present, or fall back to `UTF-8` (which is often safe to do).
-     * @param baseUri     The URL where the HTML was retrieved from, to resolve relative links against.
-     * @return sane HTML
-     */
-    public suspend fun parseFile(
-        filePath: String,
-        baseUri: String,
-        charsetName: String? = null,
-    ): Document {
-        return DataUtil.load(filePath = filePath, baseUri = baseUri, charsetName = charsetName)
-    }
-
-    /**
      * Parse the contents of a file as HTML. The location of the file is used as the base URI to qualify relative URLs.
      *
-     * @param filePath file to load HTML from. Supports gzipped files (ending in .z or .gz).
+     * @param file file to load HTML from. Supports gzipped files (ending in .z or .gz).
+     * @param baseUri The URL where the HTML was retrieved from, to resolve relative links against.
      * @param charsetName (optional) character set of file contents. Set to `null` to determine from `http-equiv` meta tag, if
      * present, or fall back to `UTF-8` (which is often safe to do).
+     * @param parser alternate [parser][Parser.xmlParser] to use.
      * @return sane HTML
      * @see .parse
      */
     public suspend fun parseFile(
-        filePath: String,
+        file: VfsFile,
+        baseUri: String = file.absolutePath,
         charsetName: String? = null,
+        parser: Parser = Parser.htmlParser()
     ): Document {
-        return DataUtil.load(filePath = filePath, baseUri = filePath.uniVfs.absolutePath, charsetName = charsetName)
+        return DataUtil.load(file = file, baseUri = baseUri, charsetName = charsetName, parser = parser)
     }
 
     /**

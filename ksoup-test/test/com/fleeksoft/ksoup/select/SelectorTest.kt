@@ -4,6 +4,7 @@ import com.fleeksoft.ksoup.Ksoup
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.nodes.Element
 import com.fleeksoft.ksoup.parser.Parser
+import com.fleeksoft.ksoup.ported.IdentityHashMap
 import de.cketti.codepoints.deluxe.toCodePoint
 import kotlin.test.*
 
@@ -82,7 +83,7 @@ class SelectorTest {
 //        Locale.setDefault(locale)
         val h =
             "<div Title=Foo /><div Title=Bar /><div Style=Qux /><div title=Balim /><div title=SLIM />" +
-                    "<div data-name='with spaces'/>"
+                "<div data-name='with spaces'/>"
         val doc = Ksoup.parse(h)
         val withTitle = doc.select("[title]")
         assertEquals(4, withTitle.size)
@@ -149,9 +150,9 @@ class SelectorTest {
     fun testWildcardNamespacedXmlTag() {
         val doc =
             Ksoup.parse(
-                "<div><Abc:Def id=1>Hello</Abc:Def></div> <Abc:Def class=bold id=2>There</abc:def>",
-                "",
-                Parser.xmlParser(),
+                html = "<div><Abc:Def id=1>Hello</Abc:Def></div> <Abc:Def class=bold id=2>There</abc:def>",
+                baseUri = "",
+                parser = Parser.xmlParser(),
             )
         val byTag = doc.select("*|Def")
         assertSelectedIds(byTag, "1", "2")
@@ -165,7 +166,11 @@ class SelectorTest {
 
     @Test
     fun testWildCardNamespacedCaseVariations() {
-        val doc = Ksoup.parse("<One:Two>One</One:Two><three:four>Two</three:four>", "", Parser.xmlParser())
+        val doc = Ksoup.parse(
+            html = "<One:Two>One</One:Two><three:four>Two</three:four>",
+            baseUri = "",
+            parser = Parser.xmlParser()
+        )
         val els1 = doc.select("One|Two")
         val els2 = doc.select("one|two")
         val els3 = doc.select("Three|Four")
@@ -949,49 +954,49 @@ class SelectorTest {
 
     @Test
     fun html_mixed_case_simple_name() {
-        val doc = Ksoup.parse(mixedCase, "", Parser.htmlParser())
+        val doc = Ksoup.parse(html = mixedCase, baseUri = "", parser = Parser.htmlParser())
         assertEquals(0, doc.select("mixedCase").size)
     }
 
     @Test
     fun html_mixed_case_wildcard_name() {
-        val doc = Ksoup.parse(mixedCase, "", Parser.htmlParser())
+        val doc = Ksoup.parse(html = mixedCase, baseUri = "", parser = Parser.htmlParser())
         assertEquals(1, doc.select("*|mixedCase").size)
     }
 
     @Test
     fun html_lowercase_simple_name() {
-        val doc = Ksoup.parse(lowercase, "", Parser.htmlParser())
+        val doc = Ksoup.parse(html = lowercase, baseUri = "", parser = Parser.htmlParser())
         assertEquals(0, doc.select("lowercase").size)
     }
 
     @Test
     fun html_lowercase_wildcard_name() {
-        val doc = Ksoup.parse(lowercase, "", Parser.htmlParser())
+        val doc = Ksoup.parse(html = lowercase, baseUri = "", parser = Parser.htmlParser())
         assertEquals(1, doc.select("*|lowercase").size)
     }
 
     @Test
     fun xml_mixed_case_simple_name() {
-        val doc = Ksoup.parse(mixedCase, "", Parser.xmlParser())
+        val doc = Ksoup.parse(html = mixedCase, baseUri = "", parser = Parser.xmlParser())
         assertEquals(0, doc.select("mixedCase").size)
     }
 
     @Test
     fun xml_mixed_case_wildcard_name() {
-        val doc = Ksoup.parse(mixedCase, "", Parser.xmlParser())
+        val doc = Ksoup.parse(html = mixedCase, baseUri = "", parser = Parser.xmlParser())
         assertEquals(1, doc.select("*|mixedCase").size)
     }
 
     @Test
     fun xml_lowercase_simple_name() {
-        val doc = Ksoup.parse(lowercase, "", Parser.xmlParser())
+        val doc = Ksoup.parse(html = lowercase, baseUri = "", parser = Parser.xmlParser())
         assertEquals(0, doc.select("lowercase").size)
     }
 
     @Test
     fun xml_lowercase_wildcard_name() {
-        val doc = Ksoup.parse(lowercase, "", Parser.xmlParser())
+        val doc = Ksoup.parse(html = lowercase, baseUri = "", parser = Parser.xmlParser())
         assertEquals(1, doc.select("*|lowercase").size)
     }
 
@@ -1005,8 +1010,11 @@ class SelectorTest {
 
     @Test
     fun xmlWildcardNamespaceTest() {
-        val doc =
-            Ksoup.parse("<ns1:MyXmlTag>1111</ns1:MyXmlTag><ns2:MyXmlTag>2222</ns2:MyXmlTag>", "", Parser.xmlParser())
+        val doc = Ksoup.parse(
+            html = "<ns1:MyXmlTag>1111</ns1:MyXmlTag><ns2:MyXmlTag>2222</ns2:MyXmlTag>",
+            baseUri = "",
+            parser = Parser.xmlParser()
+        )
         val select = doc.select("*|MyXmlTag")
         assertEquals(2, select.size)
         assertEquals("1111", select[0].text())
@@ -1044,7 +1052,7 @@ class SelectorTest {
     @Test
     fun wildcardNamespaceMatchesNoNamespace() {
         val xml = "<package><meta>One</meta><opf:meta>Two</opf:meta></package>"
-        val doc = Ksoup.parse(xml, "", Parser.xmlParser())
+        val doc = Ksoup.parse(html = xml, baseUri = "", parser = Parser.xmlParser())
         val metaEls = doc.select("meta")
         assertEquals(1, metaEls.size)
         assertEquals("One", metaEls[0].text())
@@ -1081,8 +1089,7 @@ class SelectorTest {
         val eval = QueryParser.parse("p ~ p")
         val andEval = eval as CombiningEvaluator.And
         val prevEval = andEval.evaluators[0] as StructuralEvaluator.PreviousSibling
-        val map: com.fleeksoft.ksoup.ported.IdentityHashMap<Element, com.fleeksoft.ksoup.ported.IdentityHashMap<Element, Boolean>> =
-            prevEval.threadMemo
+        val map: IdentityHashMap<Element, IdentityHashMap<Element, Boolean>> = prevEval.threadMemo.get()
         assertEquals(0, map.size) // no memo yet
         val doc1 = Ksoup.parse("<p>One<p>Two<p>Three")
         val doc2 = Ksoup.parse("<p>One2<p>Two2<p>Three2")

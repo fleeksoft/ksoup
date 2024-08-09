@@ -2,8 +2,8 @@ package com.fleeksoft.ksoup.nodes
 
 import com.fleeksoft.ksoup.Ksoup.parse
 import com.fleeksoft.ksoup.parser.Parser
-import kotlin.test.*
 import kotlin.test.Test
+import kotlin.test.assertEquals
 
 /**
  * Tests for the DocumentType node
@@ -62,6 +62,6 @@ class DocumentTypeTest {
     }
 
     private fun xmlOutput(`in`: String): String {
-        return parse(`in`, "", Parser.xmlParser()).childNode(0).outerHtml()
+        return parse(html = `in`, baseUri = "", parser = Parser.xmlParser()).childNode(0).outerHtml()
     }
 }
