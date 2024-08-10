@@ -1,7 +1,7 @@
 package com.fleeksoft.ksoup.helper
 
 import com.fleeksoft.ksoup.Platform
-import com.fleeksoft.ksoup.UncheckedIOException
+import com.fleeksoft.ksoup.ported.exception.UncheckedIOException
 import com.fleeksoft.ksoup.internal.Normalizer
 import com.fleeksoft.ksoup.internal.SharedConstants
 import com.fleeksoft.ksoup.internal.StringUtil
@@ -12,16 +12,19 @@ import com.fleeksoft.ksoup.nodes.Node
 import com.fleeksoft.ksoup.nodes.XmlDeclaration
 import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.parser.StreamParser
-import com.fleeksoft.ksoup.ported.*
+import com.fleeksoft.ksoup.ported.exception.IllegalCharsetNameException
+import com.fleeksoft.ksoup.ported.stream.StreamCharReader
+import com.fleeksoft.ksoup.ported.io.BufferReader
+import com.fleeksoft.ksoup.ported.io.Charset
+import com.fleeksoft.ksoup.ported.io.Charsets
+import com.fleeksoft.ksoup.ported.io.openBufferReader
+import com.fleeksoft.ksoup.ported.isCharsetSupported
+import com.fleeksoft.ksoup.ported.toStreamCharReader
 import com.fleeksoft.ksoup.readGzipFile
 import com.fleeksoft.ksoup.select.Elements
 import korlibs.io.file.VfsFile
 import korlibs.io.file.fullName
-import korlibs.io.file.readAsSyncStream
 import korlibs.io.file.std.uniVfs
-import korlibs.io.lang.Charset
-import korlibs.io.lang.Charsets
-import korlibs.io.stream.*
 import kotlin.random.Random
 
 /**
@@ -55,19 +58,19 @@ public object DataUtil {
 
     /**
      * Parses a Document from an input steam, using the provided Parser.
-     * @param syncStream buffer reader to parse. The stream will be closed after reading.
+     * @param bufferReader buffer reader to parse. The stream will be closed after reading.
      * @param baseUri base URI of document, to resolve relative links against
      * @param charsetName character set of input (optional)
      * @param parser alternate [parser][Parser.xmlParser] to use.
      * @return Document
      */
     public fun load(
-        syncStream: SyncStream,
+        bufferReader: BufferReader,
         baseUri: String,
         charsetName: String? = null,
         parser: Parser = Parser.htmlParser(),
     ): Document {
-        return parseInputSource(syncStream = syncStream, baseUri = baseUri, charsetName = charsetName, parser = parser)
+        return parseInputSource(bufferReader = bufferReader, baseUri = baseUri, charsetName = charsetName, parser = parser)
     }
 
     /**
@@ -89,7 +92,7 @@ public object DataUtil {
         parser: Parser = Parser.htmlParser(),
     ): Document {
         val stream = openStream(file)
-        return parseInputSource(syncStream = stream, baseUri = baseUri, charsetName = charsetName, parser = parser)
+        return parseInputSource(bufferReader = stream, baseUri = baseUri, charsetName = charsetName, parser = parser)
     }
 
     /**
@@ -118,20 +121,20 @@ public object DataUtil {
         return streamer
     }
 
-    fun parseInputSource(syncStream: SyncStream, baseUri: String, charsetName: String?, parser: Parser): Document {
+    fun parseInputSource(bufferReader: BufferReader, baseUri: String, charsetName: String?, parser: Parser): Document {
         val doc: Document
         var charsetDoc: CharsetDoc? = null
         try {
-            charsetDoc = detectCharset(syncStream = syncStream, baseUri = baseUri, charsetName = charsetName, parser = parser)
+            charsetDoc = detectCharset(bufferReader = bufferReader, baseUri = baseUri, charsetName = charsetName, parser = parser)
             doc = parseInputSource(charsetDoc = charsetDoc, baseUri = baseUri, parser = parser)
         } finally {
-            charsetDoc?.input?.close()
+            bufferReader.close()
         }
         return doc
     }
 
     /** Open an input stream from a file; if it's a gzip file, returns a GZIPInputStream to unzip it.  */
-    private suspend fun openStream(file: VfsFile): SyncStream {
+    private suspend fun openStream(file: VfsFile): BufferReader {
         val name = Normalizer.lowerCase(file.fullName)
         if (name.endsWith(".gz") || name.endsWith(".z")) {
             val byteArray = file.readChunk(0, 2)
@@ -140,31 +143,30 @@ public object DataUtil {
                 return readGzipFile(file)
             }
         }
-//        fixme:// replace with streaming instead of reading all bytes
-        return file.readAsSyncStream()
+        return file.openBufferReader()
     }
 
     /** A struct to return a detected charset, and a document (if fully read).  */
     data class CharsetDoc internal constructor(
         val charset: Charset,
         var doc: Document?,
-        val input: SyncStream,
+        val input: BufferReader,
         val skip: Boolean
     )
 
 
-    private fun detectCharset(syncStream: SyncStream, baseUri: String, charsetName: String?, parser: Parser): CharsetDoc {
+    private fun detectCharset(bufferReader: BufferReader, baseUri: String, charsetName: String?, parser: Parser): CharsetDoc {
         var effectiveCharsetName: String? = charsetName
 
         var doc: Document? = null
 
         // read the start of the stream and look for a BOM or meta charset
 
-        syncStream.mark(SharedConstants.DefaultBufferSize)
+        bufferReader.mark(SharedConstants.DefaultBufferSize)
         // -1 because we read one more to see if completed. First read is < buffer size, so can't be invalid.
-        val firstBytes: ByteArray = readToByteBuffer(syncStream, firstReadBufferSize - 1)
-        val fullyRead = syncStream.availableRead <= 0
-        syncStream.reset()
+        val firstBytes: ByteArray = readToByteBuffer(bufferReader, firstReadBufferSize - 1)
+        val fullyRead = bufferReader.availableRead() <= 0
+        bufferReader.reset()
 
 
         // look for BOM - overrides any other header or input
@@ -224,7 +226,7 @@ public object DataUtil {
         val charset: Charset = if (effectiveCharsetName == defaultCharsetName) Charsets.UTF8 else Charset.forName(effectiveCharsetName)
         val skip = bomCharset != null && bomCharset.offset // skip 1 if the BOM is there and needs offset
         // if consumer needs to parse the input; prep it if there's a BOM. Can't skip in inputstream as wrapping buffer will ignore the pos
-        return CharsetDoc(charset, doc, syncStream, skip)
+        return CharsetDoc(charset, doc, bufferReader, skip)
     }
 
     public fun parseInputSource(charsetDoc: CharsetDoc, baseUri: String, parser: Parser): Document {
@@ -262,14 +264,14 @@ public object DataUtil {
      * @return the filled byte buffer
      */
     public fun readToByteBuffer(
-        syncStream: SyncStream,
+        bufferReader: BufferReader,
         maxSize: Long,
     ): ByteArray {
         return if (maxSize == 0L) {
-            syncStream.readAll()
+            bufferReader.readAllBytes()
         } else {
-            val size = if (syncStream.availableRead > 0) minOf(maxSize, syncStream.available) else maxSize
-            syncStream.readBytes(size.toInt())
+            val size = if (bufferReader.availableRead() > 0) minOf(maxSize, bufferReader.availableRead()) else maxSize
+            bufferReader.readBytes(size.toInt())
         }
     }
 

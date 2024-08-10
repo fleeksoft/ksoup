@@ -12,9 +12,8 @@ import com.fleeksoft.ksoup.parser.Tag
 import com.fleeksoft.ksoup.parser.TokenQueue.Companion.escapeCssIdentifier
 import com.fleeksoft.ksoup.ported.AtomicBoolean
 import com.fleeksoft.ksoup.ported.Consumer
-import com.fleeksoft.ksoup.ported.PatternSyntaxException
+import com.fleeksoft.ksoup.ported.exception.PatternSyntaxException
 import com.fleeksoft.ksoup.select.*
-import korlibs.io.lang.IOException
 import kotlin.js.JsName
 import kotlin.jvm.JvmOverloads
 import kotlin.reflect.KClass
@@ -512,7 +511,7 @@ public open class Element : Node {
     public fun expectFirst(cssQuery: String): Element {
         return Validate.ensureNotNull(
             Selector.selectFirst(cssQuery, this),
-            if (parent() != null) "No elements matched the query '$cssQuery' on element '${this.tagName()}'." else "No elements matched the query '$cssQuery' in the document.",
+            if (parent() != null) "No elements matched the query '$cssQuery' on element '${this.tagName()}'." else "No elements matched the query '$cssQuery' in the document."
         ) as Element
     }
 
@@ -1658,7 +1657,6 @@ public open class Element : Node {
                 !preserveWhitespace(_parentNode)
     }
 
-    @Throws(IOException::class)
     override fun outerHtmlHead(
         accum: Appendable,
         depth: Int,
@@ -1688,7 +1686,6 @@ public open class Element : Node {
         }
     }
 
-    @Throws(IOException::class)
     override fun outerHtmlTail(
         accum: Appendable,
         depth: Int,

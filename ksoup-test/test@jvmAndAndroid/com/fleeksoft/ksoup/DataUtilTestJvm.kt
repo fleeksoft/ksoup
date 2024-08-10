@@ -3,11 +3,9 @@ package com.fleeksoft.ksoup
 import com.fleeksoft.ksoup.helper.DataUtil
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parser.Parser
-import korlibs.io.lang.Charsets
+import com.fleeksoft.ksoup.ported.io.Charsets
+import com.fleeksoft.ksoup.ported.io.openBufferReader
 import korlibs.io.lang.toByteArray
-import korlibs.io.stream.SyncStream
-import korlibs.io.stream.openSync
-import korlibs.io.stream.readAll
 import kotlinx.coroutines.test.runTest
 import java.io.*
 import java.nio.file.Path
@@ -49,8 +47,8 @@ class DataUtilTestJvm {
 
     @Test
     fun testParseSequenceBufferReader() = runTest {
-        val stream: SyncStream = TestHelper.resourceFilePathToStream("htmltests/medium.html")
-        val fileContent = String(stream.readAll())
+        val bufferReader = TestHelper.resourceFilePathToStream("htmltests/medium.html")
+        val fileContent = String(bufferReader.readAllBytes())
         val halfLength = fileContent.length / 2
         val firstPart: String = fileContent.substring(0, halfLength)
         val secondPart = fileContent.substring(halfLength)
@@ -61,7 +59,7 @@ class DataUtilTestJvm {
             )
         val doc: Document =
             DataUtil.parseInputSource(
-                syncStream = sequenceStream.readAllBytes().openSync(),
+                bufferReader = sequenceStream.readAllBytes().openBufferReader(),
                 charsetName = null,
                 baseUri = "",
                 parser = Parser.htmlParser(),
@@ -84,7 +82,7 @@ class DataUtilTestJvm {
         val input = getFileAsString(file)
         val expected = Ksoup.parse(html = input, baseUri = "https://example.com")
         val doc: Document = Ksoup.parse(
-            syncStream = GZIPInputStream(FileInputStream(file)).readAllBytes().openSync(),
+            bufferReader = GZIPInputStream(FileInputStream(file)).readAllBytes().openBufferReader(),
             charsetName = null,
             baseUri = "https://example.com",
         )
@@ -121,7 +119,7 @@ class DataUtilTestJvm {
             )
         val docThree: Document =
             Ksoup.parse(
-                syncStream = GZIPInputStream(FileInputStream(file)).readAllBytes().openSync(),
+                bufferReader = GZIPInputStream(FileInputStream(file)).readAllBytes().openBufferReader(),
                 charsetName = null,
                 baseUri = "https://example.com",
             )
@@ -136,7 +134,7 @@ class DataUtilTestJvm {
             val bytes: ByteArray =
                 if (file.getName().endsWith(".gz")) {
                     val stream: InputStream = GZIPInputStream(FileInputStream(file))
-                    val byteBuffer: ByteArray = DataUtil.readToByteBuffer(stream.readAllBytes().openSync(), 0)
+                    val byteBuffer: ByteArray = DataUtil.readToByteBuffer(stream.readAllBytes().openBufferReader(), 0)
                     byteBuffer
                 } else {
                     file.readBytes()

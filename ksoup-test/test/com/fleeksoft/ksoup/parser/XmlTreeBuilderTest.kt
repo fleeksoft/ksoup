@@ -3,9 +3,9 @@ package com.fleeksoft.ksoup.parser
 import com.fleeksoft.ksoup.Ksoup
 import com.fleeksoft.ksoup.TextUtil
 import com.fleeksoft.ksoup.nodes.*
-import korlibs.io.lang.Charset
-import korlibs.io.lang.Charsets
-import korlibs.io.stream.openSync
+import com.fleeksoft.ksoup.ported.io.Charset
+import com.fleeksoft.ksoup.ported.io.Charsets
+import com.fleeksoft.ksoup.ported.io.openBufferReader
 import kotlinx.coroutines.test.runTest
 import kotlin.test.*
 
@@ -65,7 +65,7 @@ class XmlTreeBuilderTest {
         val xmlTest = """<doc><val>One<val>Two</val>Three</val></doc>"""
         val doc =
             Ksoup.parse(
-                syncStream = xmlTest.openSync(),
+                bufferReader = xmlTest.openBufferReader(),
                 baseUri = "http://foo.com",
                 charsetName = null,
                 parser = Parser.xmlParser(),
@@ -124,7 +124,7 @@ class XmlTreeBuilderTest {
             <data>äöåéü</data>
         """.trimIndent()
         val doc = Ksoup.parse(
-            syncStream = xmlCharset.openSync(charset = Charset.forName("ISO-8859-1")),
+            bufferReader = xmlCharset.openBufferReader(charset = Charset.forName("ISO-8859-1")),
             baseUri = "http://example.com/",
             charsetName = null,
             parser = Parser.xmlParser(),

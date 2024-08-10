@@ -1,12 +1,14 @@
 package com.fleeksoft.ksoup.ported.stream
 
 import com.fleeksoft.ksoup.internal.SharedConstants
+import com.fleeksoft.ksoup.ported.io.BufferReader
+import com.fleeksoft.ksoup.ported.io.Charset
 import korlibs.datastructure.ByteArrayDeque
-import korlibs.io.lang.Charset
-import korlibs.io.stream.*
+import korlibs.io.stream.CharReader
+import korlibs.io.stream.read
 
 internal class CharReaderSyncStream(
-    private val stream: SyncStream,
+    private val bufferReader: BufferReader,
     private val charset: Charset,
     private val chunkSize: Int,
 ) : CharReader {
@@ -18,15 +20,15 @@ internal class CharReaderSyncStream(
     private var currentState: ReaderState = ReaderState(consumedBytes = 0, consumedBuffer = 0, lastBytesRead = 0)
     private var markedState: ReaderState? = null
 
-    override fun clone(): CharReader = CharReaderSyncStream(stream.clone(), charset, chunkSize)
+    override fun clone(): CharReader = CharReaderSyncStream(bufferReader.clone(), charset, chunkSize)
 
     init {
-        stream.mark(SharedConstants.DefaultBufferSize)
+        bufferReader.mark(SharedConstants.DefaultBufferSize)
     }
 
     private fun bufferUp() {
         while (buffer.availableRead < temp.size) {
-            val readCount = stream.read(temp)
+            val readCount = bufferReader.read(temp)
             if (readCount <= 0) break
 
             currentState =
@@ -93,10 +95,10 @@ internal class CharReaderSyncStream(
             val skipedBytes = this.markedState!!.consumedBytes - this.markedState!!.lastBytesRead
             this.currentState = this.markedState!!.copy(consumedBytes = skipedBytes, applyMarkedState = true)
 
-            stream.reset()
-            stream.mark(SharedConstants.DefaultBufferSize)
+            bufferReader.reset()
+            bufferReader.mark(SharedConstants.DefaultBufferSize)
             if (skipedBytes > 0) {
-                stream.skip(skipedBytes)
+                bufferReader.skip(skipedBytes)
             }
 
             this.markedState = null

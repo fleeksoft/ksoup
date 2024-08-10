@@ -1,17 +1,19 @@
 package com.fleeksoft.ksoup
 
+import com.fleeksoft.ksoup.ported.io.BufferReader
+import com.fleeksoft.ksoup.ported.io.openBufferReader
 import korlibs.io.compression.deflate.GZIP
 import korlibs.io.compression.uncompress
 import korlibs.io.file.VfsFile
 import korlibs.io.file.readAsSyncStream
-import korlibs.io.stream.*
+import korlibs.io.stream.readAll
 
-public suspend fun readGzipFile(file: VfsFile): SyncStream {
-    return file.readAsSyncStream().readAll().uncompress(GZIP).openSync()
+public suspend fun readGzipFile(file: VfsFile): BufferReader {
+    return file.readAsSyncStream().readAll().uncompress(GZIP).openBufferReader()
 }
 
-public suspend fun readFile(file: VfsFile): SyncStream {
-    return file.readAsSyncStream()
+public suspend fun readFile(file: VfsFile): BufferReader {
+    return file.openBufferReader()
 }
 
 // js don't support ?i

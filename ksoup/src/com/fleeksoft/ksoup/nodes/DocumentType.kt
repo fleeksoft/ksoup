@@ -2,7 +2,6 @@ package com.fleeksoft.ksoup.nodes
 
 import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.nodes.Document.OutputSettings.Syntax
-import korlibs.io.lang.IOException
 
 /**
  * A `<!DOCTYPE>` node.
@@ -61,7 +60,6 @@ public class DocumentType(private val name: String, private val publicId: String
         return "#doctype"
     }
 
-    @Throws(IOException::class)
     override fun outerHtmlHead(
         accum: Appendable,
         depth: Int,

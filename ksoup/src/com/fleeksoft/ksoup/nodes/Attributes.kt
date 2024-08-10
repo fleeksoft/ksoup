@@ -1,6 +1,6 @@
 package com.fleeksoft.ksoup.nodes
 
-import com.fleeksoft.ksoup.SerializationException
+import com.fleeksoft.ksoup.ported.exception.SerializationException
 import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.internal.Normalizer.lowerCase
 import com.fleeksoft.ksoup.internal.SharedConstants
@@ -8,7 +8,7 @@ import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.nodes.Range.AttributeRange.Companion.UntrackedAttr
 import com.fleeksoft.ksoup.parser.ParseSettings
 import com.fleeksoft.ksoup.ported.KCloneable
-import korlibs.io.lang.IOException
+import com.fleeksoft.ksoup.ported.exception.IOException
 
 /**
  * The attributes of an Element.
@@ -444,7 +444,6 @@ public class Attributes : Iterable<Attribute>, KCloneable<Attributes> {
         return StringUtil.releaseBuilder(sb)
     }
 
-    @Throws(IOException::class)
     public fun html(
         accum: Appendable,
         out: Document.OutputSettings,

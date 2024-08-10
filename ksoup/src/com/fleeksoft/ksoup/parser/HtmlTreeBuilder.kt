@@ -7,7 +7,7 @@ import com.fleeksoft.ksoup.nodes.*
 import com.fleeksoft.ksoup.parser.HtmlTreeBuilderState.Constants.InTableFoster
 import com.fleeksoft.ksoup.parser.HtmlTreeBuilderState.ForeignContent
 import com.fleeksoft.ksoup.parser.Parser.Companion.NamespaceHtml
-import com.fleeksoft.ksoup.ported.StreamCharReader
+import com.fleeksoft.ksoup.ported.stream.StreamCharReader
 import com.fleeksoft.ksoup.ported.assert
 import kotlin.jvm.JvmOverloads
 

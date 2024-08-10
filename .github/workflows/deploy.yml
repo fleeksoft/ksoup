@@ -63,38 +63,38 @@ jobs:
 #          ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ secrets.GPG_KEY_ID }}
 #          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.GPG_KEY_PASSWORD }}
 #
-  deploy_docs:
-    if: github.ref == 'refs/heads/release'
-    runs-on: macos-latest
-    needs:
-      - build
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Setup JDK 17
-        uses: actions/setup-java@v3
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-
-      - name: Setup gradle
-        uses: gradle/gradle-build-action@v2
-
-      - name: Setup Pages
-        uses: actions/configure-pages@v3
-
-      - name: Generate docs with dokka
-        run: ./gradlew dokkaHtmlMultiModule
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v1
-        with:
-          path: ${{ github.workspace }}/build/dokka/htmlMultiModule
-
-      - name: Release to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v1
+#  deploy_docs:
+#    if: github.ref == 'refs/heads/release'
+#    runs-on: macos-latest
+#    needs:
+#      - build
+#    environment:
+#      name: github-pages
+#      url: ${{ steps.deployment.outputs.page_url }}
+#
+#    steps:
+#      - uses: actions/checkout@v3
+#
+#      - name: Setup JDK 17
+#        uses: actions/setup-java@v3
+#        with:
+#          java-version: '17'
+#          distribution: 'temurin'
+#
+#      - name: Setup gradle
+#        uses: gradle/gradle-build-action@v2
+#
+#      - name: Setup Pages
+#        uses: actions/configure-pages@v3
+#
+#      - name: Generate docs with dokka
+#        run: ./gradlew dokkaHtmlMultiModule
+#
+#      - name: Upload artifact
+#        uses: actions/upload-pages-artifact@v1
+#        with:
+#          path: ${{ github.workspace }}/build/dokka/htmlMultiModule
+#
+#      - name: Release to GitHub Pages
+#        id: deployment
+#        uses: actions/deploy-pages@v1

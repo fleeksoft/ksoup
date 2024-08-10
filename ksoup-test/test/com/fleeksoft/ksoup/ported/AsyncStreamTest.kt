@@ -4,9 +4,8 @@ import com.fleeksoft.ksoup.Platform
 import com.fleeksoft.ksoup.isApple
 import com.fleeksoft.ksoup.isJS
 import com.fleeksoft.ksoup.isWindows
-import korlibs.io.lang.Charset
-import korlibs.io.lang.toByteArray
-import korlibs.io.stream.openSync
+import com.fleeksoft.ksoup.ported.io.Charset
+import com.fleeksoft.ksoup.ported.io.openBufferReader
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -14,7 +13,7 @@ class AsyncStreamTest {
     @Test
     fun testMixCharReader() {
         val inputData = "ä<a>ä</a>"
-        val bufferReader = inputData.openSync().toStreamCharReader()
+        val bufferReader = inputData.toStreamCharReader()
         inputData.toCharArray().forEachIndexed { index, char ->
             assertEquals("$char", bufferReader.read(1))
         }
@@ -24,7 +23,7 @@ class AsyncStreamTest {
     @Test
     fun testMixCharReader2() {
         val inputData = "한국어"
-        val bufferReader = inputData.openSync().toStreamCharReader()
+        val bufferReader = inputData.toStreamCharReader()
         inputData.toCharArray().forEachIndexed { index, char ->
             assertEquals("$char", bufferReader.read(1))
         }
@@ -34,7 +33,7 @@ class AsyncStreamTest {
     @Test
     fun testMixCharReader3() {
         val inputData = "Übergrößenträger"
-        val bufferReader = inputData.openSync().toStreamCharReader()
+        val bufferReader = inputData.toStreamCharReader()
         inputData.toCharArray().forEachIndexed { index, char ->
             assertEquals("$char", bufferReader.read(1))
         }
@@ -52,34 +51,34 @@ class AsyncStreamTest {
         val specialText2 = "Übergrößenträger"
         val specialText3 = "한국어"
 
-        assertEquals(specialText1, specialText1.openSync().toStreamCharReader().read(specialText1.length))
-        assertEquals(specialText2, specialText2.openSync().toStreamCharReader().read(specialText2.length))
-        assertEquals(specialText3, specialText3.openSync().toStreamCharReader().read(specialText3.length))
+        assertEquals(specialText1, specialText1.toStreamCharReader().read(specialText1.length))
+        assertEquals(specialText2, specialText2.toStreamCharReader().read(specialText2.length))
+        assertEquals(specialText3, specialText3.toStreamCharReader().read(specialText3.length))
 
         assertEquals(
             specialText2,
-            specialText2.toByteArray(Charset.forName("iso-8859-1")).openSync()
-                .toStreamCharReader(korlibs.io.lang.Charset.forName("iso-8859-1"))
+            specialText2.toByteArray(Charset.forName("iso-8859-1")).openBufferReader()
+                .toStreamCharReader(Charset.forName("iso-8859-1"))
                 .read(specialText2.length),
         )
 
         assertEquals(
             specialText3,
-            specialText3.toByteArray(Charset.forName("euc-kr")).openSync()
-                .toStreamCharReader(korlibs.io.lang.Charset.forName("euc-kr"))
+            specialText3.toByteArray(Charset.forName("euc-kr")).openBufferReader()
+                .toStreamCharReader(Charset.forName("euc-kr"))
                 .read(specialText3.length),
         )
     }
 
     @Test
     fun testReadSingleCharacter() {
-        val character = "Hello, Reader!".openSync().read()
-        assertEquals('H'.code, character)
+        val character = "Hello, Reader!".openBufferReader().read()
+        assertEquals('H'.code.toByte(), character)
     }
 
     @Test
     fun testReadIntoArray() {
-        val reader = "Hello, Reader!".openSync()
+        val reader = "Hello, Reader!".openBufferReader()
         val buffer = ByteArray(5)
         val numCharsRead = reader.read(buffer)
         assertEquals(5, numCharsRead)
@@ -88,7 +87,7 @@ class AsyncStreamTest {
 
     @Test
     fun testSkipCharacters() {
-        val reader = "Hello, Reader!".openSync()
+        val reader = "Hello, Reader!".openBufferReader()
         reader.skip(7)
         val buffer = ByteArray(6)
         reader.read(buffer)
@@ -98,7 +97,7 @@ class AsyncStreamTest {
     @Test
     fun testRewind() {
         val inputData = "Hello, Reader!"
-        val reader = inputData.openSync()
+        val reader = inputData.openBufferReader()
         val buffer = ByteArray(6)
         reader.read(buffer)
         assertEquals("Hello,", buffer.decodeToString())
@@ -106,7 +105,7 @@ class AsyncStreamTest {
 
     /*@Test
     fun testClose() {
-        val reader = "Hello, Reader!".openSync()
+        val reader = "Hello, Reader!".openBufferReader()
         reader.close()
         assertFailsWith<IOException> {
             reader.read()

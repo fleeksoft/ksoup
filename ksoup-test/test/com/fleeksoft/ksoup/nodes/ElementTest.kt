@@ -1,7 +1,7 @@
 package com.fleeksoft.ksoup.nodes
 
 import com.fleeksoft.ksoup.*
-import com.fleeksoft.ksoup.helper.ValidationException
+import com.fleeksoft.ksoup.ported.exception.ValidationException
 import com.fleeksoft.ksoup.parser.ParseSettings
 import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.parser.Tag

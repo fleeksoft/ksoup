@@ -3,10 +3,8 @@ package com.fleeksoft.ksoup.parser
 import com.fleeksoft.ksoup.internal.SharedConstants
 import com.fleeksoft.ksoup.nodes.*
 import com.fleeksoft.ksoup.parser.Parser.Companion.NamespaceHtml
-import com.fleeksoft.ksoup.ported.StreamCharReader
-import com.fleeksoft.ksoup.ported.toStreamCharReader
+import com.fleeksoft.ksoup.ported.stream.StreamCharReader
 import com.fleeksoft.ksoup.select.NodeVisitor
-import korlibs.io.stream.openSync
 
 /**
  * @author Sabeeh
@@ -80,12 +78,12 @@ public abstract class TreeBuilder {
     }
 
     public fun parseFragment(
-        inputFragment: String,
+        charReader: StreamCharReader,
         context: Element?,
         baseUri: String,
         parser: Parser,
     ): List<Node> {
-        initialiseParse(inputFragment.openSync().toStreamCharReader(), baseUri, parser)
+        initialiseParse(charReader, baseUri, parser)
         initialiseParseFragment(context)
         runParser()
         return completeParseFragment()

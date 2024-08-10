@@ -2,7 +2,6 @@ package com.fleeksoft.ksoup.nodes
 
 import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.internal.StringUtil
-import korlibs.io.lang.IOException
 
 /**
  * A text node.
@@ -100,7 +99,6 @@ public open class TextNode(text: String) : LeafNode() {
         Entities.escape(accum, coreValue(), out, escape)
     }
 
-    @Throws(IOException::class)
     override fun outerHtmlTail(
         accum: Appendable,
         depth: Int,

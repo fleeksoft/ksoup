@@ -1,6 +1,6 @@
 package com.fleeksoft.ksoup.safety
 
-import com.fleeksoft.ksoup.helper.ValidationException
+import com.fleeksoft.ksoup.ported.exception.ValidationException
 import com.fleeksoft.ksoup.nodes.Attribute
 import com.fleeksoft.ksoup.nodes.Attributes
 import com.fleeksoft.ksoup.nodes.Element

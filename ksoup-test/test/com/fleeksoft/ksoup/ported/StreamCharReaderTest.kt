@@ -2,7 +2,7 @@ package com.fleeksoft.ksoup.ported
 
 import com.fleeksoft.ksoup.internal.SharedConstants
 import com.fleeksoft.ksoup.parameterizedTest
-import korlibs.io.stream.openSync
+import com.fleeksoft.ksoup.ported.io.openBufferReader
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -22,7 +22,7 @@ class StreamCharReaderTest {
 //        totChars % size = lastSegment
 
         parameterizedTest((3..100).toMutableList().apply { add(SharedConstants.DefaultBufferSize) }) { chunkSize ->
-            val charReader = "abcdefghijklm".openSync().toStreamCharReader(chunkSize = chunkSize)
+            val charReader = "abcdefghijklm".openBufferReader().toStreamCharReader(chunkSize = chunkSize)
 
             charReader.mark(1111)
             val charArray = CharArray(3)
@@ -69,7 +69,7 @@ class StreamCharReaderTest {
     @Test
     fun testCharSequence() {
         val input = "abcdefghijklmnopqrstuvwxyz"
-        val charReader = input.openSync().toStreamCharReader()
+        val charReader = input.toStreamCharReader()
         input.forEach {
             assertEquals("$it", charReader.read(1))
         }
@@ -78,7 +78,7 @@ class StreamCharReaderTest {
     @Test
     fun testCharArrayRead() {
         val input = "abcdefghijklmnopqrstuvwxyz"
-        val charReader = input.openSync().toStreamCharReader()
+        val charReader = input.toStreamCharReader()
         run {
             val charArray = CharArray(7)
             assertEquals(7, charReader.readCharArray(charArray, 0, 7))
@@ -100,7 +100,7 @@ class StreamCharReaderTest {
 
     @Test
     fun testMarkableCharReader() {
-        val charReader = "abcdefghijklmnopqrstuvwxyz".openSync().toStreamCharReader()
+        val charReader = "abcdefghijklmnopqrstuvwxyz".toStreamCharReader()
         assertEquals("a", charReader.read(1))
         assertEquals("b", charReader.read(1))
         charReader.mark(100)
@@ -113,8 +113,8 @@ class StreamCharReaderTest {
     }
 
     @Test
-    fun testskipCharReader() {
-        val charReader = "abcdefghijklmnopqrstuvwxyz".openSync().toStreamCharReader()
+    fun testSkipCharReader() {
+        val charReader = "abcdefghijklmnopqrstuvwxyz".toStreamCharReader()
         assertEquals("a", charReader.read(1))
         assertEquals("b", charReader.read(1))
         charReader.skip(3)
@@ -128,8 +128,8 @@ class StreamCharReaderTest {
     }
 
     @Test
-    fun testMarkabaleSkipReader() {
-        val charReader = "abcdefghijklmnopqrstuvwxyz".openSync().toStreamCharReader()
+    fun testMarkableSkipReader() {
+        val charReader = "abcdefghijklmnopqrstuvwxyz".toStreamCharReader()
         assertEquals("a", charReader.read(1))
         assertEquals("b", charReader.read(1))
         assertEquals("c", charReader.read(1))

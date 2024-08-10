@@ -1,8 +1,7 @@
-package com.fleeksoft.ksoup.ported
+package com.fleeksoft.ksoup.ported.stream
 
-import com.fleeksoft.ksoup.ported.stream.CharReaderSyncStream
-import korlibs.io.lang.Charset
-import korlibs.io.stream.SyncStream
+import com.fleeksoft.ksoup.ported.io.BufferReader
+import com.fleeksoft.ksoup.ported.io.Charset
 import korlibs.io.stream.read
 
 public interface StreamCharReader {
@@ -22,11 +21,11 @@ public interface StreamCharReader {
 }
 
 public class StreamCharReaderImpl(
-    stream: SyncStream,
+    bufferReader: BufferReader,
     charset: Charset,
     chunkSize: Int,
 ) : StreamCharReader {
-    private val charReader = CharReaderSyncStream(stream = stream, charset = charset, chunkSize = chunkSize)
+    private val charReader = CharReaderSyncStream(bufferReader = bufferReader, charset = charset, chunkSize = chunkSize)
 
     override fun skip(count: Int) {
         charReader.skip(count)

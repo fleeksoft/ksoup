@@ -2,7 +2,6 @@
 
 package com.fleeksoft.ksoup.nodes
 
-import com.fleeksoft.ksoup.SerializationException
 import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.nodes.Document.OutputSettings
@@ -12,11 +11,11 @@ import com.fleeksoft.ksoup.parser.CharacterReader
 import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.ported.Character
 import com.fleeksoft.ksoup.ported.ThreadLocal
-import com.fleeksoft.ksoup.ported.canEncode
+import com.fleeksoft.ksoup.ported.exception.IOException
+import com.fleeksoft.ksoup.ported.exception.SerializationException
+import com.fleeksoft.ksoup.ported.io.Charset
 import de.cketti.codepoints.deluxe.CodePoint
 import de.cketti.codepoints.deluxe.codePointAt
-import korlibs.io.lang.Charset
-import korlibs.io.lang.IOException
 
 
 /**

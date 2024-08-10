@@ -7,9 +7,9 @@ import com.fleeksoft.ksoup.isJS
 import com.fleeksoft.ksoup.isWasmJs
 import com.fleeksoft.ksoup.parser.ParseSettings
 import com.fleeksoft.ksoup.parser.Parser
-import korlibs.io.lang.Charset
+import com.fleeksoft.ksoup.ported.io.Charset
+import com.fleeksoft.ksoup.ported.io.openBufferReader
 import korlibs.io.lang.toByteArray
-import korlibs.io.stream.openSync
 import kotlinx.coroutines.test.runTest
 import kotlin.test.*
 
@@ -484,8 +484,8 @@ class DocumentTest {
                         "</body>" +
                         "</html>"
                 )
-        val inputStream = input.encodeToByteArray().openSync()
-        val doc: Document = Ksoup.parse(syncStream = inputStream, baseUri = "http://example.com", charsetName = null)
+        val inputStream = input.encodeToByteArray().openBufferReader()
+        val doc: Document = Ksoup.parse(bufferReader = inputStream, baseUri = "http://example.com", charsetName = null)
         doc.outputSettings().escapeMode(Entities.EscapeMode.xhtml)
         val output = doc.html().toByteArray(doc.outputSettings().charset()).decodeToString()
         assertFalse(output.contains("?"), "Should not have contained a '?'.")

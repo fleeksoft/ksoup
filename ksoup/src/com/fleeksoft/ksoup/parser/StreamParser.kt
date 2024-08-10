@@ -1,18 +1,16 @@
 package com.fleeksoft.ksoup.parser
 
-import com.fleeksoft.ksoup.UncheckedIOException
+import com.fleeksoft.ksoup.ported.exception.UncheckedIOException
 import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.nodes.Element
 import com.fleeksoft.ksoup.nodes.Node
-import com.fleeksoft.ksoup.ported.StreamCharReader
+import com.fleeksoft.ksoup.ported.stream.StreamCharReader
 import com.fleeksoft.ksoup.ported.toStreamCharReader
 import com.fleeksoft.ksoup.select.Evaluator
 import com.fleeksoft.ksoup.select.NodeVisitor
 import com.fleeksoft.ksoup.select.QueryParser
 import korlibs.datastructure.Queue
-import korlibs.datastructure.toList
-import korlibs.io.stream.openSync
 
 /**
  * A StreamParser provides a progressive parse of its input. As each Element is completed, it is emitted via a Stream or
@@ -80,7 +78,7 @@ class StreamParser(private val parser: Parser) {
      * @return this parser
      */
     fun parse(input: String, baseUri: String): StreamParser {
-        return parse(input.openSync().toStreamCharReader(), baseUri)
+        return parse(input.toStreamCharReader(), baseUri)
     }
 
     /**
@@ -106,7 +104,7 @@ class StreamParser(private val parser: Parser) {
      * @see .completeFragment
      */
     fun parseFragment(input: String, context: Element?, baseUri: String): StreamParser {
-        return parseFragment(input.openSync().toStreamCharReader(), context, baseUri)
+        return parseFragment(input.toStreamCharReader(), context, baseUri)
     }
 
     /**
@@ -137,7 +135,7 @@ class StreamParser(private val parser: Parser) {
      * The iterator is backed by this StreamParser, and the resources it holds.
      * @return a stream of Element objects
      */
-    fun iterator(): Iterator<Element?> {
+    fun iterator(): MutableIterator<Element?> {
         return elementIterator
     }
 

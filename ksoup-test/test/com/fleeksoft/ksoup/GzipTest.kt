@@ -1,8 +1,7 @@
 package com.fleeksoft.ksoup
 
-import korlibs.io.lang.Charsets
-import korlibs.io.lang.toString
-import korlibs.io.stream.readAll
+import com.fleeksoft.ksoup.ported.io.Charsets
+import com.fleeksoft.ksoup.ported.toString
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -10,7 +9,7 @@ import kotlin.test.assertEquals
 class GzipTest {
     @Test
     fun testReadGzipFile() = runTest {
-        val gzipFileStr = TestHelper.readGzipResource("htmltests/gzip.html.gz").readAll()
+        val gzipFileStr = TestHelper.readGzipResource("htmltests/gzip.html.gz").readAllBytes()
             .toString(charset = Charsets.UTF8)
         val expected = """<title>Gzip test</title>
 

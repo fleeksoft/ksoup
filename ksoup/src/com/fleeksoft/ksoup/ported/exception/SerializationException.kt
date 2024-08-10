@@ -1,4 +1,4 @@
-package com.fleeksoft.ksoup
+package com.fleeksoft.ksoup.ported.exception
 
 /**
  * A SerializationException is raised whenever serialization of a DOM element fails. This exception usually wraps an

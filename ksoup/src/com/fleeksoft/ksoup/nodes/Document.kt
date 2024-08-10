@@ -1,18 +1,16 @@
 package com.fleeksoft.ksoup.nodes
 
-import com.fleeksoft.ksoup.Platform
-import com.fleeksoft.ksoup.PlatformType
 import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.parser.ParseSettings
 import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.parser.Tag
 import com.fleeksoft.ksoup.ported.KCloneable
+import com.fleeksoft.ksoup.ported.io.Charset
+import com.fleeksoft.ksoup.ported.io.Charsets
 import com.fleeksoft.ksoup.select.Elements
 import com.fleeksoft.ksoup.select.Evaluator
 import com.fleeksoft.ksoup.select.Selector
-import korlibs.io.lang.Charset
-import korlibs.io.lang.Charsets
 
 /**
  * A HTML Document.

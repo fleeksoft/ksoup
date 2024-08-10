@@ -2,7 +2,7 @@ package com.fleeksoft.ksoup.nodes
 
 import com.fleeksoft.ksoup.Ksoup
 import com.fleeksoft.ksoup.TextUtil
-import com.fleeksoft.ksoup.helper.ValidationException
+import com.fleeksoft.ksoup.ported.exception.ValidationException
 import com.fleeksoft.ksoup.internal.StringUtil
 import de.cketti.codepoints.deluxe.toCodePoint
 import kotlin.test.Test

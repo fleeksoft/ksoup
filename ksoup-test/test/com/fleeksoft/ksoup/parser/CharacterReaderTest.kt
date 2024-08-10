@@ -1,11 +1,12 @@
 package com.fleeksoft.ksoup.parser
 
 import com.fleeksoft.ksoup.*
+import com.fleeksoft.ksoup.ported.exception.UncheckedIOException
 import com.fleeksoft.ksoup.ported.toStreamCharReader
 import korlibs.io.file.std.uniVfs
-import korlibs.io.lang.Charset
+import com.fleeksoft.ksoup.ported.io.Charset
+import com.fleeksoft.ksoup.ported.stream.StreamCharReader
 import korlibs.io.lang.substr
-import korlibs.io.stream.openSync
 import kotlinx.coroutines.test.runTest
 import kotlin.test.*
 
@@ -42,7 +43,7 @@ class CharacterReaderTest {
     @Test
     fun testReadMixSpecialChar() {
         val input = "ä<a>ä</a>"
-        val charReader = CharacterReader(input.openSync().toStreamCharReader(), sz = 1)
+        val charReader = CharacterReader(input.toStreamCharReader(), sz = 1)
         input.forEachIndexed { index, char ->
             assertEquals(index, charReader.pos())
             assertEquals(char, charReader.consume())
@@ -411,7 +412,7 @@ class CharacterReaderTest {
 
     @Test
     fun notEmptyAtBufferSplitPoint() {
-        val r = CharacterReader("How about now".openSync().toStreamCharReader(), sz = 3)
+        val r = CharacterReader("How about now".toStreamCharReader(), sz = 3)
         assertEquals("How", r.consumeTo(' '))
         assertFalse(r.isEmpty(), "Should not be empty")
         assertEquals(' ', r.consume())

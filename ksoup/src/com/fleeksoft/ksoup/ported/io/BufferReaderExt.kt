@@ -1,7 +1,7 @@
 package com.fleeksoft.ksoup.ported.io
 
+import com.fleeksoft.ksoup.ported.toByteArray
 import korlibs.io.file.VfsFile
-import korlibs.io.lang.toByteArray
 
 fun String.openBufferReader(charset: Charset = Charsets.UTF8) = BufferReaderImpl(this.toByteArray(charset))
 fun ByteArray.openBufferReader() = BufferReaderImpl(this)

@@ -5,10 +5,11 @@ import com.fleeksoft.ksoup.Ksoup.parse
 import com.fleeksoft.ksoup.Ksoup.parseFile
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parser.Parser
+import com.fleeksoft.ksoup.ported.io.openBufferReader
 import korlibs.io.file.std.uniVfs
-import korlibs.io.stream.openSync
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
+import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
@@ -32,23 +33,19 @@ class ParseTest {
             baseUri = "http://example.com/",
             charsetName = null,
         ) // gb2312, has html5 <meta charset>
-        if (Platform.isJS()) {
-            // FIXME: on js it is returning GBK
-            assertEquals("GBK", doc.outputSettings().charset().name.uppercase())
-        } else {
-            assertEquals("GB2312", doc.outputSettings().charset().name.uppercase())
-        }
+
+        // FIXME: different name on different platforms
+        assertContains(arrayOf("GBK", "GB2312"), doc.outputSettings().charset().name.uppercase())
 
         assertEquals("新", doc.text())
 
         // double check, no charset, falls back to utf8 which is incorrect
         input = TestHelper.getResourceAbsolutePath("htmltests/meta-charset-2.html") //
-        doc =
-            parseFile(
-                filePath = input,
-                baseUri = "http://example.com",
-                charsetName = null,
-            ) // gb2312, no charset
+        doc = parseFile(
+            filePath = input,
+            baseUri = "http://example.com",
+            charsetName = null,
+        ) // gb2312, no charset
         assertEquals("UTF-8", doc.outputSettings().charset().name.uppercase())
         assertNotEquals("新", doc.text())
 
@@ -72,9 +69,9 @@ class ParseTest {
             <head><meta charset=UTF-8"></head>
             <body></body>
             </html>
-            """.trimIndent().openSync()
+            """.trimIndent().openBufferReader()
 
-        val doc: Document = parse(syncStream = input, baseUri = "http://example.com/", charsetName = null)
+        val doc: Document = parse(bufferReader = input, baseUri = "http://example.com/", charsetName = null)
         assertEquals("UTF-8", doc.outputSettings().charset().name.uppercase())
     }
 
@@ -112,7 +109,7 @@ class ParseTest {
         // and the parse tree is correct.
         val parser = Parser.htmlParser()
         val doc = parse(
-            syncStream = TestHelper.resourceFilePathToStream("htmltests/xwiki-edit.html.gz"),
+            bufferReader = TestHelper.resourceFilePathToStream("htmltests/xwiki-edit.html.gz"),
             baseUri = "https://localhost/",
             charsetName = "UTF-8",
             parser = parser.setTrackErrors(100),

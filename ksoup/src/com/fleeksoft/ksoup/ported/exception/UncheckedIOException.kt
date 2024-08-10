@@ -1,6 +1,4 @@
-package com.fleeksoft.ksoup
-
-import korlibs.io.lang.IOException
+package com.fleeksoft.ksoup.ported.exception
 
 public class UncheckedIOException : Exception {
     public constructor(cause: IOException) : super(cause)

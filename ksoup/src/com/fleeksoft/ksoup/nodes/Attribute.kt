@@ -1,11 +1,11 @@
 package com.fleeksoft.ksoup.nodes
 
-import com.fleeksoft.ksoup.SerializationException
+import com.fleeksoft.ksoup.ported.exception.SerializationException
 import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.nodes.Document.OutputSettings.Syntax
 import com.fleeksoft.ksoup.ported.KCloneable
-import korlibs.io.lang.IOException
+import com.fleeksoft.ksoup.ported.exception.IOException
 
 /**
  * A single key + value attribute. (Only used for presentation.)

@@ -1,10 +1,13 @@
 package com.fleeksoft.ksoup.ported
 
 import com.fleeksoft.ksoup.internal.SharedConstants
+import com.fleeksoft.ksoup.ported.io.BufferReader
+import com.fleeksoft.ksoup.ported.io.Charset
+import com.fleeksoft.ksoup.ported.io.Charsets
+import com.fleeksoft.ksoup.ported.io.openBufferReader
+import com.fleeksoft.ksoup.ported.stream.StreamCharReader
+import com.fleeksoft.ksoup.ported.stream.StreamCharReaderImpl
 import de.cketti.codepoints.appendCodePoint
-import korlibs.io.lang.Charset
-import korlibs.io.lang.Charsets
-import korlibs.io.stream.*
 import korlibs.memory.ByteArrayBuilder
 
 internal fun String.isCharsetSupported(): Boolean {
@@ -12,43 +15,35 @@ internal fun String.isCharsetSupported(): Boolean {
     return result != null
 }
 
-public fun SyncStream.toStreamCharReader(
+fun String.toByteArray(charset: Charset, start: Int = 0, end: Int = this.length): ByteArray {
+    val out = ByteArrayBuilder(charset.estimateNumberOfBytesForCharacters(end - start))
+    charset.encode(out, this, start, end)
+    return out.toByteArray()
+}
+
+fun ByteArray.toString(charset: Charset = Charsets.UTF8, start: Int = 0, end: Int = this.size): String {
+    val out = StringBuilder(charset.estimateNumberOfCharactersForBytes(end - start))
+    charset.decode(out, this, start, end)
+    return out.toString()
+}
+
+public fun BufferReader.toStreamCharReader(
     charset: Charset = Charsets.UTF8,
     chunkSize: Int = SharedConstants.DefaultBufferSize,
-): StreamCharReader = StreamCharReaderImpl(stream = this, charset = charset, chunkSize = chunkSize)
+): StreamCharReader = StreamCharReaderImpl(bufferReader = this, charset = charset, chunkSize = chunkSize)
 
-private fun handleQueryParams(
-    relativePath: String,
-    separator: String,
-): MutableList<String> {
-    val querySplit = relativePath.split(separator).toMutableList()
-    val firstQueryPath = querySplit.removeFirst()
-    val relativePathParts = firstQueryPath.split("/").toMutableList()
-    if (querySplit.isNotEmpty()) {
-        relativePathParts.add(
-            "${relativePathParts.removeLastOrNull() ?: ""}$separator${querySplit.joinToString(separator)}",
-        )
-    }
-    return relativePathParts
+public fun String.toStreamCharReader(
+    charset: Charset = Charsets.UTF8,
+    chunkSize: Int = SharedConstants.DefaultBufferSize,
+): StreamCharReader {
+    return StreamCharReaderImpl(bufferReader = this.openBufferReader(charset = charset), charset = charset, chunkSize = chunkSize)
 }
 
-// TODO: handle it better
-
-// some charsets can read but not encode; switch to an encodable charset and update the meta el
-internal fun Charset.canEncode(): Boolean = runCatching { true }.getOrNull() != null
-
-internal fun Charset.canEncode(c: Char): Boolean {
-    return this.canEncode("$c")
-}
-
-internal fun Charset.canEncode(s: String): Boolean {
-//    return true
-    // TODO: check this
-    return kotlin.runCatching { this.encode(ByteArrayBuilder(s.length * 8), s) }
-        .onFailure {
-            println("encodingErrro: $this")
-            it.printStackTrace()
-        }.isSuccess
+public fun ByteArray.toStreamCharReader(
+    charset: Charset = Charsets.UTF8,
+    chunkSize: Int = SharedConstants.DefaultBufferSize,
+): StreamCharReader {
+    return StreamCharReaderImpl(bufferReader = this.openBufferReader(), charset = charset, chunkSize = chunkSize)
 }
 
 internal fun IntArray.codePointsToString(): String {

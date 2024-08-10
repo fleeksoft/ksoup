@@ -4,8 +4,7 @@ import com.fleeksoft.ksoup.*
 import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.nodes.*
 import com.fleeksoft.ksoup.safety.Safelist
-import korlibs.io.lang.IOException
-import korlibs.io.stream.openSync
+import com.fleeksoft.ksoup.ported.io.openBufferReader
 import kotlinx.coroutines.test.runTest
 import kotlin.test.*
 
@@ -1499,7 +1498,6 @@ class HtmlParserTest {
     }
 
     @Test
-    @Throws(IOException::class)
     fun testTemplateInsideTable() = runTest {
         val input: String = TestHelper.getResourceAbsolutePath("htmltests/table-polymer-template.html")
         val doc: Document = Ksoup.parseFile(input, "UTF-8")
@@ -1551,7 +1549,7 @@ class HtmlParserTest {
     fun fallbackToUtfIfCantEncode() {
         // that charset can't be encoded, so make sure we flip to utf
         val input = "<html><meta charset=\"ISO-SSS\"/>One</html>"
-        val doc = Ksoup.parse(syncStream = input.encodeToByteArray().openSync(), baseUri = "", charsetName = null)
+        val doc = Ksoup.parse(bufferReader = input.encodeToByteArray().openBufferReader(), baseUri = "", charsetName = null)
         assertEquals("UTF-8", doc.charset().name.uppercase())
         assertEquals("One", doc.text())
         val html = doc.outerHtml()

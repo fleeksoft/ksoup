@@ -1,13 +1,12 @@
 package com.fleeksoft.ksoup.parser
 
-import com.fleeksoft.ksoup.UncheckedIOException
-import com.fleeksoft.ksoup.ported.StreamCharReader
+import com.fleeksoft.ksoup.ported.exception.UncheckedIOException
+import com.fleeksoft.ksoup.ported.stream.StreamCharReader
 import com.fleeksoft.ksoup.ported.buildString
+import com.fleeksoft.ksoup.ported.io.Charset
+import com.fleeksoft.ksoup.ported.io.Charsets
 import com.fleeksoft.ksoup.ported.toStreamCharReader
-import korlibs.io.lang.Charset
-import korlibs.io.lang.Charsets
-import korlibs.io.lang.IOException
-import korlibs.io.stream.openSync
+import com.fleeksoft.ksoup.ported.exception.IOException
 import kotlin.math.abs
 import kotlin.math.min
 
@@ -31,7 +30,7 @@ public class CharacterReader {
     private var lineNumberOffset = 1 // line numbers start at 1; += newlinePosition[indexof(pos)]
 
     public constructor(input: String, charset: Charset = Charsets.UTF8) : this(
-        charReader = input.openSync().toStreamCharReader(),
+        charReader = input.toStreamCharReader(),
         charset = charset,
         input.length,
     )
@@ -62,12 +61,11 @@ public class CharacterReader {
         //        println("pre => bufSize: ${charBuf?.size} bufLength: $bufLength, readerPos: $readerPos, bufPos: $bufPos, bufSplitPoint: $bufSplitPoint")
         if (readFully || bufPos < bufSplitPoint) return
 
-        val (pos, offset) =
-            if (bufMark != -1) {
-                Pair(bufMark.toLong(), bufPos - bufMark)
-            } else {
-                Pair(bufPos.toLong(), 0)
-            }
+        val (pos, offset) = if (bufMark != -1) {
+            Pair(bufMark.toLong(), bufPos - bufMark)
+        } else {
+            Pair(bufPos.toLong(), 0)
+        }
 
         if (pos > 0) {
             charReader!!.skip(pos.toInt())
@@ -124,8 +122,7 @@ public class CharacterReader {
      */
     public fun trackNewlines(track: Boolean) {
         if (track && newlinePositions == null) {
-            newlinePositions =
-                ArrayList<Int>(maxBufferLen / 80) // rough guess of likely count
+            newlinePositions = ArrayList<Int>(maxBufferLen / 80) // rough guess of likely count
             scanBufferForNewlines() // first pass when enabled; subsequently called during bufferUp
         } else if (!track) {
             newlinePositions = null

@@ -3,11 +3,11 @@ package com.fleeksoft.ksoup
 import com.fleeksoft.ksoup.helper.DataUtil
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parser.Parser
+import com.fleeksoft.ksoup.ported.io.BufferReader
 import com.fleeksoft.ksoup.safety.Cleaner
 import com.fleeksoft.ksoup.safety.Safelist
 import korlibs.io.file.VfsFile
 import korlibs.io.file.std.uniVfs
-import korlibs.io.stream.SyncStream
 
 /**
  * The core public access point to the com.fleeksoft.ksoup functionality.
@@ -91,7 +91,7 @@ public object Ksoup {
      * Read an buffer reader, and parse it to a Document. You can provide an alternate parser, such as a simple XML
      * (non-HTML) parser.
      *
-     * @param syncStream buffer reader to read. Make sure to close it after parsing.
+     * @param bufferReader buffer reader to read. Make sure to close it after parsing.
      * @param baseUri     The URL where the HTML was retrieved from, to resolve relative links against.
      * @param charsetName (optional) character set of file contents. Set to `null` to determine from `http-equiv` meta tag, if
      * present, or fall back to `UTF-8` (which is often safe to do).
@@ -99,12 +99,12 @@ public object Ksoup {
      * @return sane HTML
      */
     public fun parse(
-        syncStream: SyncStream,
+        bufferReader: BufferReader,
         baseUri: String,
         charsetName: String?,
         parser: Parser = Parser.htmlParser(),
     ): Document {
-        return DataUtil.load(syncStream = syncStream, baseUri = baseUri, charsetName = charsetName, parser = parser)
+        return DataUtil.load(bufferReader = bufferReader, baseUri = baseUri, charsetName = charsetName, parser = parser)
     }
 
     /**

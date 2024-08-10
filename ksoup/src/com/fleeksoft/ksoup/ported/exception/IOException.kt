@@ -1,4 +1,4 @@
-package com.fleeksoft.ksoup.ported.io
+package com.fleeksoft.ksoup.ported.exception
 
 import korlibs.io.lang.IOException
 
