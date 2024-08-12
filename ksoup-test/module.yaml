@@ -19,6 +19,9 @@ test-dependencies:
     - $libs.kotlinx.datetime
     - $libs.stately.concurrent
 
+test-dependencies@jvmAndAndroid:
+    - $libs.jsoup
+
 settings:
     kotlin:
         optIns: [ kotlinx.cinterop.BetaInteropApi, kotlinx.cinterop.UnsafeNumber, kotlinx.cinterop.ExperimentalForeignApi, kotlin.experimental.ExperimentalNativeApi ]
