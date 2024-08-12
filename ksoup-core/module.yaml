@@ -13,5 +13,4 @@ repositories:
 dependencies:
   - $libs.codepoints
   - $libs.stately.concurrent
-  - $libs.korlibs.io: exported
-  - ../korio-io: exported
+  - ../ksoup-io: exported
