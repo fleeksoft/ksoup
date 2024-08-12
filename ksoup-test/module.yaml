@@ -12,7 +12,7 @@ repositories:
 
 test-dependencies:
     - ../ksoup-korio
-    - ../ksoup-network
+    - ../ksoup-network-korio
     - $libs.korlibs.io
     - $libs.codepoints
     - $libs.kotlinx.coroutines.test
