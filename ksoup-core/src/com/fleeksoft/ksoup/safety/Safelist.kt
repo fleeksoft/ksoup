@@ -4,7 +4,6 @@ package com.fleeksoft.ksoup.safety
     this safe-list configuration, and the initial defaults.
  */
 import com.fleeksoft.ksoup.helper.Validate
-import com.fleeksoft.ksoup.helper.computeIfAbsent
 import com.fleeksoft.ksoup.internal.Normalizer.lowerCase
 import com.fleeksoft.ksoup.nodes.Attribute
 import com.fleeksoft.ksoup.nodes.Attributes
@@ -153,7 +152,7 @@ public open class Safelist() {
             attributeSet.add(AttributeKey.valueOf(key))
         }
 
-        val attr = this.attributes.computeIfAbsent(tagName) { mutableSetOf() }
+        val attr = this.attributes.getOrPut(tagName) { mutableSetOf() }
         attr.addAll(attributeSet)
 
         return this
@@ -322,8 +321,8 @@ public open class Safelist() {
         Validate.notEmpty(attribute)
         val tagName = TagName.valueOf(tag)
         val attrKey = AttributeKey.valueOf(attribute)
-        val attrMap = this.protocols.computeIfAbsent(tagName) { mutableMapOf() }
-        val protSet = attrMap.computeIfAbsent(attrKey) { hashSetOf() }
+        val attrMap = this.protocols.getOrPut(tagName) { mutableMapOf() }
+        val protSet = attrMap.getOrPut(attrKey) { hashSetOf() }
         for (protocol in protocols) {
             Validate.notEmpty(protocol)
             val prot = Protocol.valueOf(protocol)
