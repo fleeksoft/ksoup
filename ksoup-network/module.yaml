@@ -12,5 +12,5 @@ repositories:
   - mavenLocal
 
 dependencies:
-  - ../ksoup: compile-only
+  - ../ksoup-korio: compile-only
   - $libs.korlibs.io: exported

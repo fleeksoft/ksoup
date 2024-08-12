@@ -5,7 +5,7 @@ product:
 dependencies:
   - $compose.foundation: exported
   - $compose.material3: exported
-  - ../../ksoup
+  - ../../ksoup-korio
   - ../../ksoup-network
 
 dependencies@android:

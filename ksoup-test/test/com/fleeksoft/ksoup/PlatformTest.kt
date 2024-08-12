@@ -1,5 +1,6 @@
 package com.fleeksoft.ksoup
 
+import com.fleeksoft.ksoup.ported.jsSupportedRegex
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

@@ -2,7 +2,7 @@ package com.fleeksoft.ksoup.ported
 
 import com.fleeksoft.ksoup.internal.SharedConstants
 import com.fleeksoft.ksoup.parameterizedTest
-import com.fleeksoft.ksoup.ported.io.openBufferReader
+import com.fleeksoft.ksoup.ported.openBufferReader
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

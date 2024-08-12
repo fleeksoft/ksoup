@@ -3,8 +3,8 @@ package com.fleeksoft.ksoup.parser
 import com.fleeksoft.ksoup.Ksoup.parse
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.ported.io.Charsets
-import korlibs.io.lang.toByteArray
-import com.fleeksoft.ksoup.ported.io.openBufferReader
+import com.fleeksoft.ksoup.ported.toByteArray
+import com.fleeksoft.ksoup.ported.openBufferReader
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

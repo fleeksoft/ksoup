@@ -4,11 +4,10 @@ import com.fleeksoft.ksoup.*
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.ported.io.BufferReader
-import com.fleeksoft.ksoup.ported.io.Charset
 import com.fleeksoft.ksoup.ported.io.Charsets
-import com.fleeksoft.ksoup.ported.io.openBufferReader
+import com.fleeksoft.ksoup.ported.openBufferReader
 import korlibs.io.file.std.uniVfs
-import korlibs.io.lang.toByteArray
+import com.fleeksoft.ksoup.ported.toByteArray
 import kotlinx.coroutines.test.runTest
 import kotlin.test.*
 
@@ -47,7 +46,7 @@ class DataUtilTest {
         data: String,
         charset: String,
     ): BufferReader {
-        return data.toByteArray(Charset.forName(charset)).openBufferReader()
+        return data.toByteArray(Charsets.forName(charset)).openBufferReader()
     }
 
     @Test
@@ -205,13 +204,13 @@ class DataUtilTest {
         val parser = Parser.htmlParser()
 
         var doc: Document =
-            DataUtil.streamParser(file = file, baseUri = "http://example.com", charset = null, parser = parser)
+            DataUtil.streamParser(bufferReader = file.openStream(), baseUri = "http://example.com", charset = null, parser = parser)
                 .complete()
         assertTrue(doc.title().contains("UTF-16BE"))
         assertTrue(doc.text().contains("가각갂갃간갅"))
 
         file = TestHelper.getResourceAbsolutePath("bomtests/bom_utf16le.html").uniVfs
-        doc = DataUtil.streamParser(file = file, baseUri = "http://example.com", charset = null, parser = parser)
+        doc = DataUtil.streamParser(bufferReader = file.openStream(), baseUri = "http://example.com", charset = null, parser = parser)
             .complete()
         assertTrue(doc.title().contains("UTF-16LE"))
         assertTrue(doc.text().contains("가각갂갃간갅"))
@@ -222,13 +221,13 @@ class DataUtilTest {
         }
 
         file = TestHelper.getResourceAbsolutePath("bomtests/bom_utf32be.html").uniVfs
-        doc = DataUtil.streamParser(file = file, baseUri = "http://example.com", charset = null, parser = parser)
+        doc = DataUtil.streamParser(bufferReader = file.openStream(), baseUri = "http://example.com", charset = null, parser = parser)
             .complete()
         assertTrue(doc.title().contains("UTF-32BE"))
         assertTrue(doc.text().contains("가각갂갃간갅"))
 
         file = TestHelper.getResourceAbsolutePath("bomtests/bom_utf32le.html").uniVfs
-        doc = DataUtil.streamParser(file = file, baseUri = "http://example.com", charset = null, parser = parser)
+        doc = DataUtil.streamParser(bufferReader = file.openStream(), baseUri = "http://example.com", charset = null, parser = parser)
             .complete()
         assertTrue(doc.title().contains("UTF-32LE"))
         assertTrue(doc.text().contains("가각갂갃간갅"))
@@ -269,16 +268,16 @@ class DataUtilTest {
     fun streamerSupportsZippedUTF8BOM() = runTest {
         val file = TestHelper.getResourceAbsolutePath("bomtests/bom_utf8.html.gz").uniVfs
         val doc = DataUtil.streamParser(
-            file = file,
+            bufferReader = file.openStream(),
             baseUri = "http://example.com",
             charset = null,
             parser = Parser.htmlParser()
-        ).complete();
-        assertEquals("OK", doc.head().select("title").text());
+        ).complete()
+        assertEquals("OK", doc.head().select("title").text())
         assertEquals(
             "There is a UTF8 BOM at the top (before the XML decl). If not read correctly, will look like a non-joining space.",
             doc.body().text()
-        );
+        )
     }
 
     @Test
@@ -290,7 +289,7 @@ class DataUtilTest {
                             "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">" +
                             "<html xmlns=\"http://www.w3.org/1999/xhtml\" lang=\"en\" xml:lang=\"en\">Hellö Wörld!</html>"
                     )
-                .toByteArray(Charset.forName(encoding)).openBufferReader()
+                .toByteArray(Charsets.forName(encoding)).openBufferReader()
         val doc: Document = Ksoup.parse(soup, baseUri = "", charsetName = null)
         assertEquals("Hellö Wörld!", doc.body().text())
     }

@@ -4,7 +4,7 @@ import com.fleeksoft.ksoup.*
 import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.nodes.*
 import com.fleeksoft.ksoup.safety.Safelist
-import com.fleeksoft.ksoup.ported.io.openBufferReader
+import com.fleeksoft.ksoup.ported.openBufferReader
 import kotlinx.coroutines.test.runTest
 import kotlin.test.*
 

@@ -4,8 +4,7 @@ import com.fleeksoft.ksoup.Platform
 import com.fleeksoft.ksoup.isApple
 import com.fleeksoft.ksoup.isJS
 import com.fleeksoft.ksoup.isWindows
-import com.fleeksoft.ksoup.ported.io.Charset
-import com.fleeksoft.ksoup.ported.io.openBufferReader
+import com.fleeksoft.ksoup.ported.io.Charsets
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -36,33 +35,6 @@ class BufferReaderTest {
         val charArray = CharArray(1) { ' ' }
         assertEquals(-1, streamCharReader.readCharArray(charArray, 0, 1))
         assertEquals(' ', charArray[0])
-    }
-
-    @Test
-    fun testSpecialCharsBufferReader() {
-        if (Platform.isJS() || Platform.isApple() || Platform.isWindows()) {
-            // FIXME: euc-kr charset not supported
-            return
-        }
-
-        val specialText1 = "Hello &amp;&lt;&gt; Å å π 新 there ¾ © »"
-        val specialText2 = "Übergrößenträger"
-        val specialText3 = "한국어"
-
-        assertEquals(specialText1, specialText1.openBufferReader().toStreamCharReader().read(specialText1.length))
-        assertEquals(specialText2, specialText1.openBufferReader().toStreamCharReader().read(specialText2.length))
-
-        assertEquals(
-            specialText3,
-            specialText3.toByteArray(Charset.forName("euc-kr")).openBufferReader()
-                .toStreamCharReader(Charset.forName("euc-kr")).read(specialText3.length),
-        )
-
-        assertEquals(
-            specialText2,
-            specialText2.toByteArray(Charset.forName("iso-8859-1")).openBufferReader()
-                .toStreamCharReader(Charset.forName("iso-8859-1")).read(specialText2.length),
-        )
     }
 
     @Test

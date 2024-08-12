@@ -11,7 +11,7 @@ repositories:
     - mavenLocal
 
 test-dependencies:
-    - ../ksoup
+    - ../ksoup-korio
     - ../ksoup-network
     - $libs.korlibs.io
     - $libs.codepoints

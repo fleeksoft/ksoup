@@ -5,7 +5,7 @@ import com.fleeksoft.ksoup.TextUtil
 import com.fleeksoft.ksoup.nodes.*
 import com.fleeksoft.ksoup.ported.io.Charset
 import com.fleeksoft.ksoup.ported.io.Charsets
-import com.fleeksoft.ksoup.ported.io.openBufferReader
+import com.fleeksoft.ksoup.ported.openBufferReader
 import kotlinx.coroutines.test.runTest
 import kotlin.test.*
 
@@ -124,7 +124,7 @@ class XmlTreeBuilderTest {
             <data>äöåéü</data>
         """.trimIndent()
         val doc = Ksoup.parse(
-            bufferReader = xmlCharset.openBufferReader(charset = Charset.forName("ISO-8859-1")),
+            bufferReader = xmlCharset.openBufferReader(charset = Charsets.forName("ISO-8859-1")),
             baseUri = "http://example.com/",
             charsetName = null,
             parser = Parser.xmlParser(),
@@ -310,7 +310,7 @@ class XmlTreeBuilderTest {
         val doc = Ksoup.parse(xml, Parser.xmlParser())
         assertEquals(Document.OutputSettings.Syntax.xml, doc.outputSettings().syntax())
         val out = doc.html()
-        assertEquals("<body style=\"color: red\" _=\"\" name_=\"\"><div _=\"\"></div></body>", out);
+        assertEquals("<body style=\"color: red\" _=\"\" name_=\"\"><div _=\"\"></div></body>", out)
     }
 
     @Test

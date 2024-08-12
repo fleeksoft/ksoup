@@ -4,8 +4,8 @@ import com.fleeksoft.ksoup.helper.DataUtil
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.ported.io.Charsets
-import com.fleeksoft.ksoup.ported.io.openBufferReader
-import korlibs.io.lang.toByteArray
+import com.fleeksoft.ksoup.ported.openBufferReader
+import com.fleeksoft.ksoup.ported.toByteArray
 import kotlinx.coroutines.test.runTest
 import java.io.*
 import java.nio.file.Path
@@ -52,18 +52,16 @@ class DataUtilTestJvm {
         val halfLength = fileContent.length / 2
         val firstPart: String = fileContent.substring(0, halfLength)
         val secondPart = fileContent.substring(halfLength)
-        val sequenceStream =
-            SequenceInputStream(
-                inputStream(firstPart),
-                inputStream(secondPart),
-            )
-        val doc: Document =
-            DataUtil.parseInputSource(
-                bufferReader = sequenceStream.readAllBytes().openBufferReader(),
-                charsetName = null,
-                baseUri = "",
-                parser = Parser.htmlParser(),
-            )
+        val sequenceStream = SequenceInputStream(
+            inputStream(firstPart),
+            inputStream(secondPart),
+        )
+        val doc: Document = DataUtil.parseInputSource(
+            bufferReader = sequenceStream.readAllBytes().openBufferReader(),
+            charsetName = null,
+            baseUri = "",
+            parser = Parser.htmlParser(),
+        )
         assertEquals(fileContent, doc.outerHtml())
     }
 

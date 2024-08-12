@@ -5,7 +5,7 @@ import com.fleeksoft.ksoup.ported.exception.UncheckedIOException
 import com.fleeksoft.ksoup.ported.toStreamCharReader
 import korlibs.io.file.std.uniVfs
 import com.fleeksoft.ksoup.ported.io.Charset
-import com.fleeksoft.ksoup.ported.stream.StreamCharReader
+import com.fleeksoft.ksoup.ported.io.Charsets
 import korlibs.io.lang.substr
 import kotlinx.coroutines.test.runTest
 import kotlin.test.*
@@ -20,7 +20,7 @@ class CharacterReaderTest {
     fun testUtf16BE() = runTest {
         val firstLine = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">"""
         val input = readFile(TestHelper.getResourceAbsolutePath("bomtests/bom_utf16be.html").uniVfs)
-            .toStreamCharReader(charset = Charset.forName("UTF-16BE"))
+            .toStreamCharReader(charset = Charsets.forName("UTF-16BE"))
 
 //            ignore first char (ZWNBSP)\uFEFF:65279
         val actualReadLine = input.read(firstLine.length + 1)
@@ -32,7 +32,7 @@ class CharacterReaderTest {
     fun testUtf16LE() = runTest {
         val firstLine = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">"""
         val input = readFile(TestHelper.getResourceAbsolutePath("bomtests/bom_utf16le.html").uniVfs)
-            .toStreamCharReader(charset = Charset.forName("UTF-16LE"))
+            .toStreamCharReader(charset = Charsets.forName("UTF-16LE"))
 
         //            ignore first char (ZWNBSP)\uFEFF:65279
         val actualReadLine = input.read(firstLine.length + 1)

@@ -4,8 +4,7 @@ import com.fleeksoft.ksoup.Platform
 import com.fleeksoft.ksoup.isApple
 import com.fleeksoft.ksoup.isJS
 import com.fleeksoft.ksoup.isWindows
-import com.fleeksoft.ksoup.ported.io.Charset
-import com.fleeksoft.ksoup.ported.io.openBufferReader
+import com.fleeksoft.ksoup.ported.io.Charsets
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -13,11 +12,11 @@ class AsyncStreamTest {
     @Test
     fun testMixCharReader() {
         val inputData = "ä<a>ä</a>"
-        val bufferReader = inputData.toStreamCharReader()
+        val charReader = inputData.toStreamCharReader()
         inputData.toCharArray().forEachIndexed { index, char ->
-            assertEquals("$char", bufferReader.read(1))
+            assertEquals("$char", charReader.read(1))
         }
-        assertEquals("", bufferReader.read(1))
+        assertEquals("", charReader.read(1))
     }
 
     @Test
@@ -41,7 +40,7 @@ class AsyncStreamTest {
     }
 
     @Test
-    fun testSpecialCharsBufferReader() {
+    fun testSpecialCharsReader() {
         if (Platform.isJS() || Platform.isApple() || Platform.isWindows()) {
             // FIXME: euc-kr charset not supported
             return
@@ -57,15 +56,15 @@ class AsyncStreamTest {
 
         assertEquals(
             specialText2,
-            specialText2.toByteArray(Charset.forName("iso-8859-1")).openBufferReader()
-                .toStreamCharReader(Charset.forName("iso-8859-1"))
+            specialText2.toByteArray(Charsets.forName("iso-8859-1")).openBufferReader()
+                .toStreamCharReader(Charsets.forName("iso-8859-1"))
                 .read(specialText2.length),
         )
 
         assertEquals(
             specialText3,
-            specialText3.toByteArray(Charset.forName("euc-kr")).openBufferReader()
-                .toStreamCharReader(Charset.forName("euc-kr"))
+            specialText3.toByteArray(Charsets.forName("euc-kr")).openBufferReader()
+                .toStreamCharReader(Charsets.forName("euc-kr"))
                 .read(specialText3.length),
         )
     }

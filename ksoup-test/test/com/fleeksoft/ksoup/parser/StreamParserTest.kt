@@ -5,6 +5,7 @@ import com.fleeksoft.ksoup.helper.DataUtil
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.nodes.Element
 import com.fleeksoft.ksoup.nodes.Node
+import com.fleeksoft.ksoup.openStream
 import com.fleeksoft.ksoup.ported.io.Charsets
 import com.fleeksoft.ksoup.ported.toStreamCharReader
 import com.fleeksoft.ksoup.readGzipFile
@@ -323,7 +324,7 @@ class StreamParserTest {
 
         val file = TestHelper.getResourceAbsolutePath("htmltests/large.html.gz").uniVfs
         val streamer: StreamParser =
-            DataUtil.streamParser(file = file, baseUri = "", charset = Charsets.UTF8, parser = Parser.htmlParser())
+            DataUtil.streamParser(bufferReader = file.openStream(), baseUri = "", charset = Charsets.UTF8, parser = Parser.htmlParser())
 
         var last: Element? = null
         var e: Element?

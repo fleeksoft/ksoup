@@ -2,10 +2,9 @@ package com.fleeksoft.ksoup.nodes
 
 import com.fleeksoft.ksoup.Ksoup
 import com.fleeksoft.ksoup.ported.io.BufferReader
-import com.fleeksoft.ksoup.ported.io.openBufferReader
-import korlibs.io.lang.toByteArray
-import korlibs.io.lang.toString
+import com.fleeksoft.ksoup.ported.openBufferReader
 import java.io.StringWriter
+import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
 import kotlin.test.*
 
@@ -62,8 +61,9 @@ class DocumentTestJvm {
         val buffer: BufferReader = input.toByteArray(StandardCharsets.US_ASCII).openBufferReader()
         val doc: Document = Ksoup.parse(bufferReader = buffer, baseUri = "http://example.com", charsetName = null)
         doc.outputSettings().escapeMode(Entities.EscapeMode.xhtml)
-        val output =
-            doc.html().toByteArray(doc.outputSettings().charset()).toString(charset = doc.outputSettings().charset())
+        Charsets.UTF_16
+        val charset = Charset.forName(doc.outputSettings().charset().name)
+        val output = doc.html().toByteArray(charset = charset).toString(charset = charset)
         assertFalse(output.contains("?"), "Should not have contained a '?'.")
         assertTrue(
             output.contains("&#xa0;") || output.contains("&nbsp;"),

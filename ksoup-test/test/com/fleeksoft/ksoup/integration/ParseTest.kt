@@ -5,7 +5,7 @@ import com.fleeksoft.ksoup.Ksoup.parse
 import com.fleeksoft.ksoup.Ksoup.parseFile
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parser.Parser
-import com.fleeksoft.ksoup.ported.io.openBufferReader
+import com.fleeksoft.ksoup.ported.openBufferReader
 import korlibs.io.file.std.uniVfs
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
