@@ -7,9 +7,9 @@ group = "com.fleeksoft.ksoup"
 version = libs.versions.libraryVersion.get()
 
 mavenPublishing {
-    coordinates("com.fleeksoft.ksoup", "ksoup-core", libs.versions.libraryVersion.get())
+    coordinates("com.fleeksoft.ksoup", "ksoup-korio", libs.versions.libraryVersion.get())
     pom {
-        name.set("ksoup-core")
+        name.set("ksoup-korio")
         description.set("Ksoup is a Kotlin Multiplatform library for working with HTML and XML, and offers an easy-to-use API for URL fetching, data parsing, extraction, and manipulation using DOM and CSS selectors.")
         licenses {
             license {
