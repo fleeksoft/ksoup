@@ -14,7 +14,7 @@ plugins {
 }
 
 
-val libModules = listOf("ksoup-io", "korio-io", "ksoup-core", "ksoup-korio", "ksoup-network-korio", "ksoup-test")
+val libModules = listOf("ksoup-io", "ksoup-core-placeholder", "korio-io", "ksoup-core", "ksoup-korio", "ksoup-network-korio", "ksoup-test")
 val sampleModules = listOf("sample:shared", "sample:android", "sample:desktop", "sample:ios")
 include(libModules)
 //include(libModules + sampleModules)
