@@ -1,10 +1,10 @@
 package com.fleeksoft.ksoup.internal
 
 import com.fleeksoft.ksoup.ported.Character
+import com.fleeksoft.ksoup.ported.URL
 import de.cketti.codepoints.deluxe.CodePoint
 import de.cketti.codepoints.deluxe.appendCodePoint
 import de.cketti.codepoints.deluxe.codePointAt
-import korlibs.io.net.URL
 import kotlin.math.min
 
 /**
