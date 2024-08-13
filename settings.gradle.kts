@@ -14,7 +14,9 @@ plugins {
 }
 
 
-val libModules = listOf("ksoup-io", "ksoup-core-placeholder", "korio-io", "ksoup-core", "ksoup-korio", "ksoup-network-korio", "ksoup-test")
-val sampleModules = listOf("sample:shared", "sample:android", "sample:desktop", "sample:ios")
-include(libModules)
-//include(libModules + sampleModules)
+val projectModules = mutableListOf("ksoup-io", "ksoup-core-placeholder", "ksoup-core", "ksoup-test")
+projectModules += listOf("korio-io", "ksoup-korio", "ksoup-network-korio")
+//projectModules += listOf("kotlinx-io", "ksoup")
+//projectModules += listOf("sample:shared", "sample:android", "sample:desktop", "sample:ios")
+
+include(projectModules)
