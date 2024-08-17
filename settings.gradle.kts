@@ -14,7 +14,7 @@ plugins {
 }
 
 
-include("ksoup-io", "ksoup-core-placeholder", "ksoup-core", "ksoup-test")
-include("korio-io", "ksoup-korio", "ksoup-network-korio")
-//include("kotlinx-io", "ksoup")
+include("ksoup-core")
+include("ksoup-korio", "ksoup-network-korio", "ksoup-test")
+//include("ksoup")
 //include("sample:shared", "sample:android", "sample:desktop", "sample:ios")
