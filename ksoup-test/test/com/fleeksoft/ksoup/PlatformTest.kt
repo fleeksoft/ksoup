@@ -1,10 +1,16 @@
 package com.fleeksoft.ksoup
 
 import com.fleeksoft.ksoup.ported.jsSupportedRegex
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class PlatformTest {
+    @BeforeTest
+    fun initKsoup() {
+        TestHelper.initKsoup()
+    }
+
     @Test
     fun testJsSupportedRegex() {
         val regex2 = jsSupportedRegex("img[src~=(?i)\\.(png|jpe?g)]")

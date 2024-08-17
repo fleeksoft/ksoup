@@ -1,7 +1,9 @@
 package com.fleeksoft.ksoup.select
 
 import com.fleeksoft.ksoup.Ksoup
+import com.fleeksoft.ksoup.TestHelper
 import com.fleeksoft.ksoup.nodes.Document
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -12,6 +14,11 @@ import kotlin.test.assertFailsWith
  * @author Sabeeh
  */
 class QueryParserTest {
+    @BeforeTest
+    fun initKsoup() {
+        TestHelper.initKsoup()
+    }
+
     @Test
     fun testConsumeSubQuery() {
         val doc: Document =

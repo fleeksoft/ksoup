@@ -1,15 +1,16 @@
 package com.fleeksoft.ksoup
 
-import com.fleeksoft.ksoup.ported.toStreamCharReader
-import korlibs.io.file.std.uniVfs
 import com.fleeksoft.ksoup.helper.DataUtil
+import com.fleeksoft.ksoup.helper.load
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.parser.Parser.Companion
 import com.fleeksoft.ksoup.ported.io.BufferReader
+import com.fleeksoft.ksoup.ported.toStreamCharReader
 import com.fleeksoft.ksoup.safety.Cleaner
 import com.fleeksoft.ksoup.safety.Safelist
 import korlibs.io.file.VfsFile
+import korlibs.io.file.std.uniVfs
 
 
 /**
@@ -18,6 +19,11 @@ import korlibs.io.file.VfsFile
  * @author Sabeeh
  */
 public object Ksoup {
+
+    init {
+        KsoupEngineInstance.init(KorioKsoupEngine())
+    }
+
     /**
      * Parse HTML into a Document. The parser will make a sensible, balanced document tree out of any HTML.
      *

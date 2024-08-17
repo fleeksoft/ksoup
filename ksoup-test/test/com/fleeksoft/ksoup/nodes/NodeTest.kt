@@ -1,6 +1,7 @@
 package com.fleeksoft.ksoup.nodes
 
 import com.fleeksoft.ksoup.Ksoup
+import com.fleeksoft.ksoup.TestHelper
 import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.parser.Tag
 import com.fleeksoft.ksoup.select.NodeVisitor
@@ -12,6 +13,12 @@ import kotlin.test.*
  * @author Sabeeh, fleeksoft@gmail.com
  */
 class NodeTest {
+    @BeforeTest
+    fun initKsoup() {
+        TestHelper.initKsoup()
+    }
+
+
     @Test
     fun handlesBaseUri() {
         val tag = Tag.valueOf("a")
@@ -358,7 +365,7 @@ class NodeTest {
         div2!!.insertChildren(-1, divChildren)
         assertEquals(
             "<div id=\"1\">Text 1 <p>One</p> Text 2 <p>Two</p><p>Three</p></div><div id=\"2\">Text 1 updated" +
-                "<p>One</p> Text 2 <p>Two</p><p>Three</p></div>",
+                    "<p>One</p> Text 2 <p>Two</p><p>Three</p></div>",
             com.fleeksoft.ksoup.TextUtil.stripNewlines(doc.body().html()),
         )
     }

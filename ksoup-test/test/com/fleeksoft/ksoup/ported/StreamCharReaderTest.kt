@@ -1,12 +1,19 @@
 package com.fleeksoft.ksoup.ported
 
+import com.fleeksoft.ksoup.TestHelper
 import com.fleeksoft.ksoup.internal.SharedConstants
 import com.fleeksoft.ksoup.parameterizedTest
 import com.fleeksoft.ksoup.ported.openBufferReader
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class StreamCharReaderTest {
+    @BeforeTest
+    fun initKsoup() {
+        TestHelper.initKsoup()
+    }
+
     @Test
     fun testCharReaderMarkSkipReset() {
         /*val randomUnicodeStrings = listOf(

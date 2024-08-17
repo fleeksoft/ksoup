@@ -1,14 +1,17 @@
 package com.fleeksoft.ksoup.ported
 
-import com.fleeksoft.ksoup.Platform
-import com.fleeksoft.ksoup.isApple
-import com.fleeksoft.ksoup.isJS
-import com.fleeksoft.ksoup.isWindows
+import com.fleeksoft.ksoup.*
 import com.fleeksoft.ksoup.ported.io.Charsets
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class AsyncStreamTest {
+    @BeforeTest
+    fun initKsoup() {
+        TestHelper.initKsoup()
+    }
+
     @Test
     fun testMixCharReader() {
         val inputData = "ä<a>ä</a>"

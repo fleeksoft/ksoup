@@ -8,11 +8,7 @@ import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.ported.openBufferReader
 import korlibs.io.file.std.uniVfs
 import kotlinx.coroutines.test.runTest
-import kotlin.test.Test
-import kotlin.test.assertContains
-import kotlin.test.assertEquals
-import kotlin.test.assertNotEquals
-import kotlin.test.assertTrue
+import kotlin.test.*
 
 /**
  * Integration test: parses from real-world example HTML.
@@ -20,6 +16,11 @@ import kotlin.test.assertTrue
  * @author Sabeeh, fleeksoft@gmail.com
  */
 class ParseTest {
+    @BeforeTest
+    fun initKsoup() {
+        TestHelper.initKsoup()
+    }
+
     @Test
     fun testHtml5Charset() = runTest {
         if (Platform.isApple() || Platform.isWindows()) {

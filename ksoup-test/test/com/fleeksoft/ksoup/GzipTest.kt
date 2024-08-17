@@ -1,10 +1,16 @@
 package com.fleeksoft.ksoup
 
 import kotlinx.coroutines.test.runTest
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class GzipTest {
+    @BeforeTest
+    fun initKsoup() {
+        TestHelper.initKsoup()
+    }
+
     @Test
     fun testReadGzipFile() = runTest {
         val gzipFileStr = TestHelper.readGzipResource("htmltests/gzip.html.gz").readAllBytes().decodeToString()

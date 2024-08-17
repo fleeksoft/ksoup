@@ -1,6 +1,7 @@
 package com.fleeksoft.ksoup.select
 
 import com.fleeksoft.ksoup.Ksoup.parse
+import com.fleeksoft.ksoup.TestHelper
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parser.Tag
 import kotlin.test.BeforeTest
@@ -10,6 +11,11 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 class CssTest {
+    @BeforeTest
+    fun initKsoup() {
+        TestHelper.initKsoup()
+    }
+
     private lateinit var html: Document
 
     @BeforeTest

@@ -1,6 +1,7 @@
 package com.fleeksoft.ksoup
 
 import com.fleeksoft.ksoup.helper.DataUtil
+import com.fleeksoft.ksoup.helper.load
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.ported.openBufferReader

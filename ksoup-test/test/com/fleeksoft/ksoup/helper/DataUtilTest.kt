@@ -6,12 +6,16 @@ import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.ported.io.BufferReader
 import com.fleeksoft.ksoup.ported.io.Charsets
 import com.fleeksoft.ksoup.ported.openBufferReader
-import korlibs.io.file.std.uniVfs
 import com.fleeksoft.ksoup.ported.toByteArray
+import korlibs.io.file.std.uniVfs
 import kotlinx.coroutines.test.runTest
 import kotlin.test.*
 
 class DataUtilTest {
+    @BeforeTest
+    fun initKsoup() {
+        TestHelper.initKsoup()
+    }
 
     @Test
     fun testCharset() {

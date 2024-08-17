@@ -1,18 +1,17 @@
 package com.fleeksoft.ksoup.parser
 
-import com.fleeksoft.ksoup.BuildConfig
-import com.fleeksoft.ksoup.Platform
-import com.fleeksoft.ksoup.isJS
-import com.fleeksoft.ksoup.System
-import kotlin.test.Ignore
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
+import com.fleeksoft.ksoup.*
+import kotlin.test.*
 
 /**
  * Longer running Parser tests.
  */
 class ParserIT {
+    @BeforeTest
+    fun initKsoup() {
+        TestHelper.initKsoup()
+    }
+
     @Test
     @Ignore // disabled by default now, as there more specific unconsume tests
     fun testIssue1251() {

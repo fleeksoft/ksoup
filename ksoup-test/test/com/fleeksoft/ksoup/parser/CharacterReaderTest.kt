@@ -4,7 +4,6 @@ import com.fleeksoft.ksoup.*
 import com.fleeksoft.ksoup.ported.exception.UncheckedIOException
 import com.fleeksoft.ksoup.ported.toStreamCharReader
 import korlibs.io.file.std.uniVfs
-import com.fleeksoft.ksoup.ported.io.Charset
 import com.fleeksoft.ksoup.ported.io.Charsets
 import korlibs.io.lang.substr
 import kotlinx.coroutines.test.runTest
@@ -16,6 +15,11 @@ import kotlin.test.*
  * @author Sabeeh, fleeksoft@gmail.com
  */
 class CharacterReaderTest {
+    @BeforeTest
+    fun initKsoup() {
+        TestHelper.initKsoup()
+    }
+
     @Test
     fun testUtf16BE() = runTest {
         val firstLine = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">"""

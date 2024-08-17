@@ -1,13 +1,8 @@
 package com.fleeksoft.ksoup.nodes
 
-import com.fleeksoft.ksoup.Ksoup
-import com.fleeksoft.ksoup.Platform
-import com.fleeksoft.ksoup.TestHelper
-import com.fleeksoft.ksoup.isJS
-import com.fleeksoft.ksoup.isWasmJs
+import com.fleeksoft.ksoup.*
 import com.fleeksoft.ksoup.parser.ParseSettings
 import com.fleeksoft.ksoup.parser.Parser
-import com.fleeksoft.ksoup.ported.io.Charset
 import com.fleeksoft.ksoup.ported.io.Charsets
 import com.fleeksoft.ksoup.ported.openBufferReader
 import com.fleeksoft.ksoup.ported.toByteArray
@@ -20,6 +15,10 @@ import kotlin.test.*
  * @author Sabeeh, fleeksoft@gmail.com
  */
 class DocumentTest {
+    @BeforeTest
+    fun initKsoup() {
+        TestHelper.initKsoup()
+    }
 
     @Test
     fun setTextPreservesDocumentStructure() {
@@ -74,7 +73,7 @@ class DocumentTest {
             Ksoup.parse("<html><head><script>one</script><noscript><p>two</p></noscript></head><body><p>three</p></body><p>four</p></html>")
         assertEquals(
             "<html><head><script>one</script><noscript>&lt;p&gt;two</noscript></head><body><p>three</p><p>four</p></body></html>",
-            com.fleeksoft.ksoup.TextUtil.stripNewlines(doc.html()),
+            TextUtil.stripNewlines(doc.html()),
         )
     }
 
@@ -88,7 +87,7 @@ class DocumentTest {
         assertEquals("head", head.tagName())
         assertEquals(
             "<html><head></head><body></body></html>",
-            com.fleeksoft.ksoup.TextUtil.stripNewlines(doc.html()),
+            TextUtil.stripNewlines(doc.html()),
         )
     }
 
@@ -118,17 +117,17 @@ class DocumentTest {
         val clone = doc.clone()
         assertEquals(
             "<html><head><title>Hello</title></head><body><p>One</p><p>Two</p></body></html>",
-            com.fleeksoft.ksoup.TextUtil.stripNewlines(clone.html()),
+            TextUtil.stripNewlines(clone.html()),
         )
         clone.title("Hello there")
         clone.expectFirst("p").text("One more").attr("id", "1")
         assertEquals(
             "<html><head><title>Hello there</title></head><body><p id=\"1\">One more</p><p>Two</p></body></html>",
-            com.fleeksoft.ksoup.TextUtil.stripNewlines(clone.html()),
+            TextUtil.stripNewlines(clone.html()),
         )
         assertEquals(
             "<html><head><title>Hello</title></head><body><p>One</p><p>Two</p></body></html>",
-            com.fleeksoft.ksoup.TextUtil.stripNewlines(doc.html()),
+            TextUtil.stripNewlines(doc.html()),
         )
     }
 
@@ -147,7 +146,7 @@ class DocumentTest {
         assertEquals(doc.html(), clone.html())
         assertEquals(
             "<!doctype html><html><head><title>Doctype test</title></head><body></body></html>",
-            com.fleeksoft.ksoup.TextUtil.stripNewlines(clone.html()),
+            TextUtil.stripNewlines(clone.html()),
         )
     }
 

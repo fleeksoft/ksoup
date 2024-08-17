@@ -12,4 +12,4 @@ repositories:
 
 dependencies:
   - ../ksoup-core: exported
-  - ../korio-io: exported
+  - $libs.korlibs.io: exported

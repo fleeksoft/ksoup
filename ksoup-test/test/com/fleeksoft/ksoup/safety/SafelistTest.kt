@@ -1,17 +1,19 @@
 package com.fleeksoft.ksoup.safety
 
+import com.fleeksoft.ksoup.TestHelper
 import com.fleeksoft.ksoup.ported.exception.ValidationException
 import com.fleeksoft.ksoup.nodes.Attribute
 import com.fleeksoft.ksoup.nodes.Attributes
 import com.fleeksoft.ksoup.nodes.Element
 import com.fleeksoft.ksoup.parser.Tag
-import kotlin.test.Test
-import kotlin.test.assertFalse
-import kotlin.test.assertNotEquals
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
+import kotlin.test.*
 
 class SafelistTest {
+    @BeforeTest
+    fun initKsoup() {
+        TestHelper.initKsoup()
+    }
+
     @Test
     fun testCopyConstructor_noSideEffectOnTags() {
         val safelist1 = Safelist.none().addTags(TEST_TAG)

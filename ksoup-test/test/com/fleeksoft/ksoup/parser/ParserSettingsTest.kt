@@ -1,10 +1,17 @@
 package com.fleeksoft.ksoup.parser
 
+import com.fleeksoft.ksoup.TestHelper
 import com.fleeksoft.ksoup.nodes.Attributes
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class ParserSettingsTest {
+    @BeforeTest
+    fun initKsoup() {
+        TestHelper.initKsoup()
+    }
+
     @Test
     fun caseSupport() {
         // TODO: mutlilocale test may move to jvm

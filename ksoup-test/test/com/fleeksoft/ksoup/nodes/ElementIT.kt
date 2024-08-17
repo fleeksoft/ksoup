@@ -1,15 +1,16 @@
 package com.fleeksoft.ksoup.nodes
 
-import com.fleeksoft.ksoup.BuildConfig
+import com.fleeksoft.ksoup.*
 import com.fleeksoft.ksoup.Ksoup.parse
-import com.fleeksoft.ksoup.Platform
-import com.fleeksoft.ksoup.System
-import com.fleeksoft.ksoup.isJS
-import com.fleeksoft.ksoup.isWasmJs
 import kotlin.test.*
 import kotlin.test.Test
 
 class ElementIT {
+    @BeforeTest
+    fun initKsoup() {
+        TestHelper.initKsoup()
+    }
+
     @Test
     fun testFastReparent() {
         if (Platform.isWasmJs() && BuildConfig.isGithubActions) {

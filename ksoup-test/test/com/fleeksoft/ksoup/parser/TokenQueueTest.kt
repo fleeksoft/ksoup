@@ -1,15 +1,18 @@
 package com.fleeksoft.ksoup.parser
 
 import com.fleeksoft.ksoup.Ksoup.parse
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
-import kotlin.test.fail
+import com.fleeksoft.ksoup.TestHelper
+import kotlin.test.*
 
 /**
  * Token queue tests.
  */
 class TokenQueueTest {
+    @BeforeTest
+    fun initKsoup() {
+        TestHelper.initKsoup()
+    }
+
     @Test
     fun chompBalanced() {
         val tq = TokenQueue(":contains(one (two) three) four")

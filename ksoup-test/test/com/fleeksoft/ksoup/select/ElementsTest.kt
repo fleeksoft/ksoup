@@ -1,6 +1,7 @@
 package com.fleeksoft.ksoup.select
 
 import com.fleeksoft.ksoup.Ksoup
+import com.fleeksoft.ksoup.TestHelper
 import com.fleeksoft.ksoup.TextUtil
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.nodes.Node
@@ -13,6 +14,11 @@ import kotlin.test.Test
  * @author Sabeeh, fleeksoft@gmail.com
  */
 class ElementsTest {
+    @BeforeTest
+    fun initKsoup() {
+        TestHelper.initKsoup()
+    }
+
     @Test
     fun filter() {
         val h =

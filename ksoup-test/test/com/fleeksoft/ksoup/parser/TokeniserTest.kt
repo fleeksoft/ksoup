@@ -1,15 +1,18 @@
 package com.fleeksoft.ksoup.parser
 
 import com.fleeksoft.ksoup.Ksoup
+import com.fleeksoft.ksoup.TestHelper
 import com.fleeksoft.ksoup.nodes.CDataNode
 import com.fleeksoft.ksoup.nodes.Comment
 import com.fleeksoft.ksoup.nodes.TextNode
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
+import kotlin.test.*
 
 class TokeniserTest {
+    @BeforeTest
+    fun initKsoup() {
+        TestHelper.initKsoup()
+    }
+
     @Test
     fun bufferUpInAttributeVal() {
 

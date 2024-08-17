@@ -1,10 +1,8 @@
 package com.fleeksoft.ksoup.parser
 
 import com.fleeksoft.ksoup.Ksoup.parse
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
+import com.fleeksoft.ksoup.TestHelper
+import kotlin.test.*
 
 /**
  * Test suite for attribute parser.
@@ -12,6 +10,11 @@ import kotlin.test.assertTrue
  * @author Sabeeh, fleeksoft@gmail.com
  */
 class AttributeParseTest {
+    @BeforeTest
+    fun initKsoup() {
+        TestHelper.initKsoup()
+    }
+
     @Test
     fun parsesRoughAttributeString() {
         val html = "<a id=\"123\" class=\"baz = 'bar'\" style = 'border: 2px'qux zim foo = 12 mux=18 />"

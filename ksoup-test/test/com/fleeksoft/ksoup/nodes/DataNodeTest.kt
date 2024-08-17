@@ -1,9 +1,16 @@
 package com.fleeksoft.ksoup.nodes
 
+import com.fleeksoft.ksoup.TestHelper
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class DataNodeTest {
+    @BeforeTest
+    fun initKsoup() {
+        TestHelper.initKsoup()
+    }
+
     @Test
     fun xmlOutputScriptWithCData() {
         val node = DataNode("//<![CDATA[\nscript && <> data]]>")

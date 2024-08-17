@@ -1,6 +1,7 @@
 package com.fleeksoft.ksoup.safety
 
 import com.fleeksoft.ksoup.Ksoup
+import com.fleeksoft.ksoup.TestHelper
 import com.fleeksoft.ksoup.TextUtil
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.nodes.Element
@@ -16,6 +17,11 @@ import kotlin.test.*
  * @author Sabeeh, fleeksoft@gmail.com
  */
 class CleanerTest {
+    @BeforeTest
+    fun initKsoup() {
+        TestHelper.initKsoup()
+    }
+
     @Test
     fun simpleBehaviourTest() {
         val h = "<div><p class=foo><a href='http://evil.com'>Hello <b id=bar>there</b>!</a></div>"

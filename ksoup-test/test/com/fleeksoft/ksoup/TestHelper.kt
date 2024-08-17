@@ -7,6 +7,10 @@ import korlibs.io.file.std.uniVfs
 
 object TestHelper {
 
+    fun initKsoup() {
+        KsoupEngineInstance.init(KorioKsoupEngine())
+    }
+
     suspend fun readGzipResource(file: String): BufferReader {
         return readGzipFile(getResourceAbsolutePath(file).uniVfs)
     }

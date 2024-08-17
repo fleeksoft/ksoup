@@ -1,5 +1,8 @@
 package com.fleeksoft.ksoup.parser
 
+import com.fleeksoft.ksoup.KorioKsoupEngine
+import com.fleeksoft.ksoup.KsoupEngineInstance
+import com.fleeksoft.ksoup.TestHelper
 import kotlin.test.*
 
 /**
@@ -7,6 +10,11 @@ import kotlin.test.*
  * @author Sabeeh, fleeksoft@gmail.com
  */
 class TagTest {
+    @BeforeTest
+    fun initKsoup() {
+        TestHelper.initKsoup()
+    }
+
     @Test
     fun isCaseSensitive() {
         val p1 = Tag.valueOf("P")

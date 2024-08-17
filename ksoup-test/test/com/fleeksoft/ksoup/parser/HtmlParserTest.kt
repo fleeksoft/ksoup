@@ -14,6 +14,11 @@ import kotlin.test.*
  * @author Sabeeh, fleeksoft@gmail.com
  */
 class HtmlParserTest {
+    @BeforeTest
+    fun initKsoup() {
+        TestHelper.initKsoup()
+    }
+
     @Test
     fun parsesSimpleDocument() {
         val html = "<html><head><title>First!</title></head><body><p>First post! <img src=\"foo.png\" /></p></body></html>"

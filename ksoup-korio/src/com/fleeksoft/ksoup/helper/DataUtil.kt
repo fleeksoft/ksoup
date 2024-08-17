@@ -1,7 +1,7 @@
-package com.fleeksoft.ksoup
+package com.fleeksoft.ksoup.helper
 
-import com.fleeksoft.ksoup.helper.DataUtil
 import com.fleeksoft.ksoup.nodes.Document
+import com.fleeksoft.ksoup.openStream
 import com.fleeksoft.ksoup.parser.Parser
 import korlibs.io.file.VfsFile
 import korlibs.io.file.std.uniVfs

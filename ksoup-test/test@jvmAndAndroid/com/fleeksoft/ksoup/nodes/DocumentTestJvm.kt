@@ -1,6 +1,7 @@
 package com.fleeksoft.ksoup.nodes
 
 import com.fleeksoft.ksoup.Ksoup
+import com.fleeksoft.ksoup.TestHelper
 import com.fleeksoft.ksoup.ported.io.BufferReader
 import com.fleeksoft.ksoup.ported.openBufferReader
 import java.io.StringWriter
@@ -15,6 +16,11 @@ import kotlin.test.*
  */
 
 class DocumentTestJvm {
+    @BeforeTest
+    fun initKsoup() {
+        TestHelper.initKsoup()
+    }
+
     @Test
     fun testHtmlAppendable() {
         val htmlContent =

@@ -1,6 +1,7 @@
 package com.fleeksoft.ksoup.parser
 
 import com.fleeksoft.ksoup.Ksoup
+import com.fleeksoft.ksoup.TestHelper
 import com.fleeksoft.ksoup.TextUtil
 import com.fleeksoft.ksoup.nodes.*
 import com.fleeksoft.ksoup.ported.io.Charset
@@ -15,6 +16,11 @@ import kotlin.test.*
  * @author Sabeeh
  */
 class XmlTreeBuilderTest {
+    @BeforeTest
+    fun initKsoup() {
+        TestHelper.initKsoup()
+    }
+
     @Test
     fun testSimpleXmlParse() {
         val xml = "<doc id=2 href='/bar'>Foo <br /><link>One</link><link>Two</link></doc>"

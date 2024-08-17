@@ -1,6 +1,7 @@
 package com.fleeksoft.ksoup.internal
 
 import com.fleeksoft.ksoup.Ksoup.parse
+import com.fleeksoft.ksoup.TestHelper
 import com.fleeksoft.ksoup.internal.StringUtil.isAscii
 import com.fleeksoft.ksoup.internal.StringUtil.isBlank
 import com.fleeksoft.ksoup.internal.StringUtil.isNumeric
@@ -8,12 +9,14 @@ import com.fleeksoft.ksoup.internal.StringUtil.isWhitespace
 import com.fleeksoft.ksoup.internal.StringUtil.join
 import com.fleeksoft.ksoup.internal.StringUtil.normaliseWhitespace
 import com.fleeksoft.ksoup.internal.StringUtil.padding
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
+import kotlin.test.*
 
 class StringUtilTest {
+    @BeforeTest
+    fun initKsoup() {
+        TestHelper.initKsoup()
+    }
+
     @Test
     fun join() {
         assertEquals("", join(listOf(""), " "))

@@ -1,6 +1,7 @@
 package com.fleeksoft.ksoup.select
 
 import com.fleeksoft.ksoup.Ksoup
+import com.fleeksoft.ksoup.TestHelper
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.nodes.Element
 import com.fleeksoft.ksoup.parser.Parser
@@ -14,6 +15,11 @@ import kotlin.test.*
  * @author Sabeeh, fleeksoft@gmail.com
  */
 class SelectorTest {
+    @BeforeTest
+    fun initKsoup() {
+        TestHelper.initKsoup()
+    }
+
     @Test
     fun testByTag() {
         // should be case-insensitive

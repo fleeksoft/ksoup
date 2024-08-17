@@ -1,6 +1,7 @@
 package com.fleeksoft.ksoup.nodes
 
 import com.fleeksoft.ksoup.Ksoup.parse
+import com.fleeksoft.ksoup.TestHelper
 import kotlin.test.*
 
 /**
@@ -9,6 +10,11 @@ import kotlin.test.*
  * @author Sabeeh
  */
 class AttributesTest {
+    @BeforeTest
+    fun initKsoup() {
+        TestHelper.initKsoup()
+    }
+
     @Test
     fun html() {
         val a = Attributes()

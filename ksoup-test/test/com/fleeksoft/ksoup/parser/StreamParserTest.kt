@@ -12,19 +12,17 @@ import com.fleeksoft.ksoup.readGzipFile
 import com.fleeksoft.ksoup.select.Elements
 import korlibs.io.file.std.uniVfs
 import kotlinx.coroutines.test.runTest
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertFalse
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
-import kotlin.test.assertSame
-import kotlin.test.assertTrue
+import kotlin.test.*
 
 /**
  * Tests for the StreamParser.
  */
 class StreamParserTest {
+    @BeforeTest
+    fun initKsoup() {
+        TestHelper.initKsoup()
+    }
+
     @Test
     fun canStream() {
         val html =
