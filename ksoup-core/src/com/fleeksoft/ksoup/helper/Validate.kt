@@ -22,7 +22,6 @@ internal object Validate {
      * @param param the name of the parameter, for presentation in the validation exception.
      * @throws com.fleeksoft.ksoup.ported.exception.ValidationException if the object is null
      */
-    @Throws(ValidationException::class)
     fun notNullParam(
         obj: Any?,
         param: String?,

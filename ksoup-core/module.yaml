@@ -13,5 +13,3 @@ repositories:
 dependencies:
   - $libs.codepoints
   - $libs.stately.concurrent
-  - ../ksoup-io
-  - ../ksoup-core-placeholder: compile-only
