@@ -1,7 +1,8 @@
-package com.fleeksoft.ksoup.ported.stream
+package com.fleeksoft.ksoup.kotlinx.ported.stream
 
 import com.fleeksoft.ksoup.ported.io.BufferReader
 import com.fleeksoft.ksoup.ported.io.Charset
+import com.fleeksoft.ksoup.ported.stream.StreamCharReader
 import kotlin.text.isNotEmpty
 import kotlin.text.toCharArray
 

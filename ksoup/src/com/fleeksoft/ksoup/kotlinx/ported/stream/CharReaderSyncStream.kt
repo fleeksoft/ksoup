@@ -1,4 +1,4 @@
-package com.fleeksoft.ksoup.ported.stream
+package com.fleeksoft.ksoup.kotlinx.ported.stream
 
 import com.fleeksoft.ksoup.internal.SharedConstants
 import com.fleeksoft.ksoup.ported.io.BufferReader
@@ -30,11 +30,10 @@ internal class CharReaderSyncStream(
             val readCount = bufferReader.read(temp)
             if (readCount <= 0) break
 
-            currentState =
-                currentState.copy(
-                    consumedBytes = currentState.consumedBytes + readCount,
-                    lastBytesRead = readCount,
-                )
+            currentState = currentState.copy(
+                consumedBytes = currentState.consumedBytes + readCount,
+                lastBytesRead = readCount,
+            )
 
             buffer.write(temp, 0, readCount)
             if (currentState.applyMarkedState) {
@@ -61,7 +60,6 @@ internal class CharReaderSyncStream(
             val consumed = charset.decode(tempStringBuilder, temp, 0, readCount)
             if (consumed <= 0) break
             currentState = currentState.copy(consumedBuffer = currentState.consumedBuffer + consumed)
-            buffer.skip(consumed.toLong())
         }
 
         // println("tempStringBuilder=$tempStringBuilder")
