@@ -1,4 +1,4 @@
-package com.fleeksoft.ksoup.kotlinx.ported.io
+package com.fleeksoft.ksoup.ported.io
 
 object ObjHelper {
     fun checkFromIndexSize(fromIndex: Int, size: Int, length: Int) {

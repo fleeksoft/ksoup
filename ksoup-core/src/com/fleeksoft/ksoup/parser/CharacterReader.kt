@@ -3,10 +3,8 @@ package com.fleeksoft.ksoup.parser
 import com.fleeksoft.ksoup.ported.buildString
 import com.fleeksoft.ksoup.ported.exception.IOException
 import com.fleeksoft.ksoup.ported.exception.UncheckedIOException
-import com.fleeksoft.ksoup.ported.io.Charset
-import com.fleeksoft.ksoup.ported.io.Charsets
-import com.fleeksoft.ksoup.ported.stream.StreamCharReader
-import com.fleeksoft.ksoup.ported.toStreamCharReader
+import com.fleeksoft.ksoup.ported.io.Reader
+import com.fleeksoft.ksoup.ported.io.StringReader
 import kotlin.math.abs
 import kotlin.math.min
 
@@ -15,27 +13,27 @@ import kotlin.math.min
  */
 public class CharacterReader {
     private var charBuf: CharArray?
-    private var charReader: StreamCharReader? = null
+    private var charReader: Reader? = null
     private var bufLength = 0
     private var bufSplitPoint = 0
     private var bufPos = 0
     private var readerPos: Int = 0
     private var bufMark = -1
     private var close: Boolean = false
-    private var stringCache: Array<String?>? =
-        arrayOfNulls(stringCacheSize) // holds reused strings in this doc, to lessen garbage
+    private var stringCache: Array<String?>? = arrayOfNulls(stringCacheSize) // holds reused strings in this doc, to lessen garbage
 
     // optionally track the pos() position of newlines - scans during bufferUp()
     private var newlinePositions: ArrayList<Int>? = null
     private var lineNumberOffset = 1 // line numbers start at 1; += newlinePosition[indexof(pos)]
+    var counter = 1
 
-    public constructor(charReader: StreamCharReader, sz: Int = maxBufferLen) {
-        this.charReader = charReader
+    public constructor(reader: Reader, sz: Int = maxBufferLen) {
+        this.charReader = reader
         charBuf = CharArray(min(sz, maxBufferLen))
         bufferUp()
     }
 
-    public constructor(html: String) : this(html.toStreamCharReader(), html.length)
+    public constructor(html: String) : this(StringReader(html), html.length)
 
     public fun isClosed(): Boolean = close
 
@@ -54,7 +52,6 @@ public class CharacterReader {
     private var readFully = false
 
     private fun bufferUp() {
-        //        println("pre => bufSize: ${charBuf?.size} bufLength: $bufLength, readerPos: $readerPos, bufPos: $bufPos, bufSplitPoint: $bufSplitPoint")
         if (readFully || bufPos < bufSplitPoint) return
 
         val (pos, offset) = if (bufMark != -1) {
@@ -64,17 +61,14 @@ public class CharacterReader {
         }
 
         if (pos > 0) {
-            charReader!!.skip(pos.toInt())
+            charReader!!.skip(pos)
         }
 
         charReader!!.mark(maxBufferLen)
         var read: Int = 0
         while (read <= minReadAheadLen) {
             val toReadSize = charBuf!!.size - read
-            val thisRead = charReader!!.readCharArray(charBuf!!, offset = read, count = toReadSize)
-//            charReader!!.read(1)
-
-//            println("bufferUp thisRead: $thisRead");
+            val thisRead = charReader!!.read(charBuf!!, offset = read, length = toReadSize)
 
             if (thisRead == -1) readFully = true
             if (thisRead <= 0) break
@@ -89,8 +83,6 @@ public class CharacterReader {
             if (bufMark != -1) bufMark = 0
             bufSplitPoint = minOf(bufLength, readAheadLimit)
         }
-
-        //            println("post => bufSize: ${charBuf?.size} bufLength: $bufLength, readerPos: $readerPos, bufPos: $bufPos, bufSplitPoint: $bufSplitPoint")
 
         scanBufferForNewlines() // if enabled, we index newline positions for line number tracking
         lastIcSeq = null // cache for last containsIgnoreCase(seq)
@@ -690,8 +682,7 @@ public class CharacterReader {
                 return cached
             } else {
                 cached = String.buildString(charBuf!!, start, count)
-                stringCache[index] =
-                    cached // add or replace, assuming most recently used are most likely to recur next
+                stringCache[index] = cached // add or replace, assuming most recently used are most likely to recur next
             }
             return cached
         }

@@ -3,7 +3,8 @@ package com.fleeksoft.ksoup.parser
 import com.fleeksoft.ksoup.internal.SharedConstants
 import com.fleeksoft.ksoup.nodes.*
 import com.fleeksoft.ksoup.parser.Parser.Companion.NamespaceHtml
-import com.fleeksoft.ksoup.ported.stream.StreamCharReader
+import com.fleeksoft.ksoup.ported.io.Reader
+import com.fleeksoft.ksoup.ported.io.StringReader
 import com.fleeksoft.ksoup.select.NodeVisitor
 
 /**
@@ -39,7 +40,7 @@ public abstract class TreeBuilder {
     fun getStack() = _stack!!
 
     public open fun initialiseParse(
-        charReader: StreamCharReader,
+        input: Reader,
         baseUri: String,
         parser: Parser,
     ) {
@@ -48,7 +49,7 @@ public abstract class TreeBuilder {
         doc.parser(parser)
         this.parser = parser
         settings = parser.settings()
-        reader = CharacterReader(charReader)
+        reader = CharacterReader(input)
         trackSourceRange = parser.isTrackPosition
         reader.trackNewlines(
             parser.isTrackErrors() || trackSourceRange,
@@ -71,19 +72,19 @@ public abstract class TreeBuilder {
         seenTags = null
     }
 
-    public fun parse(charReader: StreamCharReader, baseUri: String, parser: Parser): Document {
-        initialiseParse(charReader, baseUri, parser)
+    public fun parse(input: Reader, baseUri: String, parser: Parser): Document {
+        initialiseParse(input, baseUri, parser)
         runParser()
         return doc
     }
 
     public fun parseFragment(
-        charReader: StreamCharReader,
+        inputFragment: String,
         context: Element?,
         baseUri: String,
         parser: Parser,
     ): List<Node> {
-        initialiseParse(charReader, baseUri, parser)
+        initialiseParse(StringReader(inputFragment), baseUri, parser)
         initialiseParseFragment(context)
         runParser()
         return completeParseFragment()

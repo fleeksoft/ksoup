@@ -2,8 +2,8 @@ package com.fleeksoft.ksoup.nodes
 
 import com.fleeksoft.ksoup.Ksoup
 import com.fleeksoft.ksoup.TestHelper
-import com.fleeksoft.ksoup.ported.io.BufferReader
-import com.fleeksoft.ksoup.ported.openBufferReader
+import com.fleeksoft.ksoup.ported.io.SourceReader
+import com.fleeksoft.ksoup.ported.openSourceReader
 import java.io.StringWriter
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
@@ -64,8 +64,8 @@ class DocumentTestJvm {
                         "</body>" +
                         "</html>"
                 )
-        val buffer: BufferReader = input.toByteArray(StandardCharsets.US_ASCII).openBufferReader()
-        val doc: Document = Ksoup.parse(bufferReader = buffer, baseUri = "http://example.com", charsetName = null)
+        val buffer: SourceReader = input.toByteArray(StandardCharsets.US_ASCII).openSourceReader()
+        val doc: Document = Ksoup.parse(sourceReader = buffer, baseUri = "http://example.com", charsetName = null)
         doc.outputSettings().escapeMode(Entities.EscapeMode.xhtml)
         Charsets.UTF_16
         val charset = Charset.forName(doc.outputSettings().charset().name)

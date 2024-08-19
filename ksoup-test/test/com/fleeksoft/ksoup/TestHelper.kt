@@ -1,6 +1,6 @@
 package com.fleeksoft.ksoup
 
-import com.fleeksoft.ksoup.ported.io.BufferReader
+import com.fleeksoft.ksoup.ported.io.SourceReader
 import korlibs.io.file.VfsFile
 import korlibs.io.file.fullName
 import korlibs.io.file.std.uniVfs
@@ -11,7 +11,7 @@ object TestHelper {
         KsoupEngineInstance.init(KorioKsoupEngine())
     }
 
-    suspend fun readGzipResource(file: String): BufferReader {
+    suspend fun readGzipResource(file: String): SourceReader {
         return readGzipFile(getResourceAbsolutePath(file).uniVfs)
     }
 
@@ -33,12 +33,12 @@ object TestHelper {
         return bytes.decodeToString()
     }
 
-    suspend fun resourceFilePathToStream(path: String): BufferReader {
+    suspend fun resourceFilePathToStream(path: String): SourceReader {
         val file = this.getResourceAbsolutePath(path).uniVfs
         return pathToStream(file)
     }
 
-    suspend fun pathToStream(file: VfsFile): BufferReader {
+    suspend fun pathToStream(file: VfsFile): SourceReader {
         return if (file.fullName.endsWith(".gz")) {
             readGzipFile(file)
         } else {

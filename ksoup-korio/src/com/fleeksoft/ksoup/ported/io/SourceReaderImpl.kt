@@ -6,7 +6,7 @@ import korlibs.io.stream.readAll
 import korlibs.io.stream.readBytes
 
 
-class BufferReaderImpl : BufferReader {
+class SourceReaderImpl : SourceReader {
     private val syncStream: SyncStream
 
     constructor(syncStream: SyncStream) {
@@ -53,12 +53,21 @@ class BufferReaderImpl : BufferReader {
         return syncStream.availableRead <= 0
     }
 
-    override fun clone(): BufferReader {
-        return BufferReaderImpl(syncStream.clone())
-    }
-
     override fun close() {
         syncStream.close()
+    }
+
+    override fun readAtMostTo(sink: Buffer, byteCount: Int): Int {
+        val bytes = syncStream.readBytes(byteCount)
+        sink.writeBytes(bytes, bytes.size)
+        return bytes.size
+    }
+
+    override val remaining: Long
+        get() = syncStream.availableRead
+
+    override fun peek(): SourceReader {
+        return SourceReaderImpl(syncStream.clone())
     }
 
 }

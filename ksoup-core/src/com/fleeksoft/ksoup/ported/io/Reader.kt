@@ -1,11 +1,10 @@
-package com.fleeksoft.ksoup.kotlinx.ported.io
+package com.fleeksoft.ksoup.ported.io
 
 import com.fleeksoft.ksoup.ported.exception.IOException
-import kotlin.math.max
 import kotlin.math.min
 
 
-abstract class Reader : Readable {
+abstract class Reader {
     companion object {
         private const val TRANSFER_BUFFER_SIZE: Int = 8192
 
@@ -13,7 +12,7 @@ abstract class Reader : Readable {
         private const val maxSkipBufferSize: Int = 8192
     }
 
-    override fun read(cb: CharBuffer): Int {
+    /*override fun read(cb: CharBuffer): Int {
         val nread: Int
         if (cb.hasArray()) {
             val cbuf: CharArray = cb.array()
@@ -29,7 +28,7 @@ abstract class Reader : Readable {
             if (nread > 0) cb.put(cbuf, 0, nread)
         }
         return nread
-    }
+    }*/
 
 
     open fun read(): Int {
@@ -38,12 +37,13 @@ abstract class Reader : Readable {
         else cb[0].code
     }
 
+    abstract fun read(cbuf: CharArray, offset: Int = 0, length: Int = cbuf.size): Int
 
-    fun read(cbuf: CharArray): Int {
-        return read(cbuf, 0, cbuf.size)
+    fun readString(length: Int): String {
+        val cbuf = CharArray(length)
+        read(cbuf)
+        return cbuf.concatToString()
     }
-
-    abstract fun read(cbuf: CharArray, off: Int, len: Int): Int
 
     /** Skip buffer, null until allocated  */
     private var skipBuffer: CharArray? = null

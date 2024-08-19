@@ -1,12 +1,12 @@
 package com.fleeksoft.ksoup
 
 import com.fleeksoft.ksoup.internal.Normalizer
-import com.fleeksoft.ksoup.ported.io.BufferReader
-import com.fleeksoft.ksoup.ported.openBufferReader
+import com.fleeksoft.ksoup.ported.io.SourceReader
+import com.fleeksoft.ksoup.ported.openSourceReader
 import korlibs.io.file.VfsFile
 import korlibs.io.file.fullName
 
-suspend fun VfsFile.openStream(): BufferReader {
+suspend fun VfsFile.openStream(): SourceReader {
     val name = Normalizer.lowerCase(this.fullName)
     if (name.endsWith(".gz") || name.endsWith(".z")) {
         val byteArray = this.readChunk(0, 2)
@@ -16,5 +16,5 @@ suspend fun VfsFile.openStream(): BufferReader {
             return readGzipFile(this)
         }
     }
-    return this.readAll().openBufferReader()
+    return this.readAll().openSourceReader()
 }

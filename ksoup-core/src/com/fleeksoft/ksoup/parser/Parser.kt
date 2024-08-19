@@ -3,8 +3,8 @@ package com.fleeksoft.ksoup.parser
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.nodes.Element
 import com.fleeksoft.ksoup.nodes.Node
-import com.fleeksoft.ksoup.ported.stream.StreamCharReader
-import com.fleeksoft.ksoup.ported.toStreamCharReader
+import com.fleeksoft.ksoup.ported.io.Reader
+import com.fleeksoft.ksoup.ported.io.StringReader
 
 /**
  * Parses HTML or XML into a [com.fleeksoft.ksoup.nodes.Document]. Generally, it is simpler to use one of the parse methods in
@@ -54,22 +54,22 @@ public class Parser {
         input: String,
         baseUri: String,
     ): Document {
-        return treeBuilder.parse(input.toStreamCharReader(), baseUri, this)
+        return treeBuilder.parse(StringReader(input), baseUri, this)
     }
 
     public fun parseInput(
-        charReader: StreamCharReader,
+        inputHtml: Reader,
         baseUri: String,
     ): Document {
-        return treeBuilder.parse(charReader, baseUri, this)
+        return treeBuilder.parse(inputHtml, baseUri, this)
     }
 
     public fun parseFragmentInput(
-        inputFragment: String,
+        fragment: String,
         context: Element?,
         baseUri: String,
     ): List<Node> {
-        return treeBuilder.parseFragment(inputFragment.toStreamCharReader(), context, baseUri, this)
+        return treeBuilder.parseFragment(fragment, context, baseUri, this)
     }
     // gets & sets
 
@@ -171,12 +171,12 @@ public class Parser {
          * @return parsed Document
          */
         public fun parse(
-            charReader: StreamCharReader,
+            html: String,
             baseUri: String,
         ): Document {
             val treeBuilder: TreeBuilder = HtmlTreeBuilder()
             return treeBuilder.parse(
-                charReader,
+                StringReader(html),
                 baseUri,
                 Parser(treeBuilder),
             )
@@ -204,7 +204,7 @@ public class Parser {
             if (errorList != null) {
                 parser.errors = errorList
             }
-            return treeBuilder.parseFragment(fragmentHtml.toStreamCharReader(), context, baseUri, parser)
+            return treeBuilder.parseFragment(fragmentHtml, context, baseUri, parser)
         }
 
         /**
@@ -219,7 +219,7 @@ public class Parser {
             baseUri: String,
         ): List<Node> {
             val treeBuilder = XmlTreeBuilder()
-            return treeBuilder.parseFragment(fragmentXml.toStreamCharReader(), null, baseUri, Parser(treeBuilder))
+            return treeBuilder.parseFragment(fragmentXml, null, baseUri, Parser(treeBuilder))
         }
 
         /**
@@ -258,7 +258,7 @@ public class Parser {
             inAttribute: Boolean,
         ): String {
             val parser: Parser = htmlParser()
-            parser.treeBuilder.initialiseParse(html.toStreamCharReader(), "", parser)
+            parser.treeBuilder.initialiseParse(StringReader(html), "", parser)
             val tokeniser = Tokeniser(parser.treeBuilder)
             return tokeniser.unescapeEntities(inAttribute)
         }

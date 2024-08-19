@@ -4,7 +4,7 @@ import com.fleeksoft.ksoup.Ksoup.parse
 import com.fleeksoft.ksoup.TestHelper
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.ported.io.Charsets
-import com.fleeksoft.ksoup.ported.openBufferReader
+import com.fleeksoft.ksoup.ported.openSourceReader
 import com.fleeksoft.ksoup.ported.toByteArray
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -36,7 +36,7 @@ class ParserTest {
     fun testUtf8() {
         val parsed: Document =
             parse(
-                bufferReader = "<p>H\u00E9llo, w\u00F6rld!".toByteArray(Charsets.UTF8).openBufferReader(),
+                sourceReader = "<p>H\u00E9llo, w\u00F6rld!".toByteArray(Charsets.UTF8).openSourceReader(),
                 baseUri = "",
                 charsetName = null,
             )

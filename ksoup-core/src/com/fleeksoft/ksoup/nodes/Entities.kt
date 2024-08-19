@@ -14,7 +14,6 @@ import com.fleeksoft.ksoup.ported.ThreadLocal
 import com.fleeksoft.ksoup.ported.exception.IOException
 import com.fleeksoft.ksoup.ported.exception.SerializationException
 import com.fleeksoft.ksoup.ported.io.Charset
-import com.fleeksoft.ksoup.ported.toStreamCharReader
 import de.cketti.codepoints.deluxe.CodePoint
 import de.cketti.codepoints.deluxe.codePointAt
 
@@ -365,7 +364,7 @@ public object Entities {
         e.codeKeys = IntArray(size)
         e.nameVals = arrayOfNulls(size)
         var i = 0
-        val reader = CharacterReader(pointsData.toStreamCharReader())
+        val reader = CharacterReader(pointsData)
         try {
             while (!reader.isEmpty()) {
                 // NotNestedLessLess=10913,824;1887&

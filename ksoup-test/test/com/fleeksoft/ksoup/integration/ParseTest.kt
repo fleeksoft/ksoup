@@ -5,7 +5,7 @@ import com.fleeksoft.ksoup.Ksoup.parse
 import com.fleeksoft.ksoup.Ksoup.parseFile
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parser.Parser
-import com.fleeksoft.ksoup.ported.openBufferReader
+import com.fleeksoft.ksoup.ported.openSourceReader
 import korlibs.io.file.std.uniVfs
 import kotlinx.coroutines.test.runTest
 import kotlin.test.*
@@ -70,9 +70,9 @@ class ParseTest {
             <head><meta charset=UTF-8"></head>
             <body></body>
             </html>
-            """.trimIndent().openBufferReader()
+            """.trimIndent().openSourceReader()
 
-        val doc: Document = parse(bufferReader = input, baseUri = "http://example.com/", charsetName = null)
+        val doc: Document = parse(sourceReader = input, baseUri = "http://example.com/", charsetName = null)
         assertEquals("UTF-8", doc.outputSettings().charset().name.uppercase())
     }
 
@@ -110,7 +110,7 @@ class ParseTest {
         // and the parse tree is correct.
         val parser = Parser.htmlParser()
         val doc = parse(
-            bufferReader = TestHelper.resourceFilePathToStream("htmltests/xwiki-edit.html.gz"),
+            sourceReader = TestHelper.resourceFilePathToStream("htmltests/xwiki-edit.html.gz"),
             baseUri = "https://localhost/",
             charsetName = "UTF-8",
             parser = parser.setTrackErrors(100),

@@ -2,23 +2,16 @@ package com.fleeksoft.ksoup.ported
 
 import com.fleeksoft.ksoup.KsoupEngineInstance
 import com.fleeksoft.ksoup.internal.SharedConstants
-import com.fleeksoft.ksoup.ported.io.BufferReader
-import com.fleeksoft.ksoup.ported.io.Charset
-import com.fleeksoft.ksoup.ported.io.Charsets
-import com.fleeksoft.ksoup.ported.stream.StreamCharReader
+import com.fleeksoft.ksoup.ported.io.*
 
-fun String.openBufferReader(charset: Charset? = null): BufferReader =
-    KsoupEngineInstance.ksoupEngine.openBufferReader(content = this, charset = charset)
+fun String.openSourceReader(charset: Charset? = null): SourceReader =
+    KsoupEngineInstance.ksoupEngine.openSourceReader(content = this, charset = charset)
 
-fun ByteArray.openBufferReader(): BufferReader = KsoupEngineInstance.ksoupEngine.openBufferReader(byteArray = this)
-fun BufferReader.toStreamCharReader(charset: Charset = Charsets.UTF8, chunkSize: Int = SharedConstants.DefaultBufferSize): StreamCharReader =
-    KsoupEngineInstance.ksoupEngine.toStreamCharReader(bufferReader = this, charset = charset, chunkSize = chunkSize)
+fun ByteArray.openSourceReader(): SourceReader = KsoupEngineInstance.ksoupEngine.openSourceReader(byteArray = this)
+fun SourceReader.toReader(charset: Charset = Charsets.UTF8, chunkSize: Int = SharedConstants.DefaultBufferSize): Reader =
+    BufferedReader(InputSourceReader(this, charset = charset), chunkSize)
 
-fun String.toStreamCharReader(charset: Charset = Charsets.UTF8, chunkSize: Int = SharedConstants.DefaultBufferSize): StreamCharReader =
-    KsoupEngineInstance.ksoupEngine.toStreamCharReader(content = this, charset = charset, chunkSize = chunkSize)
-
-fun ByteArray.toStreamCharReader(charset: Charset = Charsets.UTF8, chunkSize: Int = SharedConstants.DefaultBufferSize): StreamCharReader =
-    KsoupEngineInstance.ksoupEngine.toStreamCharReader(byteArray = this, charset = charset, chunkSize = chunkSize)
+fun String.toReader(): StringReader = StringReader(this)
 
 fun String.resolveOrNull(access: String): String? = KsoupEngineInstance.ksoupEngine.urlResolveOrNull(base = this, relUrl = access)
 

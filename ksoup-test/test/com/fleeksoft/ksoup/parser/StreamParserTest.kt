@@ -7,7 +7,7 @@ import com.fleeksoft.ksoup.nodes.Element
 import com.fleeksoft.ksoup.nodes.Node
 import com.fleeksoft.ksoup.openStream
 import com.fleeksoft.ksoup.ported.io.Charsets
-import com.fleeksoft.ksoup.ported.toStreamCharReader
+import com.fleeksoft.ksoup.ported.toReader
 import com.fleeksoft.ksoup.readGzipFile
 import com.fleeksoft.ksoup.select.Elements
 import korlibs.io.file.std.uniVfs
@@ -303,7 +303,7 @@ class StreamParserTest {
         val file = TestHelper.getResourceAbsolutePath("htmltests/large.html.gz").uniVfs
 
 
-        val reader = readGzipFile(file).toStreamCharReader()
+        val reader = readGzipFile(file).toReader()
         val streamer: StreamParser = StreamParser(Parser.htmlParser()).parse(reader, file.absolutePath)
 
         var last: Element? = null
@@ -322,7 +322,7 @@ class StreamParserTest {
 
         val file = TestHelper.getResourceAbsolutePath("htmltests/large.html.gz").uniVfs
         val streamer: StreamParser =
-            DataUtil.streamParser(bufferReader = file.openStream(), baseUri = "", charset = Charsets.UTF8, parser = Parser.htmlParser())
+            DataUtil.streamParser(sourceReader = file.openStream(), baseUri = "", charset = Charsets.UTF8, parser = Parser.htmlParser())
 
         var last: Element? = null
         var e: Element?
@@ -339,7 +339,7 @@ class StreamParserTest {
     @Test
     fun canStreamFragment() {
         val html = "<tr id=1><td>One</td><tr id=2><td>Two</td></tr><tr id=3><td>Three</td></tr>"
-        val context: Element = Element("table")
+        val context = Element("table")
 
         StreamParser(Parser.htmlParser()).parseFragment(html, context, "").use { parser ->
             val seen = StringBuilder()

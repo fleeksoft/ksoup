@@ -3,9 +3,9 @@ package com.fleeksoft.ksoup.helper
 import com.fleeksoft.ksoup.*
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parser.Parser
-import com.fleeksoft.ksoup.ported.io.BufferReader
 import com.fleeksoft.ksoup.ported.io.Charsets
-import com.fleeksoft.ksoup.ported.openBufferReader
+import com.fleeksoft.ksoup.ported.io.SourceReader
+import com.fleeksoft.ksoup.ported.openSourceReader
 import com.fleeksoft.ksoup.ported.toByteArray
 import korlibs.io.file.std.uniVfs
 import kotlinx.coroutines.test.runTest
@@ -42,15 +42,15 @@ class DataUtilTest {
         assertEquals("UTF-8", DataUtil.getCharsetFromContentType("text/html; charset='UTF-8'"))
     }
 
-    private fun dataToStream(data: String): BufferReader {
-        return data.openBufferReader()
+    private fun dataToStream(data: String): SourceReader {
+        return data.openSourceReader()
     }
 
     private fun dataToStream(
         data: String,
         charset: String,
-    ): BufferReader {
-        return data.toByteArray(Charsets.forName(charset)).openBufferReader()
+    ): SourceReader {
+        return data.toByteArray(Charsets.forName(charset)).openSourceReader()
     }
 
     @Test
@@ -71,7 +71,7 @@ class DataUtilTest {
         val html = "\uFEFF<html><head><title>One</title></head><body>Two</body></html>"
         val doc: Document =
             DataUtil.parseInputSource(
-                bufferReader = html.openBufferReader(),
+                sourceReader = html.openSourceReader(),
                 baseUri = "http://foo.com/",
                 charsetName = null,
                 parser = Parser.htmlParser(),
@@ -121,7 +121,7 @@ class DataUtilTest {
         val html = "<html><head><meta charset=iso-8></head><body></body></html>"
         val doc: Document =
             DataUtil.parseInputSource(
-                bufferReader = this.dataToStream(html),
+                sourceReader = this.dataToStream(html),
                 baseUri = "http://example.com",
                 charsetName = null,
                 parser = Parser.htmlParser(),
@@ -146,13 +146,12 @@ class DataUtilTest {
                     "<meta http-equiv=\"Content-Type\" content=\"text/html\">" +
                     "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=euc-kr\">" +
                     "</head><body>한국어</body></html>"
-        val doc: Document =
-            DataUtil.parseInputSource(
-                bufferReader = dataToStream(data = html, charset = "euc-kr"),
-                baseUri = "http://example.com",
-                charsetName = null,
-                parser = Parser.htmlParser(),
-            )
+        val doc: Document = DataUtil.parseInputSource(
+            sourceReader = dataToStream(data = html, charset = "euc-kr"),
+            baseUri = "http://example.com",
+            charsetName = null,
+            parser = Parser.htmlParser(),
+        )
         assertEquals("한국어", doc.body().text())
     }
 
@@ -165,7 +164,7 @@ class DataUtilTest {
                     "</head><body>Übergrößenträger</body></html>"
         val docByteArrayCharset: Document =
             DataUtil.parseInputSource(
-                bufferReader = dataToStream(data = html, charset = "iso-8859-1"),
+                sourceReader = dataToStream(data = html, charset = "iso-8859-1"),
                 baseUri = "http://example.com",
                 charsetName = null,
                 parser = Parser.htmlParser(),
@@ -208,13 +207,13 @@ class DataUtilTest {
         val parser = Parser.htmlParser()
 
         var doc: Document =
-            DataUtil.streamParser(bufferReader = file.openStream(), baseUri = "http://example.com", charset = null, parser = parser)
+            DataUtil.streamParser(sourceReader = file.openStream(), baseUri = "http://example.com", charset = null, parser = parser)
                 .complete()
         assertTrue(doc.title().contains("UTF-16BE"))
         assertTrue(doc.text().contains("가각갂갃간갅"))
 
         file = TestHelper.getResourceAbsolutePath("bomtests/bom_utf16le.html").uniVfs
-        doc = DataUtil.streamParser(bufferReader = file.openStream(), baseUri = "http://example.com", charset = null, parser = parser)
+        doc = DataUtil.streamParser(sourceReader = file.openStream(), baseUri = "http://example.com", charset = null, parser = parser)
             .complete()
         assertTrue(doc.title().contains("UTF-16LE"))
         assertTrue(doc.text().contains("가각갂갃간갅"))
@@ -225,13 +224,13 @@ class DataUtilTest {
         }
 
         file = TestHelper.getResourceAbsolutePath("bomtests/bom_utf32be.html").uniVfs
-        doc = DataUtil.streamParser(bufferReader = file.openStream(), baseUri = "http://example.com", charset = null, parser = parser)
+        doc = DataUtil.streamParser(sourceReader = file.openStream(), baseUri = "http://example.com", charset = null, parser = parser)
             .complete()
         assertTrue(doc.title().contains("UTF-32BE"))
         assertTrue(doc.text().contains("가각갂갃간갅"))
 
         file = TestHelper.getResourceAbsolutePath("bomtests/bom_utf32le.html").uniVfs
-        doc = DataUtil.streamParser(bufferReader = file.openStream(), baseUri = "http://example.com", charset = null, parser = parser)
+        doc = DataUtil.streamParser(sourceReader = file.openStream(), baseUri = "http://example.com", charset = null, parser = parser)
             .complete()
         assertTrue(doc.title().contains("UTF-32LE"))
         assertTrue(doc.text().contains("가각갂갃간갅"))
@@ -248,7 +247,7 @@ class DataUtilTest {
     fun noExtraNULLBytes() {
         val b = "<html><head><meta charset=\"UTF-8\"></head><body><div><u>ü</u>ü</div></body></html>"
             .toByteArray(Charsets.UTF8)
-        val doc = Ksoup.parse(b.openBufferReader(), baseUri = "", charsetName = null)
+        val doc = Ksoup.parse(b.openSourceReader(), baseUri = "", charsetName = null)
         assertFalse(doc.outerHtml().contains("\u0000"))
     }
 
@@ -272,7 +271,7 @@ class DataUtilTest {
     fun streamerSupportsZippedUTF8BOM() = runTest {
         val file = TestHelper.getResourceAbsolutePath("bomtests/bom_utf8.html.gz").uniVfs
         val doc = DataUtil.streamParser(
-            bufferReader = file.openStream(),
+            sourceReader = file.openStream(),
             baseUri = "http://example.com",
             charset = null,
             parser = Parser.htmlParser()
@@ -293,7 +292,7 @@ class DataUtilTest {
                             "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">" +
                             "<html xmlns=\"http://www.w3.org/1999/xhtml\" lang=\"en\" xml:lang=\"en\">Hellö Wörld!</html>"
                     )
-                .toByteArray(Charsets.forName(encoding)).openBufferReader()
+                .toByteArray(Charsets.forName(encoding)).openSourceReader()
         val doc: Document = Ksoup.parse(soup, baseUri = "", charsetName = null)
         assertEquals("Hellö Wörld!", doc.body().text())
     }
@@ -326,11 +325,11 @@ class DataUtilTest {
 
     @Test
     fun handlesChunkedInputStream() = runTest {
-        val inputFile: String = TestHelper.getResourceAbsolutePath("htmltests/large.html.gz")
-        val input: String = TestHelper.getFileAsString(inputFile.uniVfs)
-//        val stream = VaryingBufferReader(BufferReader(input))
+        val inputFile = TestHelper.getResourceAbsolutePath("htmltests/large.html.gz").uniVfs
+        val input: String = TestHelper.getFileAsString(inputFile)
+
         val expected = Ksoup.parse(input, "https://example.com")
-        val doc: Document = Ksoup.parse(input.openBufferReader(), baseUri = "https://example.com", charsetName = null)
+        val doc: Document = Ksoup.parseFile(inputFile, baseUri = "https://example.com", charsetName = null)
 
         println("""docSize: ${doc.toString().length}, expectedSize: ${expected.toString().length}""")
         assertTrue(doc.hasSameValue(expected))
@@ -340,7 +339,7 @@ class DataUtilTest {
     fun handlesUnlimitedRead() = runTest {
         val inputFile: String = TestHelper.getResourceAbsolutePath("htmltests/large.html.gz")
         val input: String = TestHelper.getFileAsString(inputFile.uniVfs)
-        val byteBuffer: ByteArray = DataUtil.readToByteBuffer(input.openBufferReader(), 0)
+        val byteBuffer: ByteArray = DataUtil.readToByteBuffer(input.openSourceReader(), 0)
         val read = byteBuffer.decodeToString()
         assertEquals(input, read)
     }

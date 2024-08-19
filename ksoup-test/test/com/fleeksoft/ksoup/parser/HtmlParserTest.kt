@@ -4,7 +4,7 @@ import com.fleeksoft.ksoup.*
 import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.nodes.*
 import com.fleeksoft.ksoup.safety.Safelist
-import com.fleeksoft.ksoup.ported.openBufferReader
+import com.fleeksoft.ksoup.ported.openSourceReader
 import kotlinx.coroutines.test.runTest
 import kotlin.test.*
 
@@ -1554,7 +1554,7 @@ class HtmlParserTest {
     fun fallbackToUtfIfCantEncode() {
         // that charset can't be encoded, so make sure we flip to utf
         val input = "<html><meta charset=\"ISO-SSS\"/>One</html>"
-        val doc = Ksoup.parse(bufferReader = input.encodeToByteArray().openBufferReader(), baseUri = "", charsetName = null)
+        val doc = Ksoup.parse(sourceReader = input.encodeToByteArray().openSourceReader(), baseUri = "", charsetName = null)
         assertEquals("UTF-8", doc.charset().name.uppercase())
         assertEquals("One", doc.text())
         val html = doc.outerHtml()

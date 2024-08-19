@@ -1,5 +1,6 @@
-package com.fleeksoft.ksoup.kotlinx.ported.io
+package com.fleeksoft.ksoup.ported.io
 
+import com.fleeksoft.ksoup.internal.SharedConstants
 import com.fleeksoft.ksoup.ported.exception.IOException
 import kotlin.math.min
 
@@ -13,12 +14,11 @@ import kotlin.math.min
  *
  * @throws IllegalArgumentException  If `sz <= 0`
  */
-class BufferedReader(reader: Reader, sz: Int = DEFAULT_CHAR_BUFFER_SIZE) : Reader() {
+class BufferedReader(reader: Reader, sz: Int = SharedConstants.DEFAULT_CHAR_BUFFER_SIZE) : Reader() {
     companion object {
         private const val INVALIDATED: Int = -2
         private const val UNMARKED: Int = -1
 
-        private const val DEFAULT_CHAR_BUFFER_SIZE: Int = 8192
         private const val DEFAULT_EXPECTED_LINE_LENGTH: Int = 80
     }
 
@@ -193,19 +193,20 @@ class BufferedReader(reader: Reader, sz: Int = DEFAULT_CHAR_BUFFER_SIZE) : Reade
      * unnecessarily.
      *
      * @param      cbuf  {@inheritDoc}
-     * @param      off   {@inheritDoc}
-     * @param      len   {@inheritDoc}
+     * @param      offset   {@inheritDoc}
+     * @param      length   {@inheritDoc}
      *
      * @return     {@inheritDoc}
      *
      * @throws     IndexOutOfBoundsException {@inheritDoc}
      * @throws     IOException  {@inheritDoc}
      */
-    override fun read(cbuf: CharArray, off: Int, len: Int): Int {
-        return implRead(cbuf, off, len)
+    override fun read(cbuf: CharArray, offset: Int, length: Int): Int {
+        return implRead(cbuf, offset, length)
     }
 
     private fun implRead(cbuf: CharArray, off: Int, len: Int): Int {
+//        println("lockedRead: offset: $off, length: $len, cbuf: ${cbuf.slice(0..10)}, size: ${cbuf.size}")
         ensureOpen()
         ObjHelper.checkFromIndexSize(off, len, cbuf.size)
         if (len == 0) {

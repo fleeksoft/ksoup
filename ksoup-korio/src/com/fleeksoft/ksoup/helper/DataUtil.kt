@@ -44,7 +44,7 @@ public suspend fun DataUtil.load(
     parser: Parser = Parser.htmlParser(),
 ): Document {
     return parseInputSource(
-        bufferReader = file.openStream(),
+        sourceReader = file.openStream(),
         baseUri = baseUri,
         charsetName = charsetName,
         parser = parser

@@ -12,12 +12,8 @@ import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.parser.StreamParser
 import com.fleeksoft.ksoup.ported.exception.IllegalCharsetNameException
 import com.fleeksoft.ksoup.ported.exception.UncheckedIOException
-import com.fleeksoft.ksoup.ported.io.BufferReader
-import com.fleeksoft.ksoup.ported.io.Charset
-import com.fleeksoft.ksoup.ported.io.Charsets
+import com.fleeksoft.ksoup.ported.io.*
 import com.fleeksoft.ksoup.ported.isCharsetSupported
-import com.fleeksoft.ksoup.ported.stream.StreamCharReader
-import com.fleeksoft.ksoup.ported.toStreamCharReader
 import com.fleeksoft.ksoup.select.Elements
 import kotlin.random.Random
 
@@ -33,19 +29,19 @@ public object DataUtil {
 
     /**
      * Parses a Document from an input steam, using the provided Parser.
-     * @param bufferReader buffer reader to parse. The stream will be closed after reading.
+     * @param sourceReader buffer reader to parse. The stream will be closed after reading.
      * @param baseUri base URI of document, to resolve relative links against
      * @param charsetName character set of input (optional)
      * @param parser alternate [parser][Parser.xmlParser] to use.
      * @return Document
      */
     public fun load(
-        bufferReader: BufferReader,
+        sourceReader: SourceReader,
         baseUri: String,
         charsetName: String? = null,
         parser: Parser = Parser.htmlParser(),
     ): Document {
-        return parseInputSource(bufferReader = bufferReader, baseUri = baseUri, charsetName = charsetName, parser = parser)
+        return parseInputSource(sourceReader = sourceReader, baseUri = baseUri, charsetName = charsetName, parser = parser)
     }
 
     /**
@@ -53,7 +49,7 @@ public object DataUtil {
      * Files that are compressed with gzip (and end in `.gz` or `.z`)
      * are supported in addition to uncompressed files.
      *
-     * @param bufferReader buffer reader to parse. The stream will be closed after reading.
+     * @param sourceReader buffer reader to parse. The stream will be closed after reading.
      * @param charset (optional) character set of input; specify `null` to attempt to autodetect from metadata.
      * A BOM in the file will always override this setting.
      * @param baseUri base URI of document, to resolve relative links against
@@ -63,25 +59,25 @@ public object DataUtil {
      * @throws IOException on IO error
      * @see Connection.Response.streamParser
      */
-    suspend fun streamParser(bufferReader: BufferReader, baseUri: String, charset: Charset?, parser: Parser): StreamParser {
+    suspend fun streamParser(sourceReader: SourceReader, baseUri: String, charset: Charset?, parser: Parser): StreamParser {
         val streamer = StreamParser(parser)
         val charsetName: String? = charset?.name
-        val charsetDoc: CharsetDoc = detectCharset(bufferReader, baseUri, charsetName, parser)
-        val reader = charsetDoc.input.toStreamCharReader(charset = charsetDoc.charset)
+        val charsetDoc: CharsetDoc = detectCharset(sourceReader, baseUri, charsetName, parser)
+        val reader = BufferedReader(InputSourceReader(source = charsetDoc.input, charset = charsetDoc.charset), SharedConstants.DefaultBufferSize)
         maybeSkipBom(reader, charsetDoc)
         streamer.parse(reader, baseUri) // initializes the parse and the document, but does not step() it
 
         return streamer
     }
 
-    fun parseInputSource(bufferReader: BufferReader, baseUri: String, charsetName: String?, parser: Parser): Document {
+    fun parseInputSource(sourceReader: SourceReader, baseUri: String, charsetName: String?, parser: Parser): Document {
         val doc: Document
         var charsetDoc: CharsetDoc? = null
         try {
-            charsetDoc = detectCharset(bufferReader = bufferReader, baseUri = baseUri, charsetName = charsetName, parser = parser)
+            charsetDoc = detectCharset(sourceReader = sourceReader, baseUri = baseUri, charsetName = charsetName, parser = parser)
             doc = parseInputSource(charsetDoc = charsetDoc, baseUri = baseUri, parser = parser)
         } finally {
-            bufferReader.close()
+            sourceReader.close()
         }
         return doc
     }
@@ -90,23 +86,23 @@ public object DataUtil {
     data class CharsetDoc internal constructor(
         val charset: Charset,
         var doc: Document?,
-        val input: BufferReader,
+        val input: SourceReader,
         val skip: Boolean
     )
 
 
-    private fun detectCharset(bufferReader: BufferReader, baseUri: String, charsetName: String?, parser: Parser): CharsetDoc {
+    private fun detectCharset(sourceReader: SourceReader, baseUri: String, charsetName: String?, parser: Parser): CharsetDoc {
         var effectiveCharsetName: String? = charsetName
 
         var doc: Document? = null
 
         // read the start of the stream and look for a BOM or meta charset
 
-        bufferReader.mark(SharedConstants.DefaultBufferSize)
+        sourceReader.mark(SharedConstants.DefaultBufferSize)
         // -1 because we read one more to see if completed. First read is < buffer size, so can't be invalid.
-        val firstBytes: ByteArray = readToByteBuffer(bufferReader, firstReadBufferSize - 1)
-        val fullyRead = bufferReader.exhausted()
-        bufferReader.reset()
+        val firstBytes: ByteArray = readToByteBuffer(sourceReader, firstReadBufferSize - 1)
+        val fullyRead = sourceReader.exhausted()
+        sourceReader.reset()
 
 
         // look for BOM - overrides any other header or input
@@ -132,8 +128,8 @@ public object DataUtil {
                 if (foundCharset != null) break
             }
             // look for <?xml encoding='ISO-8859-1'?>
-            if (foundCharset == null && doc!!.childNodeSize() > 0) {
-                val first: Node = doc!!.childNode(0)
+            if (foundCharset == null && doc.childNodeSize() > 0) {
+                val first: Node = doc.childNode(0)
                 var decl: XmlDeclaration? = null
                 if (first is XmlDeclaration) {
                     decl = first
@@ -166,7 +162,7 @@ public object DataUtil {
         val charset: Charset = if (effectiveCharsetName == defaultCharsetName) Charsets.UTF8 else Charsets.forName(effectiveCharsetName)
         val skip = bomCharset != null && bomCharset.offset // skip 1 if the BOM is there and needs offset
         // if consumer needs to parse the input; prep it if there's a BOM. Can't skip in inputstream as wrapping buffer will ignore the pos
-        return CharsetDoc(charset, doc, bufferReader, skip)
+        return CharsetDoc(charset, doc, sourceReader, skip)
     }
 
     public fun parseInputSource(charsetDoc: CharsetDoc, baseUri: String, parser: Parser): Document {
@@ -180,7 +176,7 @@ public object DataUtil {
         val doc: Document
         val charset: Charset = charsetDoc.charset
 
-        val reader = charsetDoc.input.toStreamCharReader(charset = charset)
+        val reader = BufferedReader(InputSourceReader(input, charset), SharedConstants.DefaultBufferSize)
         maybeSkipBom(reader, charsetDoc)
         try {
             doc = parser.parseInput(reader, baseUri)
@@ -199,21 +195,21 @@ public object DataUtil {
     /**
      * Read the input stream into a byte buffer. To deal with slow input streams, you may interrupt the thread this
      * method is executing on. The data read until being interrupted will be available.
-     * @param bufferReader the input stream to read from
+     * @param sourceReader the input stream to read from
      * @param maxSize the maximum size in bytes to read from the stream. Set to 0 to be unlimited.
      * @return the filled byte buffer
      */
     public fun readToByteBuffer(
-        bufferReader: BufferReader,
+        sourceReader: SourceReader,
         maxSize: Long,
     ): ByteArray {
         return if (maxSize == 0L) {
-            bufferReader.readAllBytes()
+            sourceReader.readAllBytes()
         } else {
 //            todo:// check this sources may don't have any stream size
 //            val size = if (!bufferReader.exhausted()) minOf(maxSize, bufferReader.availableRead()) else maxSize
             val size = maxSize
-            bufferReader.readBytes(size.toInt())
+            sourceReader.readBytes(size.toInt())
         }
     }
 
@@ -286,7 +282,7 @@ public object DataUtil {
 
     private class BomCharset(val charset: String, val offset: Boolean)
 
-    private fun maybeSkipBom(reader: StreamCharReader, charsetDoc: CharsetDoc) {
+    private fun maybeSkipBom(reader: Reader, charsetDoc: CharsetDoc) {
         if (charsetDoc.skip) {
             reader.skip(1)
         }

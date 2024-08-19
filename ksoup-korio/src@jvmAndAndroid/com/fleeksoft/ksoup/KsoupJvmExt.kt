@@ -4,7 +4,7 @@ import com.fleeksoft.ksoup.helper.DataUtil
 import com.fleeksoft.ksoup.helper.load
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parser.Parser
-import com.fleeksoft.ksoup.ported.openBufferReader
+import com.fleeksoft.ksoup.ported.openSourceReader
 import korlibs.io.file.std.toVfs
 import korlibs.io.file.std.uniVfs
 import java.io.File
@@ -32,7 +32,7 @@ public fun Ksoup.parseInputStream(
 ): Document {
     return parse(
         // TODO: use syncstream without reading bytes
-        bufferReader = inputStream.readAllBytes().openBufferReader(),
+        sourceReader = inputStream.readAllBytes().openSourceReader(),
         charsetName = charsetName,
         baseUri = baseUri,
         parser = parser,

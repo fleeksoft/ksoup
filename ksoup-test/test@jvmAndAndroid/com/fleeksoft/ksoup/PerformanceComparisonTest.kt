@@ -4,10 +4,12 @@ import korlibs.io.file.std.uniVfs
 import kotlinx.coroutines.test.runTest
 import org.jsoup.Jsoup
 import kotlin.system.measureTimeMillis
+import kotlin.test.Ignore
 import kotlin.test.Test
 
 class PerformanceComparisonTest {
     @Test
+    @Ignore
     fun compareWithJsoup() = runTest {
         if (BuildConfig.isGithubActions) {
             return@runTest

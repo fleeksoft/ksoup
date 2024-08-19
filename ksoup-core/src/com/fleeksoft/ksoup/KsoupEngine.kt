@@ -1,37 +1,19 @@
 package com.fleeksoft.ksoup
 
-import com.fleeksoft.ksoup.internal.SharedConstants
-import com.fleeksoft.ksoup.ported.io.BufferReader
+import com.fleeksoft.ksoup.ported.io.Buffer
 import com.fleeksoft.ksoup.ported.io.Charset
-import com.fleeksoft.ksoup.ported.io.Charsets
-import com.fleeksoft.ksoup.ported.stream.StreamCharReader
+import com.fleeksoft.ksoup.ported.io.SourceReader
 
 interface KsoupEngine {
     fun urlResolveOrNull(base: String, relUrl: String): String?
 
-    fun openBufferReader(content: String, charset: Charset? = null): BufferReader
+    fun openSourceReader(content: String, charset: Charset? = null): SourceReader
 
-    fun openBufferReader(byteArray: ByteArray): BufferReader
-
-    fun toStreamCharReader(
-        bufferReader: BufferReader,
-        charset: Charset = Charsets.UTF8,
-        chunkSize: Int = SharedConstants.DefaultBufferSize
-    ): StreamCharReader
-
-    fun toStreamCharReader(
-        content: String,
-        charset: Charset = Charsets.UTF8,
-        chunkSize: Int = SharedConstants.DefaultBufferSize
-    ): StreamCharReader
-
-    fun toStreamCharReader(
-        byteArray: ByteArray,
-        charset: Charset = Charsets.UTF8,
-        chunkSize: Int = SharedConstants.DefaultBufferSize
-    ): StreamCharReader
+    fun openSourceReader(byteArray: ByteArray): SourceReader
 
     fun getUtf8Charset(): Charset
 
     fun charsetForName(name: String): Charset
+
+    fun newBufferInstance(): Buffer
 }

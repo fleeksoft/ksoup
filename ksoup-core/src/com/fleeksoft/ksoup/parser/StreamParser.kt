@@ -6,9 +6,8 @@ import com.fleeksoft.ksoup.nodes.Element
 import com.fleeksoft.ksoup.nodes.Node
 import com.fleeksoft.ksoup.ported.LinkedList
 import com.fleeksoft.ksoup.ported.exception.UncheckedIOException
-import com.fleeksoft.ksoup.ported.io.BufferReader
-import com.fleeksoft.ksoup.ported.stream.StreamCharReader
-import com.fleeksoft.ksoup.ported.toStreamCharReader
+import com.fleeksoft.ksoup.ported.io.Reader
+import com.fleeksoft.ksoup.ported.io.StringReader
 import com.fleeksoft.ksoup.select.Evaluator
 import com.fleeksoft.ksoup.select.NodeVisitor
 import com.fleeksoft.ksoup.select.QueryParser
@@ -64,7 +63,7 @@ class StreamParser(private val parser: Parser) {
      * @param baseUri the URL of this input, for absolute link resolution
      * @return this parser, for chaining
      */
-    fun parse(input: StreamCharReader, baseUri: String): StreamParser {
+    fun parse(input: Reader, baseUri: String): StreamParser {
         close() // probably a no-op, but ensures any previous reader is closed
         elementIterator.reset()
         treeBuilder.initialiseParse(input, baseUri, parser) // reader is not read, so no chance of IO error
@@ -79,7 +78,7 @@ class StreamParser(private val parser: Parser) {
      * @return this parser
      */
     fun parse(html: String, baseUri: String): StreamParser {
-        return parse(html.toStreamCharReader(), baseUri)
+        return parse(StringReader(html), baseUri)
     }
 
     /**
@@ -90,7 +89,7 @@ class StreamParser(private val parser: Parser) {
      * @return this parser
      * @see .completeFragment
      */
-    fun parseFragment(input: StreamCharReader, context: Element?, baseUri: String): StreamParser {
+    fun parseFragment(input: Reader, context: Element?, baseUri: String): StreamParser {
         parse(input, baseUri)
         treeBuilder.initialiseParseFragment(context)
         return this
@@ -105,7 +104,7 @@ class StreamParser(private val parser: Parser) {
      * @see .completeFragment
      */
     fun parseFragment(html: String, context: Element?, baseUri: String): StreamParser {
-        return parseFragment(html.toStreamCharReader(), context, baseUri)
+        return parseFragment(StringReader(html), context, baseUri)
     }
 
     /**

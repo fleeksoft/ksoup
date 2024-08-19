@@ -1,4 +1,4 @@
-package com.fleeksoft.ksoup.kotlinx.ported.io
+package com.fleeksoft.ksoup.ported.io
 
 import com.fleeksoft.ksoup.ported.exception.IOException
 import kotlin.math.max
@@ -38,17 +38,17 @@ class StringReader(s: String) : Reader() {
         return str!![next++].code
     }
 
-    override fun read(cbuf: CharArray, off: Int, len: Int): Int {
+    override fun read(cbuf: CharArray, offset: Int, length: Int): Int {
         ensureOpen()
-        ObjHelper.checkFromIndexSize(off, len, cbuf.size)
-        if (len == 0) {
+        ObjHelper.checkFromIndexSize(offset, length, cbuf.size)
+        if (length == 0) {
             return 0
         }
-        if (next >= length) return -1
-        val n: Int = min(length - next, len)
+        if (next >= this.length) return -1
+        val n: Int = min(this.length - next, length)
         val charArray = str!!.toCharArray(startIndex = next, endIndex = next + n)
         charArray.indices.forEach { i ->
-            cbuf[off + i] = charArray[i]
+            cbuf[offset + i] = charArray[i]
         }
         next += n
         return n

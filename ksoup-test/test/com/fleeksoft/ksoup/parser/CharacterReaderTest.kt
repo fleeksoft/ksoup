@@ -1,10 +1,12 @@
 package com.fleeksoft.ksoup.parser
 
-import com.fleeksoft.ksoup.*
+import com.fleeksoft.ksoup.TestHelper
 import com.fleeksoft.ksoup.ported.exception.UncheckedIOException
-import com.fleeksoft.ksoup.ported.toStreamCharReader
-import korlibs.io.file.std.uniVfs
 import com.fleeksoft.ksoup.ported.io.Charsets
+import com.fleeksoft.ksoup.ported.io.StringReader
+import com.fleeksoft.ksoup.ported.toReader
+import com.fleeksoft.ksoup.readFile
+import korlibs.io.file.std.uniVfs
 import korlibs.io.lang.substr
 import kotlinx.coroutines.test.runTest
 import kotlin.test.*
@@ -24,10 +26,10 @@ class CharacterReaderTest {
     fun testUtf16BE() = runTest {
         val firstLine = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">"""
         val input = readFile(TestHelper.getResourceAbsolutePath("bomtests/bom_utf16be.html").uniVfs)
-            .toStreamCharReader(charset = Charsets.forName("UTF-16BE"))
+            .toReader(charset = Charsets.forName("UTF-16BE"))
 
 //            ignore first char (ZWNBSP)\uFEFF:65279
-        val actualReadLine = input.read(firstLine.length + 1)
+        val actualReadLine = input.readString(firstLine.length + 1)
         assertEquals(firstLine.length, actualReadLine.length - 1)
         assertEquals(firstLine, actualReadLine.substr(1))
     }
@@ -36,10 +38,10 @@ class CharacterReaderTest {
     fun testUtf16LE() = runTest {
         val firstLine = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">"""
         val input = readFile(TestHelper.getResourceAbsolutePath("bomtests/bom_utf16le.html").uniVfs)
-            .toStreamCharReader(charset = Charsets.forName("UTF-16LE"))
+            .toReader(charset = Charsets.forName("UTF-16LE"))
 
         //            ignore first char (ZWNBSP)\uFEFF:65279
-        val actualReadLine = input.read(firstLine.length + 1)
+        val actualReadLine = input.readString(firstLine.length + 1)
         assertEquals(firstLine.length, actualReadLine.length - 1)
         assertEquals(firstLine, actualReadLine.substr(1))
     }
@@ -47,7 +49,7 @@ class CharacterReaderTest {
     @Test
     fun testReadMixSpecialChar() {
         val input = "ä<a>ä</a>"
-        val charReader = CharacterReader(input.toStreamCharReader(), sz = 1)
+        val charReader = CharacterReader(StringReader(input), sz = 1)
         input.forEachIndexed { index, char ->
             assertEquals(index, charReader.pos())
             assertEquals(char, charReader.consume())
@@ -416,7 +418,7 @@ class CharacterReaderTest {
 
     @Test
     fun notEmptyAtBufferSplitPoint() {
-        val r = CharacterReader("How about now".toStreamCharReader(), sz = 3)
+        val r = CharacterReader("How about now".toReader(), sz = 3)
         assertEquals("How", r.consumeTo(' '))
         assertFalse(r.isEmpty(), "Should not be empty")
         assertEquals(' ', r.consume())
@@ -469,7 +471,7 @@ class CharacterReaderTest {
     fun canTrackNewlines() {
         val builder = StringBuilder()
         builder.append("<foo>\n<bar>\n<qux>\n")
-        while (builder.length < maxBufferLen) {
+        while (builder.length < CharacterReader.maxBufferLen) {
             builder.append("Lorem ipsum dolor sit amet, consectetur adipiscing elit.")
         }
         builder.append("[foo]\n[bar]")
@@ -535,7 +537,7 @@ class CharacterReaderTest {
     @Test
     fun countsColumnsOverBufferWhenNoNewlines() {
         val builder = StringBuilder()
-        while (builder.length < maxBufferLen * 4) builder.append("Lorem ipsum dolor sit amet, consectetur adipiscing elit.")
+        while (builder.length < CharacterReader.maxBufferLen * 4) builder.append("Lorem ipsum dolor sit amet, consectetur adipiscing elit.")
         val content = builder.toString()
         val reader = CharacterReader(content)
         reader.trackNewlines(true)
@@ -596,11 +598,9 @@ class CharacterReaderTest {
     }
 
     companion object {
-        const val maxBufferLen = CharacterReader.maxBufferLen
-
         fun bufferBuster(content: String): String {
             val builder = StringBuilder()
-            while (builder.length < maxBufferLen) builder.append(content)
+            while (builder.length < CharacterReader.maxBufferLen) builder.append(content)
             return builder.toString()
         }
     }

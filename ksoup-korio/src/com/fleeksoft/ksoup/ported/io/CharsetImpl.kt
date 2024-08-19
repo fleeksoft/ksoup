@@ -7,6 +7,8 @@ class CharsetImpl(override val name: String) : com.fleeksoft.ksoup.ported.io.Cha
 
     private var charset: Charset = Charset.forName(name)
 
+    fun getInternalCharset() = charset
+
     constructor(charset: Charset) : this(charset.name) {
         this.charset = charset
     }

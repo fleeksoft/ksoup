@@ -4,7 +4,7 @@ import com.fleeksoft.ksoup.*
 import com.fleeksoft.ksoup.parser.ParseSettings
 import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.ported.io.Charsets
-import com.fleeksoft.ksoup.ported.openBufferReader
+import com.fleeksoft.ksoup.ported.openSourceReader
 import com.fleeksoft.ksoup.ported.toByteArray
 import kotlinx.coroutines.test.runTest
 import kotlin.test.*
@@ -484,8 +484,8 @@ class DocumentTest {
                         "</body>" +
                         "</html>"
                 )
-        val inputStream = input.encodeToByteArray().openBufferReader()
-        val doc: Document = Ksoup.parse(bufferReader = inputStream, baseUri = "http://example.com", charsetName = null)
+        val inputStream = input.encodeToByteArray().openSourceReader()
+        val doc: Document = Ksoup.parse(sourceReader = inputStream, baseUri = "http://example.com", charsetName = null)
         doc.outputSettings().escapeMode(Entities.EscapeMode.xhtml)
         val output = doc.html().toByteArray(doc.outputSettings().charset()).decodeToString()
         assertFalse(output.contains("?"), "Should not have contained a '?'.")
