@@ -1,6 +1,7 @@
 package com.fleeksoft.ksoup.internal
 
 import com.fleeksoft.ksoup.ported.Character
+import com.fleeksoft.ksoup.ported.ThreadLocal
 import com.fleeksoft.ksoup.ported.resolveOrNull
 import de.cketti.codepoints.deluxe.CodePoint
 import de.cketti.codepoints.deluxe.appendCodePoint
@@ -234,14 +235,13 @@ public object StringUtil {
         return cleanedBaseUrl.resolveOrNull(cleanedRelUrl) ?: ""
     }
 
-    private val controlChars: Regex =
-        Regex("[\\x00-\\x1f]*") // matches ascii 0 - 31, to strip from url
+    private val controlChars: Regex = Regex("[\\x00-\\x1f]*") // matches ascii 0 - 31, to strip from url
 
     private fun stripControlChars(input: String): String {
         return input.replace(controlChars, "")
     }
 
-    private val stringLocalBuilders: ArrayDeque<StringBuilder> = ArrayDeque()
+    private val stringLocalBuilders: ThreadLocal<ArrayDeque<StringBuilder>> = ThreadLocal { ArrayDeque() }
 
     /**
      * Maintains cached StringBuilders in a flyweight pattern, to minimize new StringBuilder GCs. The StringBuilder is
@@ -252,7 +252,8 @@ public object StringUtil {
      * @return an empty StringBuilder
      */
     public fun borrowBuilder(): StringBuilder {
-        return StringBuilder(MaxCachedBuilderSize)
+        val stringBuilder = stringLocalBuilders.get()
+        return if (stringBuilder.isEmpty()) StringBuilder(MaxCachedBuilderSize) else stringBuilder.last()
     }
 
     /**
@@ -263,7 +264,20 @@ public object StringUtil {
      */
 
     // TODO: replace this
-    public fun releaseBuilder(sb: StringBuilder): String {
+    public fun releaseBuilder(sb: StringBuilder): String {/* String string = sb.toString();
+
+        if (sb.length() > MaxCachedBuilderSize)
+            sb = new StringBuilder(MaxCachedBuilderSize); // make sure it hasn't grown too big
+        else
+            sb.delete(0, sb.length()); // make sure it's emptied on release
+
+        Stack<StringBuilder> builders = threadLocalBuilders.get();
+        builders.push(sb);
+
+        while (builders.size() > MaxIdleBuilders) {
+            builders.pop();
+        }
+        return string;*/
         var stringBuilder: StringBuilder = sb
         val string: String = stringBuilder.toString()
         if (stringBuilder.length > MaxCachedBuilderSize) {
@@ -271,9 +285,10 @@ public object StringUtil {
         } else {
             stringBuilder.clear() // make sure it's emptied on release
         }
-        stringLocalBuilders.addLast(stringBuilder)
-        while (stringLocalBuilders.size > MaxIdleBuilders) {
-            stringLocalBuilders.removeLast()
+        val builders = stringLocalBuilders.get()
+        builders.add(stringBuilder)
+        while (builders.size > MaxIdleBuilders) {
+            builders.removeLast()
         }
         return string
     }
