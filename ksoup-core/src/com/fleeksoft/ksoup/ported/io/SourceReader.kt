@@ -19,7 +19,7 @@ interface SourceReader {
 
     public fun close()
 
-    public fun readAtMostTo(sink: KBuffer, byteCount: Int): Int
+    public fun readAtMostTo(sink: KByteBuffer, byteCount: Int): Int
 
     public val remaining: Long
 

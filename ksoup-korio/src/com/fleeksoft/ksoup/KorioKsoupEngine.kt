@@ -27,6 +27,4 @@ class KorioKsoupEngine : KsoupEngine {
     override fun charsetForName(name: String): Charset {
         return CharsetImpl(name)
     }
-
-    override fun newBufferInstance(): KBuffer = KByteBuffer()
 }

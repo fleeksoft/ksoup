@@ -55,7 +55,7 @@ class SourceReaderImpl : SourceReader {
         syncStream.close()
     }
 
-    override fun readAtMostTo(sink: KBuffer, byteCount: Int): Int {
+    override fun readAtMostTo(sink: KByteBuffer, byteCount: Int): Int {
         val bytes = syncStream.readBytes(byteCount)
         sink.writeBytes(bytes, bytes.size)
         return bytes.size

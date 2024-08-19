@@ -1,6 +1,6 @@
 package com.fleeksoft.ksoup.ported.io
 
-import com.fleeksoft.ksoup.KsoupEngineInstance
+import com.fleeksoft.ksoup.internal.SharedConstants
 import com.fleeksoft.ksoup.ported.exception.IOException
 import kotlin.math.min
 
@@ -11,7 +11,7 @@ class StreamDecoder(source: SourceReader, charset: Charset) : Reader() {
     private var cs: Charset = charset
 
     //    private var decoder: CharsetDecoder = charset.newDecoder()
-    private var bb: KBuffer = KsoupEngineInstance.ksoupEngine.newBufferInstance()
+    private var bb: KByteBuffer = KByteBuffer(SharedConstants.DEFAULT_BYTE_BUFFER_SIZE)
 
     // Exactly one of these is non-null
     private var source: SourceReader? = source
