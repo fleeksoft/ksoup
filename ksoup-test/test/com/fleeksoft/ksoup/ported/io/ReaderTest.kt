@@ -182,6 +182,12 @@ class ReaderTest {
     }
 
     @Test
+    fun testMixCharReader2Large() {
+        val inputData = "한국어".repeat(10000)
+        testMixCharReader(inputData)
+    }
+
+    @Test
     fun testMixCharReader3() {
         val inputData = "Übergrößenträger"
         testMixCharReader(inputData)
