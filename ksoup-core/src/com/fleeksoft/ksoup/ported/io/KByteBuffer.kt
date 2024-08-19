@@ -4,7 +4,7 @@ import com.fleeksoft.ksoup.internal.SharedConstants
 import kotlin.math.max
 import kotlin.math.min
 
-class KBufferImpl : KBuffer {
+class KByteBuffer : KBuffer {
     private val buffer: ByteArray = ByteArray(SharedConstants.DEFAULT_BYTE_BUFFER_SIZE)
     private var position = 0
     private var readAvailable = 0
