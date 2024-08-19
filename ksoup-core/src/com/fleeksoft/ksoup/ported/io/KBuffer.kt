@@ -1,6 +1,6 @@
 package com.fleeksoft.ksoup.ported.io
 
-interface Buffer {
+interface KBuffer {
 
     public val size: Int
     public fun position(): Int

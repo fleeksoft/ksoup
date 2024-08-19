@@ -11,7 +11,7 @@ class StreamDecoder(source: SourceReader, charset: Charset) : Reader() {
     private var cs: Charset = charset
 
     //    private var decoder: CharsetDecoder = charset.newDecoder()
-    private var bb: Buffer = KsoupEngineInstance.ksoupEngine.newBufferInstance()
+    private var bb: KBuffer = KsoupEngineInstance.ksoupEngine.newBufferInstance()
 
     // Exactly one of these is non-null
     private var source: SourceReader? = source
