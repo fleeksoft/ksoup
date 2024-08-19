@@ -1,28 +1,26 @@
 package com.fleeksoft.ksoup.ported.io
 
-import com.fleeksoft.ksoup.internal.SharedConstants
-import kotlin.math.max
 import kotlin.math.min
 
-class KByteBuffer : KBuffer {
-    private val buffer: ByteArray = ByteArray(SharedConstants.DEFAULT_BYTE_BUFFER_SIZE)
+class KByteBuffer(capacity: Int) {
+    private val buffer: ByteArray = ByteArray(capacity)
     private var position = 0
     private var readAvailable = 0
     private var offset = 0
 
-    override val size: Int
+    val size: Int
         get() = buffer.size
 
-    override fun position(): Int {
+    fun position(): Int {
         return position
     }
 
-    override fun available(): Int {
+    fun available(): Int {
         return readAvailable
     }
 
-    override fun compact() {
-        if (position == buffer.size) {
+    fun compact() {
+        if (position == buffer.size || readAvailable == 0) {
             position = 0
             offset = 0
         } else if (position > 0) {
@@ -35,12 +33,12 @@ class KByteBuffer : KBuffer {
         }
     }
 
-    override fun exhausted(): Boolean {
-        return position >= buffer.size
+    fun exhausted(): Boolean {
+        return readAvailable <= 0
     }
 
-    override fun readText(charset: Charset, max: Int): String {
-        val endIndex = min(position + max, position + readAvailable)
+    fun readText(charset: Charset, maxBytes: Int): String {
+        val endIndex = min(position + maxBytes, position + readAvailable)
 
         val byteArray = if (position == 0 && endIndex == buffer.size) {
             buffer
@@ -62,16 +60,11 @@ class KByteBuffer : KBuffer {
         return string
     }
 
-    override fun writeBytes(byteArray: ByteArray, length: Int) {
+    fun writeBytes(byteArray: ByteArray, length: Int) {
 //        println("writeBytes: $length")
         require(byteArray.size <= size)
         byteArray.copyInto(buffer, destinationOffset = offset, endIndex = length)
-        readAvailable = min(SharedConstants.DEFAULT_BYTE_BUFFER_SIZE, readAvailable + byteArray.size)
-        position = if (readAvailable == SharedConstants.DEFAULT_BYTE_BUFFER_SIZE) {
-            0
-        } else {
-            max(0, position - byteArray.size)
-        }
+        readAvailable = min(buffer.size, readAvailable + byteArray.size)
         offset += length
         if (offset >= buffer.size) {
             offset = 0
