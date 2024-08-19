@@ -252,6 +252,7 @@ public object StringUtil {
      * @return an empty StringBuilder
      */
     public fun borrowBuilder(): StringBuilder {
+        return StringBuilder(MaxCachedBuilderSize)
         val stringBuilder = stringLocalBuilders.get()
         return if (stringBuilder.isEmpty()) StringBuilder(MaxCachedBuilderSize) else stringBuilder.last()
     }
@@ -264,20 +265,9 @@ public object StringUtil {
      */
 
     // TODO: replace this
-    public fun releaseBuilder(sb: StringBuilder): String {/* String string = sb.toString();
+    public fun releaseBuilder(sb: StringBuilder): String {
+        return sb.toString()
 
-        if (sb.length() > MaxCachedBuilderSize)
-            sb = new StringBuilder(MaxCachedBuilderSize); // make sure it hasn't grown too big
-        else
-            sb.delete(0, sb.length()); // make sure it's emptied on release
-
-        Stack<StringBuilder> builders = threadLocalBuilders.get();
-        builders.push(sb);
-
-        while (builders.size() > MaxIdleBuilders) {
-            builders.pop();
-        }
-        return string;*/
         var stringBuilder: StringBuilder = sb
         val string: String = stringBuilder.toString()
         if (stringBuilder.length > MaxCachedBuilderSize) {
