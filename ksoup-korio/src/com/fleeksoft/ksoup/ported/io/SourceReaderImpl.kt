@@ -13,8 +13,6 @@ class SourceReaderImpl : SourceReader {
         this.syncStream = syncStream
     }
 
-    constructor(data: String) : this(data.openSync())
-
     constructor(bytes: ByteArray) : this(bytes.openSync())
 
     override fun skip(count: Int) {
@@ -57,7 +55,7 @@ class SourceReaderImpl : SourceReader {
         syncStream.close()
     }
 
-    override fun readAtMostTo(sink: Buffer, byteCount: Int): Int {
+    override fun readAtMostTo(sink: KBuffer, byteCount: Int): Int {
         val bytes = syncStream.readBytes(byteCount)
         sink.writeBytes(bytes, bytes.size)
         return bytes.size
