@@ -15,12 +15,12 @@ class SourceReaderImpl : SourceReader {
 
     constructor(bytes: ByteArray) : this(bytes.openSync())
 
-    override fun skip(count: Int) {
-        syncStream.skip(count)
+    override fun skip(count: Long) {
+        syncStream.skip(count.toInt())
     }
 
-    override fun mark(readLimit: Int) {
-        syncStream.mark(readLimit)
+    override fun mark(readLimit: Long) {
+        syncStream.mark(readLimit.toInt())
     }
 
     override fun reset() {

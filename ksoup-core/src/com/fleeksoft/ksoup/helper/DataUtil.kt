@@ -98,7 +98,7 @@ public object DataUtil {
 
         // read the start of the stream and look for a BOM or meta charset
 
-        sourceReader.mark(SharedConstants.DefaultBufferSize)
+        sourceReader.mark(SharedConstants.DefaultBufferSize.toLong())
         // -1 because we read one more to see if completed. First read is < buffer size, so can't be invalid.
         val firstBytes: ByteArray = readToByteBuffer(sourceReader, firstReadBufferSize - 1)
         val fullyRead = sourceReader.exhausted()
