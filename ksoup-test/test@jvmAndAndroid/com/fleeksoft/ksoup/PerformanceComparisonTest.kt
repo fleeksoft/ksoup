@@ -49,7 +49,7 @@ class PerformanceComparisonTest {
         val jsoupSelectTimes = mutableListOf<Long>()
 
         // Perform multiple tests
-        repeat(10) {
+        repeat(30) {
             ksoupTest(ksoupParseTimes, ksoupSelectTimes)
             jsoupTest(jsoupParseTimes, jsoupSelectTimes)
         }
@@ -143,7 +143,7 @@ class PerformanceComparisonTest {
         val col7Width = 15 // Select Diff (%)
 
         // Print table header
-        println("\nComparison Table")
+        println("\nComparison Table: Ksoup Korio vs Jsoup")
         println(
             "%-${col1Width}s| %-${col2Width}s| %-${col3Width}s| %-${col4Width}s| %-${col5Width}s| %-${col6Width}s| %-${col7Width}s".format(
                 "Test", "KParse (ms)", "JParse (ms)", "KSelect (ms)", "JSelect (ms)", "Parse Diff (%)", "Select Diff (%)"
