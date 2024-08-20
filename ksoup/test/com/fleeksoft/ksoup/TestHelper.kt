@@ -1,5 +1,6 @@
 package com.fleeksoft.ksoup
 
+import com.fleeksoft.ksoup.kotlinx.KotlinxKsoupEngine
 import kotlinx.io.buffered
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
@@ -17,5 +18,9 @@ object TestHelper {
 
     fun readFile(filePath: String): String {
         return SystemFileSystem.source(Path(filePath)).buffered().readString()
+    }
+
+    fun initKsoup() {
+        KsoupEngineInstance.init(KotlinxKsoupEngine())
     }
 }
