@@ -1,20 +1,26 @@
 package com.fleeksoft.ksoup
 
-import com.fleeksoft.ksoup.kotlinx.ported.io.BufferedReader
-import com.fleeksoft.ksoup.kotlinx.ported.io.InputStreamReader
-import com.fleeksoft.ksoup.kotlinx.ported.io.Reader
-import com.fleeksoft.ksoup.kotlinx.ported.io.StringReader
-import kotlinx.io.Buffer
-import kotlinx.io.writeString
+import com.fleeksoft.ksoup.internal.SharedConstants
+import com.fleeksoft.ksoup.ported.io.BufferedReader
+import com.fleeksoft.ksoup.ported.io.InputSourceReader
+import com.fleeksoft.ksoup.ported.io.Reader
+import com.fleeksoft.ksoup.ported.io.StringReader
+import com.fleeksoft.ksoup.ported.openSourceReader
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class ReaderTest {
+    @BeforeTest
+    fun initKsoup() {
+        TestHelper.initKsoup()
+    }
 
     private fun readerStringTestStarter(input: String, testBody: (input: String, reader: Reader) -> Unit) {
         testBody(input, StringReader(input))
         testBody(input, BufferedReader(StringReader(input)))
-        testBody(input, BufferedReader(InputStreamReader(Buffer().apply { writeString(input) })))
+        testBody(input, BufferedReader(InputSourceReader(input.openSourceReader())))
+        testBody(input, BufferedReader(InputSourceReader(input.openSourceReader()), SharedConstants.DefaultBufferSize))
     }
 
     @Test
@@ -64,6 +70,25 @@ class ReaderTest {
 
     @Test
     fun testCharSequence() = readerStringTestStarter("abcdefghijklmnopqrstuvwxyz") { input, reader ->
+        input.forEach {
+            assertEquals(it, reader.read().toChar())
+        }
+    }
+
+    /*@Test
+    fun testRandomLargeCharSequence() {
+        (1..100000).forEach {
+            println("testRandomLargeCharSequence: $it")
+            readerStringTestStarter("abcdefghijklmnopqrstuvwxyz".repeat(it)) { input, reader ->
+                input.forEach {
+                    assertEquals(it, reader.read().toChar())
+                }
+            }
+        }
+    }*/
+
+    @Test
+    fun testLargeCharSequence() = readerStringTestStarter("abcdefghijklmnopqrstuvwxyz".repeat((10..500).random())) { input, reader ->
         input.forEach {
             assertEquals(it, reader.read().toChar())
         }
@@ -156,6 +181,12 @@ class ReaderTest {
     @Test
     fun testMixCharReader2() {
         val inputData = "한국어"
+        testMixCharReader(inputData)
+    }
+
+    @Test
+    fun testMixCharReader2Large() {
+        val inputData = "한국어".repeat(10000)
         testMixCharReader(inputData)
     }
 
