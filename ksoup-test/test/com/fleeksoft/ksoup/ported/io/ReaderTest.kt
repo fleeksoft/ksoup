@@ -192,4 +192,10 @@ class ReaderTest {
         val inputData = "Übergrößenträger"
         testMixCharReader(inputData)
     }
+
+    @Test
+    fun testUtf16Charset(){
+        val inputData = "ABCあ💩".repeat(29)
+        testMixCharReader(inputData)
+    }
 }
