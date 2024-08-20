@@ -8,6 +8,7 @@ import java.io.FileInputStream
 import java.util.zip.GZIPInputStream
 import kotlin.system.measureTimeMillis
 import kotlin.test.BeforeTest
+import kotlin.test.Ignore
 import kotlin.test.Test
 
 class PerformanceComparisonTest {
@@ -17,7 +18,7 @@ class PerformanceComparisonTest {
     }
 
     @Test
-//    @Ignore
+    @Ignore
     fun compareWithJsoup() = runTest {
 
         val testData = File(TestHelper.getResourceAbsolutePath("test.txt")).readBytes().decodeToString()
