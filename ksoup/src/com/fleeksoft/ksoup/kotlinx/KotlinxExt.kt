@@ -1,15 +1,15 @@
 package com.fleeksoft.ksoup.kotlinx
 
 import com.fleeksoft.ksoup.internal.Normalizer
-import com.fleeksoft.ksoup.ported.io.BufferReader
-import com.fleeksoft.ksoup.ported.openBufferReader
+import com.fleeksoft.ksoup.ported.io.SourceReader
+import com.fleeksoft.ksoup.ported.openSourceReader
 import kotlinx.io.Buffer
 import kotlinx.io.buffered
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 import kotlinx.io.readByteArray
 
-suspend fun Path.openStream(): BufferReader {
+suspend fun Path.openStream(): SourceReader {
     val name = Normalizer.lowerCase(this.name)
     if (name.endsWith(".gz") || name.endsWith(".z")) {
         val source = SystemFileSystem.source(this)
@@ -21,10 +21,10 @@ suspend fun Path.openStream(): BufferReader {
             return readGzipFile(this)
         }
     }
-    return SystemFileSystem.source(this).buffered().readByteArray().openBufferReader()
+    return SystemFileSystem.source(this).buffered().readByteArray().openSourceReader()
 }
 
 
-suspend fun readGzipFile(path: Path): BufferReader {
+suspend fun readGzipFile(path: Path): SourceReader {
     TODO("Gzip not supported")
 }

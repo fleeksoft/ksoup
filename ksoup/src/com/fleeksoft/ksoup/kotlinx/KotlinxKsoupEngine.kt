@@ -1,29 +1,24 @@
 package com.fleeksoft.ksoup.kotlinx
 
 import com.fleeksoft.ksoup.KsoupEngine
-import com.fleeksoft.ksoup.ported.io.BufferReader
-import com.fleeksoft.ksoup.kotlinx.ported.io.BufferReaderImpl
-import com.fleeksoft.ksoup.ported.io.Charset
 import com.fleeksoft.ksoup.kotlinx.ported.io.CharsetImpl
-import com.fleeksoft.ksoup.ported.openBufferReader
-import com.fleeksoft.ksoup.ported.stream.StreamCharReader
-import com.fleeksoft.ksoup.kotlinx.ported.stream.StreamCharReaderImpl
-import io.ktor.http.URLBuilder
-import io.ktor.http.URLProtocol
-import io.ktor.http.Url
-import io.ktor.utils.io.charsets.Charsets
+import com.fleeksoft.ksoup.kotlinx.ported.io.SourceReaderImpl
+import com.fleeksoft.ksoup.ported.io.Charset
+import com.fleeksoft.ksoup.ported.io.SourceReader
+import io.ktor.http.*
+import io.ktor.utils.io.charsets.*
 
 class KotlinxKsoupEngine : KsoupEngine {
-    internal fun String.isValidResourceUrl() =
+    private fun String.isValidResourceUrl() =
         this.startsWith("http", ignoreCase = true) || this.startsWith("ftp://", ignoreCase = true) ||
                 this.startsWith("ftps://", ignoreCase = true) ||
                 this.startsWith("file:/", ignoreCase = true) ||
                 this.startsWith("//")
 
-    internal fun String.isAbsResource(): Boolean = Regex("\\w+:").containsMatchIn(this)
+    private fun String.isAbsResource(): Boolean = Regex("\\w+:").containsMatchIn(this)
     private val validUriScheme: Regex = "^[a-zA-Z][a-zA-Z0-9+-.]*:".toRegex()
 
-    internal fun URLBuilder.appendRelativePath(relativePath: String): URLBuilder {
+    private fun URLBuilder.appendRelativePath(relativePath: String): URLBuilder {
         val segments = this.encodedPathSegments.toMutableList()
 
         val isLastSlash = segments.isNotEmpty() && segments.last() == ""
@@ -136,8 +131,16 @@ class KotlinxKsoupEngine : KsoupEngine {
         } else if (relUrl.isValidResourceUrl()) {
             Url(relUrl).toString()
         } else {
-            if (validUriScheme.matches(relUrl)) relUrl else ""
+            if (validUriScheme.matches(relUrl)) relUrl else null
         }
+    }
+
+    override fun openSourceReader(content: String, charset: Charset?): SourceReader {
+        return SourceReaderImpl(charset?.toByteArray(content) ?: content.encodeToByteArray())
+    }
+
+    override fun openSourceReader(byteArray: ByteArray): SourceReader {
+        return SourceReaderImpl(byteArray)
     }
 
     private fun resolve(base: Url, cleanedRelUrl: String): Url {
@@ -160,41 +163,6 @@ class KotlinxKsoupEngine : KsoupEngine {
             port = base.port,
             pathSegments = base.pathSegments
         ).appendRelativePath(cleanedRelUrl).build()
-    }
-
-    override fun openBufferReader(
-        content: String,
-        charset: Charset?
-    ): BufferReader {
-        return BufferReaderImpl(charset?.toByteArray(content) ?: content.encodeToByteArray())
-    }
-
-    override fun openBufferReader(byteArray: ByteArray): BufferReader {
-        return BufferReaderImpl(byteArray)
-    }
-
-    override fun toStreamCharReader(
-        bufferReader: BufferReader,
-        charset: Charset,
-        chunkSize: Int
-    ): StreamCharReader {
-        return StreamCharReaderImpl(bufferReader = bufferReader, charset = charset, chunkSize = chunkSize)
-    }
-
-    override fun toStreamCharReader(
-        content: String,
-        charset: Charset,
-        chunkSize: Int
-    ): StreamCharReader {
-        return StreamCharReaderImpl(bufferReader = content.openBufferReader(charset = charset), charset = charset, chunkSize = chunkSize)
-    }
-
-    override fun toStreamCharReader(
-        byteArray: ByteArray,
-        charset: Charset,
-        chunkSize: Int
-    ): StreamCharReader {
-        return StreamCharReaderImpl(bufferReader = byteArray.openBufferReader(), charset = charset, chunkSize = chunkSize)
     }
 
     override fun getUtf8Charset(): Charset {

@@ -2,12 +2,11 @@ package com.fleeksoft.ksoup
 
 import com.fleeksoft.ksoup.helper.DataUtil
 import com.fleeksoft.ksoup.kotlinx.KotlinxKsoupEngine
+import com.fleeksoft.ksoup.kotlinx.helper.load
 import com.fleeksoft.ksoup.kotlinx.openStream
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parser.Parser
-import com.fleeksoft.ksoup.parser.Parser.Companion
-import com.fleeksoft.ksoup.ported.io.BufferReader
-import com.fleeksoft.ksoup.ported.toStreamCharReader
+import com.fleeksoft.ksoup.ported.io.SourceReader
 import com.fleeksoft.ksoup.safety.Cleaner
 import com.fleeksoft.ksoup.safety.Safelist
 import kotlinx.io.files.Path
@@ -36,7 +35,7 @@ public object Ksoup {
         html: String,
         baseUri: String = "",
     ): Document {
-        return Parser.parse(html.toStreamCharReader(), baseUri)
+        return Parser.parse(html, baseUri)
     }
 
     /**
@@ -54,14 +53,14 @@ public object Ksoup {
         parser: Parser,
         baseUri: String = "",
     ): Document {
-        return parser.parseInput(html.toStreamCharReader(), baseUri)
+        return parser.parseInput(html, baseUri)
     }
 
     /**
      * Read an buffer reader, and parse it to a Document. You can provide an alternate parser, such as a simple XML
      * (non-HTML) parser.
      *
-     * @param bufferReader buffer reader to read. Make sure to close it after parsing.
+     * @param sourceReader buffer reader to read. Make sure to close it after parsing.
      * @param baseUri     The URL where the HTML was retrieved from, to resolve relative links against.
      * @param charsetName (optional) character set of file contents. Set to `null` to determine from `http-equiv` meta tag, if
      * present, or fall back to `UTF-8` (which is often safe to do).
@@ -69,12 +68,12 @@ public object Ksoup {
      * @return sane HTML
      */
     public fun parse(
-        bufferReader: BufferReader,
+        sourceReader: SourceReader,
         baseUri: String,
         charsetName: String?,
         parser: Parser = Parser.htmlParser(),
     ): Document {
-        return DataUtil.load(bufferReader = bufferReader, baseUri = baseUri, charsetName = charsetName, parser = parser)
+        return DataUtil.load(sourceReader = sourceReader, baseUri = baseUri, charsetName = charsetName, parser = parser)
     }
 
 
@@ -91,11 +90,11 @@ public object Ksoup {
      */
     public suspend fun parseFile(
         file: Path,
-        baseUri: String = file.name,
+        baseUri: String = file.toString(),
         charsetName: String? = null,
         parser: Parser = Parser.htmlParser()
     ): Document {
-        return DataUtil.load(bufferReader = file.openStream(), baseUri = baseUri, charsetName = charsetName, parser = parser)
+        return DataUtil.load(sourceReader = file.openStream(), baseUri = baseUri, charsetName = charsetName, parser = parser)
     }
 
 
@@ -115,7 +114,7 @@ public object Ksoup {
         charsetName: String? = null,
         parser: Parser = Parser.htmlParser(),
     ): Document {
-        TODO()
+        return DataUtil.load(filePath = filePath, baseUri = baseUri, charsetName = charsetName, parser = parser)
     }
 
     /**
