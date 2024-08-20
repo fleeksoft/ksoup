@@ -113,7 +113,7 @@ class StreamDecoder(source: SourceReader, charset: Charset) : Reader() {
 
             1 -> return cb[0].code
             else -> {
-                require(false) { n }
+                require(false) { "Unable to read from source" }
                 return -1
             }
         }
