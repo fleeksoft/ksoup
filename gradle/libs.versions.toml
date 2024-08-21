@@ -1,7 +1,7 @@
 [versions]
 agp = "8.2.2" #kmp max gradle support 8.2 right now
 #kotlin = "1.9.24"
-kotlin = "2.0.0"
+kotlin = "2.0.10"
 compileSdk = "34"
 minSdk = "21"
 libraryVersion = "0.1.4"
