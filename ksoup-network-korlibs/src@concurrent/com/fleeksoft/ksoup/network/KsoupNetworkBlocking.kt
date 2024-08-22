@@ -21,16 +21,15 @@ import kotlinx.coroutines.runBlocking
 public fun Ksoup.parseGetRequestBlocking(
     url: String,
     headers: Map<String, String> = emptyMap(),
-    requestConfig: HttpClient.RequestConfig = HttpClient.RequestConfig.DEFAULT,
     parser: Parser = Parser.htmlParser(),
-): Document =
-    runBlocking {
-        val httpResponse = NetworkHelperKorlibs.instance.get(url = url, headers = headers, requestConfig = requestConfig)
+    requestConfig: HttpClient.RequestConfig = HttpClient.RequestConfig.DEFAULT,
+): Document = runBlocking {
+    val httpResponse = NetworkHelperKorlibs.instance.get(url = url, headers = headers, requestConfig = requestConfig)
 //        url can be changed after redirection
-        val finalUrl = httpResponse.headers["location"] ?: url
-        val response = httpResponse.readAllString()
-        return@runBlocking parse(html = response, parser = parser, baseUri = finalUrl)
-    }
+    val finalUrl = httpResponse.headers["location"] ?: url
+    val response = httpResponse.readAllString()
+    return@runBlocking parse(html = response, parser = parser, baseUri = finalUrl)
+}
 
 /**
  * Use to fetch and parse a HTML page.
@@ -47,22 +46,21 @@ public fun Ksoup.parseSubmitRequestBlocking(
     url: String,
     params: Map<String, String> = emptyMap(),
     headers: Map<String, String> = emptyMap(),
-    requestConfig: HttpClient.RequestConfig = HttpClient.RequestConfig.DEFAULT,
     parser: Parser = Parser.htmlParser(),
-): Document =
-    runBlocking {
-        val httpResponse =
-            NetworkHelperKorlibs.instance.submitForm(
-                url = url,
-                params = params,
-                headers = headers,
-                requestConfig = requestConfig
-            )
+    requestConfig: HttpClient.RequestConfig = HttpClient.RequestConfig.DEFAULT,
+): Document = runBlocking {
+    val httpResponse =
+        NetworkHelperKorlibs.instance.submitForm(
+            url = url,
+            params = params,
+            headers = headers,
+            requestConfig = requestConfig
+        )
 //            url can be changed after redirection
-        val finalUrl = httpResponse.headers["location"] ?: url
-        val result: String = httpResponse.readAllString()
-        return@runBlocking parse(html = result, parser = parser, baseUri = finalUrl)
-    }
+    val finalUrl = httpResponse.headers["location"] ?: url
+    val result: String = httpResponse.readAllString()
+    return@runBlocking parse(html = result, parser = parser, baseUri = finalUrl)
+}
 
 /**
  * Use to fetch and parse a HTML page.
@@ -79,19 +77,18 @@ public fun Ksoup.parsePostRequestBlocking(
     url: String,
     body: HttpBodyContent = HttpBodyContent("", ""),
     headers: Map<String, String> = emptyMap(),
-    requestConfig: HttpClient.RequestConfig = HttpClient.RequestConfig.DEFAULT,
     parser: Parser = Parser.htmlParser(),
-): Document =
-    runBlocking {
-        val httpResponse =
-            NetworkHelperKorlibs.instance.post(
-                url = url,
-                body = body,
-                headers = headers,
-                requestConfig = requestConfig
-            )
+    requestConfig: HttpClient.RequestConfig = HttpClient.RequestConfig.DEFAULT,
+): Document = runBlocking {
+    val httpResponse =
+        NetworkHelperKorlibs.instance.post(
+            url = url,
+            body = body,
+            headers = headers,
+            requestConfig = requestConfig
+        )
 //            url can be changed after redirection
-        val finalUrl = httpResponse.headers["location"] ?: url
-        val result: String = httpResponse.readAllString()
-        return@runBlocking parse(html = result, parser = parser, baseUri = finalUrl)
-    }
+    val finalUrl = httpResponse.headers["location"] ?: url
+    val result: String = httpResponse.readAllString()
+    return@runBlocking parse(html = result, parser = parser, baseUri = finalUrl)
+}
