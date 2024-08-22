@@ -26,7 +26,7 @@ public suspend fun Ksoup.parseGetRequest(
     requestConfig: HttpClient.RequestConfig = HttpClient.RequestConfig.DEFAULT,
     parser: Parser = Parser.htmlParser(),
 ): Document = withContext(Dispatchers.CIO) {
-    val httpResponse = NetworkHelperKorIo.instance.get(
+    val httpResponse = NetworkHelperKorlibs.instance.get(
         url,
         headers = headers,
         requestConfig = requestConfig
@@ -55,7 +55,7 @@ public suspend fun Ksoup.parseSubmitRequest(
     requestConfig: HttpClient.RequestConfig = HttpClient.RequestConfig.DEFAULT,
     parser: Parser = Parser.htmlParser(),
 ): Document = withContext(Dispatchers.CIO) {
-    val httpResponse = NetworkHelperKorIo.instance.submitForm(
+    val httpResponse = NetworkHelperKorlibs.instance.submitForm(
         url = url,
         params = params,
         headers = headers,
@@ -85,7 +85,7 @@ public suspend fun Ksoup.parsePostRequest(
     requestConfig: HttpClient.RequestConfig = HttpClient.RequestConfig.DEFAULT,
     parser: Parser = Parser.htmlParser(),
 ): Document = withContext(Dispatchers.CIO) {
-    val httpResponse = NetworkHelperKorIo.instance.post(
+    val httpResponse = NetworkHelperKorlibs.instance.post(
         url = url,
         body = body,
         headers = headers,

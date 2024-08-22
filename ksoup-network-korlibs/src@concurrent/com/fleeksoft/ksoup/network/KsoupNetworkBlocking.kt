@@ -25,7 +25,7 @@ public fun Ksoup.parseGetRequestBlocking(
     parser: Parser = Parser.htmlParser(),
 ): Document =
     runBlocking {
-        val httpResponse = NetworkHelperKorIo.instance.get(url = url, headers = headers, requestConfig = requestConfig)
+        val httpResponse = NetworkHelperKorlibs.instance.get(url = url, headers = headers, requestConfig = requestConfig)
 //        url can be changed after redirection
         val finalUrl = httpResponse.headers["location"] ?: url
         val response = httpResponse.readAllString()
@@ -52,7 +52,7 @@ public fun Ksoup.parseSubmitRequestBlocking(
 ): Document =
     runBlocking {
         val httpResponse =
-            NetworkHelperKorIo.instance.submitForm(
+            NetworkHelperKorlibs.instance.submitForm(
                 url = url,
                 params = params,
                 headers = headers,
@@ -84,7 +84,7 @@ public fun Ksoup.parsePostRequestBlocking(
 ): Document =
     runBlocking {
         val httpResponse =
-            NetworkHelperKorIo.instance.post(
+            NetworkHelperKorlibs.instance.post(
                 url = url,
                 body = body,
                 headers = headers,

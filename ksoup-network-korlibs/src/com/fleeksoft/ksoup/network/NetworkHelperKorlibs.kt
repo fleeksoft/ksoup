@@ -2,11 +2,11 @@ package com.fleeksoft.ksoup.network
 
 import korlibs.io.net.http.*
 
-public class NetworkHelperKorIo {
+public class NetworkHelperKorlibs {
     private val client: HttpClient = createHttpClient()
 
     public companion object {
-        public val instance: NetworkHelperKorIo = NetworkHelperKorIo()
+        public val instance: NetworkHelperKorlibs = NetworkHelperKorlibs()
     }
 
     public suspend fun get(
