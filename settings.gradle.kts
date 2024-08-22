@@ -10,11 +10,13 @@ pluginManagement {
 }
 
 plugins {
-    id("org.jetbrains.amper.settings.plugin").version("0.4.0")
+    id("org.jetbrains.amper.settings.plugin").version("0.5.0-dev-940")
 }
 
 
-include("ksoup-core")
-include("ksoup-korio", "ksoup-network-korio", "ksoup-test")
-include("ksoup")
+include("ksoup", "ksoup-engine-common")
+include("ksoup-engine-korlibs")
+include("ksoup-network-korlibs")
+include("ksoup-test")
+include("ksoup-engine-kotlinx")
 //include("sample:shared", "sample:android", "sample:desktop", "sample:ios")
