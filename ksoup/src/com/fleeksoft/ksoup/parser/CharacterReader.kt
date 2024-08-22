@@ -69,7 +69,6 @@ public class CharacterReader {
         while (read <= minReadAheadLen) {
             val toReadSize = charBuf!!.size - read
             val thisRead = charReader!!.read(charBuf!!, offset = read, length = toReadSize)
-            println("thisRead: $thisRead, read: $read, length: $toReadSize")
 
             if (thisRead == -1) readFully = true
             if (thisRead <= 0) break
