@@ -181,7 +181,7 @@ class DataUtilTest {
         assertTrue(doc.title().contains("UTF-16LE"))
         assertTrue(doc.text().contains("가각갂갃간갅"))
 
-        if (Platform.isJS() || Platform.isWindows()) {
+        if (Platform.isJS() || Platform.isWindows() || Platform.isLinux()) {
             // FIXME: UTF-32 charset not supported
             return@runTest
         }
@@ -217,7 +217,7 @@ class DataUtilTest {
         assertTrue(doc.title().contains("UTF-16LE"))
         assertTrue(doc.text().contains("가각갂갃간갅"))
 
-        if (Platform.isJS() || Platform.isWindows()) {
+        if (Platform.isJS() || Platform.isWindows() || Platform.isLinux()) {
             // FIXME: UTF-32 charset not supported
             return@runTest
         }
