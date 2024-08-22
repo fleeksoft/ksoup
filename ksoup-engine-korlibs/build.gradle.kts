@@ -6,10 +6,11 @@ plugins {
 group = "com.fleeksoft.ksoup"
 version = libs.versions.libraryVersion.get()
 
+val artifactId = "ksoup-engine-korlibs"
 mavenPublishing {
-    coordinates("com.fleeksoft.ksoup", "ksoup-network-korio", libs.versions.libraryVersion.get())
+    coordinates("com.fleeksoft.ksoup", artifactId, libs.versions.libraryVersion.get())
     pom {
-        name.set("ksoup-network-korio")
+        name.set(artifactId)
         description.set("Ksoup is a Kotlin Multiplatform library for working with HTML and XML, and offers an easy-to-use API for URL fetching, data parsing, extraction, and manipulation using DOM and CSS selectors.")
         licenses {
             license {

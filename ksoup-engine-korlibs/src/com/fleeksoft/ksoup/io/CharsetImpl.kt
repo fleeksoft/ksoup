@@ -1,15 +1,14 @@
-package com.fleeksoft.ksoup.ported.io
+package com.fleeksoft.ksoup.io
 
-import korlibs.io.lang.Charset
 import korlibs.io.lang.toByteArray
 
-class CharsetImpl(override val name: String) : com.fleeksoft.ksoup.ported.io.Charset {
+class CharsetImpl(override val name: String) : Charset {
 
-    private var charset: Charset = Charset.forName(name)
+    private var charset: korlibs.io.lang.Charset = korlibs.io.lang.Charset.forName(name)
 
     fun getInternalCharset() = charset
 
-    constructor(charset: Charset) : this(charset.name) {
+    constructor(charset: korlibs.io.lang.Charset) : this(charset.name) {
         this.charset = charset
     }
 

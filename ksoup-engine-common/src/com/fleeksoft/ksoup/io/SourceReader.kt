@@ -1,4 +1,4 @@
-package com.fleeksoft.ksoup.ported.io
+package com.fleeksoft.ksoup.io
 
 interface SourceReader {
     public fun skip(count: Long)
@@ -20,8 +20,6 @@ interface SourceReader {
     public fun close()
 
     public fun readAtMostTo(sink: KByteBuffer, byteCount: Int): Int
-
-    public val remaining: Long
 
     public fun peek(): SourceReader
 }

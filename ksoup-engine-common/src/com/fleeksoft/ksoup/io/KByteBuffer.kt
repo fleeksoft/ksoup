@@ -1,4 +1,4 @@
-package com.fleeksoft.ksoup.ported.io
+package com.fleeksoft.ksoup.io
 
 import kotlin.math.min
 
@@ -56,7 +56,7 @@ class KByteBuffer(capacity: Int) {
         }
 
         require(position <= size) { "read position overflow position: $position, bufferSize: $size" }
-//        println("readText: position: $position, readAvailable: $readAvailable, offset: $offset, consumedBytesCount: $consumedBytesCount")
+        println("readText: position: $position, readAvailable: $readAvailable, offset: $offset, consumedBytesCount: $consumedBytesCount")
         return string
     }
 

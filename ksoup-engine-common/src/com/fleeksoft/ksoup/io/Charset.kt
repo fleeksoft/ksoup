@@ -1,4 +1,4 @@
-package com.fleeksoft.ksoup.ported.io
+package com.fleeksoft.ksoup.io
 
 interface Charset {
     val name: String

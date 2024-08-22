@@ -1,4 +1,4 @@
-package com.fleeksoft.ksoup.ported.io
+package com.fleeksoft.ksoup.io
 
 import korlibs.io.stream.SyncStream
 import korlibs.io.stream.openSync
@@ -60,9 +60,6 @@ class SourceReaderImpl : SourceReader {
         sink.writeBytes(bytes, bytes.size)
         return bytes.size
     }
-
-    override val remaining: Long
-        get() = syncStream.availableRead
 
     override fun peek(): SourceReader {
         return SourceReaderImpl(syncStream.clone())

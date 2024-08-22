@@ -1,10 +1,10 @@
-package com.fleeksoft.ksoup
+package com.fleeksoft.ksoup.engine
 
-import com.fleeksoft.ksoup.ported.io.*
+import com.fleeksoft.ksoup.io.*
 import korlibs.io.lang.Charsets
 import korlibs.io.net.URL
 
-class KorioKsoupEngine : KsoupEngine {
+object KsoupEngineImpl : KsoupEngine {
     override fun urlResolveOrNull(base: String, relUrl: String): String? {
         return URL.resolveOrNull(base = base, access = relUrl)
     }
@@ -26,5 +26,9 @@ class KorioKsoupEngine : KsoupEngine {
 
     override fun charsetForName(name: String): Charset {
         return CharsetImpl(name)
+    }
+
+    override fun pathToFileSource(path: String): FileSource {
+        return FileSourceImpl(path)
     }
 }

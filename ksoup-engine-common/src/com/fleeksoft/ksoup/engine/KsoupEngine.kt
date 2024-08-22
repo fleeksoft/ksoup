@@ -1,7 +1,8 @@
-package com.fleeksoft.ksoup
+package com.fleeksoft.ksoup.engine
 
-import com.fleeksoft.ksoup.ported.io.Charset
-import com.fleeksoft.ksoup.ported.io.SourceReader
+import com.fleeksoft.ksoup.io.Charset
+import com.fleeksoft.ksoup.io.FileSource
+import com.fleeksoft.ksoup.io.SourceReader
 
 interface KsoupEngine {
     fun urlResolveOrNull(base: String, relUrl: String): String?
@@ -13,4 +14,6 @@ interface KsoupEngine {
     fun getUtf8Charset(): Charset
 
     fun charsetForName(name: String): Charset
+
+    fun pathToFileSource(path: String): FileSource
 }
