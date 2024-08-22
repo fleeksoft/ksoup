@@ -5,6 +5,7 @@
 
 ./gradlew clean
 ./gradlew :ksoup:publishToMavenLocal -PisKorlibs=false
+./gradlew :ksoup-network:publishToMavenLocal -PisKorlibs=false
 
 ./gradlew clean
 ./gradlew :ksoup:publishToMavenLocal -PisKorlibs=true
