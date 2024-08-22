@@ -1,18 +1,12 @@
 package com.fleeksoft.ksoup.nodes
 
 import com.fleeksoft.ksoup.Ksoup.parse
-import com.fleeksoft.ksoup.TestHelper
 import com.fleeksoft.ksoup.parser.Parser
 import de.cketti.codepoints.deluxe.toCodePoint
-import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class EntitiesTest {
-    @BeforeTest
-    fun initKsoup() {
-        TestHelper.initKsoup()
-    }
 
     @Test
     fun escape() {

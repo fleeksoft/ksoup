@@ -6,10 +6,6 @@ import com.fleeksoft.ksoup.select.NodeFilter
 import kotlin.test.*
 
 class LeafNodeTest {
-    @BeforeTest
-    fun initKsoup() {
-        TestHelper.initKsoup()
-    }
 
     @Test
     fun doesNotGetAttributesTooEasily() {

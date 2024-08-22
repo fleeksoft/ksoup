@@ -3,8 +3,8 @@ package com.fleeksoft.ksoup.parser
 import com.fleeksoft.ksoup.*
 import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.nodes.*
-import com.fleeksoft.ksoup.safety.Safelist
 import com.fleeksoft.ksoup.ported.openSourceReader
+import com.fleeksoft.ksoup.safety.Safelist
 import kotlinx.coroutines.test.runTest
 import kotlin.test.*
 
@@ -14,10 +14,6 @@ import kotlin.test.*
  * @author Sabeeh, fleeksoft@gmail.com
  */
 class HtmlParserTest {
-    @BeforeTest
-    fun initKsoup() {
-        TestHelper.initKsoup()
-    }
 
     @Test
     fun parsesSimpleDocument() {
@@ -1293,8 +1289,14 @@ class HtmlParserTest {
 
     @Test
     fun testInvalidTableContents() = runTest {
-        val input: String = TestHelper.getResourceAbsolutePath("htmltests/table-invalid-elements.html")
-        val doc: Document = Ksoup.parseFile(input, "UTF-8")
+        val resourceName = "htmltests/table-invalid-elements.html"
+        val doc: Document = if (BuildConfig.isKotlinx && Platform.isJS()) {
+            val source = TestHelper.readResource(resourceName)
+            Ksoup.parse(sourceReader = source, baseUri = resourceName, charsetName = "UTF-8")
+        } else {
+            val input: String = TestHelper.getResourceAbsolutePath(resourceName)
+            Ksoup.parseFile(filePath = input, charsetName = "UTF-8")
+        }
         doc.outputSettings().prettyPrint(true)
         val rendered = doc.toString()
         val endOfEmail = rendered.indexOf("Comment")
@@ -1504,8 +1506,14 @@ class HtmlParserTest {
 
     @Test
     fun testTemplateInsideTable() = runTest {
-        val input: String = TestHelper.getResourceAbsolutePath("htmltests/table-polymer-template.html")
-        val doc: Document = Ksoup.parseFile(input, "UTF-8")
+        val resourceName = "htmltests/table-polymer-template.html"
+        val doc: Document = if (BuildConfig.isKotlinx && Platform.isJS()) {
+            val source = TestHelper.readResource(resourceName)
+            Ksoup.parse(sourceReader = source, baseUri = resourceName, charsetName = "UTF-8")
+        } else {
+            val input: String = TestHelper.getResourceAbsolutePath(resourceName)
+            Ksoup.parseFile(filePath = input, charsetName = "UTF-8")
+        }
         doc.outputSettings().prettyPrint(true)
         val templates = doc.body().getElementsByTag("template")
         for (template in templates) {
@@ -1541,8 +1549,14 @@ class HtmlParserTest {
 
     @Test
     fun handlesXmlDeclAndCommentsBeforeDoctype() = runTest {
-        val `in`: String = TestHelper.getResourceAbsolutePath("htmltests/comments.html")
-        val doc: Document = Ksoup.parseFile(`in`, "UTF-8")
+        val resourceName = "htmltests/comments.html"
+        val doc: Document = if (BuildConfig.isKotlinx && Platform.isJS()) {
+            val source = TestHelper.readResource(resourceName)
+            Ksoup.parse(sourceReader = source, baseUri = resourceName, charsetName = "UTF-8")
+        } else {
+            val input: String = TestHelper.getResourceAbsolutePath(resourceName)
+            Ksoup.parseFile(filePath = input, charsetName = "UTF-8")
+        }
         assertEquals(
             "<!--?xml version=\"1.0\" encoding=\"utf-8\"?--><!-- so --> <!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\"><!-- what --> <html xml:lang=\"en\" lang=\"en\" xmlns=\"http://www.w3.org/1999/xhtml\"> <!-- now --> <head> <!-- then --> <meta http-equiv=\"Content-type\" content=\"text/html; charset=utf-8\"> <title>A Certain Kind of Test</title> </head> <body> <h1>Hello</h1>h1&gt; (There is a UTF8 hidden BOM at the top of this file.) </body> </html>",
             StringUtil.normaliseWhitespace(doc.html()),
@@ -1568,8 +1582,13 @@ class HtmlParserTest {
 
     @Test
     fun characterReaderBuffer() = runTest {
-        val input: String = TestHelper.getResourceAbsolutePath("htmltests/character-reader-buffer.html.gz")
-        val doc: Document = Ksoup.parseFile(input, "UTF-8")
+        val resourceName = "htmltests/character-reader-buffer.html.gz"
+        val doc: Document = if (BuildConfig.isKotlinx) {
+            val source = TestHelper.readResource(resourceName)
+            Ksoup.parse(sourceReader = source, baseUri = resourceName, charsetName = "UTF-8")
+        } else {
+            Ksoup.parseFile(filePath = TestHelper.getResourceAbsolutePath(resourceName), charsetName = "UTF-8")
+        }
         val expectedHref = "http://www.domain.com/path?param_one=value&param_two=value"
         val links = doc.select("a")
         assertEquals(2, links.size)

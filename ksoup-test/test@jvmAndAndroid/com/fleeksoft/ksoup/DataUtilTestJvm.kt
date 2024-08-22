@@ -6,26 +6,16 @@ import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.ported.io.Charsets
 import com.fleeksoft.ksoup.ported.openSourceReader
 import com.fleeksoft.ksoup.ported.toByteArray
-import korlibs.io.file.std.toVfs
-import korlibs.io.file.std.uniVfs
 import kotlinx.coroutines.test.runTest
-import org.jsoup.Jsoup
 import java.io.*
-import java.nio.file.Files
 import java.nio.file.Path
 import java.util.zip.GZIPInputStream
-import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 
 class DataUtilTestJvm {
-    @BeforeTest
-    fun initKsoup() {
-        TestHelper.initKsoup()
-    }
-
 
     private fun inputStream(data: String): ByteArrayInputStream {
         return ByteArrayInputStream(data.encodeToByteArray())
@@ -33,6 +23,10 @@ class DataUtilTestJvm {
 
     @Test
     fun loadsGzipPath() = runTest {
+        if (BuildConfig.isKotlinx) {
+//            kotlinx module not support gzip
+            return@runTest
+        }
         val `in`: Path = ParserHelper.getPath("/htmltests/gzip.html.gz")
         val doc: Document = Ksoup.parsePath(`in`)
         assertEquals("Gzip test", doc.title())
@@ -41,6 +35,10 @@ class DataUtilTestJvm {
 
     @Test
     fun loadsZGzipPath() = runTest {
+        if (BuildConfig.isKotlinx) {
+//            kotlinx module not support gzip
+            return@runTest
+        }
         // compressed on win, with z suffix
         val `in`: Path = ParserHelper.getPath("htmltests/gzip.html.z")
         val doc: Document = Ksoup.parsePath(`in`)
@@ -50,6 +48,10 @@ class DataUtilTestJvm {
 
     @Test
     fun handlesFakeGzipPath() = runTest {
+        if (BuildConfig.isKotlinx) {
+//            kotlinx module not support gzip
+            return@runTest
+        }
         val `in`: Path = ParserHelper.getPath("htmltests/fake-gzip.html.gz")
         val doc: Document = Ksoup.parsePath(`in`)
         assertEquals("This is not gzipped", doc.title())

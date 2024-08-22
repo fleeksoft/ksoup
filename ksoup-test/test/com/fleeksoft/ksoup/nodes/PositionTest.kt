@@ -11,11 +11,6 @@ import kotlin.test.*
  * Functional tests for the Position tracking behavior (across nodes, treebuilder, etc.)
  */
 class PositionTest {
-    @BeforeTest
-    fun initKsoup() {
-        TestHelper.initKsoup()
-    }
-
 
     @Test
     fun parserTrackDefaults() {

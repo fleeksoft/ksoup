@@ -14,10 +14,6 @@ import kotlin.test.*
  * @author Sabeeh, fleeksoft@gmail.com
  */
 class TextNodeTest {
-    @BeforeTest
-    fun initKsoup() {
-        TestHelper.initKsoup()
-    }
 
     @Test
     fun testBlank() {

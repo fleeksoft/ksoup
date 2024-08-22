@@ -5,15 +5,10 @@ import korlibs.io.file.std.uniVfs
 import kotlinx.coroutines.test.runTest
 import org.jsoup.Jsoup
 import kotlin.system.measureTimeMillis
-import kotlin.test.BeforeTest
 import kotlin.test.Ignore
 import kotlin.test.Test
 
 class PerformanceComparisonTest {
-    @BeforeTest
-    fun initKsoup() {
-        TestHelper.initKsoup()
-    }
 
     @Test
     @Ignore
@@ -143,7 +138,7 @@ class PerformanceComparisonTest {
         val col7Width = 15 // Select Diff (%)
 
         // Print table header
-        println("\nComparison Table: Ksoup Korio vs Jsoup")
+        println("\nComparison Table: Ksoup vs Jsoup")
         println(
             "%-${col1Width}s| %-${col2Width}s| %-${col3Width}s| %-${col4Width}s| %-${col5Width}s| %-${col6Width}s| %-${col7Width}s".format(
                 "Test", "KParse (ms)", "JParse (ms)", "KSelect (ms)", "JSelect (ms)", "Parse Diff (%)", "Select Diff (%)"

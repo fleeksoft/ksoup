@@ -1,16 +1,10 @@
 package com.fleeksoft.ksoup.nodes
 
 import com.fleeksoft.ksoup.Ksoup
-import com.fleeksoft.ksoup.TestHelper
 import org.junit.Test
-import kotlin.test.BeforeTest
 import kotlin.test.assertEquals
 
 class ElementTestJvm {
-    @BeforeTest
-    fun initKsoup() {
-        TestHelper.initKsoup()
-    }
 
     //    StringBuffer adding \n in start but not when using StringBuilder
     @Test

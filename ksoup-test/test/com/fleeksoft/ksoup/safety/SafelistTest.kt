@@ -9,10 +9,6 @@ import com.fleeksoft.ksoup.parser.Tag
 import kotlin.test.*
 
 class SafelistTest {
-    @BeforeTest
-    fun initKsoup() {
-        TestHelper.initKsoup()
-    }
 
     @Test
     fun testCopyConstructor_noSideEffectOnTags() {

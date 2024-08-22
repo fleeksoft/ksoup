@@ -1,7 +1,6 @@
 package com.fleeksoft.ksoup.parser
 
 import com.fleeksoft.ksoup.Ksoup
-import com.fleeksoft.ksoup.TestHelper
 import com.fleeksoft.ksoup.TextUtil
 import com.fleeksoft.ksoup.nodes.*
 import com.fleeksoft.ksoup.ported.io.Charsets
@@ -15,10 +14,6 @@ import kotlin.test.*
  * @author Sabeeh
  */
 class XmlTreeBuilderTest {
-    @BeforeTest
-    fun initKsoup() {
-        TestHelper.initKsoup()
-    }
 
     @Test
     fun testSimpleXmlParse() {

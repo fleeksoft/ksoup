@@ -1,9 +1,7 @@
 package com.fleeksoft.ksoup.nodes
 
 import com.fleeksoft.ksoup.Ksoup.parse
-import com.fleeksoft.ksoup.TestHelper
 import com.fleeksoft.ksoup.parser.Parser
-import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -13,10 +11,6 @@ import kotlin.test.assertEquals
  * @author Sabeeh, http://jonathanhedley.com/
  */
 class DocumentTypeTest {
-    @BeforeTest
-    fun initKsoup() {
-        TestHelper.initKsoup()
-    }
 
     @Test
     fun constructorValidationOkWithBlankName() {

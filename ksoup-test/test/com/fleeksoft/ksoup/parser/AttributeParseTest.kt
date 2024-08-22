@@ -10,10 +10,6 @@ import kotlin.test.*
  * @author Sabeeh, fleeksoft@gmail.com
  */
 class AttributeParseTest {
-    @BeforeTest
-    fun initKsoup() {
-        TestHelper.initKsoup()
-    }
 
     @Test
     fun parsesRoughAttributeString() {

@@ -6,10 +6,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class PlatformTest {
-    @BeforeTest
-    fun initKsoup() {
-        TestHelper.initKsoup()
-    }
 
     @Test
     fun testJsSupportedRegex() {

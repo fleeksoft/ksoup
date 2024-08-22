@@ -1,13 +1,15 @@
 package com.fleeksoft.ksoup.nodes
 
 import com.fleeksoft.ksoup.Ksoup
-import com.fleeksoft.ksoup.TestHelper
-import com.fleeksoft.ksoup.ported.io.SourceReader
+import com.fleeksoft.ksoup.io.SourceReader
 import com.fleeksoft.ksoup.ported.openSourceReader
 import java.io.StringWriter
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 /**
  * Tests for Document.
@@ -16,10 +18,6 @@ import kotlin.test.*
  */
 
 class DocumentTestJvm {
-    @BeforeTest
-    fun initKsoup() {
-        TestHelper.initKsoup()
-    }
 
     @Test
     fun testHtmlAppendable() {

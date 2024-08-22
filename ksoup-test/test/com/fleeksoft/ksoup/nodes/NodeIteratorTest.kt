@@ -5,10 +5,6 @@ import com.fleeksoft.ksoup.TestHelper
 import kotlin.test.*
 
 class NodeIteratorTest {
-    @BeforeTest
-    fun initKsoup() {
-        TestHelper.initKsoup()
-    }
 
     var html: String = "<div id=1><p>One<p>Two</div><div id=2><p>Three<p>Four</div>"
 

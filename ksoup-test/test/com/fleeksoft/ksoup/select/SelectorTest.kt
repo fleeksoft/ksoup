@@ -15,10 +15,6 @@ import kotlin.test.*
  * @author Sabeeh, fleeksoft@gmail.com
  */
 class SelectorTest {
-    @BeforeTest
-    fun initKsoup() {
-        TestHelper.initKsoup()
-    }
 
     @Test
     fun testByTag() {

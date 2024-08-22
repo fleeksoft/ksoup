@@ -5,10 +5,8 @@ import com.fleeksoft.ksoup.helper.DataUtil
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.nodes.Element
 import com.fleeksoft.ksoup.nodes.Node
-import com.fleeksoft.ksoup.openStream
 import com.fleeksoft.ksoup.ported.io.Charsets
 import com.fleeksoft.ksoup.ported.toReader
-import com.fleeksoft.ksoup.readGzipFile
 import com.fleeksoft.ksoup.select.Elements
 import korlibs.io.file.std.uniVfs
 import kotlinx.coroutines.test.runTest
@@ -18,10 +16,6 @@ import kotlin.test.*
  * Tests for the StreamParser.
  */
 class StreamParserTest {
-    @BeforeTest
-    fun initKsoup() {
-        TestHelper.initKsoup()
-    }
 
     @Test
     fun canStream() {
@@ -303,7 +297,7 @@ class StreamParserTest {
         val file = TestHelper.getResourceAbsolutePath("htmltests/large.html.gz").uniVfs
 
 
-        val reader = readGzipFile(file).toReader()
+        val reader = TestHelper.readGzipFile(file).toReader()
         val streamer: StreamParser = StreamParser(Parser.htmlParser()).parse(reader, file.absolutePath)
 
         var last: Element? = null
@@ -320,9 +314,9 @@ class StreamParserTest {
     @Test
     fun canParseFile() = runTest {
 
-        val file = TestHelper.getResourceAbsolutePath("htmltests/large.html.gz").uniVfs
+        val source = TestHelper.readGzipResource("htmltests/large.html.gz")
         val streamer: StreamParser =
-            DataUtil.streamParser(sourceReader = file.openStream(), baseUri = "", charset = Charsets.UTF8, parser = Parser.htmlParser())
+            DataUtil.streamParser(sourceReader = source, baseUri = "", charset = Charsets.UTF8, parser = Parser.htmlParser())
 
         var last: Element? = null
         var e: Element?

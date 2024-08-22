@@ -1,21 +1,18 @@
 package com.fleeksoft.ksoup.helper
 
 import com.fleeksoft.ksoup.*
+import com.fleeksoft.ksoup.io.SourceReader
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.ported.io.Charsets
-import com.fleeksoft.ksoup.ported.io.SourceReader
 import com.fleeksoft.ksoup.ported.openSourceReader
 import com.fleeksoft.ksoup.ported.toByteArray
+import com.fleeksoft.ksoup.ported.toSourceFile
 import korlibs.io.file.std.uniVfs
 import kotlinx.coroutines.test.runTest
 import kotlin.test.*
 
 class DataUtilTest {
-    @BeforeTest
-    fun initKsoup() {
-        TestHelper.initKsoup()
-    }
 
     @Test
     fun testCharset() {
@@ -42,10 +39,6 @@ class DataUtilTest {
         assertEquals("UTF-8", DataUtil.getCharsetFromContentType("text/html; charset='UTF-8'"))
     }
 
-    private fun dataToStream(data: String): SourceReader {
-        return data.openSourceReader()
-    }
-
     private fun dataToStream(
         data: String,
         charset: String,
@@ -56,26 +49,25 @@ class DataUtilTest {
     @Test
     fun discardsSpuriousByteOrderMark() {
         val html = "\uFEFF<html><head><title>One</title></head><body>Two</body></html>"
-        val doc: Document =
-            DataUtil.parseInputSource(
-                this.dataToStream(html),
-                "UTF-8",
-                "http://foo.com/",
-                Parser.htmlParser(),
-            )
+        val doc: Document = DataUtil.parseInputSource(
+            sourceReader = html.openSourceReader(),
+            baseUri = "http://foo.com/",
+            charsetName = "UTF-8",
+            parser = Parser.htmlParser(),
+        )
+        println("doc: $doc")
         assertEquals("One", doc.head().text())
     }
 
     @Test
     fun discardsSpuriousByteOrderMarkWhenNoCharsetSet() {
         val html = "\uFEFF<html><head><title>One</title></head><body>Two</body></html>"
-        val doc: Document =
-            DataUtil.parseInputSource(
-                sourceReader = html.openSourceReader(),
-                baseUri = "http://foo.com/",
-                charsetName = null,
-                parser = Parser.htmlParser(),
-            )
+        val doc: Document = DataUtil.parseInputSource(
+            sourceReader = html.openSourceReader(),
+            baseUri = "http://foo.com/",
+            charsetName = null,
+            parser = Parser.htmlParser(),
+        )
         assertEquals("One", doc.head().text())
         assertEquals("UTF-8", doc.outputSettings().charset().name.uppercase())
     }
@@ -121,7 +113,7 @@ class DataUtilTest {
         val html = "<html><head><meta charset=iso-8></head><body></body></html>"
         val doc: Document =
             DataUtil.parseInputSource(
-                sourceReader = this.dataToStream(html),
+                sourceReader = html.openSourceReader(),
                 baseUri = "http://example.com",
                 charsetName = null,
                 parser = Parser.htmlParser(),
@@ -175,6 +167,10 @@ class DataUtilTest {
 
     @Test
     fun supportsBOMinFiles() = runTest {
+        if (BuildConfig.isKotlinx && Platform.isJS()) {
+            // FIXME: UTF-16 charset not supported
+            return@runTest
+        }
         var input = TestHelper.getResourceAbsolutePath("bomtests/bom_utf16be.html")
         var doc: Document =
             Ksoup.parseFile(filePath = input, baseUri = "http://example.com", charsetName = null)
@@ -202,18 +198,21 @@ class DataUtilTest {
 
     @Test
     fun streamerSupportsBOMinFiles() = runTest {
+        if (BuildConfig.isKotlinx && Platform.isJS()) {
+            // FIXME: UTF-16 charset not supported
+            return@runTest
+        }
         // test files from http://www.i18nl10n.com/korean/utftest/
-        var file = TestHelper.getResourceAbsolutePath("bomtests/bom_utf16be.html").uniVfs
+        var source = TestHelper.readResource("bomtests/bom_utf16be.html")
         val parser = Parser.htmlParser()
 
-        var doc: Document =
-            DataUtil.streamParser(sourceReader = file.openStream(), baseUri = "http://example.com", charset = null, parser = parser)
-                .complete()
+        var doc: Document = DataUtil.streamParser(sourceReader = source, baseUri = "http://example.com", charset = null, parser = parser)
+            .complete()
         assertTrue(doc.title().contains("UTF-16BE"))
         assertTrue(doc.text().contains("가각갂갃간갅"))
 
-        file = TestHelper.getResourceAbsolutePath("bomtests/bom_utf16le.html").uniVfs
-        doc = DataUtil.streamParser(sourceReader = file.openStream(), baseUri = "http://example.com", charset = null, parser = parser)
+        source = TestHelper.readResource("bomtests/bom_utf16le.html")
+        doc = DataUtil.streamParser(sourceReader = source, baseUri = "http://example.com", charset = null, parser = parser)
             .complete()
         assertTrue(doc.title().contains("UTF-16LE"))
         assertTrue(doc.text().contains("가각갂갃간갅"))
@@ -223,14 +222,14 @@ class DataUtilTest {
             return@runTest
         }
 
-        file = TestHelper.getResourceAbsolutePath("bomtests/bom_utf32be.html").uniVfs
-        doc = DataUtil.streamParser(sourceReader = file.openStream(), baseUri = "http://example.com", charset = null, parser = parser)
+        source = TestHelper.readResource("bomtests/bom_utf32be.html")
+        doc = DataUtil.streamParser(sourceReader = source, baseUri = "http://example.com", charset = null, parser = parser)
             .complete()
         assertTrue(doc.title().contains("UTF-32BE"))
         assertTrue(doc.text().contains("가각갂갃간갅"))
 
-        file = TestHelper.getResourceAbsolutePath("bomtests/bom_utf32le.html").uniVfs
-        doc = DataUtil.streamParser(sourceReader = file.openStream(), baseUri = "http://example.com", charset = null, parser = parser)
+        source = TestHelper.readResource("bomtests/bom_utf32le.html")
+        doc = DataUtil.streamParser(sourceReader = source, baseUri = "http://example.com", charset = null, parser = parser)
             .complete()
         assertTrue(doc.title().contains("UTF-32LE"))
         assertTrue(doc.text().contains("가각갂갃간갅"))
@@ -238,8 +237,8 @@ class DataUtilTest {
 
     @Test
     fun supportsUTF8BOM() = runTest {
-        val input: String = TestHelper.getResourceAbsolutePath("bomtests/bom_utf8.html")
-        val doc: Document = Ksoup.parseFile(input, "http://example.com", null)
+        val source = TestHelper.readResource("bomtests/bom_utf8.html")
+        val doc: Document = Ksoup.parse(sourceReader = source, baseUri = "http://example.com", charsetName = null)
         assertEquals("OK", doc.head().select("title").text())
     }
 
@@ -253,13 +252,14 @@ class DataUtilTest {
 
     @Test
     fun supportsZippedUTF8BOM() = runTest {
-        val input: String = TestHelper.getResourceAbsolutePath("bomtests/bom_utf8.html.gz")
-        val doc: Document =
-            Ksoup.parseFile(
-                filePath = input,
-                baseUri = "http://example.com",
-                charsetName = null,
-            )
+        val resourceName = "bomtests/bom_utf8.html.gz"
+        val doc: Document = if (BuildConfig.isKotlinx) {
+            val source = TestHelper.readResource(resourceName)
+            Ksoup.parse(sourceReader = source, baseUri = "http://example.com")
+        } else {
+            Ksoup.parseFile(filePath = TestHelper.getResourceAbsolutePath(resourceName), baseUri = "http://example.com")
+        }
+
         assertEquals("OK", doc.head().select("title").text())
         assertEquals(
             "There is a UTF8 BOM at the top (before the XML decl). If not read correctly, will look like a non-joining space.",
@@ -269,9 +269,9 @@ class DataUtilTest {
 
     @Test
     fun streamerSupportsZippedUTF8BOM() = runTest {
-        val file = TestHelper.getResourceAbsolutePath("bomtests/bom_utf8.html.gz").uniVfs
+        val source = TestHelper.readGzipResource("bomtests/bom_utf8.html.gz")
         val doc = DataUtil.streamParser(
-            sourceReader = file.openStream(),
+            sourceReader = source,
             baseUri = "http://example.com",
             charset = null,
             parser = Parser.htmlParser()
@@ -299,6 +299,10 @@ class DataUtilTest {
 
     @Test
     fun loadsGzipFile() = runTest {
+        if (BuildConfig.isKotlinx) {
+//            kotlinx module not support gzip
+            return@runTest
+        }
         val input: String = TestHelper.getResourceAbsolutePath("htmltests/gzip.html.gz")
         val doc: Document = Ksoup.parseFile(filePath = input, charsetName = null)
         doc.toString()
@@ -308,6 +312,10 @@ class DataUtilTest {
 
     @Test
     fun loadsZGzipFile() = runTest {
+        if (BuildConfig.isKotlinx) {
+//            kotlinx module not support gzip
+            return@runTest
+        }
         // compressed on win, with z suffix
         val input: String = TestHelper.getResourceAbsolutePath("htmltests/gzip.html.z")
         val doc: Document = Ksoup.parseFile(filePath = input, charsetName = null)
@@ -317,6 +325,10 @@ class DataUtilTest {
 
     @Test
     fun handlesFakeGzipFile() = runTest {
+        if (BuildConfig.isKotlinx) {
+//            kotlinx module not support gzip
+            return@runTest
+        }
         val input: String = TestHelper.getResourceAbsolutePath("htmltests/fake-gzip.html.gz")
         val doc: Document = Ksoup.parseFile(filePath = input, charsetName = null)
         assertEquals("This is not gzipped", doc.title())
@@ -325,13 +337,29 @@ class DataUtilTest {
 
     @Test
     fun handlesChunkedInputStream() = runTest {
-        val inputFile = TestHelper.getResourceAbsolutePath("htmltests/large.html.gz").uniVfs
-        val input: String = TestHelper.getFileAsString(inputFile)
+        if (BuildConfig.isKotlinx) {
+//            kotlinx module not support gzip
+            return@runTest
+        }
+        val resourceFile = TestHelper.getResourceAbsolutePath("htmltests/large.html.gz")
+        val inputFile = resourceFile.toSourceFile()
+        val input: String = TestHelper.getFileAsString(resourceFile.uniVfs)
 
         val expected = Ksoup.parse(input, "https://example.com")
         val doc: Document = Ksoup.parseFile(inputFile, baseUri = "https://example.com", charsetName = null)
 
         println("""docSize: ${doc.toString().length}, expectedSize: ${expected.toString().length}""")
+        assertTrue(doc.hasSameValue(expected))
+    }
+
+    @Test
+    fun testStringVsSourceReaderParse() = runTest {
+        val resourceFile = TestHelper.getResourceAbsolutePath("htmltests/large.html.gz")
+        val input: String = TestHelper.getFileAsString(resourceFile.uniVfs)
+
+        val expected = Ksoup.parse(input, "https://example.com")
+        val doc: Document = Ksoup.parse(sourceReader = input.openSourceReader(), baseUri = "https://example.com", charsetName = null)
+
         assertTrue(doc.hasSameValue(expected))
     }
 

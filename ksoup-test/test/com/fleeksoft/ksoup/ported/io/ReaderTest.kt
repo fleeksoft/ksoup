@@ -1,16 +1,29 @@
 package com.fleeksoft.ksoup.ported.io
 
-import com.fleeksoft.ksoup.TestHelper
 import com.fleeksoft.ksoup.internal.SharedConstants
 import com.fleeksoft.ksoup.ported.openSourceReader
-import kotlin.test.BeforeTest
+import korlibs.io.lang.substr
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class ReaderTest {
-    @BeforeTest
-    fun initKsoup() {
-        TestHelper.initKsoup()
+
+    @Test
+    fun testSpuriousByteReader() {
+        val html = "\uFEFF<html><head><title>One</title></head><body>Two</body></html>"
+        val bufferedReader = BufferedReader(InputSourceReader(html.openSourceReader()))
+        html.forEach {
+            assertEquals(it, bufferedReader.read().toChar())
+        }
+
+        val bufferedReader1 = BufferedReader(InputSourceReader(html.openSourceReader()))
+        val actual = bufferedReader1.readString(html.length)
+        assertEquals(html, actual)
+
+
+        val bufferedReader2 = BufferedReader(InputSourceReader(html.openSourceReader()))
+        bufferedReader2.skip(1)
+        assertEquals(html.substr(1), bufferedReader2.readString(html.length - 1))
     }
 
     private fun readerStringTestStarter(input: String, testBody: (input: String, reader: Reader) -> Unit) {
@@ -194,7 +207,7 @@ class ReaderTest {
     }
 
     @Test
-    fun testUtf16Charset(){
+    fun testUtf16Charset() {
         val inputData = "ABCあ💩".repeat(29)
         testMixCharReader(inputData)
     }

@@ -14,10 +14,6 @@ import kotlin.test.Test
  * @author Sabeeh, fleeksoft@gmail.com
  */
 class ElementsTest {
-    @BeforeTest
-    fun initKsoup() {
-        TestHelper.initKsoup()
-    }
 
     @Test
     fun filter() {

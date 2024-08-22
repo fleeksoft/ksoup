@@ -1,14 +1,13 @@
 package com.fleeksoft.ksoup.ported.io
 
-import com.fleeksoft.ksoup.TestHelper
+import com.fleeksoft.ksoup.io.KByteBuffer
 import com.fleeksoft.ksoup.ported.toByteArray
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 
 class KByteBufferTest {
-    @BeforeTest
-    fun initKsoup() {
-        TestHelper.initKsoup()
-    }
 
     @Test
     fun testInitialization() {

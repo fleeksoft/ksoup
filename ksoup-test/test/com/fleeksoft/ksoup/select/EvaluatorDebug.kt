@@ -1,17 +1,11 @@
 package com.fleeksoft.ksoup.select
 
-import com.fleeksoft.ksoup.TestHelper
 import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.nodes.Element
 import com.fleeksoft.ksoup.nodes.Node
-import kotlin.test.BeforeTest
 
 object EvaluatorDebug {
-    @BeforeTest
-    fun initKsoup() {
-        TestHelper.initKsoup()
-    }
 
     /**
      * Cast an Evaluator into a pseudo Document, to help visualize the query. Quite coupled to the current impl.

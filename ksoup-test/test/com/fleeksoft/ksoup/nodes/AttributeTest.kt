@@ -8,10 +8,6 @@ import de.cketti.codepoints.deluxe.toCodePoint
 import kotlin.test.*
 
 class AttributeTest {
-    @BeforeTest
-    fun initKsoup() {
-        TestHelper.initKsoup()
-    }
 
     @Test
     fun html() {

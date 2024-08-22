@@ -6,10 +6,6 @@ import kotlin.test.*
 import kotlin.test.Test
 
 class ElementIT {
-    @BeforeTest
-    fun initKsoup() {
-        TestHelper.initKsoup()
-    }
 
     @Test
     fun testFastReparent() {

@@ -12,10 +12,6 @@ import com.fleeksoft.ksoup.internal.StringUtil.padding
 import kotlin.test.*
 
 class StringUtilTest {
-    @BeforeTest
-    fun initKsoup() {
-        TestHelper.initKsoup()
-    }
 
     @Test
     fun join() {

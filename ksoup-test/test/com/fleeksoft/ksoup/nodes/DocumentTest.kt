@@ -15,10 +15,6 @@ import kotlin.test.*
  * @author Sabeeh, fleeksoft@gmail.com
  */
 class DocumentTest {
-    @BeforeTest
-    fun initKsoup() {
-        TestHelper.initKsoup()
-    }
 
     @Test
     fun setTextPreservesDocumentStructure() {
@@ -153,12 +149,14 @@ class DocumentTest {
     @Test
     fun testLocation() = runTest {
         // tests location vs base href
-        val `in`: String = TestHelper.getResourceAbsolutePath("htmltests/basehref.html")
-        val doc: Document = Ksoup.parseFile(
-            filePath = `in`,
-            baseUri = "http://example.com/",
-            charsetName = "UTF-8",
-        )
+        val resourceName = "htmltests/basehref.html"
+        val doc: Document = if (BuildConfig.isKotlinx && Platform.isJS()) {
+            val source = TestHelper.readResource(resourceName)
+            Ksoup.parse(sourceReader = source, baseUri = "http://example.com/", charsetName = "UTF-8")
+        } else {
+            val input: String = TestHelper.getResourceAbsolutePath(resourceName)
+            Ksoup.parseFile(filePath = input, baseUri = "http://example.com/", charsetName = "UTF-8")
+        }
         val location = doc.location()
         val baseUri = doc.baseUri()
         assertEquals("http://example.com/", location)

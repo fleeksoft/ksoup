@@ -10,10 +10,6 @@ import kotlin.test.*
  * @author Sabeeh
  */
 class AttributesTest {
-    @BeforeTest
-    fun initKsoup() {
-        TestHelper.initKsoup()
-    }
 
     @Test
     fun html() {

@@ -1,18 +1,12 @@
 package com.fleeksoft.ksoup.parser
 
 import com.fleeksoft.ksoup.Ksoup.parse
-import com.fleeksoft.ksoup.TestHelper
 import com.fleeksoft.ksoup.internal.StringUtil.inSorted
-import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class HtmlTreeBuilderStateTest {
-    @BeforeTest
-    fun initKsoup() {
-        TestHelper.initKsoup()
-    }
 
     private val constantArrays = arrayListOf(
         HtmlTreeBuilderState.Constants.InHeadEmpty,

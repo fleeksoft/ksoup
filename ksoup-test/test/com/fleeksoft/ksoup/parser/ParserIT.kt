@@ -7,10 +7,6 @@ import kotlin.test.*
  * Longer running Parser tests.
  */
 class ParserIT {
-    @BeforeTest
-    fun initKsoup() {
-        TestHelper.initKsoup()
-    }
 
     @Test
     @Ignore // disabled by default now, as there more specific unconsume tests
