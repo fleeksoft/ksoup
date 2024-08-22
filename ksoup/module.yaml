@@ -11,13 +11,9 @@ repositories:
   - mavenLocal
 
 dependencies:
-  - ../ksoup-core: exported
-  - $libs.kotlinx.io: exported
-  - $libs.ktor.client.core
+  - ../ksoup-engine-common: exported
+  - $libs.codepoints
+  - $libs.stately.concurrent
 
 test-dependencies:
-  - $libs.kotlinx.coroutines.test
-  - $libs.kotlinx.datetime
-
-test-dependencies@jvmAndAndroid:
-  - $libs.jsoup
+  - $kotlin-test

@@ -1,15 +1,13 @@
 package com.fleeksoft.ksoup
 
 import com.fleeksoft.ksoup.helper.DataUtil
-import com.fleeksoft.ksoup.kotlinx.KotlinxKsoupEngine
-import com.fleeksoft.ksoup.kotlinx.helper.load
-import com.fleeksoft.ksoup.kotlinx.openStream
+import com.fleeksoft.ksoup.io.FileSource
+import com.fleeksoft.ksoup.io.SourceReader
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parser.Parser
-import com.fleeksoft.ksoup.ported.io.SourceReader
+import com.fleeksoft.ksoup.ported.toSourceFile
 import com.fleeksoft.ksoup.safety.Cleaner
 import com.fleeksoft.ksoup.safety.Safelist
-import kotlinx.io.files.Path
 
 
 /**
@@ -18,10 +16,6 @@ import kotlinx.io.files.Path
  * @author Sabeeh
  */
 public object Ksoup {
-
-    init {
-        KsoupEngineInstance.init(KotlinxKsoupEngine())
-    }
 
     /**
      * Parse HTML into a Document. The parser will make a sensible, balanced document tree out of any HTML.
@@ -70,12 +64,11 @@ public object Ksoup {
     public fun parse(
         sourceReader: SourceReader,
         baseUri: String,
-        charsetName: String?,
+        charsetName: String? = null,
         parser: Parser = Parser.htmlParser(),
     ): Document {
         return DataUtil.load(sourceReader = sourceReader, baseUri = baseUri, charsetName = charsetName, parser = parser)
     }
-
 
     /**
      * Parse the contents of a file as HTML. The location of the file is used as the base URI to qualify relative URLs.
@@ -89,12 +82,12 @@ public object Ksoup {
      * @see .parse
      */
     public suspend fun parseFile(
-        file: Path,
-        baseUri: String = file.toString(),
+        file: FileSource,
+        baseUri: String = file.getPath(),
         charsetName: String? = null,
         parser: Parser = Parser.htmlParser()
     ): Document {
-        return DataUtil.load(sourceReader = file.openStream(), baseUri = baseUri, charsetName = charsetName, parser = parser)
+        return DataUtil.load(sourceReader = file.toSourceReader(), baseUri = baseUri, charsetName = charsetName, parser = parser)
     }
 
 
@@ -114,8 +107,9 @@ public object Ksoup {
         charsetName: String? = null,
         parser: Parser = Parser.htmlParser(),
     ): Document {
-        return DataUtil.load(filePath = filePath, baseUri = baseUri, charsetName = charsetName, parser = parser)
+        return DataUtil.load(sourceReader = filePath.toSourceFile().toSourceReader(), baseUri = baseUri, charsetName = charsetName, parser = parser)
     }
+
 
     /**
      * Parse a fragment of HTML, with the assumption that it forms the `body` of the HTML.
