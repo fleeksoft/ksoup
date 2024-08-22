@@ -1,11 +1,13 @@
 package com.fleeksoft.ksoup.parser
 
+import com.fleeksoft.ksoup.BuildConfig
+import com.fleeksoft.ksoup.Platform
 import com.fleeksoft.ksoup.TestHelper
+import com.fleeksoft.ksoup.isJS
 import com.fleeksoft.ksoup.ported.exception.UncheckedIOException
 import com.fleeksoft.ksoup.ported.io.Charsets
 import com.fleeksoft.ksoup.ported.io.StringReader
 import com.fleeksoft.ksoup.ported.toReader
-import com.fleeksoft.ksoup.readFile
 import korlibs.io.file.std.uniVfs
 import korlibs.io.lang.substr
 import kotlinx.coroutines.test.runTest
@@ -17,16 +19,15 @@ import kotlin.test.*
  * @author Sabeeh, fleeksoft@gmail.com
  */
 class CharacterReaderTest {
-    @BeforeTest
-    fun initKsoup() {
-        TestHelper.initKsoup()
-    }
 
     @Test
     fun testUtf16BE() = runTest {
+        if (BuildConfig.isKotlinx && Platform.isJS()) {
+//            not supported in kotlinx for js
+            return@runTest
+        }
         val firstLine = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">"""
-        val input = readFile(TestHelper.getResourceAbsolutePath("bomtests/bom_utf16be.html").uniVfs)
-            .toReader(charset = Charsets.forName("UTF-16BE"))
+        val input = TestHelper.readResource("bomtests/bom_utf16be.html").toReader(charset = Charsets.forName("UTF-16BE"))
 
 //            ignore first char (ZWNBSP)\uFEFF:65279
         val actualReadLine = input.readString(firstLine.length + 1)
@@ -36,8 +37,13 @@ class CharacterReaderTest {
 
     @Test
     fun testUtf16LE() = runTest {
+        if (BuildConfig.isKotlinx && Platform.isJS()) {
+//            not supported in kotlinx for js
+            return@runTest
+        }
+
         val firstLine = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">"""
-        val input = readFile(TestHelper.getResourceAbsolutePath("bomtests/bom_utf16le.html").uniVfs)
+        val input = TestHelper.readResource("bomtests/bom_utf16le.html")
             .toReader(charset = Charsets.forName("UTF-16LE"))
 
         //            ignore first char (ZWNBSP)\uFEFF:65279
