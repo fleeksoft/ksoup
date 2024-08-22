@@ -4,6 +4,8 @@ public fun Platform.isApple(): Boolean = this.current == PlatformType.IOS || thi
 
 public fun Platform.isWindows(): Boolean = this.current == PlatformType.WINDOWS
 
+public fun Platform.isLinux(): Boolean = this.current == PlatformType.LINUX
+
 public fun Platform.isJvmOrAndroid(): Boolean = this.current == PlatformType.JVM || this.current == PlatformType.ANDROID
 
 public fun Platform.isJvm(): Boolean = this.current == PlatformType.JVM
