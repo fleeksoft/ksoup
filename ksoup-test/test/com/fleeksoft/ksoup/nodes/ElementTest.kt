@@ -1,10 +1,10 @@
 package com.fleeksoft.ksoup.nodes
 
 import com.fleeksoft.ksoup.*
-import com.fleeksoft.ksoup.ported.exception.ValidationException
 import com.fleeksoft.ksoup.parser.ParseSettings
 import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.parser.Tag
+import com.fleeksoft.ksoup.ported.exception.ValidationException
 import com.fleeksoft.ksoup.select.Elements
 import com.fleeksoft.ksoup.select.NodeFilter
 import com.fleeksoft.ksoup.select.NodeVisitor
@@ -2762,24 +2762,19 @@ Three
 
     @Test
     fun getElementsByAttributeValueMatchingValidation() {
-        if (Platform.isJS()) {
-//     always fail for js because js use double slash for escape character and it return different exception
-            return
-        }
-
         val doc = Ksoup.parse(reference)
-        val ex: Throwable =
-            assertFailsWith<IllegalArgumentException> {
-                doc.getElementsByAttributeValueMatching(
-                    "key",
-                    "\\x",
-                )
-            }
-        if (Platform.isApple() || Platform.isWindows()) {
+        if (Platform.isJS()) {
+            val ex: Throwable = assertFails { doc.getElementsByAttributeValueMatching("key", "\\x") }
+            assertContains(ex.message ?: "", "Invalid regular expression: /\\x/gu", ignoreCase = true)
+        } else {
+            val ex: Throwable = assertFailsWith<IllegalArgumentException> { doc.getElementsByAttributeValueMatching("key", "\\x") }
+            assertContains(ex.message ?: "", "hexadecimal escape sequence near index", ignoreCase = true)
+        }
+        /*if (Platform.isApple() || Platform.isWindows()) {
             assertEquals("Invalid hexadecimal escape sequence near index: 0\n\\x\n^", ex.message)
         } else {
             assertEquals("Illegal hexadecimal escape sequence near index 2\n\\x", ex.message)
-        }
+        }*/
     }
 
     @Test
@@ -2810,20 +2805,20 @@ Three
 
     @Test
     fun getElementsMatchingTextValidation() {
-        if (Platform.isJS()) {
-//     always fail for js because js use double slash for escape character and it return different exception
-            return
-        }
-
         val doc = Ksoup.parse(reference)
-        val ex: Throwable =
-            assertFailsWith<IllegalArgumentException> { doc.getElementsMatchingText("\\x") }
 
-        if (Platform.isApple() || Platform.isWindows()) {
+        if (Platform.isJS()) {
+            val ex: Throwable = assertFails { doc.getElementsMatchingText("\\x") }
+            assertContains(ex.message ?: "", "Invalid regular expression: /\\x/gu", ignoreCase = true)
+        } else {
+            val ex: Throwable = assertFailsWith<IllegalArgumentException> { doc.getElementsMatchingText("\\x") }
+            assertContains(ex.message ?: "", "hexadecimal escape sequence near index", ignoreCase = true)
+        }
+        /*if (Platform.isApple() || Platform.isWindows()) {
             assertEquals("Invalid hexadecimal escape sequence near index: 0\n\\x\n^", ex.message)
         } else {
             assertEquals("Illegal hexadecimal escape sequence near index 2\n\\x", ex.message)
-        }
+        }*/
     }
 
     @Test
@@ -2845,20 +2840,19 @@ Three
 
     @Test
     fun getElementsMatchingOwnTextValidation() {
-        if (Platform.isJS()) {
-//     always fail for js because js use double slash for escape character and it return different exception
-            return
-        }
-
         val doc = Ksoup.parse(reference)
-        val ex: Throwable =
-            assertFailsWith<IllegalArgumentException> { doc.getElementsMatchingOwnText("\\x") }
-
-        if (Platform.isApple() || Platform.isWindows()) {
+        if (Platform.isJS()) {
+            val ex: Throwable = assertFails { doc.getElementsMatchingOwnText("\\x") }
+            assertContains(ex.message ?: "", "Invalid regular expression: /\\x/gu", ignoreCase = true)
+        } else {
+            val ex: Throwable = assertFailsWith<IllegalArgumentException> { doc.getElementsMatchingOwnText("\\x") }
+            assertContains(ex.message ?: "", "hexadecimal escape sequence near index", ignoreCase = true)
+        }
+        /*if (Platform.isApple() || Platform.isWindows()) {
             assertEquals("Invalid hexadecimal escape sequence near index: 0\n\\x\n^", ex.message)
         } else {
             assertEquals("Illegal hexadecimal escape sequence near index 2\n\\x", ex.message)
-        }
+        }*/
     }
 
     @Test
