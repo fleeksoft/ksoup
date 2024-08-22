@@ -1,5 +1,4 @@
 plugins {
-    alias(libs.plugins.dokka)
     alias(libs.plugins.mavenPublish)
 }
 
