@@ -1,11 +1,11 @@
 package com.fleeksoft.ksoup.nodes
 
-import com.fleeksoft.ksoup.ported.exception.SerializationException
 import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.nodes.Document.OutputSettings.Syntax
 import com.fleeksoft.ksoup.ported.KCloneable
 import com.fleeksoft.ksoup.ported.exception.IOException
+import com.fleeksoft.ksoup.ported.exception.SerializationException
 
 /**
  * A single key + value attribute. (Only used for presentation.)
@@ -247,7 +247,7 @@ public open class Attribute : Map.Entry<String, String?>, KCloneable<Attribute> 
             accum.append(key)
             if (!shouldCollapseAttribute(key, value, out)) {
                 accum.append("=\"")
-                Entities.escape(accum = accum, string = value ?: "", out = out, options = Entities.ForAttribute)
+                Entities.escape(accum = accum, data = Attributes.checkNotNull(value), out = out, options = Entities.ForAttribute)
                 accum.append('"')
             }
         }
