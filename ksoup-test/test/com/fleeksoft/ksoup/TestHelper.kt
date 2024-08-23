@@ -1,6 +1,5 @@
 package com.fleeksoft.ksoup
 
-import com.fleeksoft.ksoup.io.FileSource
 import com.fleeksoft.ksoup.io.SourceReader
 import com.fleeksoft.ksoup.ported.openSourceReader
 import korlibs.io.compression.deflate.GZIP
@@ -27,7 +26,7 @@ object TestHelper {
     fun getResourceAbsolutePath(resourceName: String): String {
         if (Platform.isWindows()) {
             return "../../../../testResources/$resourceName"
-        } else if (Platform.isJS()) {
+        } else if (Platform.isJsOrWasm()) {
             return "https://raw.githubusercontent.com/fleeksoft/ksoup/release/ksoup-test/testResources/$resourceName"
         }
         return "${BuildConfig.PROJECT_ROOT}/ksoup-test/testResources/$resourceName"

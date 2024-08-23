@@ -150,7 +150,7 @@ class DocumentTest {
     fun testLocation() = runTest {
         // tests location vs base href
         val resourceName = "htmltests/basehref.html"
-        val doc: Document = if (BuildConfig.isKotlinx && Platform.isJS()) {
+        val doc: Document = if (BuildConfig.isKotlinx && Platform.isJsOrWasm()) {
             val source = TestHelper.readResource(resourceName)
             Ksoup.parse(sourceReader = source, baseUri = "http://example.com/", charsetName = "UTF-8")
         } else {
@@ -468,7 +468,7 @@ class DocumentTest {
 
     @Test
     fun testShiftJisRoundtrip() {
-        if (Platform.isJS()) {
+        if (Platform.isJsOrWasm()) {
             // Shift_JIS not supported
             return
         }

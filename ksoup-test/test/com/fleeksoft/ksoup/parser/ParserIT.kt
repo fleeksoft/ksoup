@@ -25,7 +25,7 @@ class ParserIT {
 
     @Test
     fun handlesDeepStack() {
-        if (Platform.isJS() && BuildConfig.isGithubActions) {
+        if (Platform.isJsOrWasm() && BuildConfig.isGithubActions) {
 //            The GitHub action is taking too much time.
             return
         }

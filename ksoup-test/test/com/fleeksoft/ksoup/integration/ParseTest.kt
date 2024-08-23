@@ -19,7 +19,7 @@ class ParseTest {
 
     @Test
     fun testHtml5Charset() = runTest {
-        if (Platform.isApple() || Platform.isWindows() || (BuildConfig.isKotlinx && Platform.isJS())) {
+        if (Platform.isApple() || Platform.isWindows() || (BuildConfig.isKotlinx && Platform.isJsOrWasm())) {
 //            don't support gb2312 or gbk
             return@runTest
         }
@@ -75,7 +75,7 @@ class ParseTest {
     @Test
     fun testLowercaseUtf8Charset() = runTest {
         val resourceName = "htmltests/lowercase-charset-test.html"
-        val doc: Document = if (BuildConfig.isKotlinx && Platform.isJS()) {
+        val doc: Document = if (BuildConfig.isKotlinx && Platform.isJsOrWasm()) {
             val source = TestHelper.readResource(resourceName)
             Ksoup.parse(sourceReader = source, baseUri = resourceName)
         } else {

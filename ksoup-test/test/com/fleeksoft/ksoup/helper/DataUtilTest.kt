@@ -129,7 +129,7 @@ class DataUtilTest {
 
     @Test
     fun secondMetaElementWithContentTypeContainsCharsetParameter() {
-        if (Platform.isJS() || Platform.isApple() || Platform.isWindows()) {
+        if (Platform.isJsOrWasm() || Platform.isApple() || Platform.isWindows()) {
             // FIXME: euc-kr charset not supported
             return
         }
@@ -167,38 +167,38 @@ class DataUtilTest {
 
     @Test
     fun supportsBOMinFiles() = runTest {
-        if (BuildConfig.isKotlinx && Platform.isJS()) {
+        if (BuildConfig.isKotlinx && Platform.isJsOrWasm()) {
             // FIXME: UTF-16 charset not supported
             return@runTest
         }
         var input = TestHelper.getResourceAbsolutePath("bomtests/bom_utf16be.html")
         var doc: Document =
             Ksoup.parseFile(filePath = input, baseUri = "http://example.com", charsetName = null)
-        assertTrue(doc.title().contains("UTF-16BE"))
-        assertTrue(doc.text().contains("가각갂갃간갅"))
+        assertContains(doc.title(), "UTF-16BE")
+        assertContains(doc.text(), "가각갂갃간갅")
         input = TestHelper.getResourceAbsolutePath("bomtests/bom_utf16le.html")
         doc = Ksoup.parseFile(filePath = input, baseUri = "http://example.com", charsetName = null)
-        assertTrue(doc.title().contains("UTF-16LE"))
-        assertTrue(doc.text().contains("가각갂갃간갅"))
+        assertContains(doc.title(), "UTF-16LE")
+        assertContains(doc.text(), "가각갂갃간갅")
 
-        if (Platform.isJS() || Platform.isWindows() || Platform.isLinux()) {
+        if (Platform.isJsOrWasm() || Platform.isWindows() || Platform.isLinux()) {
             // FIXME: UTF-32 charset not supported
             return@runTest
         }
 
         input = TestHelper.getResourceAbsolutePath("bomtests/bom_utf32be.html")
         doc = Ksoup.parseFile(filePath = input, baseUri = "http://example.com", charsetName = null)
-        assertTrue(doc.title().contains("UTF-32BE"))
-        assertTrue(doc.text().contains("가각갂갃간갅"))
+        assertContains(doc.title(), "UTF-32BE")
+        assertContains(doc.text(), "가각갂갃간갅")
         input = TestHelper.getResourceAbsolutePath("bomtests/bom_utf32le.html")
         doc = Ksoup.parseFile(filePath = input, baseUri = "http://example.com", charsetName = null)
-        assertTrue(doc.title().contains("UTF-32LE"))
-        assertTrue(doc.text().contains("가각갂갃간갅"))
+        assertContains(doc.title(), "UTF-32LE")
+        assertContains(doc.text(), "가각갂갃간갅")
     }
 
     @Test
     fun streamerSupportsBOMinFiles() = runTest {
-        if (BuildConfig.isKotlinx && Platform.isJS()) {
+        if (BuildConfig.isKotlinx && Platform.isJsOrWasm()) {
             // FIXME: UTF-16 charset not supported
             return@runTest
         }
@@ -208,16 +208,16 @@ class DataUtilTest {
 
         var doc: Document = DataUtil.streamParser(sourceReader = source, baseUri = "http://example.com", charset = null, parser = parser)
             .complete()
-        assertTrue(doc.title().contains("UTF-16BE"))
-        assertTrue(doc.text().contains("가각갂갃간갅"))
+        assertContains(doc.title(), "UTF-16BE")
+        assertContains(doc.text(), "가각갂갃간갅")
 
         source = TestHelper.readResource("bomtests/bom_utf16le.html")
         doc = DataUtil.streamParser(sourceReader = source, baseUri = "http://example.com", charset = null, parser = parser)
             .complete()
-        assertTrue(doc.title().contains("UTF-16LE"))
-        assertTrue(doc.text().contains("가각갂갃간갅"))
+        assertContains(doc.title(), "UTF-16LE")
+        assertContains(doc.text(), "가각갂갃간갅")
 
-        if (Platform.isJS() || Platform.isWindows() || Platform.isLinux()) {
+        if (Platform.isJsOrWasm() || Platform.isWindows() || Platform.isLinux()) {
             // FIXME: UTF-32 charset not supported
             return@runTest
         }
@@ -225,14 +225,14 @@ class DataUtilTest {
         source = TestHelper.readResource("bomtests/bom_utf32be.html")
         doc = DataUtil.streamParser(sourceReader = source, baseUri = "http://example.com", charset = null, parser = parser)
             .complete()
-        assertTrue(doc.title().contains("UTF-32BE"))
-        assertTrue(doc.text().contains("가각갂갃간갅"))
+        assertContains(doc.title(), "UTF-32BE")
+        assertContains(doc.text(), "가각갂갃간갅")
 
         source = TestHelper.readResource("bomtests/bom_utf32le.html")
         doc = DataUtil.streamParser(sourceReader = source, baseUri = "http://example.com", charset = null, parser = parser)
             .complete()
-        assertTrue(doc.title().contains("UTF-32LE"))
-        assertTrue(doc.text().contains("가각갂갃간갅"))
+        assertContains(doc.title(), "UTF-32LE")
+        assertContains(doc.text(), "가각갂갃간갅")
     }
 
     @Test
@@ -286,13 +286,11 @@ class DataUtilTest {
     @Test
     fun supportsXmlCharsetDeclaration() {
         val encoding = "iso-8859-1"
-        val soup =
-            (
-                    "<?xml version=\"1.0\" encoding=\"iso-8859-1\"?>" +
-                            "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">" +
-                            "<html xmlns=\"http://www.w3.org/1999/xhtml\" lang=\"en\" xml:lang=\"en\">Hellö Wörld!</html>"
-                    )
-                .toByteArray(Charsets.forName(encoding)).openSourceReader()
+        val soup = (
+                "<?xml version=\"1.0\" encoding=\"iso-8859-1\"?>" +
+                        "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">" +
+                        "<html xmlns=\"http://www.w3.org/1999/xhtml\" lang=\"en\" xml:lang=\"en\">Hellö Wörld!</html>"
+                ).toByteArray(Charsets.forName(encoding)).openSourceReader()
         val doc: Document = Ksoup.parse(soup, baseUri = "", charsetName = null)
         assertEquals("Hellö Wörld!", doc.body().text())
     }

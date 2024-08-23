@@ -42,7 +42,7 @@ class ElementIT {
 
     @Test
     fun testFastReparentExistingContent() {
-        if (Platform.isJS() && BuildConfig.isGithubActions) {
+        if (Platform.isJsOrWasm() && BuildConfig.isGithubActions) {
 //            failing on github action
             return
         }
@@ -81,7 +81,7 @@ class ElementIT {
     // These overflow tests take a couple seconds to run, so are in the slow tests
     @Test
     fun hasTextNoOverflow() {
-        if (Platform.isJS()) {
+        if (Platform.isJsOrWasm()) {
             // FIXME: timeout error for js
             return
         }
@@ -100,7 +100,7 @@ class ElementIT {
 
     @Test
     fun dataNoOverflow() {
-        if (Platform.isJS()) {
+        if (Platform.isJsOrWasm()) {
             // FIXME: timeout error for js
             return
         }
@@ -120,7 +120,7 @@ class ElementIT {
 
     @Test
     fun parentsNoOverflow() {
-        if (Platform.isJS()) {
+        if (Platform.isJsOrWasm()) {
             // FIXME: timeout error for js
             return
         }
