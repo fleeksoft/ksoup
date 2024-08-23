@@ -4,7 +4,7 @@ agp = "8.2.2" #kmp max gradle support 8.2 right now
 kotlin = "2.0.10"
 compileSdk = "34"
 minSdk = "21"
-libraryVersion = "0.1.4"
+libraryVersion = "0.1.5"
 ktor = "3.0.0-beta-2"
 coroutines = "1.8.1"
 kotlinxDatetime = "0.6.1"
@@ -36,6 +36,7 @@ kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.
 kotlinx-io = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version.ref = "kotlinx-io" }
 codepoints = { module = "de.cketti.unicode:kotlin-codepoints-deluxe", version.ref = "codepoints" }
 korlibs-io = { module = "com.soywiz:korlibs-io", version.ref = "korlibs" }
+korlibs-io-network-core = { module = "com.soywiz:korlibs-io-network-core", version.ref = "korlibs" }
 stately-concurrent = { module = "co.touchlab:stately-concurrent-collections", version.ref = "stately-concurrent" }
 jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
 
