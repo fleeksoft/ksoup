@@ -1,13 +1,15 @@
 package com.fleeksoft.ksoup.nodes
 
 import com.fleeksoft.ksoup.Ksoup
-import korlibs.io.lang.toByteArray
-import korlibs.io.lang.toString
-import korlibs.io.stream.SyncStream
-import korlibs.io.stream.openSync
+import com.fleeksoft.ksoup.io.SourceReader
+import com.fleeksoft.ksoup.ported.openSourceReader
 import java.io.StringWriter
+import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 /**
  * Tests for Document.
@@ -16,6 +18,7 @@ import kotlin.test.*
  */
 
 class DocumentTestJvm {
+
     @Test
     fun testHtmlAppendable() {
         val htmlContent =
@@ -50,20 +53,21 @@ class DocumentTestJvm {
     @Test
     fun testShiftJisRoundtrip() {
         val input = (
-            "<html>" +
-                "<head>" +
-                "<meta http-equiv=\"content-type\" content=\"text/html; charset=Shift_JIS\" />" +
-                "</head>" +
-                "<body>" +
-                "before&nbsp;after" +
-                "</body>" +
-                "</html>"
-            )
-        val buffer: SyncStream = input.toByteArray(StandardCharsets.US_ASCII).openSync()
-        val doc: Document = Ksoup.parse(syncStream = buffer, baseUri = "http://example.com", charsetName = null)
+                "<html>" +
+                        "<head>" +
+                        "<meta http-equiv=\"content-type\" content=\"text/html; charset=Shift_JIS\" />" +
+                        "</head>" +
+                        "<body>" +
+                        "before&nbsp;after" +
+                        "</body>" +
+                        "</html>"
+                )
+        val buffer: SourceReader = input.toByteArray(StandardCharsets.US_ASCII).openSourceReader()
+        val doc: Document = Ksoup.parse(sourceReader = buffer, baseUri = "http://example.com", charsetName = null)
         doc.outputSettings().escapeMode(Entities.EscapeMode.xhtml)
-        val output =
-            doc.html().toByteArray(doc.outputSettings().charset()).toString(charset = doc.outputSettings().charset())
+        Charsets.UTF_16
+        val charset = Charset.forName(doc.outputSettings().charset().name)
+        val output = doc.html().toByteArray(charset = charset).toString(charset = charset)
         assertFalse(output.contains("?"), "Should not have contained a '?'.")
         assertTrue(
             output.contains("&#xa0;") || output.contains("&nbsp;"),

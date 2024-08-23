@@ -3,10 +3,9 @@ package com.fleeksoft.ksoup.parser
 import com.fleeksoft.ksoup.internal.SharedConstants
 import com.fleeksoft.ksoup.nodes.*
 import com.fleeksoft.ksoup.parser.Parser.Companion.NamespaceHtml
-import com.fleeksoft.ksoup.ported.StreamCharReader
-import com.fleeksoft.ksoup.ported.toStreamCharReader
+import com.fleeksoft.ksoup.ported.io.Reader
+import com.fleeksoft.ksoup.ported.io.StringReader
 import com.fleeksoft.ksoup.select.NodeVisitor
-import korlibs.io.stream.openSync
 
 /**
  * @author Sabeeh
@@ -41,7 +40,7 @@ public abstract class TreeBuilder {
     fun getStack() = _stack!!
 
     public open fun initialiseParse(
-        input: StreamCharReader,
+        input: Reader,
         baseUri: String,
         parser: Parser,
     ) {
@@ -52,9 +51,9 @@ public abstract class TreeBuilder {
         settings = parser.settings()
         reader = CharacterReader(input)
         trackSourceRange = parser.isTrackPosition
-        reader.trackNewlines(
-            parser.isTrackErrors() || trackSourceRange,
-        ) // when tracking errors or source ranges, enable newline tracking for better legibility
+
+        // when tracking errors or source ranges, enable newline tracking for better legibility
+        reader.trackNewlines(parser.isTrackErrors() || trackSourceRange)
         tokeniser = Tokeniser(this)
         _stack = ArrayList(32)
         seenTags = HashMap()
@@ -73,7 +72,7 @@ public abstract class TreeBuilder {
         seenTags = null
     }
 
-    public fun parse(input: StreamCharReader, baseUri: String, parser: Parser): Document {
+    public fun parse(input: Reader, baseUri: String, parser: Parser): Document {
         initialiseParse(input, baseUri, parser)
         runParser()
         return doc
@@ -85,7 +84,7 @@ public abstract class TreeBuilder {
         baseUri: String,
         parser: Parser,
     ): List<Node> {
-        initialiseParse(inputFragment.openSync().toStreamCharReader(), baseUri, parser)
+        initialiseParse(StringReader(inputFragment), baseUri, parser)
         initialiseParseFragment(context)
         runParser()
         return completeParseFragment()
@@ -116,7 +115,7 @@ public abstract class TreeBuilder {
 
     fun stepParser(): Boolean {
         // if we have reached the end already, step by popping off the stack, to hit nodeRemoved callbacks:
-        if (currentToken?.type === Token.TokenType.EOF) {
+        if (currentToken?.type == Token.TokenType.EOF) {
             if (_stack == null) {
                 return false
             } else if (_stack?.isEmpty() == true) {
@@ -204,8 +203,8 @@ public abstract class TreeBuilder {
         if ((_stack?.size ?: 0) == 0) return false
         val current: Element = currentElement()
         return (
-            current.normalName() == normalName && current.tag().namespace() == NamespaceHtml
-            )
+                current.normalName() == normalName && current.tag().namespace() == NamespaceHtml
+                )
     }
 
     /**
@@ -221,8 +220,8 @@ public abstract class TreeBuilder {
         if ((_stack?.size ?: 0) == 0) return false
         val current: Element = currentElement()
         return (
-            current.normalName() == normalName && current.tag().namespace() == namespace
-            )
+                current.normalName() == normalName && current.tag().namespace() == namespace
+                )
     }
 
     /**
@@ -327,8 +326,7 @@ public abstract class TreeBuilder {
             }
         }
 
-        val startPosition: Range.Position =
-            Range.Position(startPos, reader.lineNumber(startPos), reader.columnNumber(startPos))
+        val startPosition: Range.Position = Range.Position(startPos, reader.lineNumber(startPos), reader.columnNumber(startPos))
         val endPosition: Range.Position = Range.Position(endPos, reader.lineNumber(endPos), reader.columnNumber(endPos))
         val range = Range(startPosition, endPosition)
         node.attributes().userData(if (isStart) SharedConstants.RangeKey else SharedConstants.EndRangeKey, range)

@@ -21,7 +21,7 @@ import com.fleeksoft.ksoup.select.NodeVisitor
  *
  *
  *
- * Rather than interacting directly with a Cleaner object, generally see the `clean` methods in [com.fleeksoft.ksoup.Ksoup].
+ * Rather than interacting directly with a Cleaner object, generally see the `clean` methods in [com.fleeksoft.ksoup.KsoupDefault].
  *
  * Create a new cleaner, that sanitizes documents using the supplied safelist.
  * @param safelist safe-list to clean with

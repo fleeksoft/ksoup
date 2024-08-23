@@ -1,11 +1,12 @@
 package com.fleeksoft.ksoup.nodes
 
 import com.fleeksoft.ksoup.Ksoup.parse
+import com.fleeksoft.ksoup.TestHelper
 import com.fleeksoft.ksoup.select.NodeFilter
 import kotlin.test.*
-import kotlin.test.Test
 
 class LeafNodeTest {
+
     @Test
     fun doesNotGetAttributesTooEasily() {
         // test to make sure we're not setting attributes on all nodes right away

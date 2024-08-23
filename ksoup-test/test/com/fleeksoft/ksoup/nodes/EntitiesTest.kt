@@ -7,6 +7,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class EntitiesTest {
+
     @Test
     fun escape() {
         // escape is maximal (as in the escapes cover use in both text and attributes; vs Element.html() which checks if attribute or text and minimises escapes

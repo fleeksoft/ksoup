@@ -6,6 +6,7 @@ import com.fleeksoft.ksoup.nodes.Element
 import com.fleeksoft.ksoup.nodes.Node
 
 object EvaluatorDebug {
+
     /**
      * Cast an Evaluator into a pseudo Document, to help visualize the query. Quite coupled to the current impl.
      */

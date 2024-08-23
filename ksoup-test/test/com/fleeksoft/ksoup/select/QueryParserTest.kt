@@ -12,6 +12,7 @@ import kotlin.test.assertFailsWith
  * @author Sabeeh
  */
 class QueryParserTest {
+
     @Test
     fun testConsumeSubQuery() {
         val doc: Document =

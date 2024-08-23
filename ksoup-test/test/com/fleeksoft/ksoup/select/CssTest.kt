@@ -3,13 +3,10 @@ package com.fleeksoft.ksoup.select
 import com.fleeksoft.ksoup.Ksoup.parse
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parser.Tag
-import kotlin.test.BeforeTest
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
+import kotlin.test.*
 
 class CssTest {
+
     private lateinit var html: Document
 
     @BeforeTest

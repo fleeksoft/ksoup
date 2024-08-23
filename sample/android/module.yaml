@@ -1,5 +1,7 @@
 product: android/app
 
+apply: [ ../../common.module-template.yaml ]
+
 dependencies:
     - ../shared
 

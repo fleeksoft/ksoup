@@ -11,6 +11,7 @@ import kotlin.test.assertEquals
  * @author Sabeeh, http://jonathanhedley.com/
  */
 class DocumentTypeTest {
+
     @Test
     fun constructorValidationOkWithBlankName() {
         DocumentType("", "", "")

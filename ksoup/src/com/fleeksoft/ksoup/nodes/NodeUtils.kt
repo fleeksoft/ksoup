@@ -27,10 +27,7 @@ internal object NodeUtils {
     }
 
     /** Creates a Stream, starting with the supplied node.  */
-    fun <T : Node> stream(
-        start: Node,
-        type: KClass<T>,
-    ): Sequence<T> {
+    fun <T : Node> stream(start: Node, type: KClass<T>): Sequence<T> {
         val iterator: NodeIterator<T> = NodeIterator(start, type)
         return iterator.asSequence()
     }

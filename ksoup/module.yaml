@@ -1,6 +1,6 @@
 product:
   type: lib
-  platforms: [jvm, js, wasm, android, linuxX64, linuxArm64, tvosArm64, tvosX64, tvosSimulatorArm64, macosX64, macosArm64, iosArm64, iosSimulatorArm64, iosX64, watchosArm64, watchosArm32, watchosDeviceArm64, watchosSimulatorArm64, mingwX64]
+  platforms: [jvm, js, wasm, android, linuxX64, linuxArm64, tvosArm64, tvosX64, tvosSimulatorArm64, macosX64, macosArm64, iosArm64, iosSimulatorArm64, iosX64, mingwX64]
 
 apply: [ ../common.module-template.yaml ]
 
@@ -11,6 +11,9 @@ repositories:
   - mavenLocal
 
 dependencies:
+  - ../ksoup-engine-common: exported
   - $libs.codepoints
   - $libs.stately.concurrent
-  - $libs.korlibs.io: exported
+
+test-dependencies:
+  - $kotlin-test

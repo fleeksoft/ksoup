@@ -10,6 +10,7 @@ import kotlin.test.fail
  * Token queue tests.
  */
 class TokenQueueTest {
+
     @Test
     fun chompBalanced() {
         val tq = TokenQueue(":contains(one (two) three) four")

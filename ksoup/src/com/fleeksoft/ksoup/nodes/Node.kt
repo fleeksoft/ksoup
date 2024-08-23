@@ -1,13 +1,15 @@
 package com.fleeksoft.ksoup.nodes
 
-import com.fleeksoft.ksoup.SerializationException
 import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.internal.StringUtil
-import com.fleeksoft.ksoup.ported.*
+import com.fleeksoft.ksoup.ported.Consumer
+import com.fleeksoft.ksoup.ported.KCloneable
+import com.fleeksoft.ksoup.ported.LinkedList
+import com.fleeksoft.ksoup.ported.exception.IOException
+import com.fleeksoft.ksoup.ported.exception.SerializationException
 import com.fleeksoft.ksoup.select.NodeFilter
 import com.fleeksoft.ksoup.select.NodeTraversor
 import com.fleeksoft.ksoup.select.NodeVisitor
-import korlibs.io.lang.IOException
 import kotlin.js.JsName
 import kotlin.reflect.KClass
 
@@ -64,7 +66,7 @@ public abstract class Node protected constructor() : KCloneable<Node> {
         namespace: String,
     ): Boolean {
         return _parentNode != null && _parentNode is Element &&
-            (_parentNode as Element).elementIs(normalName, namespace)
+                (_parentNode as Element).elementIs(normalName, namespace)
     }
 
     /**
@@ -392,11 +394,9 @@ public abstract class Node protected constructor() : KCloneable<Node> {
         html: String,
     ) {
         Validate.notNull(_parentNode)
-        val context: Element? = if (parent() is Element) parent() as Element? else null
-        val nodes: List<Node> =
-            NodeUtils.parser(this)
-                .parseFragmentInput(html, context, baseUri())
-        _parentNode!!.addChildren(index, *nodes.toTypedArray())
+        val context: Element? = if (_parentNode is Element) _parentNode as Element? else null
+        val nodes: List<Node> = NodeUtils.parser(this).parseFragmentInput(html, context, baseUri())
+        _parentNode?.addChildren(index, *nodes.toTypedArray())
     }
 
     /**
@@ -460,16 +460,6 @@ public abstract class Node protected constructor() : KCloneable<Node> {
         _parentNode!!.addChildren(_siblingIndex, *childNodesAsArray())
         this.remove()
         return firstChild
-    }
-
-    private fun getDeepChild(el: Element): Element {
-        var resultEl = el
-        var child = resultEl.firstElementChild()
-        while (child != null) {
-            resultEl = child
-            child = child.firstElementChild()
-        }
-        return resultEl
     }
 
     internal open fun nodelistChanged() {
@@ -720,14 +710,12 @@ public abstract class Node protected constructor() : KCloneable<Node> {
      * @param accum accumulator to place HTML into
      * @throws IOException if appending to the given accumulator fails.
      */
-    @Throws(IOException::class)
     internal abstract fun outerHtmlHead(
         accum: Appendable,
         depth: Int,
         out: Document.OutputSettings,
     )
 
-    @Throws(IOException::class)
     internal abstract fun outerHtmlTail(
         accum: Appendable,
         depth: Int,
@@ -774,7 +762,6 @@ public abstract class Node protected constructor() : KCloneable<Node> {
         return outerHtml()
     }
 
-    @Throws(IOException::class)
     protected fun indent(
         accum: Appendable,
         depth: Int,
@@ -883,22 +870,9 @@ public abstract class Node protected constructor() : KCloneable<Node> {
         return clone
     }
 
-    private class OuterHtmlVisitor(
-        accum: Appendable,
-        out: Document.OutputSettings,
-    ) : NodeVisitor {
-        private val accum: Appendable
-        private val out: Document.OutputSettings
+    private class OuterHtmlVisitor(private val accum: Appendable, private val out: Document.OutputSettings) : NodeVisitor {
 
-        init {
-            this.accum = accum
-            this.out = out
-        }
-
-        override fun head(
-            node: Node,
-            depth: Int,
-        ) {
+        override fun head(node: Node, depth: Int) {
             try {
                 node.outerHtmlHead(accum, depth, out)
             } catch (exception: IOException) {
@@ -906,10 +880,7 @@ public abstract class Node protected constructor() : KCloneable<Node> {
             }
         }
 
-        override fun tail(
-            node: Node,
-            depth: Int,
-        ) {
+        override fun tail(node: Node, depth: Int) {
             if (node.nodeName() != "#text") { // saves a void hit.
                 try {
                     node.outerHtmlTail(accum, depth, out)
@@ -923,5 +894,15 @@ public abstract class Node protected constructor() : KCloneable<Node> {
     public companion object {
         public val EmptyNodes: MutableList<Node> = mutableListOf()
         public const val EmptyString: String = ""
+
+        private fun getDeepChild(el: Element): Element {
+            var resultEl = el
+            var child = resultEl.firstElementChild()
+            while (child != null) {
+                resultEl = child
+                child = child.firstElementChild()
+            }
+            return resultEl
+        }
     }
 }

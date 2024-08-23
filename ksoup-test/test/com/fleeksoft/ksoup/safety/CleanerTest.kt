@@ -16,6 +16,7 @@ import kotlin.test.*
  * @author Sabeeh, fleeksoft@gmail.com
  */
 class CleanerTest {
+
     @Test
     fun simpleBehaviourTest() {
         val h = "<div><p class=foo><a href='http://evil.com'>Hello <b id=bar>there</b>!</a></div>"

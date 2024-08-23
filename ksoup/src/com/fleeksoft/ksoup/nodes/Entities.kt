@@ -2,21 +2,22 @@
 
 package com.fleeksoft.ksoup.nodes
 
-import com.fleeksoft.ksoup.SerializationException
 import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.internal.StringUtil
+import com.fleeksoft.ksoup.io.Charset
 import com.fleeksoft.ksoup.nodes.Document.OutputSettings
+import com.fleeksoft.ksoup.nodes.Document.OutputSettings.Syntax
 import com.fleeksoft.ksoup.nodes.Entities.EscapeMode.base
 import com.fleeksoft.ksoup.nodes.Entities.EscapeMode.extended
 import com.fleeksoft.ksoup.parser.CharacterReader
 import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.ported.Character
 import com.fleeksoft.ksoup.ported.ThreadLocal
-import com.fleeksoft.ksoup.ported.canEncode
+import com.fleeksoft.ksoup.ported.exception.IOException
+import com.fleeksoft.ksoup.ported.exception.SerializationException
+import com.fleeksoft.ksoup.ported.io.Charsets
 import de.cketti.codepoints.deluxe.CodePoint
 import de.cketti.codepoints.deluxe.codePointAt
-import korlibs.io.lang.Charset
-import korlibs.io.lang.IOException
 
 
 /**
@@ -97,60 +98,55 @@ public object Entities {
     /**
     HTML escape an input string. That is, {@code <} is returned as {@code &lt;}. The escaped string is suitable for use
     both in attributes and in text data.
-    @param string the un-escaped string to escape
+    @param data the un-escaped string to escape
     @param out the output settings to use. This configures the character set escaped against (that is, if a
     character is supported in the output character set, it doesn't have to be escaped), and also HTML or XML
     settings.
     @return the escaped string
      */
-    public fun escape(
-        string: String?,
-        out: OutputSettings?,
-    ): String {
-        if (string == null) return ""
-        val accum: StringBuilder = StringUtil.borrowBuilder()
-        try {
-            escape(
-                accum,
-                string,
-                out,
-                ForText or ForAttribute
-            ) // for text and for attribute; preserve whitespaces
-        } catch (e: IOException) {
-            throw SerializationException(e) // doesn't happen
-        }
-        return StringUtil.releaseBuilder(accum)
+    public fun escape(data: String?, out: OutputSettings): String {
+        return escapeString(data, out.escapeMode(), out.syntax(), out.charset())
     }
 
     /**
-     * HTML escape an input string, using the default settings (UTF-8, base entities). That is, {@code <} is returned as
-     * {@code &lt;}. The escaped string is suitable for use both in attributes and in text data.
-     *
-     * @param string the un-escaped string to escape
-     * @return the escaped string
-     * @see #escape(String, OutputSettings)
+    HTML escape an input string, using the default settings (UTF-8, base entities, HTML syntax). That is, {@code <} is
+    returned as {@code &lt;}. The escaped string is suitable for use both in attributes and in text data.
+    @param data the un-escaped string to escape
+    @return the escaped string
+    @see #escape(String, OutputSettings)
      */
-    public fun escape(string: String?): String {
-        if (DefaultOutput == null) DefaultOutput = OutputSettings()
-        return escape(string, DefaultOutput)
+    public fun escape(data: String?): String {
+        return escapeString(data, base, Syntax.html, Charsets.UTF8)
     }
 
-    private var DefaultOutput: OutputSettings? =
-        null // lazy-init, to break circular dependency with OutputSettings
+    public fun escapeString(data: String?, escapeMode: EscapeMode, syntax: Syntax, charset: Charset): String {
+        if (data == null) return ""
+        val accum = StringUtil.borrowBuilder()
+        try {
+            doEscape(data, accum, escapeMode, syntax, charset, ForText or ForAttribute)
+        } catch (e: IOException) {
+            throw SerializationException(e) // doesn't happen
+        }
+
+        return StringUtil.releaseBuilder(accum)
+    }
+
+    fun escape(accum: Appendable, data: String, out: OutputSettings, options: Int) {
+        doEscape(data, accum, out.escapeMode(), out.syntax(), out.charset(), options)
+    }
 
     // this method does a lot, but other breakups cause rescanning and stringbuilder generations
-    public fun escape(accum: Appendable, string: String, out: OutputSettings?, options: Int) {
-        val escapeMode: EscapeMode = out!!.escapeMode()
-        val encoder: Charset = out.encoder()
-        val coreCharset: CoreCharset = out.coreCharset // init in out.prepareEncoder()
-        val length = string.length
+    private fun doEscape(data: String, accum: Appendable, mode: EscapeMode, syntax: Syntax, charset: Charset, options: Int) {
+        val fallback: Charset = charset
+        val coreCharset: CoreCharset = CoreCharset.byName(charset.name)
+        val length = data.length
         var codePoint: CodePoint
         var lastWasWhite = false
         var reachedNonWhite = false
         var skipped = false
         var offset = 0
         while (offset < length) {
-            codePoint = string.codePointAt(offset)
+            codePoint = data.codePointAt(offset)
 
             if (options and Normalise != 0) {
                 if (StringUtil.isWhitespace(codePoint.value)) {
@@ -181,18 +177,24 @@ public object Entities {
                 }
             }
 
-            appendEscaped(accum, out, options, codePoint, escapeMode, encoder, coreCharset)
+            appendEscaped(codePoint, accum, options, mode, syntax, coreCharset, fallback)
             // surrogate pairs, split implementation for efficiency on single char common case (saves creating strings, char[]):
             offset += codePoint.charCount
         }
     }
 
     private fun appendEscaped(
-        accum: Appendable, out: OutputSettings, options: Int,
-        codePoint: CodePoint, escapeMode: EscapeMode, encoder: Charset, coreCharset: CoreCharset
+        codePoint: CodePoint,
+        accum: Appendable,
+        options: Int,
+        escapeMode: EscapeMode,
+        syntax: Syntax,
+        coreCharset: CoreCharset,
+        fallback: Charset
     ) {
+        // surrogate pairs, split implementation for efficiency on single char common case (saves creating strings, char[]):
         val c = codePoint.value.toChar()
-        if (codePoint.value < Character.MIN_SUPPLEMENTARY_CODE_POINT || encoder.name.uppercase() == "ASCII" || encoder.name.uppercase() == "US-ASCII" || encoder.name.uppercase() == "ISO-8859-1") {
+        if (codePoint.value < Character.MIN_SUPPLEMENTARY_CODE_POINT || fallback.name.uppercase() == "ASCII" || fallback.name.uppercase() == "US-ASCII" || fallback.name.uppercase() == "ISO-8859-1") {
             when {
                 c == '&' -> {
                     accum.append("&amp;")
@@ -210,7 +212,7 @@ public object Entities {
                 c == '<' -> {
 
                     // escape when in character data or when in a xml attribute val or XML syntax; not needed in html attr val
-                    appendLt(accum, options, escapeMode, out)
+                    appendLt(accum, options, escapeMode, syntax)
                     /*if (!inAttribute || escapeMode == EscapeMode.xhtml || out.syntax() === OutputSettings.Syntax.xml) {
                         accum.append("&lt;")
                     } else {
@@ -239,19 +241,15 @@ public object Entities {
                 }
 
                 else -> {
-                    if (c.code < 0x20 || !canEncode(coreCharset, c, encoder)) {
-                        appendEncoded(
-                            accum,
-                            escapeMode,
-                            codePoint.value,
-                        )
+                    if (c.code < 0x20 || !canEncode(coreCharset, c, fallback)) {
+                        appendEncoded(accum, escapeMode, codePoint.value)
                     } else {
                         accum.append(c)
                     }
                 }
             }
         } else {
-            if (encoder.canEncode(codePoint.toChars().concatToString())) {
+            if (fallback.canEncode(codePoint.toChars().concatToString())) {
                 val chars = charBuf.get()
                 val len = codePoint.toChars(chars, 0)
                 if (accum is StringBuilder) {
@@ -272,10 +270,12 @@ public object Entities {
         else accum.append("&#xa0;")
     }
 
-    private fun appendLt(accum: Appendable, options: Int, escapeMode: EscapeMode, out: OutputSettings) {
-        if ((options and ForText) != 0 || (escapeMode == EscapeMode.xhtml) || (out.syntax() === OutputSettings.Syntax.xml)) {
+    private fun appendLt(accum: Appendable, options: Int, escapeMode: EscapeMode, syntax: Syntax) {
+        if ((options and ForText) != 0 || (escapeMode == EscapeMode.xhtml) || (syntax === Syntax.xml)) {
             accum.append("&lt;")
-        } else accum.append('<')
+        } else {
+            accum.append('<') // no need to escape < when in an HTML attribute
+        }
     }
 
     private fun appendApos(accum: Appendable, options: Int, escapeMode: EscapeMode) {
@@ -298,11 +298,8 @@ public object Entities {
             accum.append('&').append(name).append(';')
         } else {
             accum.append("&#x")
-                .append(
-                    codePoint.toHexString(
-                        HexFormat { number { removeLeadingZeros = true } },
-                    ),
-                ).append(';')
+                .append(codePoint.toHexString(HexFormat { number { removeLeadingZeros = true } }))
+                .append(';')
         }
     }
 
@@ -355,11 +352,7 @@ public object Entities {
         }
     }
 
-    private fun load(
-        e: EscapeMode,
-        pointsData: String,
-        size: Int,
-    ) {
+    private fun load(e: EscapeMode, pointsData: String, size: Int) {
         e.nameKeys = arrayOfNulls(size)
         e.codeVals = IntArray(size)
         e.codeKeys = IntArray(size)

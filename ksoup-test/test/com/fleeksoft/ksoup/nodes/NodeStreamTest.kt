@@ -1,12 +1,11 @@
 package com.fleeksoft.ksoup.nodes
 
 import com.fleeksoft.ksoup.Ksoup
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertSame
+import com.fleeksoft.ksoup.TestHelper
+import kotlin.test.*
 
 class NodeStreamTest {
+
     var html: String = "<div id=1><p>One<p>Two</div><div id=2><p>Three<p>Four</div>"
 
     @Test

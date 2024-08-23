@@ -181,7 +181,7 @@ public class Tokeniser(treeBuilder: TreeBuilder) {
 
             if (charval == -1 || charval > 0x10FFFF) {
                 characterReferenceError("character [$charval] outside of valid range")
-                codeRef[0] = Tokeniser.replacementChar.code
+                codeRef[0] = Tokeniser.ReplacementChar.code
             } else {
                 if (charval >= win1252ExtensionsStart && charval < win1252ExtensionsStart + win1252Extensions.size) {
                     characterReferenceError("character [$charval] is not a valid unicode code point")
@@ -337,9 +337,8 @@ public class Tokeniser(treeBuilder: TreeBuilder) {
     }
 
     public companion object {
-        public const val replacementChar: Char = '\uFFFD' // replaces null character
-        private val notCharRefCharsSorted: CharArray =
-            charArrayOf('\t', '\n', '\r', '\u000c', ' ', '<', '&').sortedArray()
+        public const val ReplacementChar: Char = '\uFFFD' // replaces null character
+        private val notCharRefCharsSorted: CharArray = charArrayOf('\t', '\n', '\r', '\u000c', ' ', '<', '&').sortedArray()
 
         // Some illegal character escapes are parsed by browsers as windows-1252 instead. See issue #1034
         // https://html.spec.whatwg.org/multipage/parsing.html#numeric-character-reference-end-state
@@ -352,12 +351,5 @@ public class Tokeniser(treeBuilder: TreeBuilder) {
             0x0090, 0x2018, 0x2019, 0x201C, 0x201D, 0x2022, 0x2013, 0x2014,
             0x02DC, 0x2122, 0x0161, 0x203A, 0x0153, 0x009D, 0x017E, 0x0178,
         )
-
-        public fun currentNodeInHtmlNS(): Boolean {
-            // todo: implement namespaces correctly
-            return true
-            // Element currentNode = currentNode();
-            // return currentNode != null && currentNode.namespace().equals("HTML");
-        }
     }
 }

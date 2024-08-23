@@ -1,15 +1,11 @@
 package com.fleeksoft.ksoup.nodes
 
-import com.fleeksoft.ksoup.Ksoup
-import com.fleeksoft.ksoup.Platform
-import com.fleeksoft.ksoup.TestHelper
-import com.fleeksoft.ksoup.isJS
-import com.fleeksoft.ksoup.isWasmJs
+import com.fleeksoft.ksoup.*
 import com.fleeksoft.ksoup.parser.ParseSettings
 import com.fleeksoft.ksoup.parser.Parser
-import korlibs.io.lang.Charset
-import korlibs.io.lang.toByteArray
-import korlibs.io.stream.openSync
+import com.fleeksoft.ksoup.ported.io.Charsets
+import com.fleeksoft.ksoup.ported.openSourceReader
+import com.fleeksoft.ksoup.ported.toByteArray
 import kotlinx.coroutines.test.runTest
 import kotlin.test.*
 
@@ -73,7 +69,7 @@ class DocumentTest {
             Ksoup.parse("<html><head><script>one</script><noscript><p>two</p></noscript></head><body><p>three</p></body><p>four</p></html>")
         assertEquals(
             "<html><head><script>one</script><noscript>&lt;p&gt;two</noscript></head><body><p>three</p><p>four</p></body></html>",
-            com.fleeksoft.ksoup.TextUtil.stripNewlines(doc.html()),
+            TextUtil.stripNewlines(doc.html()),
         )
     }
 
@@ -87,7 +83,7 @@ class DocumentTest {
         assertEquals("head", head.tagName())
         assertEquals(
             "<html><head></head><body></body></html>",
-            com.fleeksoft.ksoup.TextUtil.stripNewlines(doc.html()),
+            TextUtil.stripNewlines(doc.html()),
         )
     }
 
@@ -117,17 +113,17 @@ class DocumentTest {
         val clone = doc.clone()
         assertEquals(
             "<html><head><title>Hello</title></head><body><p>One</p><p>Two</p></body></html>",
-            com.fleeksoft.ksoup.TextUtil.stripNewlines(clone.html()),
+            TextUtil.stripNewlines(clone.html()),
         )
         clone.title("Hello there")
         clone.expectFirst("p").text("One more").attr("id", "1")
         assertEquals(
             "<html><head><title>Hello there</title></head><body><p id=\"1\">One more</p><p>Two</p></body></html>",
-            com.fleeksoft.ksoup.TextUtil.stripNewlines(clone.html()),
+            TextUtil.stripNewlines(clone.html()),
         )
         assertEquals(
             "<html><head><title>Hello</title></head><body><p>One</p><p>Two</p></body></html>",
-            com.fleeksoft.ksoup.TextUtil.stripNewlines(doc.html()),
+            TextUtil.stripNewlines(doc.html()),
         )
     }
 
@@ -146,19 +142,21 @@ class DocumentTest {
         assertEquals(doc.html(), clone.html())
         assertEquals(
             "<!doctype html><html><head><title>Doctype test</title></head><body></body></html>",
-            com.fleeksoft.ksoup.TextUtil.stripNewlines(clone.html()),
+            TextUtil.stripNewlines(clone.html()),
         )
     }
 
     @Test
     fun testLocation() = runTest {
         // tests location vs base href
-        val `in`: String = TestHelper.getResourceAbsolutePath("htmltests/basehref.html")
-        val doc: Document = Ksoup.parseFile(
-            filePath = `in`,
-            baseUri = "http://example.com/",
-            charsetName = "UTF-8",
-        )
+        val resourceName = "htmltests/basehref.html"
+        val doc: Document = if (BuildConfig.isKotlinx && Platform.isJsOrWasm()) {
+            val source = TestHelper.readResource(resourceName)
+            Ksoup.parse(sourceReader = source, baseUri = "http://example.com/", charsetName = "UTF-8")
+        } else {
+            val input: String = TestHelper.getResourceAbsolutePath(resourceName)
+            Ksoup.parseFile(filePath = input, baseUri = "http://example.com/", charsetName = "UTF-8")
+        }
         val location = doc.location()
         val baseUri = doc.baseUri()
         assertEquals("http://example.com/", location)
@@ -266,7 +264,7 @@ class DocumentTest {
     fun testMetaCharsetUpdateUtf8() {
         val doc = createHtmlDocument("changeThis")
         doc.updateMetaCharsetElement(true)
-        doc.charset(Charset.forName(charsetUtf8))
+        doc.charset(Charsets.forName(charsetUtf8))
         val htmlCharsetUTF8 = """<html>
  <head>
   <meta charset="$charsetUtf8">
@@ -284,7 +282,7 @@ class DocumentTest {
     fun testMetaCharsetUpdateIso8859() {
         val doc = createHtmlDocument("changeThis")
         doc.updateMetaCharsetElement(true)
-        doc.charset(Charset.forName(charsetIso8859))
+        doc.charset(Charsets.forName(charsetIso8859))
         val htmlCharsetISO = """<html>
  <head>
   <meta charset="$charsetIso8859">
@@ -302,7 +300,7 @@ class DocumentTest {
     fun testMetaCharsetUpdateNoCharset() {
         val docNoCharset = Document.createShell("")
         docNoCharset.updateMetaCharsetElement(true)
-        docNoCharset.charset(Charset.forName(charsetUtf8))
+        docNoCharset.charset(Charsets.forName(charsetUtf8))
         assertEquals(
             charsetUtf8,
             docNoCharset.select("meta[charset]").first()!!
@@ -350,7 +348,7 @@ class DocumentTest {
     @Test
     fun testMetaCharsetUpdateEnabledAfterCharsetChange() {
         val doc = createHtmlDocument("dontTouch")
-        doc.charset(Charset.forName(charsetUtf8))
+        doc.charset(Charsets.forName(charsetUtf8))
         val selectedElement = doc.select("meta[charset]").first()
         assertEquals(charsetUtf8, selectedElement!!.attr("charset"))
         assertTrue(doc.select("meta[name=charset]").isEmpty())
@@ -360,7 +358,7 @@ class DocumentTest {
     fun testMetaCharsetUpdateCleanup() {
         val doc = createHtmlDocument("dontTouch")
         doc.updateMetaCharsetElement(true)
-        doc.charset(Charset.forName(charsetUtf8))
+        doc.charset(Charsets.forName(charsetUtf8))
         val htmlCharsetUTF8 = """<html>
  <head>
   <meta charset="$charsetUtf8">
@@ -374,7 +372,7 @@ class DocumentTest {
     fun testMetaCharsetUpdateXmlUtf8() {
         val doc = createXmlDocument("1.0", "changeThis", true)
         doc.updateMetaCharsetElement(true)
-        doc.charset(Charset.forName(charsetUtf8))
+        doc.charset(Charsets.forName(charsetUtf8))
         val xmlCharsetUTF8 = """<?xml version="1.0" encoding="$charsetUtf8"?>
 <root>
  node
@@ -390,7 +388,7 @@ class DocumentTest {
     fun testMetaCharsetUpdateXmlIso8859() {
         val doc = createXmlDocument("1.0", "changeThis", true)
         doc.updateMetaCharsetElement(true)
-        doc.charset(Charset.forName(charsetIso8859))
+        doc.charset(Charsets.forName(charsetIso8859))
         val xmlCharsetISO = """<?xml version="1.0" encoding="$charsetIso8859"?>
 <root>
  node
@@ -406,7 +404,7 @@ class DocumentTest {
     fun testMetaCharsetUpdateXmlNoCharset() {
         val doc = createXmlDocument("1.0", "none", false)
         doc.updateMetaCharsetElement(true)
-        doc.charset(Charset.forName(charsetUtf8))
+        doc.charset(Charsets.forName(charsetUtf8))
         val xmlCharsetUTF8 = """<?xml version="1.0" encoding="$charsetUtf8"?>
 <root>
  node
@@ -470,7 +468,7 @@ class DocumentTest {
 
     @Test
     fun testShiftJisRoundtrip() {
-        if (Platform.isJS()) {
+        if (Platform.isJsOrWasm()) {
             // Shift_JIS not supported
             return
         }
@@ -484,8 +482,8 @@ class DocumentTest {
                         "</body>" +
                         "</html>"
                 )
-        val inputStream = input.encodeToByteArray().openSync()
-        val doc: Document = Ksoup.parse(syncStream = inputStream, baseUri = "http://example.com", charsetName = null)
+        val inputStream = input.encodeToByteArray().openSourceReader()
+        val doc: Document = Ksoup.parse(sourceReader = inputStream, baseUri = "http://example.com", charsetName = null)
         doc.outputSettings().escapeMode(Entities.EscapeMode.xhtml)
         val output = doc.html().toByteArray(doc.outputSettings().charset()).decodeToString()
         assertFalse(output.contains("?"), "Should not have contained a '?'.")

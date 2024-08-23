@@ -1,9 +1,11 @@
 package com.fleeksoft.ksoup.nodes
 
 import com.fleeksoft.ksoup.Ksoup
+import com.fleeksoft.ksoup.TestHelper
 import kotlin.test.*
 
 class NodeIteratorTest {
+
     var html: String = "<div id=1><p>One<p>Two</div><div id=2><p>Three<p>Four</div>"
 
     @Test

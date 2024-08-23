@@ -1,3 +1,4 @@
+val isKorlibs = project.findProperty("isKorlibs")?.toString()?.toBoolean() ?: false
 plugins {
     alias(libs.plugins.power.assert)
 }
@@ -16,6 +17,7 @@ val generateBuildConfigFile: Task by tasks.creating {
             object BuildConfig {
                 const val PROJECT_ROOT: String = "${rootProject.rootDir.absolutePath.replace("\\", "\\\\")}"
                 const val isGithubActions: Boolean = $isGithubActions
+                const val isKotlinx: Boolean = ${!isKorlibs}
             }
             """.trimIndent()
         file.get().asFile.writeText(content)

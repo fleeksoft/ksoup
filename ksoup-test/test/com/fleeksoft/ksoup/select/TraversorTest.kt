@@ -13,6 +13,7 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 class TraversorTest {
+
     // Note: NodeTraversor.traverse(new NodeVisitor) is tested in
     // ElementsTest#traverse()
     @Test

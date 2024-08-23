@@ -1,17 +1,14 @@
 package com.fleeksoft.ksoup
 
-import com.fleeksoft.ksoup.helper.DataUtil
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parser.Parser
-import korlibs.io.file.std.toVfs
-import korlibs.io.file.std.uniVfs
-import korlibs.io.stream.openSync
-import korlibs.io.stream.toSyncStream
+import com.fleeksoft.ksoup.ported.openSourceReader
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
 import java.nio.file.Path
 import kotlin.io.path.absolutePathString
+
 
 /**
  * Parse the contents of a file as HTML.
@@ -31,7 +28,7 @@ public fun Ksoup.parseInputStream(
 ): Document {
     return parse(
         // TODO: use syncstream without reading bytes
-        syncStream = inputStream.readAllBytes().openSync(),
+        sourceReader = inputStream.readAllBytes().openSourceReader(),
         charsetName = charsetName,
         baseUri = baseUri,
         parser = parser,
@@ -55,7 +52,7 @@ public suspend fun Ksoup.parseFile(
     parser: Parser = Parser.htmlParser(),
 ): Document {
     return parseFile(
-        file = file.toVfs(),
+        file = FileSourceJvmHelper.jvmFileToFileSource(file),
         charsetName = charsetName,
         baseUri = baseUri,
         parser = parser,
@@ -73,7 +70,6 @@ public suspend fun Ksoup.parseFile(
  * @param parser alternate [parser][Parser.xmlParser] to use.
  * @return sane HTML
  * @throws IOException if the file could not be found, or read, or if the charsetName is invalid.
- * @since 1.18.1
  */
 
 suspend fun Ksoup.parsePath(
@@ -82,5 +78,10 @@ suspend fun Ksoup.parsePath(
     charsetName: String? = null,
     parser: Parser = Parser.htmlParser()
 ): Document {
-    return DataUtil.load(file = path.absolutePathString().uniVfs, baseUri = baseUri, charsetName = charsetName, parser = parser)
+    return Ksoup.parse(
+        sourceReader = KsoupEngineInstance.ksoupEngine.pathToFileSource(path.absolutePathString()).toSourceReader(),
+        baseUri = baseUri,
+        charsetName = charsetName,
+        parser = parser
+    )
 }

@@ -1,28 +1,30 @@
 [versions]
 agp = "8.2.2" #kmp max gradle support 8.2 right now
 #kotlin = "1.9.24"
-kotlin = "2.0.0"
+kotlin = "2.0.10"
 compileSdk = "34"
 minSdk = "21"
-libraryVersion = "0.1.4"
-ktor = "2.3.12"
+libraryVersion = "0.1.5"
+ktor = "3.0.0-beta-2"
 coroutines = "1.8.1"
-okio = "3.9.0"
-kotlinxDatetime = "0.6.0"
-kotlinx-io = "0.3.5"
+kotlinxDatetime = "0.6.1"
+kotlinx-io = "0.5.3"
 codepoints = "0.9.0"
 dokka = "1.9.20"
 
 #korlibs = "999.0.0.999" # 999.0.0.999 is local version
-korlibs = "6.0.0"
+korlibs = "6.0.1"
 mavenPublish = "0.29.0"
 
 stately-concurrent = "2.0.7"
+jsoup = "1.18.1"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
+ktor-io = { module = "io.ktor:ktor-io", version.ref = "ktor" }
+ktor-http = { module = "io.ktor:ktor-http", version.ref = "ktor" }
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
 ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
@@ -30,13 +32,13 @@ ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
 ktor-client-js = { module = "io.ktor:ktor-client-js", version.ref = "ktor" }
 ktor-client-win = { module = "io.ktor:ktor-client-winhttp", version.ref = "ktor" }
-okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
-okio-nodefilesystem = { module = "com.squareup.okio:okio-nodefilesystem", version.ref = "okio" }
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }
 kotlinx-io = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version.ref = "kotlinx-io" }
 codepoints = { module = "de.cketti.unicode:kotlin-codepoints-deluxe", version.ref = "codepoints" }
 korlibs-io = { module = "com.soywiz:korlibs-io", version.ref = "korlibs" }
+korlibs-io-network-core = { module = "com.soywiz:korlibs-io-network-core", version.ref = "korlibs" }
 stately-concurrent = { module = "co.touchlab:stately-concurrent-collections", version.ref = "stately-concurrent" }
+jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
 
 [plugins]
 androidLibrary = { id = "com.android.library", version.ref = "agp" }

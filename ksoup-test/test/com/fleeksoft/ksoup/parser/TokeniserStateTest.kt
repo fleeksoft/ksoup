@@ -10,6 +10,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class TokeniserStateTest {
+
     private val whiteSpace = charArrayOf('\t', '\n', '\r', '\u000c', ' ')
     private val quote = charArrayOf('\'', '"')
 
@@ -164,17 +165,17 @@ class TokeniserStateTest {
     @Test
     fun testPublicAndSystemIdentifiersWithWhitespace() {
         val expectedOutput = (
-            "<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.0//EN\"" +
-                " \"http://www.w3.org/TR/REC-html40/strict.dtd\">"
-        )
+                "<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.0//EN\"" +
+                        " \"http://www.w3.org/TR/REC-html40/strict.dtd\">"
+                )
         for (q in quote) {
             for (ws in whiteSpace) {
                 val htmls =
                     arrayOf(
                         "<!DOCTYPE html PUBLIC $q-//W3C//DTD HTML 4.0//EN$q" +
-                            "${ws}${q}http://www.w3.org/TR/REC-html40/strict.dtd$q>",
+                                "${ws}${q}http://www.w3.org/TR/REC-html40/strict.dtd$q>",
                         "<!DOCTYPE html PUBLIC $q-//W3C//DTD HTML 4.0//EN$q" +
-                            "${q}http://www.w3.org/TR/REC-html40/strict.dtd$q>",
+                                "${q}http://www.w3.org/TR/REC-html40/strict.dtd$q>",
                     )
                 for (html in htmls) {
                     val doc = Ksoup.parse(html)
@@ -199,12 +200,12 @@ class TokeniserStateTest {
     fun testUnconsumeAtBufferBoundary() {
         val triggeringSnippet = "<a href=\"\"foo"
         val padding =
-            CharArray(CharacterReader.readAheadLimit - triggeringSnippet.length + 2) // The "foo" part must be just at the limit.
+            CharArray(CharacterReader.RefillPoint - triggeringSnippet.length + 2) // The "foo" part must be just at the limit.
         padding.fill(' ')
         val paddedSnippet = padding.concatToString() + triggeringSnippet
         val errorList = ParseErrorList.tracking(1)
         Parser.parseFragment(paddedSnippet, null, "", errorList)
-        assertEquals(CharacterReader.readAheadLimit - 1, errorList[0].pos)
+        assertEquals(CharacterReader.RefillPoint - 1, errorList[0].pos)
     }
 
     @Test
@@ -213,7 +214,7 @@ class TokeniserStateTest {
         val triggeringSnippet = "<title>One <span>Two"
         val padding =
             CharArray(
-                CharacterReader.readAheadLimit - triggeringSnippet.length + 8,
+                CharacterReader.RefillPoint - triggeringSnippet.length + 8,
             ) // The "<span" part must be just at the limit. The "containsIgnoreCase" scan does a bufferUp, losing the unconsume
         padding.fill(' ')
         val paddedSnippet = padding.concatToString() + triggeringSnippet

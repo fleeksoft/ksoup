@@ -1,10 +1,10 @@
 package com.fleeksoft.ksoup.nodes
 
 import com.fleeksoft.ksoup.*
-import com.fleeksoft.ksoup.helper.ValidationException
 import com.fleeksoft.ksoup.parser.ParseSettings
 import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.parser.Tag
+import com.fleeksoft.ksoup.ported.exception.ValidationException
 import com.fleeksoft.ksoup.select.Elements
 import com.fleeksoft.ksoup.select.NodeFilter
 import com.fleeksoft.ksoup.select.NodeVisitor
@@ -17,6 +17,7 @@ import kotlin.test.*
  * @author Sabeeh
  */
 class ElementTest {
+
     private val reference =
         "<div id=div1><p>Hello</p><p>Another <b>element</b></p><div id=div2><img src=foo.png></div></div>"
 
@@ -2759,26 +2760,21 @@ Three
         assertEquals("2one", els[1].attr("href"))
     }
 
+    private fun checkRegexExceptionFunc(func: () -> Unit) {
+        if (Platform.isJsOrWasm()) {
+            val ex: Throwable = assertFails { func() }
+            val checkStr = if (Platform.isWasmJs()) "Invalid hexadecimal escape sequence near index" else "Invalid regular expression: /\\x/gu"
+            assertContains(ex.message ?: "", checkStr, ignoreCase = true)
+        } else {
+            val ex: Throwable = assertFailsWith<IllegalArgumentException> { func() }
+            assertContains(ex.message ?: "", "hexadecimal escape sequence near index", ignoreCase = true)
+        }
+    }
+
     @Test
     fun getElementsByAttributeValueMatchingValidation() {
-        if (Platform.isJS()) {
-//     always fail for js because js use double slash for escape character and it return different exception
-            return
-        }
-
         val doc = Ksoup.parse(reference)
-        val ex: Throwable =
-            assertFailsWith<IllegalArgumentException> {
-                doc.getElementsByAttributeValueMatching(
-                    "key",
-                    "\\x",
-                )
-            }
-        if (Platform.isApple() || Platform.isWindows()) {
-            assertEquals("Invalid hexadecimal escape sequence near index: 0\n\\x\n^", ex.message)
-        } else {
-            assertEquals("Illegal hexadecimal escape sequence near index 2\n\\x", ex.message)
-        }
+        checkRegexExceptionFunc { doc.getElementsByAttributeValueMatching("key", "\\x") }
     }
 
     @Test
@@ -2809,20 +2805,9 @@ Three
 
     @Test
     fun getElementsMatchingTextValidation() {
-        if (Platform.isJS()) {
-//     always fail for js because js use double slash for escape character and it return different exception
-            return
-        }
-
         val doc = Ksoup.parse(reference)
-        val ex: Throwable =
-            assertFailsWith<IllegalArgumentException> { doc.getElementsMatchingText("\\x") }
 
-        if (Platform.isApple() || Platform.isWindows()) {
-            assertEquals("Invalid hexadecimal escape sequence near index: 0\n\\x\n^", ex.message)
-        } else {
-            assertEquals("Illegal hexadecimal escape sequence near index 2\n\\x", ex.message)
-        }
+        checkRegexExceptionFunc { doc.getElementsMatchingText("\\x") }
     }
 
     @Test
@@ -2844,26 +2829,13 @@ Three
 
     @Test
     fun getElementsMatchingOwnTextValidation() {
-        if (Platform.isJS()) {
-//     always fail for js because js use double slash for escape character and it return different exception
-            return
-        }
-
         val doc = Ksoup.parse(reference)
-        val ex: Throwable =
-            assertFailsWith<IllegalArgumentException> { doc.getElementsMatchingOwnText("\\x") }
-
-        if (Platform.isApple() || Platform.isWindows()) {
-            assertEquals("Invalid hexadecimal escape sequence near index: 0\n\\x\n^", ex.message)
-        } else {
-            assertEquals("Illegal hexadecimal escape sequence near index 2\n\\x", ex.message)
-        }
+        checkRegexExceptionFunc { doc.getElementsMatchingOwnText("\\x") }
     }
 
     @Test
     fun hasText() {
-        val doc =
-            Ksoup.parse("<div id=1><p><i>One</i></p></div><div id=2>Two</div><div id=3><script>data</script> </div>")
+        val doc = Ksoup.parse("<div id=1><p><i>One</i></p></div><div id=2>Two</div><div id=3><script>data</script> </div>")
         assertTrue(doc.getElementById("1")!!.hasText())
         assertTrue(doc.getElementById("2")!!.hasText())
         assertFalse(doc.getElementById("3")!!.hasText())

@@ -14,4 +14,10 @@ plugins {
 }
 
 
-include("ksoup", "ksoup-network", "ksoup-test", "sample:shared", "sample:android", "sample:desktop", "sample:ios")
+include("ksoup")
+include("ksoup-engine-common")
+include("ksoup-engine-kotlinx", "ksoup-network")
+include("ksoup-engine-korlibs", "ksoup-network-korlibs")
+include("ksoup-test")
+include("sample:shared", "sample:desktop")
+//include("sample:android", "sample:ios")

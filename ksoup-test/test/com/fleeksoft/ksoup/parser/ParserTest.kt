@@ -2,13 +2,14 @@ package com.fleeksoft.ksoup.parser
 
 import com.fleeksoft.ksoup.Ksoup.parse
 import com.fleeksoft.ksoup.nodes.Document
-import korlibs.io.lang.Charsets
-import korlibs.io.lang.toByteArray
-import korlibs.io.stream.openSync
+import com.fleeksoft.ksoup.ported.io.Charsets
+import com.fleeksoft.ksoup.ported.openSourceReader
+import com.fleeksoft.ksoup.ported.toByteArray
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class ParserTest {
+
     @Test
     fun unescapeEntities() {
         val s = Parser.unescapeEntities("One &amp; Two", false)
@@ -29,7 +30,7 @@ class ParserTest {
     fun testUtf8() {
         val parsed: Document =
             parse(
-                syncStream = "<p>H\u00E9llo, w\u00F6rld!".toByteArray(Charsets.UTF8).openSync(),
+                sourceReader = "<p>H\u00E9llo, w\u00F6rld!".toByteArray(Charsets.UTF8).openSourceReader(),
                 baseUri = "",
                 charsetName = null,
             )

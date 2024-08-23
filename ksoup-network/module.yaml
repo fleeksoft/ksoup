@@ -1,16 +1,34 @@
 product:
   type: lib
-  platforms: [jvm, js, wasm, android, linuxX64, linuxArm64, tvosArm64, tvosX64, tvosSimulatorArm64, macosX64, macosArm64, iosArm64, iosSimulatorArm64, iosX64, watchosArm64, watchosArm32, watchosDeviceArm64, watchosSimulatorArm64, mingwX64]
+  platforms: [ jvm, js, wasm, android, linuxX64, linuxArm64, tvosArm64, tvosX64, tvosSimulatorArm64, macosX64, macosArm64, iosArm64, iosSimulatorArm64, iosX64, mingwX64 ]
 
 apply: [ ../common.module-template.yaml ]
 
 aliases:
-  - jvmAndAndroid: [jvm, android]
-  - concurrent: [jvm, android, linuxX64, linuxArm64, tvosArm64, tvosX64, tvosSimulatorArm64, macosX64, macosArm64, iosArm64, iosSimulatorArm64, iosX64, watchosArm64, watchosArm32, watchosDeviceArm64, watchosSimulatorArm64, mingwX64]
+  - jvmAndAndroid: [ jvm, android ]
+  - concurrent: [ jvm, android, linuxX64, linuxArm64, tvosArm64, tvosX64, tvosSimulatorArm64, macosX64, macosArm64, iosArm64, iosSimulatorArm64, iosX64, mingwX64 ]
+  - jsAndWasm: [js, wasm]
 
 repositories:
   - mavenLocal
 
 dependencies:
+  - $libs.kotlinx.coroutines.core
   - ../ksoup: compile-only
-  - $libs.korlibs.io: exported
+  - ../ksoup-engine-kotlinx
+  - $libs.ktor.client.core: exported
+
+dependencies@jvmAndAndroid:
+  - $libs.ktor.client.okhttp
+
+dependencies@apple:
+  - $libs.ktor.client.darwin
+
+dependencies@jsAndWasm:
+  - $libs.ktor.client.js
+
+dependencies@mingw:
+  - $libs.ktor.client.win
+
+dependencies@linux:
+  - $libs.ktor.client.cio

@@ -2,7 +2,6 @@ package com.fleeksoft.ksoup.nodes
 
 import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.nodes.Document.OutputSettings.Syntax
-import korlibs.io.lang.IOException
 
 /**
  * A `<!DOCTYPE>` node.
@@ -11,25 +10,23 @@ import korlibs.io.lang.IOException
  * @param publicId the doctype's public ID
  * @param systemId the doctype's system ID
  */
-public class DocumentType(private val name: String, private val publicId: String, private val systemId: String) :
-    LeafNode() {
-    // todo: quirk mode from publicId and systemId
+public class DocumentType(private val name: String, private val publicId: String, private val systemId: String) : LeafNode(name) {
     init {
-        attr(NAME, name)
-        attr(PUBLIC_ID, publicId)
-        attr(SYSTEM_ID, systemId)
+        attr(Name, name)
+        attr(PublicId, publicId)
+        attr(SystemId, systemId)
         updatePubSyskey()
     }
 
     public fun setPubSysKey(value: String?) {
-        if (value != null) attr(PUB_SYS_KEY, value)
+        if (value != null) attr(PubSysKey, value)
     }
 
     private fun updatePubSyskey() {
-        if (has(PUBLIC_ID)) {
-            attr(PUB_SYS_KEY, PUBLIC_KEY)
-        } else if (has(SYSTEM_ID)) {
-            attr(PUB_SYS_KEY, SYSTEM_KEY)
+        if (has(PublicId)) {
+            attr(PubSysKey, PUBLIC_KEY)
+        } else if (has(SystemId)) {
+            attr(PubSysKey, SYSTEM_KEY)
         }
     }
 
@@ -38,7 +35,7 @@ public class DocumentType(private val name: String, private val publicId: String
      * @return doctype name
      */
     public fun name(): String {
-        return attr(NAME)
+        return attr(Name)
     }
 
     /**
@@ -46,7 +43,7 @@ public class DocumentType(private val name: String, private val publicId: String
      * @return doctype Public ID
      */
     public fun publicId(): String {
-        return attr(PUBLIC_ID)
+        return attr(PublicId)
     }
 
     /**
@@ -54,14 +51,13 @@ public class DocumentType(private val name: String, private val publicId: String
      * @return doctype System ID
      */
     public fun systemId(): String {
-        return attr(SYSTEM_ID)
+        return attr(SystemId)
     }
 
     override fun nodeName(): String {
-        return "#doctype"
+        return Name
     }
 
-    @Throws(IOException::class)
     override fun outerHtmlHead(
         accum: Appendable,
         depth: Int,
@@ -69,16 +65,17 @@ public class DocumentType(private val name: String, private val publicId: String
     ) {
         // add a newline if the doctype has a preceding node (which must be a comment)
         if (_siblingIndex > 0 && out.prettyPrint()) accum.append('\n')
-        if (out.syntax() === Syntax.html && !has(PUBLIC_ID) && !has(SYSTEM_ID)) {
+
+        if (out.syntax() == Syntax.html && !has(PublicId) && !has(SystemId)) {
             // looks like a html5 doctype, go lowercase for aesthetics
             accum.append("<!doctype")
         } else {
             accum.append("<!DOCTYPE")
         }
-        if (has(NAME)) accum.append(" ").append(attr(NAME))
-        if (has(PUB_SYS_KEY)) accum.append(" ").append(attr(PUB_SYS_KEY))
-        if (has(PUBLIC_ID)) accum.append(" \"").append(attr(PUBLIC_ID)).append('"')
-        if (has(SYSTEM_ID)) accum.append(" \"").append(attr(SYSTEM_ID)).append('"')
+        if (has(Name)) accum.append(" ").append(attr(Name))
+        if (has(PubSysKey)) accum.append(" ").append(attr(PubSysKey))
+        if (has(PublicId)) accum.append(" \"").append(attr(PublicId)).append('"')
+        if (has(SystemId)) accum.append(" \"").append(attr(SystemId)).append('"')
         accum.append('>')
     }
 
@@ -101,9 +98,10 @@ public class DocumentType(private val name: String, private val publicId: String
         // todo needs a bit of a chunky cleanup. this level of detail isn't needed
         public const val PUBLIC_KEY: String = "PUBLIC"
         public const val SYSTEM_KEY: String = "SYSTEM"
-        private const val NAME: String = "name"
-        private const val PUB_SYS_KEY: String = "pubSysKey" // PUBLIC or SYSTEM
-        private const val PUBLIC_ID: String = "publicId"
-        private const val SYSTEM_ID: String = "systemId"
+        private const val Name: String = "#doctype"
+        private const val PubSysKey: String = "pubSysKey" // PUBLIC or SYSTEM
+        private const val PublicId: String = "publicId"
+        private const val SystemId: String = "systemId"
+        // todo: quirk mode from publicId and systemId
     }
 }

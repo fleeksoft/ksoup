@@ -1,18 +1,16 @@
 package com.fleeksoft.ksoup.parser
 
-import com.fleeksoft.ksoup.UncheckedIOException
 import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.nodes.Element
 import com.fleeksoft.ksoup.nodes.Node
-import com.fleeksoft.ksoup.ported.StreamCharReader
-import com.fleeksoft.ksoup.ported.toStreamCharReader
+import com.fleeksoft.ksoup.ported.LinkedList
+import com.fleeksoft.ksoup.ported.exception.UncheckedIOException
+import com.fleeksoft.ksoup.ported.io.Reader
+import com.fleeksoft.ksoup.ported.io.StringReader
 import com.fleeksoft.ksoup.select.Evaluator
 import com.fleeksoft.ksoup.select.NodeVisitor
 import com.fleeksoft.ksoup.select.QueryParser
-import korlibs.datastructure.Queue
-import korlibs.datastructure.toList
-import korlibs.io.stream.openSync
 
 /**
  * A StreamParser provides a progressive parse of its input. As each Element is completed, it is emitted via a Stream or
@@ -65,7 +63,7 @@ class StreamParser(private val parser: Parser) {
      * @param baseUri the URL of this input, for absolute link resolution
      * @return this parser, for chaining
      */
-    fun parse(input: StreamCharReader, baseUri: String): StreamParser {
+    fun parse(input: Reader, baseUri: String): StreamParser {
         close() // probably a no-op, but ensures any previous reader is closed
         elementIterator.reset()
         treeBuilder.initialiseParse(input, baseUri, parser) // reader is not read, so no chance of IO error
@@ -75,12 +73,12 @@ class StreamParser(private val parser: Parser) {
 
     /**
      * Provide the input for a Document parse. The input is not read until a consuming operation is called.
-     * @param input the input to be read
+     * @param html HTML to read
      * @param baseUri the URL of this input, for absolute link resolution
      * @return this parser
      */
-    fun parse(input: String, baseUri: String): StreamParser {
-        return parse(input.openSync().toStreamCharReader(), baseUri)
+    fun parse(html: String, baseUri: String): StreamParser {
+        return parse(StringReader(html), baseUri)
     }
 
     /**
@@ -91,7 +89,7 @@ class StreamParser(private val parser: Parser) {
      * @return this parser
      * @see .completeFragment
      */
-    fun parseFragment(input: StreamCharReader, context: Element?, baseUri: String): StreamParser {
+    fun parseFragment(input: Reader, context: Element?, baseUri: String): StreamParser {
         parse(input, baseUri)
         treeBuilder.initialiseParseFragment(context)
         return this
@@ -99,14 +97,14 @@ class StreamParser(private val parser: Parser) {
 
     /**
      * Provide the input for a fragment parse. The input is not read until a consuming operation is called.
-     * @param input the input to be read
+     * @param html HTML to read
      * @param context the optional fragment context element
      * @param baseUri the URL of this input, for absolute link resolution
      * @return this parser
      * @see .completeFragment
      */
-    fun parseFragment(input: String, context: Element?, baseUri: String): StreamParser {
-        return parseFragment(input.openSync().toStreamCharReader(), context, baseUri)
+    fun parseFragment(html: String, context: Element?, baseUri: String): StreamParser {
+        return parseFragment(StringReader(html), context, baseUri)
     }
 
     /**
@@ -137,7 +135,7 @@ class StreamParser(private val parser: Parser) {
      * The iterator is backed by this StreamParser, and the resources it holds.
      * @return a stream of Element objects
      */
-    fun iterator(): Iterator<Element?> {
+    fun iterator(): MutableIterator<Element?> {
         return elementIterator
     }
 
@@ -224,8 +222,7 @@ class StreamParser(private val parser: Parser) {
     fun expectFirst(query: String): Element {
         return Validate.ensureNotNull(
             selectFirst(query),
-            "No elements matched the query '%s' in the document.",
-            query
+            "No elements matched the query '$query' in the document."
         ) as Element
     }
 
@@ -268,8 +265,7 @@ class StreamParser(private val parser: Parser) {
     fun expectNext(query: String): Element {
         return Validate.ensureNotNull(
             selectNext(query),
-            "No elements matched the query '%s' in the document.",
-            query
+            "No elements matched the query '$query' in the document."
         ) as Element
     }
 
@@ -287,7 +283,7 @@ class StreamParser(private val parser: Parser) {
 
     internal inner class ElementIterator : MutableIterator<Element>, NodeVisitor {
         // listeners add to a next emit queue, as a single token read step may yield multiple elements
-        private val emitQueue: Queue<Element> = Queue()
+        private val emitQueue: LinkedList<Element> = mutableListOf()
 
         private var current: Element? = null // most recently emitted
         private var next: Element? = null // element waiting to be picked up
@@ -328,14 +324,14 @@ class StreamParser(private val parser: Parser) {
 
             // drain the current queue before stepping to get more
             if (!emitQueue.isEmpty()) {
-                next = emitQueue.dequeue()
+                next = emitQueue.removeFirst()
                 return
             }
 
             // step the parser, which will hit the node listeners to add to the queue:
             while (treeBuilder.stepParser()) {
                 if (!emitQueue.isEmpty()) {
-                    next = emitQueue.dequeue()
+                    next = emitQueue.removeFirst()
                     return
                 }
             }
@@ -359,7 +355,7 @@ class StreamParser(private val parser: Parser) {
             if (node is Element) {
                 val prev: Element? = (node as Element).previousElementSibling()
                 // We prefer to wait until an element has a next sibling before emitting it; otherwise, get it in tail
-                if (prev != null) emitQueue.enqueue(prev)
+                if (prev != null) emitQueue.add(prev)
             }
         }
 
@@ -367,7 +363,7 @@ class StreamParser(private val parser: Parser) {
             if (node is Element) {
                 tail = node as Element? // kept for final hit
                 val lastChild: Element? = tail?.lastElementChild() // won't get a nextsib, so emit that:
-                if (lastChild != null) emitQueue.enqueue(lastChild)
+                if (lastChild != null) emitQueue.add(lastChild)
             }
         }
     }

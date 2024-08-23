@@ -3,9 +3,8 @@ package com.fleeksoft.ksoup.parser
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.nodes.Element
 import com.fleeksoft.ksoup.nodes.Node
-import com.fleeksoft.ksoup.ported.StreamCharReader
-import com.fleeksoft.ksoup.ported.toStreamCharReader
-import korlibs.io.stream.openSync
+import com.fleeksoft.ksoup.ported.io.Reader
+import com.fleeksoft.ksoup.ported.io.StringReader
 
 /**
  * Parses HTML or XML into a [com.fleeksoft.ksoup.nodes.Document]. Generally, it is simpler to use one of the parse methods in
@@ -51,22 +50,12 @@ public class Parser {
         isTrackPosition = copy.isTrackPosition
     }
 
-    public fun parseInput(
-        htmlBytes: ByteArray,
-        baseUri: String,
-    ): Document {
-        return treeBuilder.parse(htmlBytes.openSync().toStreamCharReader(), baseUri, this)
+    public fun parseInput(input: String, baseUri: String): Document {
+        return treeBuilder.parse(StringReader(input), baseUri, this)
     }
 
     public fun parseInput(
-        html: String,
-        baseUri: String,
-    ): Document {
-        return treeBuilder.parse(html.openSync().toStreamCharReader(), baseUri, this)
-    }
-
-    public fun parseInput(
-        inputHtml: StreamCharReader,
+        inputHtml: Reader,
         baseUri: String,
     ): Document {
         return treeBuilder.parse(inputHtml, baseUri, this)
@@ -184,29 +173,10 @@ public class Parser {
         ): Document {
             val treeBuilder: TreeBuilder = HtmlTreeBuilder()
             return treeBuilder.parse(
-                html.openSync().toStreamCharReader(),
+                StringReader(html),
                 baseUri,
                 Parser(treeBuilder),
             )
-        }
-
-        /**
-         * Parse a fragment of HTML into a list of nodes. The context element, if supplied, supplies parsing context.
-         *
-         * @param fragmentHtml the fragment of HTML to parse
-         * @param context (optional) the element that this HTML fragment is being parsed for (i.e. for inner HTML). This
-         * provides stack context (for implicit element creation).
-         * @param baseUri base URI of document (i.e. original fetch location), for resolving relative URLs.
-         *
-         * @return list of nodes parsed from the input HTML. Note that the context element, if supplied, is not modified.
-         */
-        public fun parseFragment(
-            fragmentHtml: String,
-            context: Element?,
-            baseUri: String,
-        ): List<Node> {
-            val treeBuilder = HtmlTreeBuilder()
-            return treeBuilder.parseFragment(fragmentHtml, context, baseUri, Parser(treeBuilder))
         }
 
         /**
@@ -224,11 +194,13 @@ public class Parser {
             fragmentHtml: String,
             context: Element?,
             baseUri: String,
-            errorList: ParseErrorList,
+            errorList: ParseErrorList? = null,
         ): List<Node> {
             val treeBuilder = HtmlTreeBuilder()
             val parser = Parser(treeBuilder)
-            parser.errors = errorList
+            if (errorList != null) {
+                parser.errors = errorList
+            }
             return treeBuilder.parseFragment(fragmentHtml, context, baseUri, parser)
         }
 
@@ -262,8 +234,7 @@ public class Parser {
             val doc: Document = Document.createShell(baseUri)
             val body: Element = doc.body()
             val nodeList: List<Node> = parseFragment(bodyHtml, body, baseUri)
-            val nodes: Array<Node> =
-                nodeList.toTypedArray() // the node list gets modified when re-parented
+            val nodes: Array<Node> = nodeList.toTypedArray() // the node list gets modified when re-parented
             for (i in nodes.size - 1 downTo 1) {
                 nodes[i].remove()
             }
@@ -275,16 +246,16 @@ public class Parser {
 
         /**
          * Utility method to unescape HTML entities from a string
-         * @param string HTML escaped string
+         * @param html HTML escaped string
          * @param inAttribute if the string is to be escaped in strict mode (as attributes are)
          * @return an unescaped string
          */
         public fun unescapeEntities(
-            string: String,
+            html: String,
             inAttribute: Boolean,
         ): String {
             val parser: Parser = htmlParser()
-            parser.treeBuilder.initialiseParse(string.openSync().toStreamCharReader(), "", parser)
+            parser.treeBuilder.initialiseParse(StringReader(html), "", parser)
             val tokeniser = Tokeniser(parser.treeBuilder)
             return tokeniser.unescapeEntities(inAttribute)
         }

@@ -6,10 +6,27 @@ plugins {
 group = "com.fleeksoft.ksoup"
 version = libs.versions.libraryVersion.get()
 
+val isKorlibs = project.findProperty("isKorlibs")?.toString()?.toBoolean() ?: false
+println("ksoup: isKorlibsDeb: $isKorlibs")
+kotlin {
+    sourceSets {
+        commonMain {
+            dependencies {
+                if (isKorlibs) {
+                    api(project(":ksoup-engine-korlibs"))
+                } else {
+                    api(project(":ksoup-engine-kotlinx"))
+                }
+            }
+        }
+    }
+}
+
+val artifactId = if (isKorlibs) "ksoup-korlibs" else "ksoup"
 mavenPublishing {
-    coordinates("com.fleeksoft.ksoup", "ksoup", libs.versions.libraryVersion.get())
+    coordinates("com.fleeksoft.ksoup", artifactId, libs.versions.libraryVersion.get())
     pom {
-        name.set("ksoup")
+        name.set(artifactId)
         description.set("Ksoup is a Kotlin Multiplatform library for working with HTML and XML, and offers an easy-to-use API for URL fetching, data parsing, extraction, and manipulation using DOM and CSS selectors.")
         licenses {
             license {

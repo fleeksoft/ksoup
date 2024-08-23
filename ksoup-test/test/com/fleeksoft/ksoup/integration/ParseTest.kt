@@ -5,13 +5,9 @@ import com.fleeksoft.ksoup.Ksoup.parse
 import com.fleeksoft.ksoup.Ksoup.parseFile
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parser.Parser
-import korlibs.io.file.std.uniVfs
-import korlibs.io.stream.openSync
+import com.fleeksoft.ksoup.ported.openSourceReader
 import kotlinx.coroutines.test.runTest
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNotEquals
-import kotlin.test.assertTrue
+import kotlin.test.*
 
 /**
  * Integration test: parses from real-world example HTML.
@@ -19,9 +15,10 @@ import kotlin.test.assertTrue
  * @author Sabeeh, fleeksoft@gmail.com
  */
 class ParseTest {
+
     @Test
     fun testHtml5Charset() = runTest {
-        if (Platform.isApple() || Platform.isWindows()) {
+        if (Platform.isApple() || Platform.isWindows() || (BuildConfig.isKotlinx && Platform.isJsOrWasm())) {
 //            don't support gb2312 or gbk
             return@runTest
         }
@@ -32,23 +29,19 @@ class ParseTest {
             baseUri = "http://example.com/",
             charsetName = null,
         ) // gb2312, has html5 <meta charset>
-        if (Platform.isJS()) {
-            // FIXME: on js it is returning GBK
-            assertEquals("GBK", doc.outputSettings().charset().name.uppercase())
-        } else {
-            assertEquals("GB2312", doc.outputSettings().charset().name.uppercase())
-        }
+
+        // FIXME: different name on different platforms
+        assertContains(arrayOf("GBK", "GB2312"), doc.outputSettings().charset().name.uppercase())
 
         assertEquals("新", doc.text())
 
         // double check, no charset, falls back to utf8 which is incorrect
         input = TestHelper.getResourceAbsolutePath("htmltests/meta-charset-2.html") //
-        doc =
-            parseFile(
-                filePath = input,
-                baseUri = "http://example.com",
-                charsetName = null,
-            ) // gb2312, no charset
+        doc = parseFile(
+            filePath = input,
+            baseUri = "http://example.com",
+            charsetName = null,
+        ) // gb2312, no charset
         assertEquals("UTF-8", doc.outputSettings().charset().name.uppercase())
         assertNotEquals("新", doc.text())
 
@@ -72,16 +65,22 @@ class ParseTest {
             <head><meta charset=UTF-8"></head>
             <body></body>
             </html>
-            """.trimIndent().openSync()
+            """.trimIndent().openSourceReader()
 
-        val doc: Document = parse(syncStream = input, baseUri = "http://example.com/", charsetName = null)
+        val doc: Document = parse(sourceReader = input, baseUri = "http://example.com/", charsetName = null)
         assertEquals("UTF-8", doc.outputSettings().charset().name.uppercase())
     }
 
     @Test
     fun testLowercaseUtf8Charset() = runTest {
-        val input = TestHelper.getResourceAbsolutePath("htmltests/lowercase-charset-test.html")
-        val doc: Document = parseFile(filePath = input, charsetName = null)
+        val resourceName = "htmltests/lowercase-charset-test.html"
+        val doc: Document = if (BuildConfig.isKotlinx && Platform.isJsOrWasm()) {
+            val source = TestHelper.readResource(resourceName)
+            Ksoup.parse(sourceReader = source, baseUri = resourceName)
+        } else {
+            val input: String = TestHelper.getResourceAbsolutePath(resourceName)
+            Ksoup.parseFile(filePath = input)
+        }
         val form = doc.select("#form").first()
         assertEquals(2, form!!.children().size)
         assertEquals("UTF-8", doc.outputSettings().charset().name.uppercase())
@@ -90,13 +89,13 @@ class ParseTest {
     @Test
     fun testXwiki() = runTest {
         // this tests that when in CharacterReader we hit a buffer while marked, we preserve the mark when buffered up and can rewind
-        val input = TestHelper.getResourceAbsolutePath("htmltests/xwiki-1324.html.gz")
-        val doc: Document =
-            parseFile(
-                filePath = input,
-                baseUri = "https://localhost/",
-                charsetName = null,
-            )
+        val resourceName = "htmltests/xwiki-1324.html.gz"
+        val doc: Document = if (BuildConfig.isKotlinx) {
+            val source = TestHelper.readResource(resourceName)
+            Ksoup.parse(sourceReader = source, baseUri = "https://localhost/")
+        } else {
+            Ksoup.parseFile(filePath = TestHelper.getResourceAbsolutePath(resourceName), baseUri = "https://localhost/")
+        }
         assertEquals("XWiki Jetty HSQLDB 12.1-SNAPSHOT", doc.select("#xwikiplatformversion").text())
 
         // was getting busted at =userdirectory, because it hit the bufferup point but the mark was then lost. so
@@ -112,7 +111,7 @@ class ParseTest {
         // and the parse tree is correct.
         val parser = Parser.htmlParser()
         val doc = parse(
-            syncStream = TestHelper.resourceFilePathToStream("htmltests/xwiki-edit.html.gz"),
+            sourceReader = TestHelper.resourceFilePathToStream("htmltests/xwiki-edit.html.gz"),
             baseUri = "https://localhost/",
             charsetName = "UTF-8",
             parser = parser.setTrackErrors(100),
@@ -130,8 +129,7 @@ class ParseTest {
 
     @Test
     fun testWikiExpandedFromString() = runTest {
-        val input = TestHelper.getResourceAbsolutePath("htmltests/xwiki-edit.html.gz")
-        val html = TestHelper.getFileAsString(input.uniVfs)
+        val html = TestHelper.readResourceAsString("htmltests/xwiki-edit.html.gz")
         val doc = parse(html)
         assertEquals("XWiki Jetty HSQLDB 12.1-SNAPSHOT", doc.select("#xwikiplatformversion").text())
         val wantHtml =
@@ -141,8 +139,7 @@ class ParseTest {
 
     @Test
     fun testWikiFromString() = runTest {
-        val input = TestHelper.getResourceAbsolutePath("htmltests/xwiki-1324.html.gz")
-        val html = TestHelper.getFileAsString(input.uniVfs)
+        val html = TestHelper.readResourceAsString("htmltests/xwiki-1324.html.gz")
         val doc = parse(html)
         assertEquals("XWiki Jetty HSQLDB 12.1-SNAPSHOT", doc.select("#xwikiplatformversion").text())
         val wantHtml =
@@ -152,8 +149,13 @@ class ParseTest {
 
     @Test
     fun testFileParseNoCharsetMethod() = runTest {
-        val file = TestHelper.getResourceAbsolutePath("htmltests/xwiki-1324.html.gz")
-        val doc: Document = parseFile(file)
+        val resourceName = "htmltests/xwiki-1324.html.gz"
+        val doc: Document = if (BuildConfig.isKotlinx) {
+            val source = TestHelper.readResource(resourceName)
+            Ksoup.parse(sourceReader = source, baseUri = resourceName)
+        } else {
+            Ksoup.parseFile(filePath = TestHelper.getResourceAbsolutePath(resourceName))
+        }
         assertEquals("XWiki Jetty HSQLDB 12.1-SNAPSHOT", doc.select("#xwikiplatformversion").text())
     }
 }

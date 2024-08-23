@@ -1,18 +1,16 @@
 package com.fleeksoft.ksoup.nodes
 
-import com.fleeksoft.ksoup.Platform
-import com.fleeksoft.ksoup.PlatformType
 import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.internal.StringUtil
+import com.fleeksoft.ksoup.io.Charset
 import com.fleeksoft.ksoup.parser.ParseSettings
 import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.parser.Tag
 import com.fleeksoft.ksoup.ported.KCloneable
+import com.fleeksoft.ksoup.ported.io.Charsets
 import com.fleeksoft.ksoup.select.Elements
 import com.fleeksoft.ksoup.select.Evaluator
 import com.fleeksoft.ksoup.select.Selector
-import korlibs.io.lang.Charset
-import korlibs.io.lang.Charsets
 
 /**
  * A HTML Document.
@@ -87,13 +85,12 @@ public class Document(private val namespace: String, private val location: Strin
     }
 
     /**
-     * Get this document's `head` element.
-     *
-     *
-     * As a side-effect, if this Document does not already have a HTML structure, it will be created. If you do not want
-     * that, use `#selectFirst("head")` instead.
-     *
-     * @return `head` element.
+    Get this document's {@code head} element.
+    <p>
+    As a side effect, if this Document does not already have an HTML structure, it will be created. If you do not want
+    that, use {@code #selectFirst("head")} instead.
+
+    @return {@code head} element.
      */
     public fun head(): Element {
         val html: Element = htmlEl()
@@ -106,13 +103,13 @@ public class Document(private val namespace: String, private val location: Strin
     }
 
     /**
-     * Get this document's `<body>` or `<frameset>` element.
-     *
-     *
-     * As a **side-effect**, if this Document does not already have a HTML structure, it will be created with a `<body>` element. If you do not want that, use `#selectFirst("body")` instead.
-     *
-     * @return `body` element for documents with a `<body>`, a new `<body>` element if the document
-     * had no contents, or the outermost `<frameset> element` for frameset documents.
+    Get this document's {@code <body>} or {@code <frameset>} element.
+    <p>
+    As a <b>side effect</b>, if this Document does not already have an HTML structure, it will be created with a {@code
+    <body>} element. If you do not want that, use {@code #selectFirst("body")} instead.
+
+    @return {@code body} element for documents with a {@code <body>}, a new {@code <body>} element if the document
+    had no contents, or the outermost {@code <frameset> element} for frameset documents.
      */
     public fun body(): Element {
         val html: Element = htmlEl()
@@ -196,7 +193,7 @@ public class Document(private val namespace: String, private val location: Strin
 
     /**
      * Set the text of the `body` of this document. Any existing nodes within the body will be cleared.
-     * @param text unencoded text
+     * @param text un-encoded text
      * @return this document
      */
     override fun text(text: String): Element {
@@ -357,7 +354,6 @@ public class Document(private val namespace: String, private val location: Strin
     public data class OutputSettings(
         private var escapeMode: Entities.EscapeMode = Entities.EscapeMode.base,
         private var charset: Charset = Charsets.UTF8,
-        var coreCharset: Entities.CoreCharset = Entities.CoreCharset.byName(charset.name), // fast encoders for ascii and utf8
         private var prettyPrint: Boolean = true,
         private var outline: Boolean = false,
         private var indentAmount: Int = 1,
@@ -367,19 +363,19 @@ public class Document(private val namespace: String, private val location: Strin
         /**
          * The output serialization syntax.
          */
-        public enum class Syntax {
-            html,
-            xml,
-        }
+        public enum class Syntax { html, xml }
 
         /**
-         * Get the document's current HTML escape mode: `base`, which provides a limited set of named HTML
-         * entities and escapes other characters as numbered entities for maximum compatibility; or `extended`,
-         * which uses the complete set of HTML named entities.
-         *
-         *
-         * The default escape mode is `base`.
-         * @return the document's current escape mode
+        Get the document's current entity escape mode:
+        <ul>
+        <li><code>xhtml</code>, the minimal named entities in XHTML / XML</li>
+        <li><code>base</code>, which provides a limited set of named HTML
+        entities and escapes other characters as numbered entities for maximum compatibility</li>
+        <li><code>extended</code>,
+        which uses the complete set of HTML named entities.</li>
+        </ul>
+        <p>The default escape mode is <code>base</code>.
+        @return the document's current escape mode
          */
         public fun escapeMode(): Entities.EscapeMode {
             return escapeMode
@@ -416,7 +412,6 @@ public class Document(private val namespace: String, private val location: Strin
          */
         public fun charset(charset: Charset): OutputSettings {
             this.charset = charset
-            coreCharset = Entities.CoreCharset.byName(charset.name)
             return this
         }
 
@@ -429,12 +424,12 @@ public class Document(private val namespace: String, private val location: Strin
             // FIXME: ascii not supported on some targest fallback to ISO-8859-1
             if (charset.lowercase() == "ascii" || charset.lowercase() == "us-ascii") {
                 runCatching {
-                    charset(Charset.forName(charset))
+                    charset(Charsets.forName(charset))
                 }.onFailure {
-                    charset(Charset.forName("ISO-8859-1"))
+                    charset(Charsets.forName("ISO-8859-1"))
                 }
             } else {
-                charset(Charset.forName(charset))
+                charset(Charsets.forName(charset))
             }
             return this
         }
@@ -609,7 +604,6 @@ public class Document(private val namespace: String, private val location: Strin
          */
         public fun createShell(baseUri: String): Document {
             val doc = Document(baseUri)
-            doc.parser = doc.parser()
             val html: Element = doc.appendElement("html")
             html.appendElement("head")
             html.appendElement("body")

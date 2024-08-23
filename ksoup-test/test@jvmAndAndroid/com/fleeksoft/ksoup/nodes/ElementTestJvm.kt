@@ -5,6 +5,7 @@ import org.junit.Test
 import kotlin.test.assertEquals
 
 class ElementTestJvm {
+
     //    StringBuffer adding \n in start but not when using StringBuilder
     @Test
     fun outerHtmlAppendable() {

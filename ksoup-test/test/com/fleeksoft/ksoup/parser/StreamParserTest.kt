@@ -1,34 +1,21 @@
 package com.fleeksoft.ksoup.parser
 
-import com.fleeksoft.ksoup.Platform
 import com.fleeksoft.ksoup.TestHelper
 import com.fleeksoft.ksoup.helper.DataUtil
-import com.fleeksoft.ksoup.isJS
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.nodes.Element
 import com.fleeksoft.ksoup.nodes.Node
-import com.fleeksoft.ksoup.ported.toStreamCharReader
-import com.fleeksoft.ksoup.readGzipFile
+import com.fleeksoft.ksoup.ported.io.Charsets
+import com.fleeksoft.ksoup.ported.toReader
 import com.fleeksoft.ksoup.select.Elements
-import korlibs.datastructure.fakemutable.asFakeMutable
-import korlibs.io.file.readAsSyncStream
-import korlibs.io.file.std.uniVfs
-import korlibs.io.lang.Charsets
-import korlibs.io.lang.IOException
 import kotlinx.coroutines.test.runTest
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertFalse
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
-import kotlin.test.assertSame
-import kotlin.test.assertTrue
+import kotlin.test.*
 
 /**
- * Tests for the StreamParser. There are also some tests in [org.jsoup.integration.ConnectTest].
+ * Tests for the StreamParser.
  */
 class StreamParserTest {
+
     @Test
     fun canStream() {
         val html =
@@ -174,23 +161,23 @@ class StreamParserTest {
         assertEquals("One Two", divs.text())
     }
 
-    /*    @Test
-        fun canRemoveWithIterator() {
-            val html = "<div>One</div><div>DESTROY</div><div>Two</div>"
-            val parser: StreamParser = StreamParser(Parser.htmlParser()).parse(html, "")
-            parser.parse(html, "")
-    
-            val it = parser.iterator()
-            while (it.hasNext()) {
-                val el: Element = it.next()!!
-                if (el.ownText() == "DESTROY") it.remove() // we know el.remove() works, from above test
-            }
-    
-            val doc: Document = parser.document()
-            val divs: Elements = doc.select("div")
-            assertEquals(2, divs.size)
-            assertEquals("One Two", divs.text())
-        }*/
+    @Test
+    fun canRemoveWithIterator() {
+        val html = "<div>One</div><div>DESTROY</div><div>Two</div>"
+        val parser: StreamParser = StreamParser(Parser.htmlParser()).parse(html, "")
+        parser.parse(html, "")
+
+        val it = parser.iterator()
+        while (it.hasNext()) {
+            val el: Element = it.next()!!
+            if (el.ownText() == "DESTROY") it.remove() // we know el.remove() works, from above test
+        }
+
+        val doc: Document = parser.document()
+        val divs: Elements = doc.select("div")
+        assertEquals(2, divs.size)
+        assertEquals("One Two", divs.text())
+    }
 
     @Test
     fun canSelectWithHas() {
@@ -305,12 +292,11 @@ class StreamParserTest {
     }
 
     @Test
-    fun canParseFileReader() = runTest() {
-        val file = TestHelper.getResourceAbsolutePath("htmltests/large.html.gz").uniVfs
-
-
-        val reader = readGzipFile(file).toStreamCharReader()
-        val streamer: StreamParser = StreamParser(Parser.htmlParser()).parse(reader, file.absolutePath)
+    fun canParseFileReader() = runTest {
+        val resourceName = "htmltests/large.html.gz"
+        val file = TestHelper.getResourceAbsolutePath(resourceName)
+        val reader = TestHelper.readGzipResource(resourceName).toReader()
+        val streamer: StreamParser = StreamParser(Parser.htmlParser()).parse(reader, file)
 
         var last: Element? = null
         var e: Element?
@@ -326,9 +312,9 @@ class StreamParserTest {
     @Test
     fun canParseFile() = runTest {
 
-        val file = TestHelper.getResourceAbsolutePath("htmltests/large.html.gz").uniVfs
+        val source = TestHelper.readGzipResource("htmltests/large.html.gz")
         val streamer: StreamParser =
-            DataUtil.streamParser(file = file, baseUri = "", charset = Charsets.UTF8, parser = Parser.htmlParser())
+            DataUtil.streamParser(sourceReader = source, baseUri = "", charset = Charsets.UTF8, parser = Parser.htmlParser())
 
         var last: Element? = null
         var e: Element?
@@ -345,7 +331,7 @@ class StreamParserTest {
     @Test
     fun canStreamFragment() {
         val html = "<tr id=1><td>One</td><tr id=2><td>Two</td></tr><tr id=3><td>Three</td></tr>"
-        val context: Element = Element("table")
+        val context = Element("table")
 
         StreamParser(Parser.htmlParser()).parseFragment(html, context, "").use { parser ->
             val seen = StringBuilder()
@@ -381,7 +367,6 @@ class StreamParserTest {
     }
 
     @Test
-    @Throws(IOException::class)
     fun canSelectAndCompleteFragment() {
         val html = "<tr id=1><td>One</td><tr id=2><td>Two</td></tr><tr id=3><td>Three</td></tr>"
         val context: Element = Element("table")
@@ -412,7 +397,6 @@ class StreamParserTest {
     }
 
     @Test
-    @Throws(IOException::class)
     fun canStreamFragmentXml() {
         val html = "<tr id=1><td>One</td></tr><tr id=2><td>Two</td></tr><tr id=3><td>Three</td></tr>"
         val context: Element = Element("Other")

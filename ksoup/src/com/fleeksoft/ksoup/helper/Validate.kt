@@ -1,6 +1,6 @@
 package com.fleeksoft.ksoup.helper
 
-import korlibs.util.format
+import com.fleeksoft.ksoup.ported.exception.ValidationException
 
 /**
  * Validators to check that method arguments meet expectations.
@@ -9,7 +9,7 @@ internal object Validate {
     /**
      * Validates that the object is not null
      * @param obj object to test
-     * @throws ValidationException if the object is null
+     * @throws com.fleeksoft.ksoup.ported.exception.ValidationException if the object is null
      */
     fun notNull(obj: Any?) {
         requireNotNull(obj) { "Object must not be null" }
@@ -20,9 +20,8 @@ internal object Validate {
      *
      * @param obj the parameter to test
      * @param param the name of the parameter, for presentation in the validation exception.
-     * @throws ValidationException if the object is null
+     * @throws com.fleeksoft.ksoup.ported.exception.ValidationException if the object is null
      */
-    @Throws(ValidationException::class)
     fun notNullParam(
         obj: Any?,
         param: String?,
@@ -36,7 +35,7 @@ internal object Validate {
      * Validates that the object is not null
      * @param obj object to test
      * @param msg message to include in the Exception if validation fails
-     * @throws ValidationException if the object is null
+     * @throws com.fleeksoft.ksoup.ported.exception.ValidationException if the object is null
      */
     fun notNull(
         obj: Any?,
@@ -50,7 +49,7 @@ internal object Validate {
      * null object. (Works around lack of Objects.requestNonNull in Android version.)
      * @param obj nullable object to case to not-null
      * @return the object, or throws an exception if it is null
-     * @throws ValidationException if the object is null
+     * @throws com.fleeksoft.ksoup.ported.exception.ValidationException if the object is null
      */
     fun ensureNotNull(obj: Any?): Any {
         return obj ?: throw ValidationException("Object must not be null")
@@ -61,25 +60,20 @@ internal object Validate {
      * null object. (Works around lack of Objects.requestNonNull in Android version.)
      * @param obj nullable object to case to not-null
      * @param msg the String format message to include in the validation exception when thrown
-     * @param args the arguments to the msg
      * @return the object, or throws an exception if it is null
-     * @throws ValidationException if the object is null
+     * @throws com.fleeksoft.ksoup.ported.exception.ValidationException if the object is null
      */
     fun ensureNotNull(
         obj: Any?,
-        msg: String?,
-        vararg args: Any?
+        msg: String?
     ): Any {
-        val formattedMessage = if (args.isNotEmpty()) {
-            msg?.format(args)
-        } else msg
-        return obj ?: throw ValidationException(formattedMessage)
+        return obj ?: throw ValidationException(msg)
     }
 
     /**
      * Validates that the value is true
      * @param val object to test
-     * @throws ValidationException if the object is not true
+     * @throws com.fleeksoft.ksoup.ported.exception.ValidationException if the object is not true
      */
     fun isTrue(value: Boolean) {
         if (!value) throw ValidationException("Must be true")
@@ -89,7 +83,7 @@ internal object Validate {
      * Validates that the value is true
      * @param val object to test
      * @param msg message to include in the Exception if validation fails
-     * @throws ValidationException if the object is not true
+     * @throws com.fleeksoft.ksoup.ported.exception.ValidationException if the object is not true
      */
     fun isTrue(
         value: Boolean,
@@ -101,7 +95,7 @@ internal object Validate {
     /**
      * Validates that the value is false
      * @param val object to test
-     * @throws ValidationException if the object is not false
+     * @throws com.fleeksoft.ksoup.ported.exception.ValidationException if the object is not false
      */
     fun isFalse(value: Boolean) {
         if (value) throw ValidationException("Must be false")
@@ -111,7 +105,7 @@ internal object Validate {
      * Validates that the value is false
      * @param val object to test
      * @param msg message to include in the Exception if validation fails
-     * @throws ValidationException if the object is not false
+     * @throws com.fleeksoft.ksoup.ported.exception.ValidationException if the object is not false
      */
     fun isFalse(
         value: Boolean,
@@ -123,7 +117,7 @@ internal object Validate {
     /**
      * Validates that the string is not null and is not empty
      * @param string the string to test
-     * @throws ValidationException if the string is null or empty
+     * @throws com.fleeksoft.ksoup.ported.exception.ValidationException if the string is null or empty
      */
     fun notEmpty(string: String?) {
         if (string.isNullOrEmpty()) throw ValidationException("String must not be empty")
@@ -133,7 +127,7 @@ internal object Validate {
      * Validates that the string parameter is not null and is not empty
      * @param string the string to test
      * @param param the name of the parameter, for presentation in the validation exception.
-     * @throws ValidationException if the string is null or empty
+     * @throws com.fleeksoft.ksoup.ported.exception.ValidationException if the string is null or empty
      */
     fun notEmptyParam(
         string: String?,
@@ -148,7 +142,7 @@ internal object Validate {
      * Validates that the string is not null and is not empty
      * @param string the string to test
      * @param msg message to include in the Exception if validation fails
-     * @throws ValidationException if the string is null or empty
+     * @throws com.fleeksoft.ksoup.ported.exception.ValidationException if the string is null or empty
      */
     fun notEmpty(
         string: String?,

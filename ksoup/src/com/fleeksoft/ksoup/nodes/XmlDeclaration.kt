@@ -1,25 +1,16 @@
 package com.fleeksoft.ksoup.nodes
 
-import com.fleeksoft.ksoup.SerializationException
 import com.fleeksoft.ksoup.internal.StringUtil
-import korlibs.io.lang.IOException
+import com.fleeksoft.ksoup.ported.exception.IOException
+import com.fleeksoft.ksoup.ported.exception.SerializationException
 
 /**
  * An XML Declaration.
  */
-public class XmlDeclaration(name: String, isProcessingInstruction: Boolean) : LeafNode() {
-    // todo this impl isn't really right, the data shouldn't be attributes, just a run of text after the name
-    private val isProcessingInstruction: Boolean
-
-    /**
-     * Create a new XML declaration
-     * @param name of declaration
-     * @param isProcessingInstruction is processing instruction
-     */
-    init {
-        value = name
-        this.isProcessingInstruction = isProcessingInstruction
-    }
+public class XmlDeclaration(
+    name: String,
+    private val isProcessingInstruction: Boolean // <! if true, <? if false, declaration (and last data char should be ?)
+) : LeafNode(name) {
 
     override fun nodeName(): String {
         return "#declaration"
@@ -43,7 +34,7 @@ public class XmlDeclaration(name: String, isProcessingInstruction: Boolean) : Le
         return StringUtil.releaseBuilder(sb).trim()
     }
 
-    @Throws(IOException::class)
+
     private fun getWholeDeclaration(
         accum: Appendable,
         out: Document.OutputSettings,
@@ -64,7 +55,6 @@ public class XmlDeclaration(name: String, isProcessingInstruction: Boolean) : Le
         }
     }
 
-    @Throws(IOException::class)
     override fun outerHtmlHead(
         accum: Appendable,
         depth: Int,

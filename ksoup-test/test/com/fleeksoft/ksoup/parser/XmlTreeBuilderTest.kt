@@ -3,9 +3,8 @@ package com.fleeksoft.ksoup.parser
 import com.fleeksoft.ksoup.Ksoup
 import com.fleeksoft.ksoup.TextUtil
 import com.fleeksoft.ksoup.nodes.*
-import korlibs.io.lang.Charset
-import korlibs.io.lang.Charsets
-import korlibs.io.stream.openSync
+import com.fleeksoft.ksoup.ported.io.Charsets
+import com.fleeksoft.ksoup.ported.openSourceReader
 import kotlinx.coroutines.test.runTest
 import kotlin.test.*
 
@@ -15,6 +14,7 @@ import kotlin.test.*
  * @author Sabeeh
  */
 class XmlTreeBuilderTest {
+
     @Test
     fun testSimpleXmlParse() {
         val xml = "<doc id=2 href='/bar'>Foo <br /><link>One</link><link>Two</link></doc>"
@@ -65,7 +65,7 @@ class XmlTreeBuilderTest {
         val xmlTest = """<doc><val>One<val>Two</val>Three</val></doc>"""
         val doc =
             Ksoup.parse(
-                syncStream = xmlTest.openSync(),
+                sourceReader = xmlTest.openSourceReader(),
                 baseUri = "http://foo.com",
                 charsetName = null,
                 parser = Parser.xmlParser(),
@@ -124,7 +124,7 @@ class XmlTreeBuilderTest {
             <data>äöåéü</data>
         """.trimIndent()
         val doc = Ksoup.parse(
-            syncStream = xmlCharset.openSync(charset = Charset.forName("ISO-8859-1")),
+            sourceReader = xmlCharset.openSourceReader(charset = Charsets.forName("ISO-8859-1")),
             baseUri = "http://example.com/",
             charsetName = null,
             parser = Parser.xmlParser(),
@@ -153,8 +153,7 @@ class XmlTreeBuilderTest {
 
     @Test
     fun testParseDeclarationWithoutAttributes() {
-        val xml =
-            "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<?myProcessingInstruction My Processing instruction.?>"
+        val xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<?myProcessingInstruction My Processing instruction.?>"
         val doc = Ksoup.parse(html = xml, baseUri = "", parser = Parser.xmlParser())
         val decl = doc.childNode(2) as XmlDeclaration
         assertEquals("myProcessingInstruction", decl.name())
@@ -257,10 +256,7 @@ class XmlTreeBuilderTest {
     fun handlesLTinScript() {
         val html = "<script> var a=\"<?\"; var b=\"?>\"; </script>"
         val doc = Ksoup.parse(html = html, baseUri = "", parser = Parser.xmlParser())
-        assertEquals(
-            "<script> var a=\"<!--?\"; var b=\"?-->\"; </script>",
-            doc.html(),
-        ) // converted from pseudo xmldecl to comment
+        assertEquals("<script> var a=\"<!--?\"; var b=\"?-->\"; </script>", doc.html()) // converted from pseudo xmldecl to comment
     }
 
     @Test
@@ -310,7 +306,7 @@ class XmlTreeBuilderTest {
         val doc = Ksoup.parse(xml, Parser.xmlParser())
         assertEquals(Document.OutputSettings.Syntax.xml, doc.outputSettings().syntax())
         val out = doc.html()
-        assertEquals("<body style=\"color: red\" _=\"\" name_=\"\"><div _=\"\"></div></body>", out);
+        assertEquals("<body style=\"color: red\" _=\"\" name_=\"\"><div _=\"\"></div></body>", out)
     }
 
     @Test

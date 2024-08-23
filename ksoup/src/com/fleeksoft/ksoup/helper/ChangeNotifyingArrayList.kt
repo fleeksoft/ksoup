@@ -1,6 +1,6 @@
 package com.fleeksoft.ksoup.helper
 
-import com.fleeksoft.ksoup.removeRange
+import com.fleeksoft.ksoup.ported.removeRange
 
 /**
  * Implementation of ArrayList that watches out for changes to the contents.

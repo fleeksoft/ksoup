@@ -1,18 +1,12 @@
 package com.fleeksoft.ksoup.nodes
 
 import com.fleeksoft.ksoup.Ksoup
+import com.fleeksoft.ksoup.TestHelper
 import com.fleeksoft.ksoup.TextUtil
-import com.fleeksoft.ksoup.helper.ValidationException
 import com.fleeksoft.ksoup.internal.StringUtil
+import com.fleeksoft.ksoup.ported.exception.ValidationException
 import de.cketti.codepoints.deluxe.toCodePoint
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertFalse
-import kotlin.test.assertNotEquals
-import kotlin.test.assertNotSame
-import kotlin.test.assertSame
-import kotlin.test.assertTrue
+import kotlin.test.*
 
 /**
  * Test TextNodes
@@ -20,6 +14,7 @@ import kotlin.test.assertTrue
  * @author Sabeeh, fleeksoft@gmail.com
  */
 class TextNodeTest {
+
     @Test
     fun testBlank() {
         val one = TextNode("")

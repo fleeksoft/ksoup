@@ -4,6 +4,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class DataNodeTest {
+
     @Test
     fun xmlOutputScriptWithCData() {
         val node = DataNode("//<![CDATA[\nscript && <> data]]>")

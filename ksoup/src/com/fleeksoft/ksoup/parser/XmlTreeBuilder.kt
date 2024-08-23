@@ -2,9 +2,8 @@ package com.fleeksoft.ksoup.parser
 
 import com.fleeksoft.ksoup.nodes.*
 import com.fleeksoft.ksoup.parser.Parser.Companion.NamespaceXml
-import com.fleeksoft.ksoup.ported.StreamCharReader
-import com.fleeksoft.ksoup.ported.toStreamCharReader
-import korlibs.io.stream.openSync
+import com.fleeksoft.ksoup.ported.io.Reader
+import com.fleeksoft.ksoup.ported.io.StringReader
 
 /**
  * Use the `XmlTreeBuilder` when you want to parse XML without any of the HTML DOM rules being applied to the
@@ -20,7 +19,7 @@ public open class XmlTreeBuilder : TreeBuilder() {
     }
 
     override fun initialiseParse(
-        input: StreamCharReader,
+        input: Reader,
         baseUri: String,
         parser: Parser,
     ) {
@@ -36,7 +35,7 @@ public open class XmlTreeBuilder : TreeBuilder() {
     }
 
     public fun parse(
-        input: StreamCharReader,
+        input: Reader,
         baseUri: String? = null,
     ): Document {
         return parse(input, baseUri ?: "", Parser(this))
@@ -46,7 +45,7 @@ public open class XmlTreeBuilder : TreeBuilder() {
         input: String,
         baseUri: String? = null,
     ): Document {
-        return parse(input.openSync().toStreamCharReader(), baseUri ?: "", Parser(this))
+        return parse(StringReader(input), baseUri ?: "", Parser(this))
     }
 
     override fun newInstance(): XmlTreeBuilder {

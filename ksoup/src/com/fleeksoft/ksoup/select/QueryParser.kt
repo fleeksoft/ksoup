@@ -3,9 +3,9 @@ package com.fleeksoft.ksoup.select
 import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.internal.Normalizer.normalize
 import com.fleeksoft.ksoup.internal.StringUtil
-import com.fleeksoft.ksoup.jsSupportedRegex
 import com.fleeksoft.ksoup.parser.TokenQueue
 import com.fleeksoft.ksoup.ported.assert
+import com.fleeksoft.ksoup.ported.jsSupportedRegex
 import com.fleeksoft.ksoup.select.StructuralEvaluator.ImmediateParentRun
 
 /**

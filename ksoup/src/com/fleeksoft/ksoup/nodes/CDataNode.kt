@@ -1,7 +1,5 @@
 package com.fleeksoft.ksoup.nodes
 
-import korlibs.io.lang.IOException
-
 /**
  * A Character Data node, to support CDATA sections.
  */
@@ -11,14 +9,13 @@ public class CDataNode(text: String?) : TextNode(text!!) {
     }
 
     /**
-     * Get the unencoded, **non-normalized** text content of this CDataNode.
-     * @return unencoded, non-normalized text
+     * Get the un-encoded, **non-normalized** text content of this CDataNode.
+     * @return un-encoded, non-normalized text
      */
     override fun text(): String {
         return getWholeText()
     }
 
-    @Throws(IOException::class)
     override fun outerHtmlHead(
         accum: Appendable,
         depth: Int,
@@ -29,7 +26,6 @@ public class CDataNode(text: String?) : TextNode(text!!) {
             .append(getWholeText())
     }
 
-    @Throws(IOException::class)
     override fun outerHtmlTail(
         accum: Appendable,
         depth: Int,

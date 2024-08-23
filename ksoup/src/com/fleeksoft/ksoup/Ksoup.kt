@@ -1,13 +1,14 @@
 package com.fleeksoft.ksoup
 
 import com.fleeksoft.ksoup.helper.DataUtil
+import com.fleeksoft.ksoup.io.FileSource
+import com.fleeksoft.ksoup.io.SourceReader
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parser.Parser
+import com.fleeksoft.ksoup.ported.toSourceFile
 import com.fleeksoft.ksoup.safety.Cleaner
 import com.fleeksoft.ksoup.safety.Safelist
-import korlibs.io.file.VfsFile
-import korlibs.io.file.std.uniVfs
-import korlibs.io.stream.SyncStream
+
 
 /**
  * The core public access point to the com.fleeksoft.ksoup functionality.
@@ -15,6 +16,7 @@ import korlibs.io.stream.SyncStream
  * @author Sabeeh
  */
 public object Ksoup {
+
     /**
      * Parse HTML into a Document. The parser will make a sensible, balanced document tree out of any HTML.
      *
@@ -49,6 +51,26 @@ public object Ksoup {
     }
 
     /**
+     * Read an buffer reader, and parse it to a Document. You can provide an alternate parser, such as a simple XML
+     * (non-HTML) parser.
+     *
+     * @param sourceReader buffer reader to read. Make sure to close it after parsing.
+     * @param baseUri     The URL where the HTML was retrieved from, to resolve relative links against.
+     * @param charsetName (optional) character set of file contents. Set to `null` to determine from `http-equiv` meta tag, if
+     * present, or fall back to `UTF-8` (which is often safe to do).
+     * @param parser alternate [parser][Parser.xmlParser] to use.
+     * @return sane HTML
+     */
+    public fun parse(
+        sourceReader: SourceReader,
+        baseUri: String,
+        charsetName: String? = null,
+        parser: Parser = Parser.htmlParser(),
+    ): Document {
+        return DataUtil.load(sourceReader = sourceReader, baseUri = baseUri, charsetName = charsetName, parser = parser)
+    }
+
+    /**
      * Parse the contents of a file as HTML. The location of the file is used as the base URI to qualify relative URLs.
      *
      * @param file file to load HTML from. Supports gzipped files (ending in .z or .gz).
@@ -60,13 +82,14 @@ public object Ksoup {
      * @see .parse
      */
     public suspend fun parseFile(
-        file: VfsFile,
-        baseUri: String = file.absolutePath,
+        file: FileSource,
+        baseUri: String = file.getPath(),
         charsetName: String? = null,
         parser: Parser = Parser.htmlParser()
     ): Document {
-        return DataUtil.load(file = file, baseUri = baseUri, charsetName = charsetName, parser = parser)
+        return DataUtil.load(sourceReader = file.toSourceReader(), baseUri = baseUri, charsetName = charsetName, parser = parser)
     }
+
 
     /**
      * Parse the contents of a file as HTML.
@@ -80,32 +103,13 @@ public object Ksoup {
      */
     public suspend fun parseFile(
         filePath: String,
-        baseUri: String = filePath.uniVfs.absolutePath,
+        baseUri: String = filePath,
         charsetName: String? = null,
         parser: Parser = Parser.htmlParser(),
     ): Document {
-        return DataUtil.load(filePath = filePath, baseUri = baseUri, charsetName = charsetName, parser = parser)
+        return DataUtil.load(sourceReader = filePath.toSourceFile().toSourceReader(), baseUri = baseUri, charsetName = charsetName, parser = parser)
     }
 
-    /**
-     * Read an buffer reader, and parse it to a Document. You can provide an alternate parser, such as a simple XML
-     * (non-HTML) parser.
-     *
-     * @param syncStream buffer reader to read. Make sure to close it after parsing.
-     * @param baseUri     The URL where the HTML was retrieved from, to resolve relative links against.
-     * @param charsetName (optional) character set of file contents. Set to `null` to determine from `http-equiv` meta tag, if
-     * present, or fall back to `UTF-8` (which is often safe to do).
-     * @param parser alternate [parser][Parser.xmlParser] to use.
-     * @return sane HTML
-     */
-    public fun parse(
-        syncStream: SyncStream,
-        baseUri: String,
-        charsetName: String?,
-        parser: Parser = Parser.htmlParser(),
-    ): Document {
-        return DataUtil.load(syncStream = syncStream, baseUri = baseUri, charsetName = charsetName, parser = parser)
-    }
 
     /**
      * Parse a fragment of HTML, with the assumption that it forms the `body` of the HTML.

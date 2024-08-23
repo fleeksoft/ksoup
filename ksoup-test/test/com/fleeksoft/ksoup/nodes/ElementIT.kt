@@ -1,15 +1,12 @@
 package com.fleeksoft.ksoup.nodes
 
-import com.fleeksoft.ksoup.BuildConfig
+import com.fleeksoft.ksoup.*
 import com.fleeksoft.ksoup.Ksoup.parse
-import com.fleeksoft.ksoup.Platform
-import com.fleeksoft.ksoup.System
-import com.fleeksoft.ksoup.isJS
-import com.fleeksoft.ksoup.isWasmJs
 import kotlin.test.*
 import kotlin.test.Test
 
 class ElementIT {
+
     @Test
     fun testFastReparent() {
         if (Platform.isWasmJs() && BuildConfig.isGithubActions) {
@@ -45,7 +42,7 @@ class ElementIT {
 
     @Test
     fun testFastReparentExistingContent() {
-        if (Platform.isJS() && BuildConfig.isGithubActions) {
+        if (Platform.isJsOrWasm() && BuildConfig.isGithubActions) {
 //            failing on github action
             return
         }
@@ -84,7 +81,7 @@ class ElementIT {
     // These overflow tests take a couple seconds to run, so are in the slow tests
     @Test
     fun hasTextNoOverflow() {
-        if (Platform.isJS()) {
+        if (Platform.isJsOrWasm()) {
             // FIXME: timeout error for js
             return
         }
@@ -103,7 +100,7 @@ class ElementIT {
 
     @Test
     fun dataNoOverflow() {
-        if (Platform.isJS()) {
+        if (Platform.isJsOrWasm()) {
             // FIXME: timeout error for js
             return
         }
@@ -123,7 +120,7 @@ class ElementIT {
 
     @Test
     fun parentsNoOverflow() {
-        if (Platform.isJS()) {
+        if (Platform.isJsOrWasm()) {
             // FIXME: timeout error for js
             return
         }

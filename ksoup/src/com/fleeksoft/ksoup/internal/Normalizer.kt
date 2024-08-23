@@ -3,7 +3,7 @@ package com.fleeksoft.ksoup.internal
 /**
  * Util methods for normalizing strings. Ksoup internal use only, please don't depend on this API.
  */
-internal object Normalizer {
+object Normalizer {
     /** Drops the input string to lower case.  */
     fun lowerCase(input: String?): String {
         return input?.lowercase() ?: ""

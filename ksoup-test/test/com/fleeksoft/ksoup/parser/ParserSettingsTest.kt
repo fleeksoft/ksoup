@@ -5,6 +5,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class ParserSettingsTest {
+
     @Test
     fun caseSupport() {
         // TODO: mutlilocale test may move to jvm

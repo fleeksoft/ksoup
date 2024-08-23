@@ -1,6 +1,5 @@
 package com.fleeksoft.ksoup.select
 
-import com.fleeksoft.ksoup.helper.computeIfAbsent
 import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.nodes.Element
 import com.fleeksoft.ksoup.nodes.NodeIterator
@@ -21,12 +20,12 @@ public abstract class StructuralEvaluator(public val evaluator: Evaluator) : Eva
         element: Element,
     ): Boolean {
         val rootMemo = threadMemo.get()
-        val memo: MutableMap<Element, Boolean> = rootMemo.computeIfAbsent(root) { IdentityHashMap() }
-        return memo.computeIfAbsent(element) { key -> evaluator.matches(root, key) }
+        val memo: MutableMap<Element, Boolean> = rootMemo.getOrPut(root) { IdentityHashMap() }
+        return memo.getOrPut(element) { evaluator.matches(root, element) }
     }
 
     override fun reset() {
-        threadMemo.get()?.clear()
+        threadMemo.get().clear()
         super.reset()
     }
 

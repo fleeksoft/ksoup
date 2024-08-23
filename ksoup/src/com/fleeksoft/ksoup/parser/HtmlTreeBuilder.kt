@@ -7,8 +7,8 @@ import com.fleeksoft.ksoup.nodes.*
 import com.fleeksoft.ksoup.parser.HtmlTreeBuilderState.Constants.InTableFoster
 import com.fleeksoft.ksoup.parser.HtmlTreeBuilderState.ForeignContent
 import com.fleeksoft.ksoup.parser.Parser.Companion.NamespaceHtml
-import com.fleeksoft.ksoup.ported.StreamCharReader
 import com.fleeksoft.ksoup.ported.assert
+import com.fleeksoft.ksoup.ported.io.Reader
 import kotlin.jvm.JvmOverloads
 
 /**
@@ -47,7 +47,7 @@ public open class HtmlTreeBuilder : TreeBuilder() {
     }
 
     override fun initialiseParse(
-        input: StreamCharReader,
+        input: Reader,
         baseUri: String,
         parser: Parser,
     ) {
@@ -971,10 +971,10 @@ public open class HtmlTreeBuilder : TreeBuilder() {
 
     override fun toString(): String {
         return "TreeBuilder{" +
-            "currentToken=" + currentToken +
-            ", state=" + state +
-            ", currentElement=" + currentElement() +
-            '}'
+                "currentToken=" + currentToken +
+                ", state=" + state +
+                ", currentElement=" + currentElement() +
+                '}'
     }
 
     override fun isContentForTagData(normalName: String): Boolean {
@@ -1125,9 +1125,9 @@ public open class HtmlTreeBuilder : TreeBuilder() {
             A MathML mtext element
              */
             return (
-                Parser.NamespaceMathml == el.tag().namespace() &&
-                    StringUtil.inSorted(el.normalName(), TagMathMlTextIntegration)
-                )
+                    Parser.NamespaceMathml == el.tag().namespace() &&
+                            StringUtil.inSorted(el.normalName(), TagMathMlTextIntegration)
+                    )
         }
 
         public fun isHtmlIntegration(el: Element): Boolean {
@@ -1144,10 +1144,10 @@ public open class HtmlTreeBuilder : TreeBuilder() {
                 if (encoding == "text/html" || encoding == "application/xhtml+xml") return true
             }
             return Parser.NamespaceSvg == el.tag().namespace() &&
-                StringUtil.isIn(
-                    el.tagName(),
-                    *TagSvgHtmlIntegration,
-                )
+                    StringUtil.isIn(
+                        el.tagName(),
+                        *TagSvgHtmlIntegration,
+                    )
         }
 
         private fun replaceInQueue(
@@ -1173,7 +1173,7 @@ public open class HtmlTreeBuilder : TreeBuilder() {
         ): Boolean {
             // same if: same namespace, tag, and attributes. Element.equals only checks tag, might in future check children
             return a.normalName() == b.normalName() && // a.namespace().equals(b.namespace()) &&
-                a.attributes() == b.attributes()
+                    a.attributes() == b.attributes()
             // todo: namespaces
         }
     }

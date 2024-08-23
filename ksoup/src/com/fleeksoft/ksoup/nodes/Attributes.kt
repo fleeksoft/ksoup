@@ -1,14 +1,13 @@
 package com.fleeksoft.ksoup.nodes
 
-import com.fleeksoft.ksoup.SerializationException
 import com.fleeksoft.ksoup.helper.Validate
-import com.fleeksoft.ksoup.internal.Normalizer.lowerCase
 import com.fleeksoft.ksoup.internal.SharedConstants
 import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.nodes.Range.AttributeRange.Companion.UntrackedAttr
 import com.fleeksoft.ksoup.parser.ParseSettings
 import com.fleeksoft.ksoup.ported.KCloneable
-import korlibs.io.lang.IOException
+import com.fleeksoft.ksoup.ported.exception.IOException
+import com.fleeksoft.ksoup.ported.exception.SerializationException
 
 /**
  * The attributes of an Element.
@@ -28,10 +27,8 @@ import korlibs.io.lang.IOException
 public class Attributes : Iterable<Attribute>, KCloneable<Attributes> {
     // the number of instance fields is kept as low as possible giving an object size of 24 bytes
     private var size = 0 // number of slots used (not total capacity, which is keys.length)
-    internal var keys: Array<String?> = arrayOfNulls(InitialCapacity)
-
-    // Genericish: all non-internal attribute values must be Strings and are cast on access.
-    internal var vals = arrayOfNulls<Any>(InitialCapacity)
+    internal var keys: Array<String?> = arrayOfNulls(InitialCapacity) // keys is not null, but contents may be. Same for vals
+    internal var vals = arrayOfNulls<Any>(InitialCapacity) // Genericish: all non-internal attribute values must be Strings and are cast on access.
     // todo - make keys iterable without creating Attribute objects
 
     // check there's room for more
@@ -198,7 +195,8 @@ public class Attributes : Iterable<Attribute>, KCloneable<Attributes> {
         val i = indexOfKeyIgnoreCase(key)
         if (i != NotFound) {
             vals[i] = value
-            if (keys[i] != key) {
+            val old = keys[i]
+            if (old != null && old != key) {
                 // case changed, update
                 keys[i] = key
             }
@@ -370,8 +368,9 @@ public class Attributes : Iterable<Attribute>, KCloneable<Attributes> {
             override fun hasNext(): Boolean {
                 checkModified()
                 while (i < size) {
-                    if (isInternalKey(keys[i])) {
-                        // skip over internal keys
+                    val key = keys[i]
+                    require(key != null)
+                    if (isInternalKey(key)) { // skip over internal keys
                         i++
                     } else {
                         break
@@ -410,8 +409,9 @@ public class Attributes : Iterable<Attribute>, KCloneable<Attributes> {
     public fun asList(): List<Attribute> {
         val list: ArrayList<Attribute> = ArrayList(size)
         for (i in 0 until size) {
-            if (isInternalKey(keys[i])) continue // skip internal keys
-            val attr = Attribute(keys[i]!!, vals[i] as String?, this@Attributes)
+            val key = keys[i]!!
+            if (isInternalKey(key)) continue // skip internal keys
+            val attr = Attribute(key, vals[i] as String?, this@Attributes)
             list.add(attr)
         }
         return list.toList()
@@ -433,10 +433,7 @@ public class Attributes : Iterable<Attribute>, KCloneable<Attributes> {
     public fun html(): String {
         val sb: StringBuilder = StringUtil.borrowBuilder()
         try {
-            html(
-                sb,
-                Document("").outputSettings(),
-            ) // output settings a bit funky, but this html() seldom used
+            html(sb, Document("").outputSettings()) // output settings a bit funky, but this html() seldom used
         } catch (e: IOException) {
             // ought never happen
             throw SerializationException(e)
@@ -444,22 +441,14 @@ public class Attributes : Iterable<Attribute>, KCloneable<Attributes> {
         return StringUtil.releaseBuilder(sb)
     }
 
-    @Throws(IOException::class)
-    public fun html(
-        accum: Appendable,
-        out: Document.OutputSettings,
-    ) {
+    public fun html(accum: Appendable, out: Document.OutputSettings) {
         val sz = size
         for (i in 0 until sz) {
-            if (isInternalKey(keys[i])) continue
-            val key: String? = keys[i]?.let { Attribute.getValidKey(it, out.syntax()) }
-            if (key != null) {
-                Attribute.htmlNoValidate(
-                    key,
-                    vals[i] as String?,
-                    accum.append(' '),
-                    out,
-                )
+            val key = keys[i]!!
+            if (isInternalKey(key)) continue
+            val validated = Attribute.getValidKey(key, out.syntax())
+            if (validated != null) {
+                Attribute.htmlNoValidate(validated, vals[i] as String?, accum.append(' '), out)
             }
         }
     }
@@ -514,7 +503,8 @@ public class Attributes : Iterable<Attribute>, KCloneable<Attributes> {
      */
     public fun normalize() {
         for (i in 0 until size) {
-            if (!isInternalKey(keys[i])) keys[i] = lowerCase(keys[i])
+            val key = keys[i]!!
+            if (!isInternalKey(key)) keys[i] = key.lowercase()
         }
     }
 
@@ -527,16 +517,11 @@ public class Attributes : Iterable<Attribute>, KCloneable<Attributes> {
         if (isEmpty()) return 0
         val preserve: Boolean = settings.preserveAttributeCase()
         var dupes = 0
-        OUTER@ for (i in keys.indices) {
+        for (i in 0 until size) {
+            val keyI = keys[i]
             var j = i + 1
-            while (j < keys.size) {
-                if (keys[j] == null) continue@OUTER // keys.length doesn't shrink when removing, so re-test
-                if (preserve && keys[i] == keys[j] || !preserve &&
-                    keys[i].equals(
-                        keys[j],
-                        ignoreCase = true,
-                    )
-                ) {
+            while (j < size) {
+                if ((preserve && keyI == keys[j]) || (!preserve && keyI.equals(keys[j], ignoreCase = true))) {
                     dupes++
                     remove(j)
                     j--
@@ -596,7 +581,7 @@ public class Attributes : Iterable<Attribute>, KCloneable<Attributes> {
         // we track boolean attributes as null in values - they're just keys. so returns empty for consumers
         // casts to String, so only for non-internal attributes
         public fun checkNotNull(value: Any?): String {
-            return if (value == null) EmptyString else (value as String?)!!
+            return if (value == null) EmptyString else (value as String)
         }
 
         private fun dataKey(key: String): String {
@@ -607,8 +592,8 @@ public class Attributes : Iterable<Attribute>, KCloneable<Attributes> {
             return "$InternalPrefix$key"
         }
 
-        public fun isInternalKey(key: String?): Boolean {
-            return key != null && key.length > 1 && key[0] == InternalPrefix
+        public fun isInternalKey(key: String): Boolean {
+            return key.length > 1 && key[0] == InternalPrefix
         }
     }
 }

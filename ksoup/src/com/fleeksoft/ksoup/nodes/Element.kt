@@ -4,7 +4,6 @@ import com.fleeksoft.ksoup.helper.ChangeNotifyingArrayList
 import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.internal.Normalizer.normalize
 import com.fleeksoft.ksoup.internal.StringUtil
-import com.fleeksoft.ksoup.jsSupportedRegex
 import com.fleeksoft.ksoup.nodes.TextNode.Companion.lastCharIsWhitespace
 import com.fleeksoft.ksoup.parser.ParseSettings
 import com.fleeksoft.ksoup.parser.Parser
@@ -12,9 +11,9 @@ import com.fleeksoft.ksoup.parser.Tag
 import com.fleeksoft.ksoup.parser.TokenQueue.Companion.escapeCssIdentifier
 import com.fleeksoft.ksoup.ported.AtomicBoolean
 import com.fleeksoft.ksoup.ported.Consumer
-import com.fleeksoft.ksoup.ported.PatternSyntaxException
+import com.fleeksoft.ksoup.ported.exception.PatternSyntaxException
+import com.fleeksoft.ksoup.ported.jsSupportedRegex
 import com.fleeksoft.ksoup.select.*
-import korlibs.io.lang.IOException
 import kotlin.js.JsName
 import kotlin.jvm.JvmOverloads
 import kotlin.reflect.KClass
@@ -512,7 +511,7 @@ public open class Element : Node {
     public fun expectFirst(cssQuery: String): Element {
         return Validate.ensureNotNull(
             Selector.selectFirst(cssQuery, this),
-            if (parent() != null) "No elements matched the query '$cssQuery' on element '${this.tagName()}'." else "No elements matched the query '$cssQuery' in the document.",
+            if (parent() != null) "No elements matched the query '$cssQuery' on element '${this.tagName()}'." else "No elements matched the query '$cssQuery' in the document."
         ) as Element
     }
 
@@ -1172,29 +1171,22 @@ public open class Element : Node {
      * @param pattern compiled regular expression to match against attribute values
      * @return elements that have attributes matching this regular expression
      */
-    public fun getElementsByAttributeValueMatching(
-        key: String,
-        regex: Regex,
-    ): Elements {
+    public fun getElementsByAttributeValueMatching(key: String, regex: Regex): Elements {
         return Collector.collect(Evaluator.AttributeWithValueMatching(key, regex), this)
     }
 
     /**
      * Find elements that have attributes whose values match the supplied regular expression.
      * @param key name of the attribute
-     * @param regex regular expression to match against attribute values. You can use [embedded flags](http://java.sun.com/docs/books/tutorial/essential/regex/pattern.html#embedded) (such as (?i) and (?m) to control regex options.
+     * @param regex regular expression to match against attribute values. You can use <a href="http://java.sun.com/docs/books/tutorial/essential/regex/pattern.html#embedded">embedded flags</a> (such as {@code (?i)} and {@code (?m)}) to control regex options.
      * @return elements that have attributes matching this regular expression
      */
-    public fun getElementsByAttributeValueMatching(
-        key: String,
-        regex: String,
-    ): Elements {
-        val pattern: Regex =
-            try {
-                jsSupportedRegex(regex)
-            } catch (e: PatternSyntaxException) {
-                throw IllegalArgumentException("Pattern syntax error: $regex", e)
-            }
+    public fun getElementsByAttributeValueMatching(key: String, regex: String): Elements {
+        val pattern: Regex = try {
+            jsSupportedRegex(regex)
+        } catch (e: PatternSyntaxException) {
+            throw IllegalArgumentException("Pattern syntax error: $regex", e)
+        }
         return getElementsByAttributeValueMatching(key, pattern)
     }
 
@@ -1259,9 +1251,9 @@ public open class Element : Node {
 
     /**
      * Find elements whose text matches the supplied regular expression.
-     * @param regex regular expression to match text against. You can use [embedded flags](http://java.sun.com/docs/books/tutorial/essential/regex/pattern.html#embedded) (such as (?i) and (?m) to control regex options.
+     * @param regex regular expression to match text against. You can use <a href="http://java.sun.com/docs/books/tutorial/essential/regex/pattern.html#embedded">embedded flags</a> (such as {@code (?i)} and {@code (?m)}) to control regex options.
      * @return elements matching the supplied regular expression.
-     * @see Element.text
+     * @see Element#text()
      */
     public fun getElementsMatchingText(regex: String): Elements {
         val pattern: Regex =
@@ -1285,9 +1277,9 @@ public open class Element : Node {
 
     /**
      * Find elements whose own text matches the supplied regular expression.
-     * @param regex regular expression to match text against. You can use [embedded flags](http://java.sun.com/docs/books/tutorial/essential/regex/pattern.html#embedded) (such as (?i) and (?m) to control regex options.
+     * @param regex regular expression to match text against. You can use <a href="http://java.sun.com/docs/books/tutorial/essential/regex/pattern.html#embedded">embedded flags</a> (such as {@code (?i)} and {@code (?m)}) to control regex options.
      * @return elements matching the supplied regular expression.
-     * @see Element.ownText
+     * @see Element#ownText()
      */
     public fun getElementsMatchingOwnText(regex: String): Elements {
         val pattern: Regex =
@@ -1658,7 +1650,6 @@ public open class Element : Node {
                 !preserveWhitespace(_parentNode)
     }
 
-    @Throws(IOException::class)
     override fun outerHtmlHead(
         accum: Appendable,
         depth: Int,
@@ -1688,7 +1679,6 @@ public open class Element : Node {
         }
     }
 
-    @Throws(IOException::class)
     override fun outerHtmlTail(
         accum: Appendable,
         depth: Int,
