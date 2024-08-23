@@ -41,7 +41,7 @@ Ksoup published in three variants. Pick the one that suits your needs and start 
    implementation("com.fleeksoft.ksoup:ksoup-network:<version>")
     ```
 
-2. **This variant built with [kotlinx-io](https://github.com/Kotlin/kotlinx-io) and [Ktor 2.13.12](https://github.com/ktorio/ktor)**
+2. **This variant built with [kotlinx-io](https://github.com/Kotlin/kotlinx-io) and [Ktor 2.3.12](https://github.com/ktorio/ktor)**
    ```kotlin
    implementation("com.fleeksoft.ksoup:ksoup-ktor2:<version>")
    
