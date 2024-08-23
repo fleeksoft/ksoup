@@ -153,8 +153,7 @@ class XmlTreeBuilderTest {
 
     @Test
     fun testParseDeclarationWithoutAttributes() {
-        val xml =
-            "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<?myProcessingInstruction My Processing instruction.?>"
+        val xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<?myProcessingInstruction My Processing instruction.?>"
         val doc = Ksoup.parse(html = xml, baseUri = "", parser = Parser.xmlParser())
         val decl = doc.childNode(2) as XmlDeclaration
         assertEquals("myProcessingInstruction", decl.name())
@@ -257,10 +256,7 @@ class XmlTreeBuilderTest {
     fun handlesLTinScript() {
         val html = "<script> var a=\"<?\"; var b=\"?>\"; </script>"
         val doc = Ksoup.parse(html = html, baseUri = "", parser = Parser.xmlParser())
-        assertEquals(
-            "<script> var a=\"<!--?\"; var b=\"?-->\"; </script>",
-            doc.html(),
-        ) // converted from pseudo xmldecl to comment
+        assertEquals("<script> var a=\"<!--?\"; var b=\"?-->\"; </script>", doc.html()) // converted from pseudo xmldecl to comment
     }
 
     @Test
