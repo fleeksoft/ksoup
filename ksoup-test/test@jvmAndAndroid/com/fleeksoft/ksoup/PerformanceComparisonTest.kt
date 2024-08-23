@@ -2,6 +2,7 @@ package com.fleeksoft.ksoup
 
 import com.fleeksoft.ksoup.nodes.Document
 import korlibs.io.file.std.uniVfs
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest
 import org.jsoup.Jsoup
 import kotlin.system.measureTimeMillis
@@ -11,9 +12,10 @@ import kotlin.test.Test
 class PerformanceComparisonTest {
 
     @Test
-    @Ignore
+//    @Ignore
     fun compareWithJsoup() = runTest {
 
+        delay(8000)
         if (BuildConfig.isGithubActions) {
             return@runTest
         }

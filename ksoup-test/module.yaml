@@ -13,6 +13,7 @@ repositories:
 test-dependencies:
     - ../ksoup
     - $libs.korlibs.io
+    - $libs.kotlinx.io
     - $libs.codepoints
     - $libs.kotlinx.coroutines.test
     - $libs.kotlinx.datetime

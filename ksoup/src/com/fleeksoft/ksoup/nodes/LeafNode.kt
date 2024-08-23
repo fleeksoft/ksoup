@@ -3,9 +3,17 @@ package com.fleeksoft.ksoup.nodes
 /**
 A node that does not hold any children. E.g.: {@link TextNode}, {@link DataNode}, {@link Comment}.
  */
-public abstract class LeafNode : Node() {
+public abstract class LeafNode : Node {
     // either a string value, or an attribute map (in the rare case multiple attributes are set)
     internal var value: Any? = null
+
+    constructor() {
+        value = ""
+    }
+
+    constructor(coreValue: String) {
+        value = coreValue
+    }
 
     override fun hasAttributes(): Boolean {
         return value is Attributes
@@ -18,10 +26,10 @@ public abstract class LeafNode : Node() {
 
     private fun ensureAttributes() {
         if (!hasAttributes()) {
-            val coreValue = value
+            val coreValue = value as? String
             val attributes = Attributes()
             value = attributes
-            if (coreValue != null) attributes.put(nodeName(), coreValue as String?)
+            attributes.put(nodeName(), coreValue)
         }
     }
 
@@ -70,7 +78,7 @@ public abstract class LeafNode : Node() {
     }
 
     override fun baseUri(): String {
-        return if (hasParent()) parent()!!.baseUri() else ""
+        return if (_parentNode != null) _parentNode!!.baseUri() else ""
     }
 
     protected override fun doSetBaseUri(baseUri: String?) {

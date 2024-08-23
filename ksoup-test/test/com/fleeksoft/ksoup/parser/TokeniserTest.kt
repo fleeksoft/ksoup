@@ -20,7 +20,7 @@ class TokeniserTest {
             val preamble = "<img src=$quote"
             val tail = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
             val sb = StringBuilder(preamble)
-            val charsToFillBuffer = CharacterReader.maxBufferLen - preamble.length
+            val charsToFillBuffer = CharacterReader.BufferSize - preamble.length
             for (i in 0 until charsToFillBuffer) {
                 sb.append('a')
             }
@@ -37,10 +37,10 @@ class TokeniserTest {
     @Test
     fun handleSuperLargeTagNames() {
         // unlikely, but valid. so who knows.
-        val sb = StringBuilder(CharacterReader.maxBufferLen)
+        val sb = StringBuilder(CharacterReader.BufferSize)
         do {
             sb.append("LargeTagName")
-        } while (sb.length < CharacterReader.maxBufferLen)
+        } while (sb.length < CharacterReader.BufferSize)
         val tag = sb.toString()
         val html = "<$tag>One</$tag>"
         val doc = Parser.htmlParser().settings(ParseSettings.preserveCase).parseInput(html, "")
@@ -54,10 +54,10 @@ class TokeniserTest {
 
     @Test
     fun handleSuperLargeAttributeName() {
-        val sb = StringBuilder(CharacterReader.maxBufferLen)
+        val sb = StringBuilder(CharacterReader.BufferSize)
         do {
             sb.append("LargAttributeName")
-        } while (sb.length < CharacterReader.maxBufferLen)
+        } while (sb.length < CharacterReader.BufferSize)
         val attrName = sb.toString()
         val html = "<p $attrName=foo>One</p>"
         val doc = Ksoup.parse(html)
@@ -73,10 +73,10 @@ class TokeniserTest {
 
     @Test
     fun handleLargeText() {
-        val sb = StringBuilder(CharacterReader.maxBufferLen)
+        val sb = StringBuilder(CharacterReader.BufferSize)
         do {
             sb.append("A Large Amount of Text")
-        } while (sb.length < CharacterReader.maxBufferLen)
+        } while (sb.length < CharacterReader.BufferSize)
         val text = sb.toString()
         val html = "<p>$text</p>"
         val doc = Ksoup.parse(html)
@@ -89,10 +89,10 @@ class TokeniserTest {
 
     @Test
     fun handleLargeComment() {
-        val sb = StringBuilder(CharacterReader.maxBufferLen)
+        val sb = StringBuilder(CharacterReader.BufferSize)
         do {
             sb.append("Quite a comment ")
-        } while (sb.length < CharacterReader.maxBufferLen)
+        } while (sb.length < CharacterReader.BufferSize)
         val comment = sb.toString()
         val html = "<p><!-- $comment --></p>"
         val doc = Ksoup.parse(html)
@@ -106,10 +106,10 @@ class TokeniserTest {
 
     @Test
     fun handleLargeCdata() {
-        val sb = StringBuilder(CharacterReader.maxBufferLen)
+        val sb = StringBuilder(CharacterReader.BufferSize)
         do {
             sb.append("Quite a lot of CDATA <><><><>")
-        } while (sb.length < CharacterReader.maxBufferLen)
+        } while (sb.length < CharacterReader.BufferSize)
         val cdata = sb.toString()
         val html = "<p><![CDATA[$cdata]]></p>"
         val doc = Ksoup.parse(html)
@@ -124,10 +124,10 @@ class TokeniserTest {
 
     @Test
     fun handleLargeTitle() {
-        val sb = StringBuilder(CharacterReader.maxBufferLen)
+        val sb = StringBuilder(CharacterReader.BufferSize)
         do {
             sb.append("Quite a long title")
-        } while (sb.length < CharacterReader.maxBufferLen)
+        } while (sb.length < CharacterReader.BufferSize)
         val title = sb.toString()
         val html = "<title>$title</title>"
         val doc = Ksoup.parse(html)
@@ -174,10 +174,10 @@ class TokeniserTest {
 
     @Test
     fun canParseVeryLongBogusComment() {
-        val commentData = StringBuilder(CharacterReader.maxBufferLen)
+        val commentData = StringBuilder(CharacterReader.BufferSize)
         do {
             commentData.append("blah blah blah blah ")
-        } while (commentData.length < CharacterReader.maxBufferLen)
+        } while (commentData.length < CharacterReader.BufferSize)
         val expectedCommentData = commentData.toString()
         val testMarkup = "<html><body><!$expectedCommentData></body></html>"
         val parser = Parser(HtmlTreeBuilder())
@@ -192,7 +192,7 @@ class TokeniserTest {
         val cdataStart = "<![CDATA["
         val cdataEnd = "]]>"
         val bufLen =
-            CharacterReader.maxBufferLen - cdataStart.length - 1 // also breaks with -2, but not with -3 or 0
+            CharacterReader.BufferSize - cdataStart.length - 1 // also breaks with -2, but not with -3 or 0
         val cdataContentsArray = CharArray(bufLen)
         cdataContentsArray.fill('x')
         val cdataContents = cdataContentsArray.concatToString()

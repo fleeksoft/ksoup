@@ -8,7 +8,6 @@ import com.fleeksoft.ksoup.nodes.Node
 import com.fleeksoft.ksoup.ported.io.Charsets
 import com.fleeksoft.ksoup.ported.toReader
 import com.fleeksoft.ksoup.select.Elements
-import korlibs.io.file.std.uniVfs
 import kotlinx.coroutines.test.runTest
 import kotlin.test.*
 
@@ -293,12 +292,11 @@ class StreamParserTest {
     }
 
     @Test
-    fun canParseFileReader() = runTest() {
-        val file = TestHelper.getResourceAbsolutePath("htmltests/large.html.gz").uniVfs
-
-
-        val reader = TestHelper.readGzipFile(file).toReader()
-        val streamer: StreamParser = StreamParser(Parser.htmlParser()).parse(reader, file.absolutePath)
+    fun canParseFileReader() = runTest {
+        val resourceName = "htmltests/large.html.gz"
+        val file = TestHelper.getResourceAbsolutePath(resourceName)
+        val reader = TestHelper.readGzipResource(resourceName).toReader()
+        val streamer: StreamParser = StreamParser(Parser.htmlParser()).parse(reader, file)
 
         var last: Element? = null
         var e: Element?

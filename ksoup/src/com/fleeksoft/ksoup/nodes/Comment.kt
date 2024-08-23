@@ -8,15 +8,7 @@ import com.fleeksoft.ksoup.parser.Parser
  *
  * @author Sabeeh, fleeksoft@gmail.com
  */
-public class Comment(data: String) : LeafNode() {
-    /**
-     * Create a new comment node.
-     * @param data The contents of the comment
-     */
-    init {
-        value = data
-    }
-
+public class Comment(data: String) : LeafNode(data) {
     override fun nodeName(): String {
         return "#comment"
     }
@@ -34,10 +26,10 @@ public class Comment(data: String) : LeafNode() {
         out: Document.OutputSettings,
     ) {
         if (out.prettyPrint() && (
-                isEffectivelyFirst() && _parentNode is Element &&
-                    (_parentNode as Element).tag()
-                        .formatAsBlock() || out.outline()
-            )
+                    isEffectivelyFirst() && _parentNode is Element &&
+                            (_parentNode as Element).tag()
+                                .formatAsBlock() || out.outline()
+                    )
         ) {
             indent(accum, depth, out)
         }
@@ -47,15 +39,7 @@ public class Comment(data: String) : LeafNode() {
             .append("-->")
     }
 
-    override fun outerHtmlTail(
-        accum: Appendable,
-        depth: Int,
-        out: Document.OutputSettings,
-    ) {
-    }
-
-    override fun toString(): String {
-        return outerHtml()
+    override fun outerHtmlTail(accum: Appendable, depth: Int, out: Document.OutputSettings) {
     }
 
     override fun createClone(): Node {
@@ -84,8 +68,7 @@ public class Comment(data: String) : LeafNode() {
         if (isXmlDeclarationData(declContent)) return null
         val fragment = "<$declContent>"
         // use the HTML parser not XML, so we don't get into a recursive XML Declaration on contrived data
-        val doc: Document =
-            Parser.htmlParser().settings(ParseSettings.preserveCase).parseInput(fragment, baseUri())
+        val doc: Document = Parser.htmlParser().settings(ParseSettings.preserveCase).parseInput(fragment, baseUri())
         if (doc.body().childrenSize() > 0) {
             val el: Element = doc.body().child(0)
             decl =

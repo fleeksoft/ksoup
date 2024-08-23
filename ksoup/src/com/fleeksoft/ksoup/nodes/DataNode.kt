@@ -6,10 +6,7 @@ package com.fleeksoft.ksoup.nodes
  *
  * @param data data contents
  */
-public class DataNode(data: String) : LeafNode() {
-    init {
-        value = data
-    }
+public class DataNode(data: String) : LeafNode(data) {
 
     override fun nodeName(): String {
         return "#data"
@@ -19,7 +16,7 @@ public class DataNode(data: String) : LeafNode() {
 
     /**
      * Set the data contents of this node.
-     * @param data unencoded data
+     * @param data un-encoded data
      * @return this node, for chaining
      */
     public fun setWholeData(data: String?): DataNode {
@@ -27,13 +24,9 @@ public class DataNode(data: String) : LeafNode() {
         return this
     }
 
-    public override fun outerHtmlHead(
-        accum: Appendable,
-        depth: Int,
-        out: Document.OutputSettings,
-    ) {
+    public override fun outerHtmlHead(accum: Appendable, depth: Int, out: Document.OutputSettings) {
         /* For XML output, escape the DataNode in a CData section. The data may contain pseudo-CData content if it was
-        parsed as HTML, so don't double up Cdata. Output in polygot HTML / XHTML / XML format. */
+        parsed as HTML, so don't double up Cdata. Output in polyglot HTML / XHTML / XML format. */
         val data = getWholeData()
         if (out.syntax() === Document.OutputSettings.Syntax.xml && !data.contains("<![CDATA[")) {
             if (parentNameIs("script")) {
@@ -49,15 +42,7 @@ public class DataNode(data: String) : LeafNode() {
         }
     }
 
-    override fun outerHtmlTail(
-        accum: Appendable,
-        depth: Int,
-        out: Document.OutputSettings,
-    ) {
-    }
-
-    override fun toString(): String {
-        return outerHtml()
+    override fun outerHtmlTail(accum: Appendable, depth: Int, out: Document.OutputSettings) {
     }
 
     override fun createClone(): Node {

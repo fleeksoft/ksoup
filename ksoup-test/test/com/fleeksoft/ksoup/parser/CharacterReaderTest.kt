@@ -3,15 +3,16 @@ package com.fleeksoft.ksoup.parser
 import com.fleeksoft.ksoup.BuildConfig
 import com.fleeksoft.ksoup.Platform
 import com.fleeksoft.ksoup.TestHelper
-import com.fleeksoft.ksoup.isJS
+import com.fleeksoft.ksoup.internal.StringUtil
+import com.fleeksoft.ksoup.isJsOrWasm
 import com.fleeksoft.ksoup.ported.exception.UncheckedIOException
 import com.fleeksoft.ksoup.ported.io.Charsets
 import com.fleeksoft.ksoup.ported.io.StringReader
 import com.fleeksoft.ksoup.ported.toReader
-import korlibs.io.file.std.uniVfs
 import korlibs.io.lang.substr
 import kotlinx.coroutines.test.runTest
 import kotlin.test.*
+
 
 /**
  * Test suite for character reader.
@@ -22,7 +23,7 @@ class CharacterReaderTest {
 
     @Test
     fun testUtf16BE() = runTest {
-        if (BuildConfig.isKotlinx && Platform.isJS()) {
+        if (BuildConfig.isKotlinx && Platform.isJsOrWasm()) {
 //            not supported in kotlinx for js
             return@runTest
         }
@@ -37,7 +38,7 @@ class CharacterReaderTest {
 
     @Test
     fun testUtf16LE() = runTest {
-        if (BuildConfig.isKotlinx && Platform.isJS()) {
+        if (BuildConfig.isKotlinx && Platform.isJsOrWasm()) {
 //            not supported in kotlinx for js
             return@runTest
         }
@@ -55,7 +56,7 @@ class CharacterReaderTest {
     @Test
     fun testReadMixSpecialChar() {
         val input = "ä<a>ä</a>"
-        val charReader = CharacterReader(StringReader(input), sz = 1)
+        val charReader = CharacterReader(StringReader(input))
         input.forEachIndexed { index, char ->
             assertEquals(index, charReader.pos())
             assertEquals(char, charReader.consume())
@@ -424,23 +425,24 @@ class CharacterReaderTest {
 
     @Test
     fun notEmptyAtBufferSplitPoint() {
-        val r = CharacterReader("How about now".toReader(), sz = 3)
-        assertEquals("How", r.consumeTo(' '))
-        assertFalse(r.isEmpty(), "Should not be empty")
-        assertEquals(' ', r.consume())
-        assertFalse(r.isEmpty())
-        assertEquals(4, r.pos())
-        assertEquals('a', r.consume())
-        assertEquals(5, r.pos())
-        assertEquals('b', r.consume())
-        assertEquals('o', r.consume())
-        assertEquals('u', r.consume())
-        assertEquals('t', r.consume())
-        assertEquals(' ', r.consume())
-        assertEquals('n', r.consume())
-        assertEquals('o', r.consume())
-        assertEquals('w', r.consume())
+        val len = CharacterReader.BufferSize * 12
+        val builder: StringBuilder = StringUtil.borrowBuilder()
+        while (builder.length <= len) builder.append('!')
+        val r = CharacterReader(builder.toString())
+        StringUtil.releaseBuilder(builder)
+
+
+        // consume through
+        for (pos in 0 until len) {
+            assertEquals(pos, r.pos())
+            assertFalse(r.isEmpty())
+            assertEquals('!', r.consume())
+            assertEquals(pos + 1, r.pos())
+            assertFalse(r.isEmpty())
+        }
+        assertEquals('!', r.consume())
         assertTrue(r.isEmpty())
+        assertEquals(CharacterReader.EOF, r.consume())
     }
 
     @Test
@@ -477,7 +479,7 @@ class CharacterReaderTest {
     fun canTrackNewlines() {
         val builder = StringBuilder()
         builder.append("<foo>\n<bar>\n<qux>\n")
-        while (builder.length < CharacterReader.maxBufferLen) {
+        while (builder.length < CharacterReader.BufferSize) {
             builder.append("Lorem ipsum dolor sit amet, consectetur adipiscing elit.")
         }
         builder.append("[foo]\n[bar]")
@@ -496,10 +498,10 @@ class CharacterReaderTest {
         assertEquals("1:13", noTrack.posLineCol())
         // get over the buffer
         while (!noTrack.matches("[foo]")) noTrack.consumeTo("[foo]")
-        assertEquals(32778, noTrack.pos())
+        assertEquals(2090, noTrack.pos())
         assertEquals(1, noTrack.lineNumber())
         assertEquals(noTrack.pos() + 1, noTrack.columnNumber())
-        assertEquals("1:32779", noTrack.posLineCol())
+        assertEquals("1:2091", noTrack.posLineCol())
 
         val track = CharacterReader(content)
         track.trackNewlines(true)
@@ -527,12 +529,12 @@ class CharacterReaderTest {
         assertEquals("3:6", track.posLineCol())
         // get over the buffer
         while (!track.matches("[foo]")) track.consumeTo("[foo]")
-        assertEquals(32778, track.pos())
+        assertEquals(2090, track.pos())
         assertEquals(4, track.lineNumber())
-        assertEquals(32761, track.columnNumber())
-        assertEquals("4:32761", track.posLineCol())
+        assertEquals(2073, track.columnNumber())
+        assertEquals("4:2073", track.posLineCol())
         track.consumeTo('\n')
-        assertEquals("4:32766", track.posLineCol())
+        assertEquals("4:2078", track.posLineCol())
         track.consumeTo("[bar]")
         assertEquals(5, track.lineNumber())
         assertEquals("5:1", track.posLineCol())
@@ -543,22 +545,22 @@ class CharacterReaderTest {
     @Test
     fun countsColumnsOverBufferWhenNoNewlines() {
         val builder = StringBuilder()
-        while (builder.length < CharacterReader.maxBufferLen * 4) builder.append("Lorem ipsum dolor sit amet, consectetur adipiscing elit.")
+        while (builder.length < CharacterReader.BufferSize * 4) builder.append("Lorem ipsum dolor sit amet, consectetur adipiscing elit.")
         val content = builder.toString()
         val reader = CharacterReader(content)
         reader.trackNewlines(true)
         assertEquals("1:1", reader.posLineCol())
-        while (!reader.isEmpty()) reader.consume()
-        assertEquals(131096, reader.pos())
+        val seen = StringBuilder()
+        while (!reader.isEmpty()) seen.append(reader.consume())
+        assertEquals(content, seen.toString())
+        assertEquals(content.length, reader.pos())
         assertEquals(reader.pos() + 1, reader.columnNumber())
         assertEquals(1, reader.lineNumber())
     }
 
     @Test
-    fun linenumbersAgreeWithEditor() = runTest {
-        val content: String = TestHelper.getFileAsString(
-            TestHelper.getResourceAbsolutePath("htmltests/large.html.gz").uniVfs
-        )
+    fun lineNumbersAgreeWithEditor() = runTest {
+        val content: String = TestHelper.readResourceAsString("htmltests/large.html.gz")
         val reader = CharacterReader(content)
         reader.trackNewlines(true)
         val scan = "<p>VESTIBULUM" // near the end of the file
@@ -606,7 +608,7 @@ class CharacterReaderTest {
     companion object {
         fun bufferBuster(content: String): String {
             val builder = StringBuilder()
-            while (builder.length < CharacterReader.maxBufferLen) builder.append(content)
+            while (builder.length < CharacterReader.BufferSize) builder.append(content)
             return builder.toString()
         }
     }

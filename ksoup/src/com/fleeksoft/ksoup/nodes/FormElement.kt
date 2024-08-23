@@ -7,7 +7,7 @@ import com.fleeksoft.ksoup.select.Elements
 import com.fleeksoft.ksoup.select.QueryParser
 
 /**
- * A HTML Form Element provides ready access to the form fields/controls that are associated with it. It also allows a
+ * An HTML Form Element provides ready access to the form fields/controls that are associated with it. It also allows a
  * form to easily be submitted.
  * Create a new, standalone form element.
  *
@@ -19,7 +19,7 @@ public class FormElement(tag: Tag, baseUri: String?, attributes: Attributes?) : 
     private val linkedEls: Elements = Elements()
 
     // contains form submittable elements that were linked during the parse (and due to parse rules, may no longer be a child of this form)
-    val submitable = QueryParser.parse(StringUtil.join(SharedConstants.FormSubmitTags.toList(), ", "))
+    private val submittable = QueryParser.parse(StringUtil.join(SharedConstants.FormSubmitTags.toList(), ", "))
 
     /**
      * Get the list of form control elements associated with this form.
@@ -27,7 +27,7 @@ public class FormElement(tag: Tag, baseUri: String?, attributes: Attributes?) : 
      */
     public fun elements(): Elements {
         // As elements may have been added or removed from the DOM after parse, prepare a new list that unions them:
-        val els = select(submitable) // current form children
+        val els = select(submittable) // current form children
         linkedEls.forEach { linkedEl ->
             if (linkedEl.ownerDocument() != null && !els.contains(linkedEl)) {
                 els.add(linkedEl); // adds previously linked elements, that weren't previously removed from the DOM

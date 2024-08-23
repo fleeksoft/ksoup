@@ -1114,12 +1114,12 @@ public enum class HtmlTreeBuilderState {
                     return tb.process(t, InHead)
                 } else if (name == "input") {
                     if (!(
-                            startTag.hasAttributes() &&
-                                startTag.attributes!!["type"].equals(
-                                    "hidden",
-                                    ignoreCase = true,
+                                startTag.hasAttributes() &&
+                                        startTag.attributes!!["type"].equals(
+                                            "hidden",
+                                            ignoreCase = true,
+                                        )
                                 )
-                            )
                     ) {
                         return anythingElse(t, tb)
                     } else {
@@ -1237,10 +1237,10 @@ public enum class HtmlTreeBuilderState {
                     tb.transition(InTable)
                 }
             } else if ((
-                    t.isStartTag() &&
-                        StringUtil.inSorted(t.asStartTag().retrieveNormalName(), Constants.InCellCol) ||
-                        t.isEndTag() && t.asEndTag().retrieveNormalName() == "table"
-                    )
+                        t.isStartTag() &&
+                                StringUtil.inSorted(t.asStartTag().retrieveNormalName(), Constants.InCellCol) ||
+                                t.isEndTag() && t.asEndTag().retrieveNormalName() == "table"
+                        )
             ) {
                 // same as above but processes after transition
                 if (!tb.inTableScope("caption")) { // fragment case
@@ -1946,10 +1946,10 @@ public enum class HtmlTreeBuilderState {
                         return processAsHtml(t, tb)
                     }
                     if (start.normalName.equals("font") && (
-                            start.hasAttributeIgnoreCase("color") ||
-                                start.hasAttributeIgnoreCase("face") ||
-                                start.hasAttributeIgnoreCase("size")
-                            )
+                                start.hasAttributeIgnoreCase("color") ||
+                                        start.hasAttributeIgnoreCase("face") ||
+                                        start.hasAttributeIgnoreCase("size")
+                                )
                     ) {
                         return processAsHtml(t, tb)
                     }
@@ -2012,10 +2012,7 @@ public enum class HtmlTreeBuilderState {
     },
     ;
 
-    public abstract fun process(
-        t: Token,
-        tb: HtmlTreeBuilder,
-    ): Boolean
+    public abstract fun process(t: Token, tb: HtmlTreeBuilder): Boolean
 
     // lists of tags to search through
     public object Constants {

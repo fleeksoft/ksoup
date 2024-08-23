@@ -397,7 +397,7 @@ class HtmlParserTest {
     @Test
     fun handlesCdataAcrossBuffer() {
         val sb = StringBuilder()
-        while (sb.length <= CharacterReader.maxBufferLen) {
+        while (sb.length <= CharacterReader.BufferSize) {
             sb.append("A suitable amount of CData.\n")
         }
         val cdata = sb.toString()
@@ -1290,7 +1290,7 @@ class HtmlParserTest {
     @Test
     fun testInvalidTableContents() = runTest {
         val resourceName = "htmltests/table-invalid-elements.html"
-        val doc: Document = if (BuildConfig.isKotlinx && Platform.isJS()) {
+        val doc: Document = if (BuildConfig.isKotlinx && Platform.isJsOrWasm()) {
             val source = TestHelper.readResource(resourceName)
             Ksoup.parse(sourceReader = source, baseUri = resourceName, charsetName = "UTF-8")
         } else {
@@ -1507,7 +1507,7 @@ class HtmlParserTest {
     @Test
     fun testTemplateInsideTable() = runTest {
         val resourceName = "htmltests/table-polymer-template.html"
-        val doc: Document = if (BuildConfig.isKotlinx && Platform.isJS()) {
+        val doc: Document = if (BuildConfig.isKotlinx && Platform.isJsOrWasm()) {
             val source = TestHelper.readResource(resourceName)
             Ksoup.parse(sourceReader = source, baseUri = resourceName, charsetName = "UTF-8")
         } else {
@@ -1550,7 +1550,7 @@ class HtmlParserTest {
     @Test
     fun handlesXmlDeclAndCommentsBeforeDoctype() = runTest {
         val resourceName = "htmltests/comments.html"
-        val doc: Document = if (BuildConfig.isKotlinx && Platform.isJS()) {
+        val doc: Document = if (BuildConfig.isKotlinx && Platform.isJsOrWasm()) {
             val source = TestHelper.readResource(resourceName)
             Ksoup.parse(sourceReader = source, baseUri = resourceName, charsetName = "UTF-8")
         } else {

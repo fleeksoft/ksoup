@@ -1,5 +1,6 @@
 package com.fleeksoft.ksoup.parser
 
+import com.fleeksoft.ksoup.internal.SoftPool
 import com.fleeksoft.ksoup.ported.buildString
 import com.fleeksoft.ksoup.ported.exception.IOException
 import com.fleeksoft.ksoup.ported.exception.UncheckedIOException
@@ -12,80 +13,99 @@ import kotlin.math.min
  * CharacterReader consumes tokens off a string. Used internally by com.fleeksoft.ksoup. API subject to changes.
  */
 public class CharacterReader {
-    private var charBuf: CharArray?
-    private var charReader: Reader? = null
-    private var bufLength = 0
-    private var bufSplitPoint = 0
-    private var bufPos = 0
-    private var readerPos: Int = 0
-    private var bufMark = -1
-    private var close: Boolean = false
-    private var stringCache: Array<String?>? = arrayOfNulls(stringCacheSize) // holds reused strings in this doc, to lessen garbage
+    private var stringCache: Array<String?>? = null // holds reused strings in this doc, to lessen garbage
 
-    // optionally track the pos() position of newlines - scans during bufferUp()
-    private var newlinePositions: ArrayList<Int>? = null
+    private var reader: Reader? = null      // underlying Reader, will be backed by a buffered+controlled input source, or StringReader
+    private var charBuf: CharArray?         // character buffer we consume from; filled from Reader
+    private var bufPos = 0                  // position in charBuf that's been consumed to
+    private var bufLength = 0               // the num of characters actually buffered in charBuf, <= charBuf.length
+    private var fillPoint = 0               // how far into the charBuf we read before re-filling. 0.5 of charBuf.length after bufferUp
+    private var consumed: Int = 0           // how many characters total have been consumed from this CharacterReader (less the current bufPos)
+    private var bufMark = -1                // if not -1, the marked rewind position
+    private var readFully = false           // if the underlying stream has been completely read, no value in further buffering
+
+    private var newlinePositions: ArrayList<Int>? = null // optionally track the pos() position of newlines - scans during bufferUp()
     private var lineNumberOffset = 1 // line numbers start at 1; += newlinePosition[indexof(pos)]
-    var counter = 1
 
-    public constructor(reader: Reader, sz: Int = maxBufferLen) {
-        this.charReader = reader
-        charBuf = CharArray(min(sz, maxBufferLen))
+    public constructor(reader: Reader) {
+        this.reader = reader
+        charBuf = BufferPool.borrow()
+        stringCache = StringPool.borrow()
         bufferUp()
     }
 
-    public constructor(html: String) : this(StringReader(html), html.length)
+    public constructor(html: String) : this(StringReader(html))
 
-    public fun isClosed(): Boolean = close
+    public fun isClosed(): Boolean = reader == null
 
     public fun close() {
-        close = true
         try {
-            charReader = null
+            reader?.close()
         } catch (ignored: IOException) {
         } finally {
+            reader = null
+            charBuf?.fill(0.toChar()) // before release, clear the buffer. Not required, but acts as a safety net, and makes debug view clearer
+            charBuf?.let { BufferPool.release(it) }
             charBuf = null
+            stringCache?.let { StringPool.release(it) } // conversely, we don't clear the string cache, so we can reuse the contents
             stringCache = null
         }
     }
 
-    // if the underlying stream has been completely read, no value in further buffering
-    private var readFully = false
-
     private fun bufferUp() {
-        if (readFully || bufPos < bufSplitPoint) return
+        if (readFully || bufPos < fillPoint || bufMark != -1) return
 
-        val (pos, offset) = if (bufMark != -1) {
-            Pair(bufMark.toLong(), bufPos - bufMark)
-        } else {
-            Pair(bufPos.toLong(), 0)
+        doBufferUp() // structured so bufferUp may become an intrinsic candidate
+    }
+
+    private fun doBufferUp() {
+        /*
+        The flow:
+        - if read fully, or if bufPos < fillPoint, or if marked - do not fill.
+        - update readerPos (total amount consumed from this CharacterReader) += bufPos
+        - shift charBuf contents such that bufPos = 0; set next read offset (bufLength) -= shift amount
+        - loop read the Reader until we fill charBuf. bufLength += read.
+        - readFully = true when read = -1
+         */
+        consumed += bufPos
+        bufLength -= bufPos
+        if (bufLength > 0) charBuf?.copyInto(destination = charBuf!!, destinationOffset = 0, startIndex = bufPos, endIndex = bufPos + bufLength)
+        bufPos = 0
+        while (bufLength < BufferSize) {
+            try {
+                val read = reader!!.read(cbuf = charBuf!!, offset = bufLength, length = charBuf!!.size - bufLength)
+                if (read == -1) {
+                    readFully = true
+                    break
+                }
+                bufLength += read
+            } catch (e: IOException) {
+                throw UncheckedIOException(e)
+            }
         }
-
-        if (pos > 0) {
-            charReader!!.skip(pos)
-        }
-
-        charReader!!.mark(maxBufferLen)
-        var read: Int = 0
-        while (read <= minReadAheadLen) {
-            val toReadSize = charBuf!!.size - read
-            val thisRead = charReader!!.read(charBuf!!, offset = read, length = toReadSize)
-
-            if (thisRead == -1) readFully = true
-            if (thisRead <= 0) break
-            read += thisRead
-        }
-        charReader!!.reset()
-
-        if (read > 0) {
-            bufLength = read
-            readerPos += pos.toInt()
-            bufPos = offset
-            if (bufMark != -1) bufMark = 0
-            bufSplitPoint = minOf(bufLength, readAheadLimit)
-        }
+        fillPoint = min(bufLength, RefillPoint)
 
         scanBufferForNewlines() // if enabled, we index newline positions for line number tracking
         lastIcSeq = null // cache for last containsIgnoreCase(seq)
+    }
+
+    fun mark() {
+        // make sure there is enough look ahead capacity
+        if (bufLength - bufPos < RewindLimit) fillPoint = 0
+
+        bufferUp()
+        bufMark = bufPos
+    }
+
+    fun unmark() {
+        bufMark = -1
+    }
+
+    fun rewindToMark() {
+        if (bufMark == -1) throw UncheckedIOException(IOException("Mark invalid"))
+
+        bufPos = bufMark
+        unmark()
     }
 
     /**
@@ -93,7 +113,7 @@ public class CharacterReader {
      * @return current position
      */
     public fun pos(): Int {
-        return readerPos + bufPos
+        return consumed + bufPos
     }
 
     /** Tests if the buffer has been fully read.  */
@@ -110,7 +130,7 @@ public class CharacterReader {
      */
     public fun trackNewlines(track: Boolean) {
         if (track && newlinePositions == null) {
-            newlinePositions = ArrayList<Int>(maxBufferLen / 80) // rough guess of likely count
+            newlinePositions = ArrayList<Int>(BufferSize / 80) // rough guess of likely count
             scanBufferForNewlines() // first pass when enabled; subsequently called during bufferUp
         } else if (!track) {
             newlinePositions = null
@@ -173,9 +193,9 @@ public class CharacterReader {
      */
     private fun scanBufferForNewlines() {
         if (!isTrackNewlines()) return
-        if (newlinePositions!!.size > 0) {
+        if (newlinePositions!!.isNotEmpty()) {
             // work out the line number that we have read up to (as we have likely scanned past this point)
-            var index = lineNumIndex(readerPos)
+            var index = lineNumIndex(consumed)
             if (index == -1) index = 0 // first line
             val linePos: Int = newlinePositions!![index]
             lineNumberOffset += index // the num lines we've read up to
@@ -183,7 +203,7 @@ public class CharacterReader {
             newlinePositions!!.add(linePos) // roll the last read pos to first, for cursor num after buffer
         }
         for (i in bufPos until bufLength) {
-            if (charBuf!![i] == '\n') newlinePositions!!.add(1 + readerPos + i)
+            if (charBuf!![i] == '\n') newlinePositions!!.add(1 + consumed + i)
         }
     }
 
@@ -227,23 +247,6 @@ public class CharacterReader {
      */
     public fun advance() {
         bufPos++
-    }
-
-    public fun mark() {
-        // make sure there is enough look ahead capacity
-        if (bufLength - bufPos < minReadAheadLen) bufSplitPoint = 0
-        bufferUp()
-        bufMark = bufPos
-    }
-
-    public fun unmark() {
-        bufMark = -1
-    }
-
-    public fun rewindToMark() {
-        if (bufMark == -1) throw UncheckedIOException(IOException("Mark invalid"))
-        bufPos = bufMark
-        unmark()
     }
 
     /**
@@ -642,13 +645,14 @@ public class CharacterReader {
 
     public companion object {
         public const val EOF: Char = (-1).toChar()
-        private const val maxStringCacheLen = 12
-        public const val maxBufferLen: Int = 1024 * 32 // visible for testing
-        public const val readAheadLimit: Int = (maxBufferLen * 0.75).toInt() // visible for testing
+        private const val MaxStringCacheLen = 12
+        private const val StringCacheSize = 512
+        private val StringPool: SoftPool<Array<String?>> = SoftPool { arrayOfNulls(StringCacheSize) }
+        private val BufferPool: SoftPool<CharArray> = SoftPool { CharArray(BufferSize) } // recycled char buffer
 
-        // the minimum mark length supported. No HTML entities can be larger than this.
-        private const val minReadAheadLen = 1024
-        private const val stringCacheSize = 512
+        public const val BufferSize: Int = 1024 * 2 // visible for testing
+        public const val RefillPoint: Int = BufferSize / 2 // when bufPos characters read, refill; visible for testing;
+        private const val RewindLimit = 1024 // the maximum we can rewind. No HTML entities can be larger than this.
 
         /**
          * Caches short strings, as a flyweight pattern, to reduce GC load. Just for this doc, to prevent leaks.
@@ -664,18 +668,19 @@ public class CharacterReader {
             start: Int,
             count: Int,
         ): String {
-            // limit (no cache):
-            if (count > maxStringCacheLen) return String.buildString(charBuf!!, start, count)
+            // don't cache strings that are too big
+            if (count > MaxStringCacheLen) return String.buildString(charBuf!!, start, count)
             if (count < 1) return ""
 
             // calculate hash:
             var hash = 0
-            for (i in 0 until count) {
-                hash = 31 * hash + charBuf!![start + i].code
+            val end = count + start
+            for (i in start until end) {
+                hash = 31 * hash + charBuf!![i].code
             }
 
             // get from cache
-            val index = hash and stringCacheSize - 1
+            val index = hash and StringCacheSize - 1
             var cached = stringCache!![index]
             if (cached != null && rangeEquals(charBuf, start, count, cached)) {
                 // positive hit

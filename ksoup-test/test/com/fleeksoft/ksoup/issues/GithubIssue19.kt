@@ -14,7 +14,7 @@ class GithubIssue19 {
 
     @Test
     fun testAttributeIncorrectMixCharsetIssue() = runTest {
-        if (Platform.isJS()) {
+        if (Platform.isJsOrWasm()) {
 //            timeout issue
             return@runTest
         }

@@ -1,65 +1,71 @@
 package com.fleeksoft.ksoup
 
-import com.fleeksoft.ksoup.io.FileSource
 import com.fleeksoft.ksoup.io.SourceReader
 import com.fleeksoft.ksoup.ported.openSourceReader
 import korlibs.io.compression.deflate.GZIP
 import korlibs.io.compression.uncompress
-import korlibs.io.file.VfsFile
-import korlibs.io.file.fullName
-import korlibs.io.file.readAsSyncStream
 import korlibs.io.file.std.uniVfs
-import korlibs.io.stream.readAll
+import kotlinx.io.buffered
+import kotlinx.io.files.Path
+import kotlinx.io.files.SystemFileSystem
+import kotlinx.io.readByteArray
 
 object TestHelper {
 
-    suspend fun readGzipResource(file: String): SourceReader {
-        return readGzipFile(getResourceAbsolutePath(file).uniVfs)
+    suspend fun readGzipResource(resource: String): SourceReader {
+        return readGzipFile(resource)
     }
 
-    suspend fun readResource(file: String): SourceReader {
-        if (file.endsWith(".gz") || file.endsWith(".z")) {
-            return readGzipResource(file)
+    suspend fun readResource(resource: String): SourceReader {
+        if (resource.endsWith(".gz") || resource.endsWith(".z")) {
+            return readGzipResource(resource)
         }
-        return readFile(getResourceAbsolutePath(file).uniVfs)
+        return readFile(resource)
     }
 
-    fun getResourceAbsolutePath(resourceName: String): String {
-        if (Platform.isWindows()) {
+    fun getResourceAbsolutePath(resourceName: String, absForWindows: Boolean = true): String {
+        if (Platform.isWindows() && !BuildConfig.isKotlinx && absForWindows) {
             return "../../../../testResources/$resourceName"
-        } else if (Platform.isJS()) {
+        } else if (Platform.isJsOrWasm()) {
             return "https://raw.githubusercontent.com/fleeksoft/ksoup/release/ksoup-test/testResources/$resourceName"
         }
         return "${BuildConfig.PROJECT_ROOT}/ksoup-test/testResources/$resourceName"
     }
 
-    suspend fun getFileAsString(file: VfsFile): String {
-        val bytes: ByteArray = if (file.fullName.endsWith(".gz")) {
-            readGzipFile(file).readAllBytes()
+    suspend fun readResourceAsString(resourceName: String): String {
+        val bytes: ByteArray = if (resourceName.endsWith(".gz")) {
+            readGzipFile(resourceName).readAllBytes()
         } else {
-            readFile(file).readAllBytes()
+            readFile(resourceName).readAllBytes()
         }
         return bytes.decodeToString()
     }
 
-    suspend fun resourceFilePathToStream(path: String): SourceReader {
-        val file = this.getResourceAbsolutePath(path).uniVfs
-        return pathToStream(file)
-    }
-
-    suspend fun pathToStream(file: VfsFile): SourceReader {
-        return if (file.fullName.endsWith(".gz") || file.fullName.endsWith(".z")) {
-            readGzipFile(file)
+    suspend fun resourceFilePathToStream(resource: String): SourceReader {
+        return if (resource.endsWith(".gz") || resource.endsWith(".z")) {
+            readGzipFile(resource)
         } else {
-            readFile(file)
+            readFile(resource)
         }
     }
 
-    suspend fun readFile(file: VfsFile): SourceReader {
-        return file.readAll().openSourceReader()
+    private suspend fun readFile(resource: String): SourceReader {
+        val abs = getResourceAbsolutePath(resource, absForWindows = false)
+        val bytes = if (Platform.isJsOrWasm()) {
+            abs.uniVfs.readAll()
+        } else {
+            SystemFileSystem.source(Path(abs)).buffered().readByteArray()
+        }
+        return bytes.openSourceReader()
     }
 
-    suspend fun readGzipFile(file: VfsFile): SourceReader {
-        return file.readAsSyncStream().readAll().uncompress(GZIP).openSourceReader()
+    private suspend fun readGzipFile(resource: String): SourceReader {
+        val abs = getResourceAbsolutePath(resource, absForWindows = false)
+        val bytes = if (Platform.isJsOrWasm()) {
+            abs.uniVfs.readAll()
+        } else {
+            SystemFileSystem.source(Path(abs)).buffered().readByteArray()
+        }
+        return bytes.uncompress(GZIP).openSourceReader()
     }
 }

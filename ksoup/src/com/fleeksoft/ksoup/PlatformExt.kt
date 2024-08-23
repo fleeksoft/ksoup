@@ -10,7 +10,7 @@ public fun Platform.isJvmOrAndroid(): Boolean = this.current == PlatformType.JVM
 
 public fun Platform.isJvm(): Boolean = this.current == PlatformType.JVM
 
-public fun Platform.isJS(): Boolean = this.current == PlatformType.JS || this.current == PlatformType.WASM_JS
+public fun Platform.isJsOrWasm(): Boolean = this.current == PlatformType.JS || this.current == PlatformType.WASM_JS
 
 public fun Platform.isWasmJs(): Boolean = this.current == PlatformType.WASM_JS
 
