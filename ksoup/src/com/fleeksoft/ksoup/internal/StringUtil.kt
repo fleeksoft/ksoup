@@ -1,7 +1,6 @@
 package com.fleeksoft.ksoup.internal
 
 import com.fleeksoft.ksoup.ported.Character
-import com.fleeksoft.ksoup.ported.ThreadLocal
 import com.fleeksoft.ksoup.ported.resolveOrNull
 import de.cketti.codepoints.deluxe.CodePoint
 import de.cketti.codepoints.deluxe.appendCodePoint
@@ -241,7 +240,9 @@ public object StringUtil {
         return input.replace(controlChars, "")
     }
 
-    private val stringLocalBuilders: ThreadLocal<ArrayDeque<StringBuilder>> = ThreadLocal { ArrayDeque() }
+    private const val InitBuilderSize: Int = 1024
+    private const val MaxBuilderSize: Int = 8 * 1024
+    private val StringBuilderPool: SoftPool<StringBuilder> = SoftPool { StringBuilder(InitBuilderSize) }
 
     /**
      * Maintains cached StringBuilders in a flyweight pattern, to minimize new StringBuilder GCs. The StringBuilder is
@@ -252,9 +253,7 @@ public object StringUtil {
      * @return an empty StringBuilder
      */
     public fun borrowBuilder(): StringBuilder {
-        return StringBuilder(MaxCachedBuilderSize)
-        val stringBuilder = stringLocalBuilders.get()
-        return if (stringBuilder.isEmpty()) StringBuilder(MaxCachedBuilderSize) else stringBuilder.last()
+        return StringBuilderPool.borrow()
     }
 
     /**
@@ -263,28 +262,17 @@ public object StringUtil {
      * @param sb the StringBuilder to release.
      * @return the string value of the released String Builder (as an incentive to release it!).
      */
-
-    // TODO: replace this
     public fun releaseBuilder(sb: StringBuilder): String {
-        return sb.toString()
+        val str = sb.toString()
 
-        var stringBuilder: StringBuilder = sb
-        val string: String = stringBuilder.toString()
-        if (stringBuilder.length > MaxCachedBuilderSize) {
-            stringBuilder = StringBuilder(MaxCachedBuilderSize) // make sure it hasn't grown too big
-        } else {
-            stringBuilder.clear() // make sure it's emptied on release
+        // if it hasn't grown too big, reset it and return it to the pool:
+        if (sb.length <= MaxBuilderSize) {
+            sb.clear() // make sure it's emptied on release
+            StringBuilderPool.release(sb)
         }
-        val builders = stringLocalBuilders.get()
-        builders.add(stringBuilder)
-        while (builders.size > MaxIdleBuilders) {
-            builders.removeLast()
-        }
-        return string
+
+        return str
     }
-
-    private const val MaxCachedBuilderSize = 8 * 1024
-    private const val MaxIdleBuilders = 8
 
     /**
      * A StringJoiner allows incremental / filtered joining of a set of stringable objects.

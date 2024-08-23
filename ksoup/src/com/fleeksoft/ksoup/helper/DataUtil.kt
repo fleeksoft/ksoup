@@ -1,11 +1,9 @@
 package com.fleeksoft.ksoup.helper
 
-import com.fleeksoft.ksoup.Platform
 import com.fleeksoft.ksoup.internal.SharedConstants
 import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.io.Charset
 import com.fleeksoft.ksoup.io.SourceReader
-import com.fleeksoft.ksoup.isApple
 import com.fleeksoft.ksoup.nodes.Comment
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.nodes.Node
@@ -17,7 +15,6 @@ import com.fleeksoft.ksoup.ported.exception.UncheckedIOException
 import com.fleeksoft.ksoup.ported.io.*
 import com.fleeksoft.ksoup.ported.isCharsetSupported
 import com.fleeksoft.ksoup.select.Elements
-import kotlin.math.min
 import kotlin.random.Random
 
 /**
@@ -67,7 +64,6 @@ public object DataUtil {
         val charsetName: String? = charset?.name
         val charsetDoc: CharsetDoc = detectCharset(sourceReader, baseUri, charsetName, parser)
         val reader = BufferedReader(InputSourceReader(source = charsetDoc.input, charset = charsetDoc.charset), SharedConstants.DefaultBufferSize)
-        maybeSkipBom(reader, charsetDoc)
         streamer.parse(reader, baseUri) // initializes the parse and the document, but does not step() it
 
         return streamer
@@ -77,7 +73,7 @@ public object DataUtil {
         val doc: Document
         var charsetDoc: CharsetDoc? = null
         try {
-            charsetDoc = detectCharset(sourceReader = sourceReader, baseUri = baseUri, charsetName = charsetName, parser = parser)
+            charsetDoc = detectCharset(inputSource = sourceReader, baseUri = baseUri, charsetName = charsetName, parser = parser)
             doc = parseInputSource(charsetDoc = charsetDoc, baseUri = baseUri, parser = parser)
         } finally {
             sourceReader.close()
@@ -90,36 +86,33 @@ public object DataUtil {
         val charset: Charset,
         var doc: Document?,
         val input: SourceReader,
-        val skip: Boolean
     )
 
 
-    private fun detectCharset(sourceReader: SourceReader, baseUri: String, charsetName: String?, parser: Parser): CharsetDoc {
+    private fun detectCharset(inputSource: SourceReader, baseUri: String, charsetName: String?, parser: Parser): CharsetDoc {
         var effectiveCharsetName: String? = charsetName
 
         var doc: Document? = null
 
-        // read the start of the stream and look for a BOM or meta charset
-
-        sourceReader.mark(SharedConstants.DefaultBufferSize.toLong())
-        // -1 because we read one more to see if completed. First read is < buffer size, so can't be invalid.
-        val firstBytes: ByteArray = readToByteBuffer(sourceReader, firstReadBufferSize - 1)
-        val fullyRead = sourceReader.exhausted()
-        sourceReader.reset()
-
-
+        // read the start of the stream and look for a BOM or meta charset:
         // look for BOM - overrides any other header or input
-        val bomCharset: BomCharset? = detectCharsetFromBom(firstBytes)
-        if (bomCharset != null) effectiveCharsetName = bomCharset.charset
+        val bomCharset = detectCharsetFromBom(inputSource) // resets / consumes appropriately
+        if (bomCharset != null) effectiveCharsetName = bomCharset
 
-        if (effectiveCharsetName == null) { // determine from meta. safe first parse as UTF-8
-            doc = try {
-                parser.parseInput(firstBytes.decodeToString(), baseUri)
+        if (effectiveCharsetName == null) { // read ahead and determine from meta. safe first parse as UTF-8
+            // @TODO:// implement it limit the max reading size
+//            input.max(firstReadBufferSize)
+            inputSource.mark(firstReadBufferSize)
+            try {
+                val reader = InputSourceReader(source = inputSource, charset = Charsets.UTF8)
+                doc = parser.parseInput(reader, baseUri)
+                inputSource.reset()
+//                input.max(origMax); // reset for a full read if required // @TODO implement it
             } catch (e: UncheckedIOException) {
                 throw e
             }
             // look for <meta http-equiv="Content-Type" content="text/html;charset=gb2312"> or HTML5 <meta charset="gb2312">
-            val metaElements: Elements = doc!!.select("meta[http-equiv=content-type], meta[charset]")
+            val metaElements: Elements = doc.select("meta[http-equiv=content-type], meta[charset]")
             var foundCharset: String? = null // if not found, will keep utf-8 as best attempt
             for (meta in metaElements) {
                 if (meta.hasAttr("http-equiv")) {
@@ -150,7 +143,9 @@ public object DataUtil {
                 foundCharset = foundCharset.trim { it <= ' ' }.replace("[\"']".toRegex(), "")
                 effectiveCharsetName = foundCharset
                 doc = null
-            } else if (!fullyRead) {
+            } else if (inputSource.exhausted()) { // if we have read fully, and the charset was correct, keep that current parse
+                inputSource.close()
+            } else {
                 doc = null
             }
         } else { // specified by content type header (or by user on file load)
@@ -163,14 +158,10 @@ public object DataUtil {
         // finally: prepare the return struct
         if (effectiveCharsetName == null) effectiveCharsetName = defaultCharsetName
         val charset: Charset = if (effectiveCharsetName == defaultCharsetName) Charsets.UTF8 else Charsets.forName(effectiveCharsetName)
-        val skip = bomCharset != null && bomCharset.offset // skip 1 if the BOM is there and needs offset
-        // if consumer needs to parse the input; prep it if there's a BOM. Can't skip in inputstream as wrapping buffer will ignore the pos
-        return CharsetDoc(charset, doc, sourceReader, skip)
+        return CharsetDoc(charset = charset, doc = doc, input = inputSource)
     }
 
     public fun parseInputSource(charsetDoc: CharsetDoc, baseUri: String, parser: Parser): Document {
-
-
         // if doc != null it was fully parsed during charset detection; so just return that
         if (charsetDoc.doc != null) return charsetDoc.doc!!
 
@@ -178,8 +169,7 @@ public object DataUtil {
         val doc: Document
         val charset: Charset = charsetDoc.charset
 
-        val reader = BufferedReader(InputSourceReader(input, charset), SharedConstants.DefaultBufferSize)
-        maybeSkipBom(reader, charsetDoc)
+        val reader = InputSourceReader(input, charset)
         try {
             doc = parser.parseInput(reader, baseUri)
         } catch (e: UncheckedIOException) {
@@ -232,7 +222,6 @@ public object DataUtil {
         return null
     }
 
-    //    @Nullable
     private fun validateCharset(cs: String?): String? {
         if (cs.isNullOrEmpty()) return null
         val cleanedStr = cs.trim { it <= ' ' }.replace("[\"']".toRegex(), "")
@@ -259,34 +248,29 @@ public object DataUtil {
         return StringUtil.releaseBuilder(mime)
     }
 
-    private fun detectCharsetFromBom(firstByteArray: ByteArray): BomCharset? {
-        // .mark and rewind used to return Buffer, now ByteBuffer, so cast for backward compat
-        val bom = if (firstByteArray.size >= 4) {
-            firstByteArray.copyOf(4)
-        } else {
-            ByteArray(4)
-        }
+    private fun detectCharsetFromBom(sourceReader: SourceReader): String? {
+        val bom = ByteArray(4)
+        sourceReader.mark(bom.size.toLong())
+        sourceReader.read(bom, 0, bom.size)
+        sourceReader.reset()
 
+        // 16 and 32 decoders consume the BOM to determine be/le; utf-8 should be consumed here
         if (bom[0].toInt() == 0x00 && bom[1].toInt() == 0x00 && bom[2] == 0xFE.toByte() && bom[3] == 0xFF.toByte()) { // BE
-            return BomCharset("UTF-32BE", Platform.isApple()) // and I hope it's on your system
+            sourceReader.read(bom, 0, 4) // consume BOM
+            return "UTF-32BE" // and I hope it's on your system
         } else if (bom[0] == 0xFF.toByte() && bom[1] == 0xFE.toByte() && bom[2].toInt() == 0x00 && bom[3].toInt() == 0x00) { // LE
-            return BomCharset("UTF-32LE", Platform.isApple()) // and I hope it's on your system
+            sourceReader.read(bom, 0, 4) // consume BOM
+            return "UTF-32LE" // and I hope it's on your system
         } else if (bom[0] == 0xFE.toByte() && bom[1] == 0xFF.toByte()) { // BE
-            return BomCharset("UTF-16BE", true) // in all Javas
+            sourceReader.read(bom, 0, 2) // consume BOM
+            return "UTF-16BE" // in all Javas
         } else if (bom[0] == 0xFF.toByte() && bom[1] == 0xFE.toByte()) { // LE
-            return BomCharset("UTF-16LE", true) // in all Javas
+            sourceReader.read(bom, 0, 2) // consume BOM
+            return "UTF-16LE" // in all Javas
         } else if (bom[0] == 0xEF.toByte() && bom[1] == 0xBB.toByte() && bom[2] == 0xBF.toByte()) {
-            return BomCharset("UTF-8", true) // in all Javas
-            // 16 and 32 decoders consume the BOM to determine be/le; utf-8 should be consumed here
+            sourceReader.read(bom, 0, 3) // consume the UTF-8 BOM
+            return "UTF-8"
         }
         return null
-    }
-
-    private class BomCharset(val charset: String, val offset: Boolean)
-
-    private fun maybeSkipBom(reader: Reader, charsetDoc: CharsetDoc) {
-        if (charsetDoc.skip) {
-            reader.skip(1)
-        }
     }
 }
