@@ -5,8 +5,8 @@ product:
 dependencies:
   - $compose.foundation: exported
   - $compose.material3: exported
-  - ../../ksoup-korlibs
-  - ../../ksoup-network-korlibs
+  - ../../ksoup
+  - ../../ksoup-network
 
 dependencies@android:
   # Compose integration with Android activities

@@ -6,7 +6,6 @@ import com.fleeksoft.ksoup.Ksoup.parseFile
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.ported.openSourceReader
-import korlibs.io.file.std.uniVfs
 import kotlinx.coroutines.test.runTest
 import kotlin.test.*
 
@@ -130,8 +129,7 @@ class ParseTest {
 
     @Test
     fun testWikiExpandedFromString() = runTest {
-        val input = TestHelper.getResourceAbsolutePath("htmltests/xwiki-edit.html.gz")
-        val html = TestHelper.getFileAsString(input.uniVfs)
+        val html = TestHelper.readResourceAsString("htmltests/xwiki-edit.html.gz")
         val doc = parse(html)
         assertEquals("XWiki Jetty HSQLDB 12.1-SNAPSHOT", doc.select("#xwikiplatformversion").text())
         val wantHtml =
@@ -141,8 +139,7 @@ class ParseTest {
 
     @Test
     fun testWikiFromString() = runTest {
-        val input = TestHelper.getResourceAbsolutePath("htmltests/xwiki-1324.html.gz")
-        val html = TestHelper.getFileAsString(input.uniVfs)
+        val html = TestHelper.readResourceAsString("htmltests/xwiki-1324.html.gz")
         val doc = parse(html)
         assertEquals("XWiki Jetty HSQLDB 12.1-SNAPSHOT", doc.select("#xwikiplatformversion").text())
         val wantHtml =

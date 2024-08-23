@@ -8,7 +8,6 @@ import com.fleeksoft.ksoup.ported.io.Charsets
 import com.fleeksoft.ksoup.ported.openSourceReader
 import com.fleeksoft.ksoup.ported.toByteArray
 import com.fleeksoft.ksoup.ported.toSourceFile
-import korlibs.io.file.std.uniVfs
 import kotlinx.coroutines.test.runTest
 import kotlin.test.*
 
@@ -339,9 +338,10 @@ class DataUtilTest {
 //            kotlinx module not support gzip
             return@runTest
         }
-        val resourceFile = TestHelper.getResourceAbsolutePath("htmltests/large.html.gz")
+        val resourceName = "htmltests/large.html.gz"
+        val resourceFile = TestHelper.getResourceAbsolutePath(resourceName)
         val inputFile = resourceFile.toSourceFile()
-        val input: String = TestHelper.getFileAsString(resourceFile.uniVfs)
+        val input: String = TestHelper.readResourceAsString(resourceName)
 
         val expected = Ksoup.parse(input, "https://example.com")
         val doc: Document = Ksoup.parseFile(inputFile, baseUri = "https://example.com", charsetName = null)
@@ -352,8 +352,7 @@ class DataUtilTest {
 
     @Test
     fun testStringVsSourceReaderParse() = runTest {
-        val resourceFile = TestHelper.getResourceAbsolutePath("htmltests/large.html.gz")
-        val input: String = TestHelper.getFileAsString(resourceFile.uniVfs)
+        val input: String = TestHelper.readResourceAsString("htmltests/large.html.gz")
 
         val expected = Ksoup.parse(input, "https://example.com")
         val doc: Document = Ksoup.parse(sourceReader = input.openSourceReader(), baseUri = "https://example.com", charsetName = null)
@@ -363,8 +362,7 @@ class DataUtilTest {
 
     @Test
     fun handlesUnlimitedRead() = runTest {
-        val inputFile: String = TestHelper.getResourceAbsolutePath("htmltests/large.html.gz")
-        val input: String = TestHelper.getFileAsString(inputFile.uniVfs)
+        val input: String = TestHelper.readResourceAsString("htmltests/large.html.gz")
         val byteBuffer: ByteArray = DataUtil.readToByteBuffer(input.openSourceReader(), 0)
         val read = byteBuffer.decodeToString()
         assertEquals(input, read)

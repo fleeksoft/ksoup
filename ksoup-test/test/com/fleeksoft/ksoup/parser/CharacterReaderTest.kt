@@ -9,7 +9,6 @@ import com.fleeksoft.ksoup.ported.exception.UncheckedIOException
 import com.fleeksoft.ksoup.ported.io.Charsets
 import com.fleeksoft.ksoup.ported.io.StringReader
 import com.fleeksoft.ksoup.ported.toReader
-import korlibs.io.file.std.uniVfs
 import korlibs.io.lang.substr
 import kotlinx.coroutines.test.runTest
 import kotlin.test.*
@@ -561,9 +560,7 @@ class CharacterReaderTest {
 
     @Test
     fun lineNumbersAgreeWithEditor() = runTest {
-        val content: String = TestHelper.getFileAsString(
-            TestHelper.getResourceAbsolutePath("htmltests/large.html.gz").uniVfs
-        )
+        val content: String = TestHelper.readResourceAsString("htmltests/large.html.gz")
         val reader = CharacterReader(content)
         reader.trackNewlines(true)
         val scan = "<p>VESTIBULUM" // near the end of the file
