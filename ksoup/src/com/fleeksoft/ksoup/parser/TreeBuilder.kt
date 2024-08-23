@@ -51,9 +51,9 @@ public abstract class TreeBuilder {
         settings = parser.settings()
         reader = CharacterReader(input)
         trackSourceRange = parser.isTrackPosition
-        reader.trackNewlines(
-            parser.isTrackErrors() || trackSourceRange,
-        ) // when tracking errors or source ranges, enable newline tracking for better legibility
+
+        // when tracking errors or source ranges, enable newline tracking for better legibility
+        reader.trackNewlines(parser.isTrackErrors() || trackSourceRange)
         tokeniser = Tokeniser(this)
         _stack = ArrayList(32)
         seenTags = HashMap()
@@ -115,7 +115,7 @@ public abstract class TreeBuilder {
 
     fun stepParser(): Boolean {
         // if we have reached the end already, step by popping off the stack, to hit nodeRemoved callbacks:
-        if (currentToken?.type === Token.TokenType.EOF) {
+        if (currentToken?.type == Token.TokenType.EOF) {
             if (_stack == null) {
                 return false
             } else if (_stack?.isEmpty() == true) {
@@ -326,8 +326,7 @@ public abstract class TreeBuilder {
             }
         }
 
-        val startPosition: Range.Position =
-            Range.Position(startPos, reader.lineNumber(startPos), reader.columnNumber(startPos))
+        val startPosition: Range.Position = Range.Position(startPos, reader.lineNumber(startPos), reader.columnNumber(startPos))
         val endPosition: Range.Position = Range.Position(endPos, reader.lineNumber(endPos), reader.columnNumber(endPos))
         val range = Range(startPosition, endPosition)
         node.attributes().userData(if (isStart) SharedConstants.RangeKey else SharedConstants.EndRangeKey, range)

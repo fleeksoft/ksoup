@@ -8,10 +8,7 @@ import com.fleeksoft.ksoup.nodes.DocumentType
 public enum class TokeniserState {
     Data {
         // in data state, gather characters until a character reference or tag is found
-        override fun read(
-            t: Tokeniser,
-            r: CharacterReader,
-        ) {
+        override fun read(t: Tokeniser, r: CharacterReader) {
             when (r.current()) {
                 '&' -> t.advanceTransition(CharacterReferenceInData)
                 '<' -> t.advanceTransition(TagOpen)
@@ -1796,8 +1793,8 @@ public enum class TokeniserState {
             '>',
             '`',
         )
-        private const val replacementChar: Char = Tokeniser.replacementChar
-        private const val replacementStr: String = Tokeniser.replacementChar.toString()
+        private const val replacementChar: Char = Tokeniser.ReplacementChar
+        private const val replacementStr: String = Tokeniser.ReplacementChar.toString()
         private const val eof: Char = CharacterReader.EOF
 
         /**

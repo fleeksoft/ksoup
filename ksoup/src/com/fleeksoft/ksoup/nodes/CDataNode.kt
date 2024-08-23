@@ -9,8 +9,8 @@ public class CDataNode(text: String?) : TextNode(text!!) {
     }
 
     /**
-     * Get the unencoded, **non-normalized** text content of this CDataNode.
-     * @return unencoded, non-normalized text
+     * Get the un-encoded, **non-normalized** text content of this CDataNode.
+     * @return un-encoded, non-normalized text
      */
     override fun text(): String {
         return getWholeText()

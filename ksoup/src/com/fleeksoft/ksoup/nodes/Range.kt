@@ -1,6 +1,7 @@
 package com.fleeksoft.ksoup.nodes
 
 import com.fleeksoft.ksoup.internal.SharedConstants
+import com.fleeksoft.ksoup.internal.StringUtil
 
 /**
  * A Range object tracks the character positions in the original input source where a Node starts or ends. If you want to
@@ -134,7 +135,11 @@ public data class Range(private val start: Position, private val end: Position) 
          * `line,column:pos-line,column:pos=line,column:pos-line,column:pos` (name start - name end = val start - val end).
          * .  */
         override fun toString(): String {
-            return "${nameRange()}=${valueRange()}"
+            val sb = StringUtil.borrowBuilder()
+                .append(nameRange)
+                .append('=')
+                .append(valueRange)
+            return StringUtil.releaseBuilder(sb)
         }
 
         public companion object {

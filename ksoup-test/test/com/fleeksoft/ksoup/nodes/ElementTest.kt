@@ -2760,21 +2760,21 @@ Three
         assertEquals("2one", els[1].attr("href"))
     }
 
+    private fun checkRegexExceptionFunc(func: () -> Unit) {
+        if (Platform.isJsOrWasm()) {
+            val ex: Throwable = assertFails { func() }
+            val checkStr = if (Platform.isWasmJs()) "Invalid hexadecimal escape sequence near index" else "Invalid regular expression: /\\x/gu"
+            assertContains(ex.message ?: "", checkStr, ignoreCase = true)
+        } else {
+            val ex: Throwable = assertFailsWith<IllegalArgumentException> { func() }
+            assertContains(ex.message ?: "", "hexadecimal escape sequence near index", ignoreCase = true)
+        }
+    }
+
     @Test
     fun getElementsByAttributeValueMatchingValidation() {
         val doc = Ksoup.parse(reference)
-        if (Platform.isJS()) {
-            val ex: Throwable = assertFails { doc.getElementsByAttributeValueMatching("key", "\\x") }
-            assertContains(ex.message ?: "", "Invalid regular expression: /\\x/gu", ignoreCase = true)
-        } else {
-            val ex: Throwable = assertFailsWith<IllegalArgumentException> { doc.getElementsByAttributeValueMatching("key", "\\x") }
-            assertContains(ex.message ?: "", "hexadecimal escape sequence near index", ignoreCase = true)
-        }
-        /*if (Platform.isApple() || Platform.isWindows()) {
-            assertEquals("Invalid hexadecimal escape sequence near index: 0\n\\x\n^", ex.message)
-        } else {
-            assertEquals("Illegal hexadecimal escape sequence near index 2\n\\x", ex.message)
-        }*/
+        checkRegexExceptionFunc { doc.getElementsByAttributeValueMatching("key", "\\x") }
     }
 
     @Test
@@ -2807,18 +2807,7 @@ Three
     fun getElementsMatchingTextValidation() {
         val doc = Ksoup.parse(reference)
 
-        if (Platform.isJS()) {
-            val ex: Throwable = assertFails { doc.getElementsMatchingText("\\x") }
-            assertContains(ex.message ?: "", "Invalid regular expression: /\\x/gu", ignoreCase = true)
-        } else {
-            val ex: Throwable = assertFailsWith<IllegalArgumentException> { doc.getElementsMatchingText("\\x") }
-            assertContains(ex.message ?: "", "hexadecimal escape sequence near index", ignoreCase = true)
-        }
-        /*if (Platform.isApple() || Platform.isWindows()) {
-            assertEquals("Invalid hexadecimal escape sequence near index: 0\n\\x\n^", ex.message)
-        } else {
-            assertEquals("Illegal hexadecimal escape sequence near index 2\n\\x", ex.message)
-        }*/
+        checkRegexExceptionFunc { doc.getElementsMatchingText("\\x") }
     }
 
     @Test
@@ -2841,24 +2830,12 @@ Three
     @Test
     fun getElementsMatchingOwnTextValidation() {
         val doc = Ksoup.parse(reference)
-        if (Platform.isJS()) {
-            val ex: Throwable = assertFails { doc.getElementsMatchingOwnText("\\x") }
-            assertContains(ex.message ?: "", "Invalid regular expression: /\\x/gu", ignoreCase = true)
-        } else {
-            val ex: Throwable = assertFailsWith<IllegalArgumentException> { doc.getElementsMatchingOwnText("\\x") }
-            assertContains(ex.message ?: "", "hexadecimal escape sequence near index", ignoreCase = true)
-        }
-        /*if (Platform.isApple() || Platform.isWindows()) {
-            assertEquals("Invalid hexadecimal escape sequence near index: 0\n\\x\n^", ex.message)
-        } else {
-            assertEquals("Illegal hexadecimal escape sequence near index 2\n\\x", ex.message)
-        }*/
+        checkRegexExceptionFunc { doc.getElementsMatchingOwnText("\\x") }
     }
 
     @Test
     fun hasText() {
-        val doc =
-            Ksoup.parse("<div id=1><p><i>One</i></p></div><div id=2>Two</div><div id=3><script>data</script> </div>")
+        val doc = Ksoup.parse("<div id=1><p><i>One</i></p></div><div id=2>Two</div><div id=3><script>data</script> </div>")
         assertTrue(doc.getElementById("1")!!.hasText())
         assertTrue(doc.getElementById("2")!!.hasText())
         assertFalse(doc.getElementById("3")!!.hasText())

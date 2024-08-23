@@ -242,7 +242,7 @@ public abstract class Token private constructor(public var type: TokenType) {
         // these appenders are rarely hit in not null state-- caused by null chars.
         public fun appendTagName(append: String) {
             // might have null chars - need to replace with null replacement character
-            val replacedAppend = append.replace(TokeniserState.nullChar, Tokeniser.replacementChar)
+            val replacedAppend = append.replace(TokeniserState.nullChar, Tokeniser.ReplacementChar)
             tagName = if (tagName == null) replacedAppend else tagName + replacedAppend
             normalName = ParseSettings.normalName(tagName)
         }
@@ -257,7 +257,7 @@ public abstract class Token private constructor(public var type: TokenType) {
             endPos: Int,
         ) {
             // might have null chars because we eat in one pass - need to replace with null replacement character
-            val resultAppend = append.replace(TokeniserState.nullChar, Tokeniser.replacementChar)
+            val resultAppend = append.replace(TokeniserState.nullChar, Tokeniser.ReplacementChar)
 
             ensureAttrName(startPos, endPos)
             if (attrNameSb.isEmpty()) {

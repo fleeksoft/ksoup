@@ -50,10 +50,7 @@ public class Parser {
         isTrackPosition = copy.isTrackPosition
     }
 
-    public fun parseInput(
-        input: String,
-        baseUri: String,
-    ): Document {
+    public fun parseInput(input: String, baseUri: String): Document {
         return treeBuilder.parse(StringReader(input), baseUri, this)
     }
 
