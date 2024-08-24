@@ -1,10 +1,14 @@
+@file:OptIn(InternalAPI::class)
+
 package com.fleeksoft.ksoup.network
 
 import com.fleeksoft.ksoup.Ksoup
+import com.fleeksoft.ksoup.io.SourceReaderImpl
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parser.Parser
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
+import io.ktor.utils.io.*
 
 /**
  * Use to fetch and parse a HTML page.
@@ -25,8 +29,8 @@ public suspend fun Ksoup.parseGetRequest(
     val httpResponse = NetworkHelperKtor.instance.get(url, httpRequestBuilder = httpRequestBuilder)
 //        url can be changed after redirection
     val finalUrl = httpResponse.request.url.toString()
-    val response = httpResponse.bodyAsText()
-    return parse(html = response, parser = parser, baseUri = finalUrl)
+    val sourceReader = SourceReaderImpl(httpResponse.bodyAsChannel().readBuffer)
+    return parse(sourceReader = sourceReader, parser = parser, baseUri = finalUrl)
 }
 
 /**
@@ -54,8 +58,8 @@ public suspend fun Ksoup.parseSubmitRequest(
         )
 //            url can be changed after redirection
     val finalUrl = httpResponse.request.url.toString()
-    val result: String = httpResponse.bodyAsText()
-    return parse(html = result, parser = parser, baseUri = finalUrl)
+    val sourceReader = SourceReaderImpl(httpResponse.bodyAsChannel().readBuffer)
+    return parse(sourceReader = sourceReader, parser = parser, baseUri = finalUrl)
 }
 
 /**
@@ -74,13 +78,12 @@ public suspend fun Ksoup.parsePostRequest(
     httpRequestBuilder: HttpRequestBuilder.() -> Unit = {},
     parser: Parser = Parser.htmlParser(),
 ): Document {
-    val httpResponse =
-        NetworkHelperKtor.instance.post(
+    val httpResponse = NetworkHelperKtor.instance.post(
             url = url,
             httpRequestBuilder = httpRequestBuilder,
         )
 //            url can be changed after redirection
     val finalUrl = httpResponse.request.url.toString()
-    val result: String = httpResponse.bodyAsText()
-    return parse(html = result, parser = parser, baseUri = finalUrl)
+    val sourceReader = SourceReaderImpl(httpResponse.bodyAsChannel().readBuffer)
+    return parse(sourceReader = sourceReader, parser = parser, baseUri = finalUrl)
 }
