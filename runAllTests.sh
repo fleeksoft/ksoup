@@ -15,10 +15,10 @@ run_tests() {
     ./gradlew jsTest wasmTest -PisKorlibs=$isKorlibs
 }
 
-# Run tests for isKorlibs=false
-run_tests false
-
 # Run tests for isKorlibs=true
 run_tests true
+
+# Run tests for isKorlibs=false
+run_tests false
 
 echo "All tests run successfully!"

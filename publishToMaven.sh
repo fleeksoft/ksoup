@@ -11,11 +11,11 @@ set -e
 ./gradlew :ksoup-engine-korlibs:publishAllPublicationsToMavenCentralRepository -PisKorlibs=true
 
 ./gradlew clean
-./gradlew :ksoup:publishAllPublicationsToMavenCentralRepository -PisKorlibs=false
-./gradlew :ksoup-network:publishAllPublicationsToMavenCentralRepository -PisKorlibs=false
-
-./gradlew clean
 ./gradlew :ksoup:publishAllPublicationsToMavenCentralRepository -PisKorlibs=true
 ./gradlew :ksoup-network-korlibs:publishAllPublicationsToMavenCentralRepository -PisKorlibs=true
+
+./gradlew clean
+./gradlew :ksoup-network:publishAllPublicationsToMavenCentralRepository -PisKorlibs=false
+./gradlew :ksoup:publishAllPublicationsToMavenCentralRepository -PisKorlibs=false
 
 echo "Publishing completed successfully."
