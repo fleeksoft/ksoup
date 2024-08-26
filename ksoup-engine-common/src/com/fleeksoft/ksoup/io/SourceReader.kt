@@ -20,6 +20,4 @@ interface SourceReader {
     public fun close()
 
     public fun readAtMostTo(sink: KByteBuffer, byteCount: Int): Int
-
-    public fun peek(): SourceReader
 }

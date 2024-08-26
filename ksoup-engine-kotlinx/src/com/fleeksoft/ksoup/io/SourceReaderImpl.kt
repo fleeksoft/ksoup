@@ -1,13 +1,8 @@
-@file:OptIn(InternalIoApi::class)
-
 package com.fleeksoft.ksoup.io
 
-import io.ktor.utils.io.core.*
 import kotlinx.io.Buffer
-import kotlinx.io.InternalIoApi
 import kotlinx.io.Source
 import kotlinx.io.readByteArray
-import kotlin.math.min
 
 class SourceReaderImpl : SourceReader {
     private val source: Source
@@ -76,9 +71,5 @@ class SourceReaderImpl : SourceReader {
         val bytes = readBytes(byteCount)
         sink.writeBytes(bytes, bytes.size)
         return bytes.size
-    }
-
-    override fun peek(): SourceReader {
-        return SourceReaderImpl(source().peek())
     }
 }

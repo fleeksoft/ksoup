@@ -61,8 +61,4 @@ class SourceReaderImpl : SourceReader {
         return bytes.size
     }
 
-    override fun peek(): SourceReader {
-        return SourceReaderImpl(syncStream.clone())
-    }
-
 }
