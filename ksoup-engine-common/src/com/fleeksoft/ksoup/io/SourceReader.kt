@@ -9,8 +9,6 @@ interface SourceReader {
 
     public fun readBytes(count: Int): ByteArray
 
-    public fun read(): Byte
-
     public fun read(bytes: ByteArray, offset: Int = 0, length: Int = bytes.size): Int
 
     public fun readAllBytes(): ByteArray

@@ -47,10 +47,6 @@ class SourceReaderImpl : SourceReader {
         }
     }
 
-    override fun read(): Byte {
-        return source().readByte()
-    }
-
     override fun read(bytes: ByteArray, offset: Int, length: Int): Int {
         return source().readAtMostTo(bytes, offset, endIndex = offset + length)
     }

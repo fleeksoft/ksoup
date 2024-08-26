@@ -31,10 +31,6 @@ class SourceReaderImpl : SourceReader {
         return syncStream.readBytes(count)
     }
 
-    override fun read(): Byte {
-        return syncStream.read().toByte()
-    }
-
     override fun read(bytes: ByteArray, offset: Int, length: Int): Int {
         return syncStream.read(bytes, offset, length)
     }
