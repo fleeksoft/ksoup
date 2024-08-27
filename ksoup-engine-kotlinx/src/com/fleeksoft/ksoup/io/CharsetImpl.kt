@@ -41,7 +41,7 @@ class CharsetImpl(override val name: String) : Charset {
         }
 
         val decodedBytes = if (isUtf8) {
-            stringBuilder.append(byteArray.slice(start until toDecodeSize).toByteArray().decodeToString())
+            stringBuilder.append(byteArray.sliceArray(start until toDecodeSize).decodeToString())
             toDecodeSize - start
         } else {
             val buffer = Buffer().apply { write(byteArray, start, toDecodeSize) }
