@@ -12,10 +12,9 @@ import kotlin.test.Test
 class PerformanceComparisonTest {
 
     @Test
-//    @Ignore
+    @Ignore
     fun compareWithJsoup() = runTest {
 
-        delay(8000)
         if (BuildConfig.isGithubActions) {
             return@runTest
         }
