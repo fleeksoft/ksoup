@@ -10,18 +10,21 @@ pluginManagement {
 }
 
 plugins {
-    id("org.jetbrains.amper.settings.plugin").version("0.5.0-dev-966")
+    id("org.jetbrains.amper.settings.plugin").version("0.5.0-dev-973")
 }
 
-val isKorlibs = settings.providers.gradleProperty("isKorlibs").get().toBoolean()
+val libBuildType = settings.providers.gradleProperty("libBuildType").get()
 
-include("ksoup")
 include("ksoup-engine-common")
-if (isKorlibs) {
+if (libBuildType == "korlibs" || libBuildType == "dev") {
     include("ksoup-engine-korlibs", "ksoup-network-korlibs")
-} else {
+}
+
+if (libBuildType == "kotlinx" || libBuildType == "dev") {
+    println("add engine kotlinx")
     include("ksoup-engine-kotlinx", "ksoup-network")
 }
+include("ksoup")
 include("ksoup-test")
 //include("sample:shared", "sample:desktop")
 //include("sample:android", "sample:ios")

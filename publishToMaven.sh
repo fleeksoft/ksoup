@@ -6,16 +6,16 @@ set -e
 ./gradlew clean
 ./gradlew :ksoup-engine-common:publishAllPublicationsToMavenCentralRepository
 ./gradlew clean
-./gradlew :ksoup-engine-kotlinx:publishAllPublicationsToMavenCentralRepository -PisKorlibs=false
+./gradlew :ksoup-engine-kotlinx:publishAllPublicationsToMavenCentralRepository -PlibBuildType=kotlinx
 ./gradlew clean
-./gradlew :ksoup-engine-korlibs:publishAllPublicationsToMavenCentralRepository -PisKorlibs=true
+./gradlew :ksoup-engine-korlibs:publishAllPublicationsToMavenCentralRepository -PlibBuildType=korlibs
 
 ./gradlew clean
-./gradlew :ksoup:publishAllPublicationsToMavenCentralRepository -PisKorlibs=true
-./gradlew :ksoup-network-korlibs:publishAllPublicationsToMavenCentralRepository -PisKorlibs=true
+./gradlew :ksoup:publishAllPublicationsToMavenCentralRepository -PlibBuildType=korlibs
+./gradlew :ksoup-network-korlibs:publishAllPublicationsToMavenCentralRepository -PlibBuildType=korlibs
 
 ./gradlew clean
-./gradlew :ksoup-network:publishAllPublicationsToMavenCentralRepository -PisKorlibs=false
-./gradlew :ksoup:publishAllPublicationsToMavenCentralRepository -PisKorlibs=false
+./gradlew :ksoup-network:publishAllPublicationsToMavenCentralRepository -PlibBuildType=kotlinx
+./gradlew :ksoup:publishAllPublicationsToMavenCentralRepository -PlibBuildType=kotlinx
 
 echo "Publishing completed successfully."

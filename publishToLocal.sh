@@ -9,11 +9,11 @@ set -e
 ./gradlew :ksoup-engine-korlibs:publishToMavenLocal
 
 ./gradlew clean
-./gradlew :ksoup:publishToMavenLocal -PisKorlibs=false
-./gradlew :ksoup-network:publishToMavenLocal -PisKorlibs=false
+./gradlew :ksoup:publishToMavenLocal -PlibBuildType=kotlinx
+./gradlew :ksoup-network:publishToMavenLocal -PlibBuildType=kotlinx
 
 ./gradlew clean
-./gradlew :ksoup:publishToMavenLocal -PisKorlibs=true
-./gradlew :ksoup-network-korlibs:publishToMavenLocal -PisKorlibs=true
+./gradlew :ksoup:publishToMavenLocal -PlibBuildType=korlibs
+./gradlew :ksoup-network-korlibs:publishToMavenLocal -PlibBuildType=korlibs
 
 echo "Publishing completed successfully."
