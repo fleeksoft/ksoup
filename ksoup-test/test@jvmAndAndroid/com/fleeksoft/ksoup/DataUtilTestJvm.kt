@@ -12,6 +12,7 @@ import java.nio.file.Path
 import java.util.zip.GZIPInputStream
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 
@@ -83,7 +84,8 @@ class DataUtilTestJvm {
         val inputStream = FileInputStream(TestHelper.getResourceAbsolutePath("htmltests/lowercase-charset-test.html"))
         val doc: Document = Ksoup.parseInputStream(inputStream = inputStream, baseUri = "", charsetName = null)
         val form = doc.select("#form").first()
-        assertEquals(2, form!!.children().size)
+        assertNotNull(form)
+        assertEquals(2, form.children().size)
         assertEquals("UTF-8", doc.outputSettings().charset().name.uppercase())
     }
 

@@ -9,10 +9,7 @@ object KsoupEngineImpl : KsoupEngine {
         return URL.resolveOrNull(base = base, access = relUrl)
     }
 
-    override fun openSourceReader(
-        content: String,
-        charset: Charset?
-    ): SourceReader {
+    override fun openSourceReader(content: String, charset: Charset?): SourceReader {
         return SourceReaderImpl(charset?.toByteArray(content) ?: content.encodeToByteArray())
     }
 

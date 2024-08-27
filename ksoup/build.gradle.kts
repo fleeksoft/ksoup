@@ -6,13 +6,13 @@ plugins {
 group = "com.fleeksoft.ksoup"
 version = libs.versions.libraryVersion.get()
 
-val isKorlibs = project.findProperty("isKorlibs")?.toString()?.toBoolean() ?: false
-println("ksoup: isKorlibsDeb: $isKorlibs")
+val libBuildType = project.findProperty("libBuildType")?.toString()
 kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                if (isKorlibs) {
+                println("libBuildType: $libBuildType")
+                if (libBuildType == "korlibs") {
                     api(project(":ksoup-engine-korlibs"))
                 } else {
                     api(project(":ksoup-engine-kotlinx"))
@@ -22,7 +22,7 @@ kotlin {
     }
 }
 
-val artifactId = if (isKorlibs) "ksoup-korlibs" else "ksoup"
+val artifactId = if (libBuildType == "korlibs") "ksoup-korlibs" else "ksoup"
 mavenPublishing {
     coordinates("com.fleeksoft.ksoup", artifactId, libs.versions.libraryVersion.get())
     pom {

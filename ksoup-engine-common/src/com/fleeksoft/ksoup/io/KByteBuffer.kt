@@ -37,13 +37,26 @@ class KByteBuffer(capacity: Int) {
         return readAvailable <= 0
     }
 
+    fun skip(n: Int) {
+        position = min(position + n, buffer.size)
+    }
+
+    fun clone(): KByteBuffer {
+        return KByteBuffer(buffer.size).apply {
+            position = this@KByteBuffer.position
+            readAvailable = this@KByteBuffer.readAvailable
+            offset = this@KByteBuffer.offset
+            this@KByteBuffer.buffer.copyInto(buffer)
+        }
+    }
+
     fun readText(charset: Charset, maxBytes: Int): String {
         val endIndex = min(position + maxBytes, position + readAvailable)
 
         val byteArray = if (position == 0 && endIndex == buffer.size) {
             buffer
         } else {
-            buffer.slice(position until endIndex).toByteArray()
+            buffer.sliceArray(position until endIndex)
         }
 
         val stringBuilder = StringBuilder()
@@ -60,7 +73,30 @@ class KByteBuffer(capacity: Int) {
         return string
     }
 
-    fun writeBytes(byteArray: ByteArray, length: Int) {
+    fun readBytes(count: Int): ByteArray {
+        val byteArray = buffer.sliceArray(position until min(position + count, position + readAvailable))
+        position += byteArray.size
+        readAvailable -= byteArray.size
+        return byteArray
+    }
+
+    fun readAll(): ByteArray {
+        return buffer.sliceArray(position until position + readAvailable).also {
+            position += readAvailable
+            readAvailable = 0
+        }
+    }
+
+    fun writeByte(byte: Byte) {
+        buffer[position++] = byte
+        readAvailable++
+        offset++
+        if (offset >= buffer.size) {
+            offset = 0
+        }
+    }
+
+    fun writeBytes(byteArray: ByteArray, length: Int = byteArray.size) {
 //        println("writeBytes: $length")
         require(byteArray.size <= size)
         byteArray.copyInto(buffer, destinationOffset = offset, endIndex = length)
