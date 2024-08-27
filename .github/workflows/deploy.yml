@@ -20,9 +20,9 @@ jobs:
           { target: windows, os: windows-latest, tasks: mingwX64Test, continueOnError: false },
           { target: linux, os: windows-latest, tasks: linuxX64Test, continueOnError: false },
         ]
-        isKorlibs: [ "true", "false" ]
+        libBuildType: [ "korlibs", "kotlinx" ]
     runs-on: ${{ matrix.config.os }}
-    name: Build ${{ matrix.config.target }} with isKorlibs=${{ matrix.isKorlibs }}
+    name: Build ${{ matrix.config.target }} with libBuildType=${{ matrix.libBuildType }}
     steps:
       - uses: actions/checkout@v3
       - name: Setup JDK 17
@@ -34,9 +34,9 @@ jobs:
       - name: Setup gradle
         uses: gradle/gradle-build-action@v2
 
-      - name: Test ${{ matrix.config.target }} targets with isKorlibs=${{ matrix.isKorlibs }}
+      - name: Test ${{ matrix.config.target }} targets with libBuildType=${{ matrix.libBuildType }}
         continue-on-error: ${{ matrix.config.continueOnError }}
-        run: ./gradlew ${{ matrix.config.tasks }} -PisKorlibs=${{ matrix.isKorlibs }} --info
+        run: ./gradlew ${{ matrix.config.tasks }} -PlibBuildType=${{ matrix.libBuildType }} --info
         working-directory: ${{ github.workspace }}
 
 #  deploy:
