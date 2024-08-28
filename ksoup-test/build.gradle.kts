@@ -48,4 +48,13 @@ kotlin {
             }
         }
     }
+    wasmJs {
+        browser {
+            testTask {
+                useMocha {
+                    timeout = "9s"
+                }
+            }
+        }
+    }
 }
