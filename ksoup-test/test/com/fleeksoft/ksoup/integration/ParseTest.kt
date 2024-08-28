@@ -75,7 +75,7 @@ class ParseTest {
     @Test
     fun testLowercaseUtf8Charset() = runTest {
         val resourceName = "htmltests/lowercase-charset-test.html"
-        val doc: Document = if (!TestHelper.canParseFile()) {
+        val doc: Document = if (!TestHelper.canReadResourceFile()) {
             val source = TestHelper.readResource(resourceName)
             Ksoup.parse(sourceReader = source, baseUri = resourceName)
         } else {

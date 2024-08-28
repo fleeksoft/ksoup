@@ -74,5 +74,5 @@ object TestHelper {
     fun isUtf32Supported(): Boolean = !(Platform.isJsOrWasm() || Platform.isWindows() || Platform.isLinux())
     fun isEUCKRSupported(): Boolean = !(Platform.isJsOrWasm() || Platform.isApple() || Platform.isWindows())
     fun isGB2312Supported(): Boolean = !(Platform.isApple() || Platform.isWindows() || ((BuildConfig.isKotlinx || BuildConfig.isOkio) && Platform.isJsOrWasm()))
-    fun canParseFile(): Boolean = !Platform.isWasmJs() || BuildConfig.isKorlibs
+    fun canReadResourceFile(): Boolean = !Platform.isWasmJs() || BuildConfig.isKorlibs
 }
