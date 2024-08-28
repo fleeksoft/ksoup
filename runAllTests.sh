@@ -11,16 +11,15 @@ run_tests() {
 
     ./gradlew clean --quiet --warning-mode=none
 
-    echo "Running JVM tests..."
+    echo "Running JVM tests... $libBuildType"
     ./gradlew jvmTest testDebugUnitTest testReleaseUnitTest -PlibBuildType="$libBuildType" --quiet --warning-mode=none
 
-    echo "Running JS and WASM tests..."
+    echo "Running JS and WASM tests... $libBuildType"
     rm -rf kotlin-js-store
     ./gradlew jsTest wasmTest -PlibBuildType="$libBuildType" --quiet --warning-mode=none
 
-    # Uncomment the following lines to enable additional platform tests
-    # echo "Running iOS, macOS, and tvOS tests..."
-    # ./gradlew iosX64Test iosSimulatorArm64Test macosX64Test macosArm64Test tvosX64Test tvosSimulatorArm64Test -PlibBuildType="$libBuildType" --quiet --warning-mode=none
+     echo "Running iOS, macOS, and tvOS tests... $libBuildType"
+     ./gradlew iosX64Test iosSimulatorArm64Test macosX64Test macosArm64Test tvosX64Test tvosSimulatorArm64Test -PlibBuildType="$libBuildType" --quiet --warning-mode=none
 }
 
 # Supported parameters
