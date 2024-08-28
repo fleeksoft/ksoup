@@ -6,9 +6,11 @@ compileSdk = "34"
 minSdk = "21"
 libraryVersion = "0.1.6-alpha1"
 ktor = "3.0.0-beta-2"
+ktor2 = "2.3.12"
 coroutines = "1.8.1"
 kotlinxDatetime = "0.6.1"
 kotlinx-io = "0.5.3"
+okio = "3.9.0"
 codepoints = "0.9.0"
 dokka = "1.9.20"
 
@@ -23,6 +25,8 @@ jsoup = "1.18.1"
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
+ktor2-io = { module = "io.ktor:ktor-io", version.ref = "ktor2" }
+ktor2-http = { module = "io.ktor:ktor-http", version.ref = "ktor2" }
 ktor-io = { module = "io.ktor:ktor-io", version.ref = "ktor" }
 ktor-http = { module = "io.ktor:ktor-http", version.ref = "ktor" }
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
@@ -39,6 +43,8 @@ korlibs-io = { module = "com.soywiz:korlibs-io", version.ref = "korlibs" }
 korlibs-io-network-core = { module = "com.soywiz:korlibs-io-network-core", version.ref = "korlibs" }
 stately-concurrent = { module = "co.touchlab:stately-concurrent-collections", version.ref = "stately-concurrent" }
 jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
+okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
+okio-nodefilesystem = { module = "com.squareup.okio:okio-nodefilesystem", version.ref = "okio" }
 
 [plugins]
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
