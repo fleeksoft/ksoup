@@ -17,7 +17,10 @@ val generateBuildConfigFile: Task by tasks.creating {
             object BuildConfig {
                 const val PROJECT_ROOT: String = "${rootProject.rootDir.absolutePath.replace("\\", "\\\\")}"
                 const val isGithubActions: Boolean = $isGithubActions
+                const val libBuildType: String = "$libBuildType"
                 const val isKotlinx: Boolean = ${libBuildType == "kotlinx" || libBuildType == "dev"}
+                const val isKorlibs: Boolean = ${libBuildType == "korlibs"}
+                const val isOkio: Boolean = ${libBuildType == "okio"}
             }
             """.trimIndent()
         file.get().asFile.writeText(content)
