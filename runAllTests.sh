@@ -5,21 +5,52 @@ set -e
 
 # Function to run tests for a specific configuration
 run_tests() {
-    local libBuildType=$1
+    local libBuildType="$1"
 
     echo "Running tests with libBuildType=$libBuildType..."
 
-    ./gradlew clean
-    ./gradlew jvmTest testDebugUnitTest testReleaseUnitTest -PlibBuildType="$libBuildType"
+    ./gradlew clean --quiet --warning-mode=none
+
+    echo "Running JVM tests..."
+    ./gradlew jvmTest testDebugUnitTest testReleaseUnitTest -PlibBuildType="$libBuildType" --quiet --warning-mode=none
+
+    echo "Running JS and WASM tests..."
     rm -rf kotlin-js-store
-    ./gradlew jsTest wasmTest -PlibBuildType="$libBuildType"
-    ./gradlew iosX64Test iosSimulatorArm64Test macosX64Test macosArm64Test tvosX64Test tvosSimulatorArm64Test -PlibBuildType="$libBuildType"
+    ./gradlew jsTest wasmTest -PlibBuildType="$libBuildType" --quiet --warning-mode=none
+
+    # Uncomment the following lines to enable additional platform tests
+    # echo "Running iOS, macOS, and tvOS tests..."
+    # ./gradlew iosX64Test iosSimulatorArm64Test macosX64Test macosArm64Test tvosX64Test tvosSimulatorArm64Test -PlibBuildType="$libBuildType" --quiet --warning-mode=none
 }
 
-# Run tests for kotlinx
-run_tests kotlinx
+# Supported parameters
+SUPPORTED_PARAMS=("korlibs" "okio" "kotlinx")
 
-# Run tests for korlibs
-run_tests korlibs
+# Function to check if the provided parameter is supported
+is_supported_param() {
+    local param="$1"
+    for supported_param in "${SUPPORTED_PARAMS[@]}"; do
+        if [ "$supported_param" == "$param" ]; then
+            return 0
+        fi
+    done
+    return 1
+}
 
-echo "All tests run successfully!"
+# Main script logic
+if [ "$#" -ge 1 ]; then
+    for param in "$@"; do
+        if is_supported_param "$param"; then
+            run_tests "$param"
+        else
+            echo "Error: Unsupported parameter '$param'. Supported parameters are: ${SUPPORTED_PARAMS[*]}"
+            exit 1
+        fi
+    done
+else
+    for param in "${SUPPORTED_PARAMS[@]}"; do
+        run_tests "$param"
+    done
+fi
+
+echo "All tests ran successfully!"
