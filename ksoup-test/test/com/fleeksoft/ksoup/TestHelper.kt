@@ -24,7 +24,7 @@ object TestHelper {
     }
 
     fun getResourceAbsolutePath(resourceName: String, absForWindows: Boolean = true): String {
-        if (Platform.isWindows() && !BuildConfig.isKotlinx && absForWindows) {
+        if (Platform.isWindows() && BuildConfig.isKorlibs && absForWindows) {
             return "../../../../testResources/$resourceName"
         } else if (Platform.isJsOrWasm()) {
             return "https://raw.githubusercontent.com/fleeksoft/ksoup/release/ksoup-test/testResources/$resourceName"
@@ -68,4 +68,11 @@ object TestHelper {
         }
         return bytes.uncompress(GZIP).openSourceReader()
     }
+
+    fun isGzipSupported(): Boolean = BuildConfig.isKorlibs
+    fun isUtf16Supported(): Boolean = !((BuildConfig.isKotlinx) && Platform.isJsOrWasm())
+    fun isUtf32Supported(): Boolean = !(Platform.isJsOrWasm() || Platform.isWindows() || Platform.isLinux())
+    fun isEUCKRSupported(): Boolean = !(Platform.isJsOrWasm() || Platform.isApple() || Platform.isWindows())
+    fun isGB2312Supported(): Boolean = !(Platform.isApple() || Platform.isWindows() || (BuildConfig.isKotlinx && Platform.isJsOrWasm()))
+    fun canParseFile(): Boolean = BuildConfig.isKorlibs || !Platform.isJsOrWasm()
 }

@@ -1290,7 +1290,7 @@ class HtmlParserTest {
     @Test
     fun testInvalidTableContents() = runTest {
         val resourceName = "htmltests/table-invalid-elements.html"
-        val doc: Document = if (BuildConfig.isKotlinx && Platform.isJsOrWasm()) {
+        val doc: Document = if (!TestHelper.canParseFile()) {
             val source = TestHelper.readResource(resourceName)
             Ksoup.parse(sourceReader = source, baseUri = resourceName, charsetName = "UTF-8")
         } else {
@@ -1507,7 +1507,7 @@ class HtmlParserTest {
     @Test
     fun testTemplateInsideTable() = runTest {
         val resourceName = "htmltests/table-polymer-template.html"
-        val doc: Document = if (BuildConfig.isKotlinx && Platform.isJsOrWasm()) {
+        val doc: Document = if (!TestHelper.canParseFile()) {
             val source = TestHelper.readResource(resourceName)
             Ksoup.parse(sourceReader = source, baseUri = resourceName, charsetName = "UTF-8")
         } else {
@@ -1550,7 +1550,7 @@ class HtmlParserTest {
     @Test
     fun handlesXmlDeclAndCommentsBeforeDoctype() = runTest {
         val resourceName = "htmltests/comments.html"
-        val doc: Document = if (BuildConfig.isKotlinx && Platform.isJsOrWasm()) {
+        val doc: Document = if (!TestHelper.canParseFile()) {
             val source = TestHelper.readResource(resourceName)
             Ksoup.parse(sourceReader = source, baseUri = resourceName, charsetName = "UTF-8")
         } else {
@@ -1583,7 +1583,7 @@ class HtmlParserTest {
     @Test
     fun characterReaderBuffer() = runTest {
         val resourceName = "htmltests/character-reader-buffer.html.gz"
-        val doc: Document = if (BuildConfig.isKotlinx) {
+        val doc: Document = if (!TestHelper.canParseFile() || !TestHelper.isGzipSupported()) {
             val source = TestHelper.readResource(resourceName)
             Ksoup.parse(sourceReader = source, baseUri = resourceName, charsetName = "UTF-8")
         } else {

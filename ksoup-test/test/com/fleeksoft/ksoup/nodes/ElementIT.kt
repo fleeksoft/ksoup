@@ -2,8 +2,10 @@ package com.fleeksoft.ksoup.nodes
 
 import com.fleeksoft.ksoup.*
 import com.fleeksoft.ksoup.Ksoup.parse
-import kotlin.test.*
 import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class ElementIT {
 
@@ -139,7 +141,7 @@ class ElementIT {
 
     @Test
     fun wrapNoOverflow() {
-        if (BuildConfig.isGithubActions && Platform.isWasmJs()) {
+        if (Platform.isWasmJs()) {
             // FIXME: timeout error for js
             return
         }

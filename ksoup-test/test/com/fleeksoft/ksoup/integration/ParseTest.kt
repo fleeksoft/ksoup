@@ -1,8 +1,9 @@
 package com.fleeksoft.ksoup.integration
 
-import com.fleeksoft.ksoup.*
+import com.fleeksoft.ksoup.Ksoup
 import com.fleeksoft.ksoup.Ksoup.parse
 import com.fleeksoft.ksoup.Ksoup.parseFile
+import com.fleeksoft.ksoup.TestHelper
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.ported.openSourceReader
@@ -18,7 +19,7 @@ class ParseTest {
 
     @Test
     fun testHtml5Charset() = runTest {
-        if (Platform.isApple() || Platform.isWindows() || (BuildConfig.isKotlinx && Platform.isJsOrWasm())) {
+        if (!TestHelper.isGB2312Supported()) {
 //            don't support gb2312 or gbk
             return@runTest
         }
@@ -74,7 +75,7 @@ class ParseTest {
     @Test
     fun testLowercaseUtf8Charset() = runTest {
         val resourceName = "htmltests/lowercase-charset-test.html"
-        val doc: Document = if (BuildConfig.isKotlinx && Platform.isJsOrWasm()) {
+        val doc: Document = if (!TestHelper.canParseFile()) {
             val source = TestHelper.readResource(resourceName)
             Ksoup.parse(sourceReader = source, baseUri = resourceName)
         } else {
@@ -90,7 +91,7 @@ class ParseTest {
     fun testXwiki() = runTest {
         // this tests that when in CharacterReader we hit a buffer while marked, we preserve the mark when buffered up and can rewind
         val resourceName = "htmltests/xwiki-1324.html.gz"
-        val doc: Document = if (BuildConfig.isKotlinx) {
+        val doc: Document = if (!TestHelper.isGzipSupported()) {
             val source = TestHelper.readResource(resourceName)
             Ksoup.parse(sourceReader = source, baseUri = "https://localhost/")
         } else {
@@ -150,7 +151,7 @@ class ParseTest {
     @Test
     fun testFileParseNoCharsetMethod() = runTest {
         val resourceName = "htmltests/xwiki-1324.html.gz"
-        val doc: Document = if (BuildConfig.isKotlinx) {
+        val doc: Document = if (!TestHelper.isGzipSupported()) {
             val source = TestHelper.readResource(resourceName)
             Ksoup.parse(sourceReader = source, baseUri = resourceName)
         } else {
