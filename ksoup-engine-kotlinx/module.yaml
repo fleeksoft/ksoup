@@ -9,6 +9,6 @@ aliases:
 
 dependencies:
   - ../ksoup-engine-common
-  - $libs.kotlinx.io
+  - $libs.kotlinx.io: exported
   - $libs.ktor.io
   - $libs.ktor.http
