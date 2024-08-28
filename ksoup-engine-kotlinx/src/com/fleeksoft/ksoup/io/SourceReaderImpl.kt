@@ -4,7 +4,7 @@ import kotlinx.io.Buffer
 import kotlinx.io.Source
 import kotlinx.io.readByteArray
 
-class SourceReaderImpl : SourceReader {
+internal class SourceReaderImpl : SourceReader {
     private val source: Source
     private var sourceMark: Source? = null
 
@@ -17,10 +17,6 @@ class SourceReaderImpl : SourceReader {
     }
 
     fun source(): Source = sourceMark ?: source
-
-    override fun skip(count: Long) {
-        source().skip(count)
-    }
 
     override fun mark(readLimit: Long) {
         sourceMark = source().peek()

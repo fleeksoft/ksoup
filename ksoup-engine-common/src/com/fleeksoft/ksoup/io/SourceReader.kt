@@ -1,7 +1,6 @@
 package com.fleeksoft.ksoup.io
 
 interface SourceReader {
-    public fun skip(count: Long)
 
     public fun mark(readLimit: Long)
 

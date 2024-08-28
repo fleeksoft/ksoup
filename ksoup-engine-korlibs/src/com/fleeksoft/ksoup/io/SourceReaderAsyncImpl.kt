@@ -5,10 +5,9 @@ import korlibs.io.stream.SyncInputStream
 import korlibs.io.stream.markable
 import korlibs.io.stream.openSync
 import korlibs.memory.buildByteArray
-import kotlin.math.min
 
 
-class SourceReaderAsyncImpl : SourceReader {
+internal class SourceReaderAsyncImpl : SourceReader {
     private val stream: MarkableSyncInputStream
     private val buffer: KByteBuffer = KByteBuffer(8192)
     private var markBuffer: KByteBuffer? = null
@@ -19,17 +18,6 @@ class SourceReaderAsyncImpl : SourceReader {
     }
 
     constructor(bytes: ByteArray) : this(bytes.openSync())
-
-    override fun skip(count: Long) {
-        var skippedBuffer = 0
-        if (buffer().available() > 0) {
-            skippedBuffer = min(buffer().available(), count.toInt())
-            buffer().skip(skippedBuffer)
-        }
-        if (skippedBuffer < count) {
-            stream.skip(count.toInt() - skippedBuffer)
-        }
-    }
 
     override fun mark(readLimit: Long) {
         markBuffer = buffer.clone()
