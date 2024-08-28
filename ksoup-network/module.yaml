@@ -15,7 +15,6 @@ repositories:
 dependencies:
   - $libs.kotlinx.coroutines.core
   - ../ksoup: compile-only
-  - ../ksoup-engine-kotlinx
   - $libs.ktor.client.core: exported
 
 dependencies@jvmAndAndroid:
