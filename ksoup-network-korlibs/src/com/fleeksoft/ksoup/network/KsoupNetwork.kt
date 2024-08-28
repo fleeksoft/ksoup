@@ -1,15 +1,13 @@
 package com.fleeksoft.ksoup.network
 
 import com.fleeksoft.ksoup.Ksoup
-import com.fleeksoft.ksoup.io.SourceReaderImpl
+import com.fleeksoft.ksoup.io.SourceReader
+import com.fleeksoft.ksoup.io.from
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parser.Parser
 import korlibs.io.async.CIO
 import korlibs.io.net.http.HttpBodyContent
 import korlibs.io.net.http.HttpClient
-import korlibs.io.stream.openSync
-import korlibs.io.stream.toAsyncStream
-import korlibs.io.stream.toSyncOrNull
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -37,7 +35,7 @@ public suspend fun Ksoup.parseGetRequest(
     )
 //        url can be changed after redirection
     val finalUrl = httpResponse.headers["location"] ?: url
-    val sourceReader = SourceReaderImpl(httpResponse.content.toAsyncStream().toSyncOrNull() ?: httpResponse.readAllString().openSync())
+    val sourceReader = SourceReader.from(httpResponse.content)
     return@withContext parse(sourceReader = sourceReader, parser = parser, baseUri = finalUrl)
 }
 
@@ -67,7 +65,7 @@ public suspend fun Ksoup.parseSubmitRequest(
     )
 //            url can be changed after redirection
     val finalUrl = httpResponse.headers["location"] ?: url
-    val sourceReader = SourceReaderImpl(httpResponse.content.toAsyncStream().toSyncOrNull() ?: httpResponse.readAllString().openSync())
+    val sourceReader = SourceReader.from(httpResponse.content)
     return@withContext parse(sourceReader = sourceReader, parser = parser, baseUri = finalUrl)
 }
 
@@ -97,6 +95,6 @@ public suspend fun Ksoup.parsePostRequest(
     )
 //            url can be changed after redirection
     val finalUrl = httpResponse.headers["location"] ?: url
-    val sourceReader = SourceReaderImpl(httpResponse.content.toAsyncStream().toSyncOrNull() ?: httpResponse.readAllString().openSync())
+    val sourceReader = SourceReader.from(httpResponse.content)
     return@withContext parse(sourceReader = sourceReader, parser = parser, baseUri = finalUrl)
 }

@@ -4,4 +4,6 @@ interface FileSource {
     suspend fun toSourceReader(): SourceReader
     fun getPath(): String
     fun getFullName(): String
+
+    companion object
 }

@@ -5,7 +5,7 @@ import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 
 class FileSourceImpl : FileSource {
-    val path: Path
+    private val path: Path
 
     private val sourceBuffered by lazy { buffered() }
 
@@ -17,7 +17,7 @@ class FileSourceImpl : FileSource {
         this.path = Path(filePath)
     }
 
-    override suspend fun toSourceReader(): SourceReader = SourceReaderImpl(sourceBuffered)
+    override suspend fun toSourceReader(): SourceReader = SourceReader.from(sourceBuffered)
 
     private fun FileSourceImpl.buffered() = SystemFileSystem.source(path).buffered()
 

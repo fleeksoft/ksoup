@@ -10,11 +10,11 @@ object KsoupEngineImpl : KsoupEngine {
     }
 
     override fun openSourceReader(content: String, charset: Charset?): SourceReader {
-        return SourceReaderImpl(charset?.toByteArray(content) ?: content.encodeToByteArray())
+        return SourceReader.from(charset?.toByteArray(content) ?: content.encodeToByteArray())
     }
 
     override fun openSourceReader(byteArray: ByteArray): SourceReader {
-        return SourceReaderImpl(byteArray)
+        return SourceReader.from(byteArray)
     }
 
     override fun getUtf8Charset(): Charset {
@@ -26,6 +26,6 @@ object KsoupEngineImpl : KsoupEngine {
     }
 
     override fun pathToFileSource(path: String): FileSource {
-        return FileSourceImpl(path)
+        return FileSource.from(path)
     }
 }
