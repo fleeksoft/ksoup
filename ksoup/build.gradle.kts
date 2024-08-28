@@ -8,7 +8,7 @@ version = libs.versions.libraryVersion.get()
 
 val libBuildType = project.findProperty("libBuildType")?.toString()
 kotlin {
-    if (libBuildType != "okio") {
+    if (libBuildType == "korlibs" || libBuildType == "kotlinx") {
         wasmJs()
     }
     sourceSets {
@@ -21,6 +21,10 @@ kotlin {
 
                     "okio" -> {
                         api(project(":ksoup-engine-okio"))
+                    }
+
+                    "ktor2" -> {
+                        api(project(":ksoup-engine-ktor2"))
                     }
 
                     else -> {

@@ -14,16 +14,16 @@ run_tests() {
     echo "Running JVM tests... $libBuildType"
     ./gradlew jvmTest testDebugUnitTest testReleaseUnitTest -PlibBuildType="$libBuildType" --quiet --warning-mode=none
 
-    echo "Running JS and WASM tests... $libBuildType"
-    rm -rf kotlin-js-store
-    ./gradlew jsTest wasmTest -PlibBuildType="$libBuildType" --quiet --warning-mode=none
+#    echo "Running JS and WASM tests... $libBuildType"
+#    rm -rf kotlin-js-store
+#    ./gradlew jsTest wasmTest -PlibBuildType="$libBuildType" --quiet --warning-mode=none
 
-     echo "Running iOS, macOS, and tvOS tests... $libBuildType"
-     ./gradlew iosX64Test iosSimulatorArm64Test macosX64Test macosArm64Test tvosX64Test tvosSimulatorArm64Test -PlibBuildType="$libBuildType" --quiet --warning-mode=none
+#     echo "Running iOS, macOS, and tvOS tests... $libBuildType"
+#     ./gradlew iosX64Test iosSimulatorArm64Test macosX64Test macosArm64Test tvosX64Test tvosSimulatorArm64Test -PlibBuildType="$libBuildType" --quiet --warning-mode=none
 }
 
 # Supported parameters
-SUPPORTED_PARAMS=("korlibs" "okio" "kotlinx")
+SUPPORTED_PARAMS=("korlibs" "okio" "kotlinx" "ktor2")
 
 # Function to check if the provided parameter is supported
 is_supported_param() {

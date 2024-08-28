@@ -28,6 +28,10 @@ if (libBuildType == "okio" || libBuildType == "dev") {
     include("ksoup-engine-okio")
 }
 
+if (libBuildType == "ktor2" || libBuildType == "dev") {
+    include("ksoup-engine-ktor2")
+}
+
 include("ksoup")
 include("ksoup-test")
 //include("sample:shared", "sample:desktop")

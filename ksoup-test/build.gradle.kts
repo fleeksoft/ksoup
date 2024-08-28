@@ -25,6 +25,7 @@ val generateBuildConfigFile: Task by tasks.creating {
                 const val isKotlinx: Boolean = ${libBuildType == "kotlinx" || libBuildType == "dev"}
                 const val isKorlibs: Boolean = ${libBuildType == "korlibs"}
                 const val isOkio: Boolean = ${libBuildType == "okio"}
+                const val isKtor2: Boolean = ${libBuildType == "ktor2"}
             }
             """.trimIndent()
         file.get().asFile.writeText(content)
@@ -47,7 +48,7 @@ kotlin {
             }
         }
     }
-    if (libBuildType != "okio") {
+    if (libBuildType == "korlibs" || libBuildType == "kotlinx") {
         wasmJs()
     }
     sourceSets {
