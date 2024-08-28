@@ -10,7 +10,7 @@ pluginManagement {
 }
 
 plugins {
-    id("org.jetbrains.amper.settings.plugin").version("0.5.0-dev-987")
+    id("org.jetbrains.amper.settings.plugin").version("0.5.0-dev-992")
 }
 
 val libBuildType = settings.providers.gradleProperty("libBuildType").get()

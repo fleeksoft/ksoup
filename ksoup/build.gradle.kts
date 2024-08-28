@@ -8,6 +8,9 @@ version = libs.versions.libraryVersion.get()
 
 val libBuildType = project.findProperty("libBuildType")?.toString()
 kotlin {
+    if (libBuildType != "okio") {
+        wasmJs()
+    }
     sourceSets {
         commonMain {
             dependencies {

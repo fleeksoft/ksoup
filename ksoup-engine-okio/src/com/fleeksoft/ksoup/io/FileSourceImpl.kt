@@ -1,6 +1,5 @@
 package com.fleeksoft.ksoup.io
 
-import okio.BufferedSource
 import okio.Path
 import okio.Path.Companion.toPath
 import okio.Source

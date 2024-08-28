@@ -1,3 +1,7 @@
+@file:OptIn(ExperimentalWasmDsl::class)
+
+import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
+
 val libBuildType = project.findProperty("libBuildType")?.toString()
 plugins {
     alias(libs.plugins.power.assert)
@@ -34,11 +38,6 @@ tasks.configureEach {
 }
 
 kotlin {
-    sourceSets {
-        commonTest {
-            this.kotlin.srcDir(layout.buildDirectory.file(rootPath))
-        }
-    }
     js(IR) {
         browser {
             testTask {
@@ -46,6 +45,14 @@ kotlin {
                     timeout = "9s"
                 }
             }
+        }
+    }
+    if (libBuildType != "okio") {
+        wasmJs()
+    }
+    sourceSets {
+        commonTest {
+            this.kotlin.srcDir(layout.buildDirectory.file(rootPath))
         }
     }
 }
