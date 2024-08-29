@@ -3,19 +3,35 @@
 # Stop the script if any command fails
 set -e
 
-./gradlew clean
-./gradlew :ksoup-engine-common:publishAllPublicationsToMavenCentralRepository
-./gradlew clean
-./gradlew :ksoup-engine-kotlinx:publishAllPublicationsToMavenCentralRepository -PlibBuildType=kotlinx
-./gradlew clean
-./gradlew :ksoup-engine-korlibs:publishAllPublicationsToMavenCentralRepository -PlibBuildType=korlibs
+# Define an array of all projects to publish with their corresponding build types
+projects=(
+  "ksoup-engine-common:"
+  "ksoup-engine-kotlinx:"
+  "ksoup-engine-korlibs:"
+  "ksoup-engine-ktor2:"
+  "ksoup-engine-okio:"
+  "ksoup:kotlinx"
+  "ksoup-network:kotlinx"
+  "ksoup:korlibs"
+  "ksoup-network-korlibs:korlibs"
+  "ksoup:ktor2"
+  "ksoup-network-ktor2:ktor2"
+  "ksoup:okio"
+)
 
-./gradlew clean
-./gradlew :ksoup:publishAllPublicationsToMavenCentralRepository -PlibBuildType=korlibs
-./gradlew :ksoup-network-korlibs:publishAllPublicationsToMavenCentralRepository -PlibBuildType=korlibs
+# Loop through all projects and publish them
+for project in "${projects[@]}"; do
+  # Split the project name and build type
+  IFS=":" read -r projectName buildType <<< "$project"
 
-./gradlew clean
-./gradlew :ksoup-network:publishAllPublicationsToMavenCentralRepository -PlibBuildType=kotlinx
-./gradlew :ksoup:publishAllPublicationsToMavenCentralRepository -PlibBuildType=kotlinx
+  ./gradlew clean --quiet --warning-mode=none
+  if [ -n "$buildType" ]; then
+    echo "Publishing $projectName with libBuildType=$buildType"
+    ./gradlew ":$projectName:publishAllPublicationsToMavenCentralRepository" -PlibBuildType=$buildType --quiet --warning-mode=none
+  else
+    echo "Publishing $projectName"
+    ./gradlew ":$projectName:publishAllPublicationsToMavenCentralRepository" --quiet --warning-mode=none
+  fi
+done
 
 echo "Publishing completed successfully."
