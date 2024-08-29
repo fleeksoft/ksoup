@@ -1,11 +1,29 @@
-@file:OptIn(ExperimentalWasmDsl::class)
-
-import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
-
-val libBuildType = project.findProperty("libBuildType")?.toString()
 plugins {
     alias(libs.plugins.power.assert)
 }
+
+val libBuildType = project.findProperty("libBuildType")?.toString()
+val isWasmEnabled = project.findProperty("isWasmEnabled")?.toString()?.toBoolean() ?: false
+kotlin {
+    js(IR) {
+        browser {
+            testTask {
+                useMocha {
+                    timeout = "9s"
+                }
+            }
+        }
+    }
+    if (isWasmEnabled && (libBuildType == "korlibs" || libBuildType == "kotlinx")) {
+        wasmJs()
+    }
+    sourceSets {
+        commonTest {
+            this.kotlin.srcDir(layout.buildDirectory.file(rootPath))
+        }
+    }
+}
+
 val rootPath = "generated/kotlin"
 val isGithubActions: Boolean = System.getenv("GITHUB_ACTIONS")?.toBoolean() == true
 val generateBuildConfigFile: Task by tasks.creating {
@@ -35,25 +53,5 @@ val generateBuildConfigFile: Task by tasks.creating {
 tasks.configureEach {
     if (name != generateBuildConfigFile.name && !name.contains("publish", ignoreCase = true)) {
         dependsOn(generateBuildConfigFile.name)
-    }
-}
-
-kotlin {
-    js(IR) {
-        browser {
-            testTask {
-                useMocha {
-                    timeout = "9s"
-                }
-            }
-        }
-    }
-    if (libBuildType == "korlibs" || libBuildType == "kotlinx") {
-        wasmJs()
-    }
-    sourceSets {
-        commonTest {
-            this.kotlin.srcDir(layout.buildDirectory.file(rootPath))
-        }
     }
 }

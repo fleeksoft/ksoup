@@ -2,6 +2,13 @@ plugins {
     alias(libs.plugins.mavenPublish)
 }
 
+val isWasmEnabled = project.findProperty("isWasmEnabled")?.toString()?.toBoolean() ?: false
+kotlin {
+    if (isWasmEnabled) {
+        wasmJs()
+    }
+}
+
 group = "com.fleeksoft.ksoup"
 version = libs.versions.libraryVersion.get()
 
