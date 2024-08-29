@@ -2,6 +2,9 @@ plugins {
     alias(libs.plugins.power.assert)
 }
 
+val rootPath = "generated/kotlin"
+val isGithubActions: Boolean = System.getenv("GITHUB_ACTIONS")?.toBoolean() == true
+
 val libBuildType = project.findProperty("libBuildType")?.toString()
 val isWasmEnabled = project.findProperty("isWasmEnabled")?.toString()?.toBoolean() ?: false
 kotlin {
@@ -14,7 +17,7 @@ kotlin {
             }
         }
     }
-    if (isWasmEnabled && (libBuildType == "korlibs" || libBuildType == "kotlinx")) {
+    if (isWasmEnabled && libBuildType != "dev" && (libBuildType == "korlibs" || libBuildType == "kotlinx")) {
         wasmJs()
     }
     sourceSets {
@@ -24,8 +27,6 @@ kotlin {
     }
 }
 
-val rootPath = "generated/kotlin"
-val isGithubActions: Boolean = System.getenv("GITHUB_ACTIONS")?.toBoolean() == true
 val generateBuildConfigFile: Task by tasks.creating {
     group = "build setup"
     val file = layout.buildDirectory.file("$rootPath/BuildConfig.kt")

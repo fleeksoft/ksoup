@@ -9,7 +9,7 @@ version = libs.versions.libraryVersion.get()
 val libBuildType = project.findProperty("libBuildType")?.toString()
 val isWasmEnabled = project.findProperty("isWasmEnabled")?.toString()?.toBoolean() ?: false
 kotlin {
-    if (isWasmEnabled && (libBuildType == "korlibs" || libBuildType == "kotlinx")) {
+    if (isWasmEnabled && libBuildType != "dev" && (libBuildType == "korlibs" || libBuildType == "kotlinx")) {
         wasmJs()
     }
     sourceSets {

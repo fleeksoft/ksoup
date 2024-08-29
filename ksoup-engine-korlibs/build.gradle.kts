@@ -3,8 +3,9 @@ plugins {
 }
 
 val isWasmEnabled = project.findProperty("isWasmEnabled")?.toString()?.toBoolean() ?: false
+val libBuildType = project.findProperty("libBuildType")?.toString()
 kotlin {
-    if (isWasmEnabled) {
+    if (isWasmEnabled && libBuildType != "dev") {
         wasmJs()
     }
 }
