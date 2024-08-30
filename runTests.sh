@@ -53,7 +53,7 @@ run_tests() {
         trap 'error_handler' ERR # Re-enable the trap
     fi
 
-    ./gradlew clean --quiet --warning-mode=none
+    ./gradlew clean -PlibBuildType="$libBuildType" --quiet --warning-mode=none
 
     echo "Running JVM tests... $libBuildType"
     ./gradlew jvmTest testDebugUnitTest testReleaseUnitTest -PlibBuildType="$libBuildType" --quiet --warning-mode=none
