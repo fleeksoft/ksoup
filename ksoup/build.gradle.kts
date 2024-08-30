@@ -20,6 +20,10 @@ kotlin {
                         api(project(":ksoup-engine-okio"))
                     }
 
+                    "ktor2" -> {
+                        api(project(":ksoup-engine-ktor2"))
+                    }
+
                     else -> {
                         api(project(":ksoup-engine-kotlinx"))
                     }

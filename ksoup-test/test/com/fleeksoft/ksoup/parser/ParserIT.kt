@@ -1,7 +1,13 @@
 package com.fleeksoft.ksoup.parser
 
-import com.fleeksoft.ksoup.*
-import kotlin.test.*
+import com.fleeksoft.ksoup.BuildConfig
+import com.fleeksoft.ksoup.Platform
+import com.fleeksoft.ksoup.System
+import com.fleeksoft.ksoup.isJsOrWasm
+import kotlin.test.Ignore
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 /**
  * Longer running Parser tests.
@@ -48,7 +54,11 @@ class ParserIT {
         // Assert
         assertEquals(2, doc.body().childNodeSize())
         assertEquals(25000, doc.select("dd").size)
-        assertTrue(System.currentTimeMillis() - start < 40000) // I get ~ 1.5 seconds, but others have reported slower
+        val end = System.currentTimeMillis() - start
+        assertTrue(
+            end < 40000,
+            "Expected max time for this test was: 40 secs but it took ${end.div(1000)}"
+        )// I get ~ 1.5 seconds, but others have reported slower
         // was originally much longer, or stack overflow.
     }
 }

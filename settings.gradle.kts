@@ -10,7 +10,7 @@ pluginManagement {
 }
 
 plugins {
-    id("org.jetbrains.amper.settings.plugin").version("0.5.0-dev-987")
+    id("org.jetbrains.amper.settings.plugin").version("0.5.0-dev-992")
 }
 
 val libBuildType = settings.providers.gradleProperty("libBuildType").get()
@@ -25,10 +25,15 @@ if (libBuildType == "kotlinx" || libBuildType == "dev") {
 }
 
 if (libBuildType == "okio" || libBuildType == "dev") {
-    include("ksoup-engine-okio")
+    include("ksoup-engine-okio", "ksoup-network-ktor2")
+}
+
+if (libBuildType == "ktor2" || libBuildType == "dev") {
+    include("ksoup-engine-ktor2", "ksoup-network-ktor2")
 }
 
 include("ksoup")
 include("ksoup-test")
+
 //include("sample:shared", "sample:desktop")
 //include("sample:android", "sample:ios")
