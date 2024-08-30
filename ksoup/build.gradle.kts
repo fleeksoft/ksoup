@@ -7,11 +7,7 @@ group = "com.fleeksoft.ksoup"
 version = libs.versions.libraryVersion.get()
 
 val libBuildType = project.findProperty("libBuildType")?.toString()
-val isWasmEnabled = project.findProperty("isWasmEnabled")?.toString()?.toBoolean() ?: false
 kotlin {
-    if (isWasmEnabled && libBuildType != "dev" && (libBuildType == "korlibs" || libBuildType == "kotlinx")) {
-        wasmJs()
-    }
     sourceSets {
         commonMain {
             dependencies {
