@@ -24,8 +24,8 @@ class DataUtilTestJvm {
 
     @Test
     fun loadsGzipPath() = runTest {
-        if (BuildConfig.isKotlinx) {
-//            kotlinx module not support gzip
+        if (!TestHelper.isGzipSupported()) {
+//            gzip not supported for this
             return@runTest
         }
         val `in`: Path = ParserHelper.getPath("/htmltests/gzip.html.gz")
@@ -36,8 +36,8 @@ class DataUtilTestJvm {
 
     @Test
     fun loadsZGzipPath() = runTest {
-        if (BuildConfig.isKotlinx) {
-//            kotlinx module not support gzip
+        if (!TestHelper.isGzipSupported()) {
+//            gzip not supported for this
             return@runTest
         }
         // compressed on win, with z suffix
@@ -49,8 +49,8 @@ class DataUtilTestJvm {
 
     @Test
     fun handlesFakeGzipPath() = runTest {
-        if (BuildConfig.isKotlinx) {
-//            kotlinx module not support gzip
+        if (!TestHelper.isGzipSupported()) {
+//            gzip not supported for this
             return@runTest
         }
         val `in`: Path = ParserHelper.getPath("htmltests/fake-gzip.html.gz")

@@ -1,0 +1,18 @@
+product:
+  type: lib
+  platforms: [ jvm, js, android, linuxX64, linuxArm64, tvosArm64, tvosX64, tvosSimulatorArm64, macosX64, macosArm64, iosArm64, iosSimulatorArm64, iosX64, mingwX64 ]
+
+apply: [ ../common.module-template.yaml ]
+
+aliases:
+  - jvmAndAndroid: [ jvm, android ]
+  - concurrent: [ jvm, android, linuxX64, linuxArm64, tvosArm64, tvosX64, tvosSimulatorArm64, macosX64, macosArm64, iosArm64, iosSimulatorArm64, iosX64, mingwX64 ]
+
+dependencies:
+  - ../ksoup-engine-common
+  - $libs.okio: exported
+  - $libs.ktor2.io
+  - $libs.ktor2.http
+
+dependencies@js:
+  - $libs.okio.nodefilesystem

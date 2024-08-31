@@ -1,7 +1,6 @@
 package com.fleeksoft.ksoup.io
 
 interface SourceReader {
-    public fun skip(count: Long)
 
     public fun mark(readLimit: Long)
 
@@ -18,4 +17,6 @@ interface SourceReader {
     public fun close()
 
     public fun readAtMostTo(sink: KByteBuffer, byteCount: Int): Int
+
+    companion object
 }

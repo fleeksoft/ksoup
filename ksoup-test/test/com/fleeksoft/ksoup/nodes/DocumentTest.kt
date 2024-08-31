@@ -150,7 +150,7 @@ class DocumentTest {
     fun testLocation() = runTest {
         // tests location vs base href
         val resourceName = "htmltests/basehref.html"
-        val doc: Document = if (BuildConfig.isKotlinx && Platform.isJsOrWasm()) {
+        val doc: Document = if (!TestHelper.canReadResourceFile()) {
             val source = TestHelper.readResource(resourceName)
             Ksoup.parse(sourceReader = source, baseUri = "http://example.com/", charsetName = "UTF-8")
         } else {

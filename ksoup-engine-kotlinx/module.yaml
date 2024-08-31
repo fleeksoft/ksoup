@@ -1,14 +1,14 @@
 product:
   type: lib
-  platforms: [jvm, js, wasm, android, linuxX64, linuxArm64, tvosArm64, tvosX64, tvosSimulatorArm64, macosX64, macosArm64, iosArm64, iosSimulatorArm64, iosX64, mingwX64]
+  platforms: [ jvm, js, wasm, android, linuxX64, linuxArm64, tvosArm64, tvosX64, tvosSimulatorArm64, macosX64, macosArm64, iosArm64, iosSimulatorArm64, iosX64, mingwX64 ]
 
 apply: [ ../common.module-template.yaml ]
 
 aliases:
-  - jvmAndAndroid: [jvm, android]
+  - jvmAndAndroid: [ jvm, android ]
 
 dependencies:
   - ../ksoup-engine-common
-  - $libs.kotlinx.io
+  - $libs.kotlinx.io: exported
   - $libs.ktor.io
   - $libs.ktor.http

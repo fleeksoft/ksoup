@@ -1,10 +1,7 @@
 package com.fleeksoft.ksoup.parser
 
-import com.fleeksoft.ksoup.BuildConfig
-import com.fleeksoft.ksoup.Platform
 import com.fleeksoft.ksoup.TestHelper
 import com.fleeksoft.ksoup.internal.StringUtil
-import com.fleeksoft.ksoup.isJsOrWasm
 import com.fleeksoft.ksoup.ported.exception.UncheckedIOException
 import com.fleeksoft.ksoup.ported.io.Charsets
 import com.fleeksoft.ksoup.ported.io.StringReader
@@ -23,7 +20,7 @@ class CharacterReaderTest {
 
     @Test
     fun testUtf16BE() = runTest {
-        if (BuildConfig.isKotlinx && Platform.isJsOrWasm()) {
+        if (!TestHelper.isUtf16Supported()) {
 //            not supported in kotlinx for js
             return@runTest
         }
@@ -38,7 +35,7 @@ class CharacterReaderTest {
 
     @Test
     fun testUtf16LE() = runTest {
-        if (BuildConfig.isKotlinx && Platform.isJsOrWasm()) {
+        if (!TestHelper.isUtf16Supported()) {
 //            not supported in kotlinx for js
             return@runTest
         }

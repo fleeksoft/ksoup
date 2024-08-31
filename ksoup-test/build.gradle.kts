@@ -1,9 +1,32 @@
-val libBuildType = project.findProperty("libBuildType")?.toString()
 plugins {
     alias(libs.plugins.power.assert)
 }
+
 val rootPath = "generated/kotlin"
 val isGithubActions: Boolean = System.getenv("GITHUB_ACTIONS")?.toBoolean() == true
+
+val libBuildType = project.findProperty("libBuildType")?.toString()
+val isWasmEnabled = project.findProperty("isWasmEnabled")?.toString()?.toBoolean() ?: false
+kotlin {
+    js(IR) {
+        browser {
+            testTask {
+                useMocha {
+                    timeout = "9s"
+                }
+            }
+        }
+    }
+    if (isWasmEnabled && libBuildType != "dev" && (libBuildType == "korlibs" || libBuildType == "kotlinx")) {
+        wasmJs()
+    }
+    sourceSets {
+        commonTest {
+            this.kotlin.srcDir(layout.buildDirectory.file(rootPath))
+        }
+    }
+}
+
 val generateBuildConfigFile: Task by tasks.creating {
     group = "build setup"
     val file = layout.buildDirectory.file("$rootPath/BuildConfig.kt")
@@ -17,7 +40,11 @@ val generateBuildConfigFile: Task by tasks.creating {
             object BuildConfig {
                 const val PROJECT_ROOT: String = "${rootProject.rootDir.absolutePath.replace("\\", "\\\\")}"
                 const val isGithubActions: Boolean = $isGithubActions
+                const val libBuildType: String = "$libBuildType"
                 const val isKotlinx: Boolean = ${libBuildType == "kotlinx" || libBuildType == "dev"}
+                const val isKorlibs: Boolean = ${libBuildType == "korlibs"}
+                const val isOkio: Boolean = ${libBuildType == "okio"}
+                const val isKtor2: Boolean = ${libBuildType == "ktor2"}
             }
             """.trimIndent()
         file.get().asFile.writeText(content)
@@ -27,22 +54,5 @@ val generateBuildConfigFile: Task by tasks.creating {
 tasks.configureEach {
     if (name != generateBuildConfigFile.name && !name.contains("publish", ignoreCase = true)) {
         dependsOn(generateBuildConfigFile.name)
-    }
-}
-
-kotlin {
-    sourceSets {
-        commonTest {
-            this.kotlin.srcDir(layout.buildDirectory.file(rootPath))
-        }
-    }
-    js(IR) {
-        browser {
-            testTask {
-                useMocha {
-                    timeout = "9s"
-                }
-            }
-        }
     }
 }

@@ -11,18 +11,29 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                println("libBuildType: $libBuildType")
-                if (libBuildType == "korlibs") {
-                    api(project(":ksoup-engine-korlibs"))
-                } else {
-                    api(project(":ksoup-engine-kotlinx"))
+                when (libBuildType) {
+                    "korlibs" -> {
+                        api(project(":ksoup-engine-korlibs"))
+                    }
+
+                    "okio" -> {
+                        api(project(":ksoup-engine-okio"))
+                    }
+
+                    "ktor2" -> {
+                        api(project(":ksoup-engine-ktor2"))
+                    }
+
+                    else -> {
+                        api(project(":ksoup-engine-kotlinx"))
+                    }
                 }
             }
         }
     }
 }
 
-val artifactId = if (libBuildType == "korlibs") "ksoup-korlibs" else "ksoup"
+val artifactId = if (libBuildType == "korlibs") "ksoup-korlibs" else if (libBuildType == "okio") "ksoup-okio" else "ksoup"
 mavenPublishing {
     coordinates("com.fleeksoft.ksoup", artifactId, libs.versions.libraryVersion.get())
     pom {

@@ -1,7 +1,11 @@
 package com.fleeksoft.ksoup
 
+import com.fleeksoft.ksoup.io.FileSource
+import com.fleeksoft.ksoup.io.SourceReader
+import com.fleeksoft.ksoup.io.from
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parser.Parser
+import com.fleeksoft.ksoup.ported.toSourceFile
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
@@ -26,7 +30,7 @@ public fun Ksoup.parseInputStream(
     parser: Parser = Parser.htmlParser(),
 ): Document {
     return parse(
-        sourceReader = JvmKotlinxMapper.jvmInputStreamToSourceReader(inputStream),
+        sourceReader = SourceReader.from(inputStream),
         charsetName = charsetName,
         baseUri = baseUri,
         parser = parser,
@@ -50,7 +54,7 @@ public suspend fun Ksoup.parseFile(
     parser: Parser = Parser.htmlParser(),
 ): Document {
     return parseFile(
-        file = JvmKotlinxMapper.jvmFileToFileSource(file),
+        file = FileSource.from(file),
         charsetName = charsetName,
         baseUri = baseUri,
         parser = parser,
@@ -77,7 +81,7 @@ suspend fun Ksoup.parsePath(
     parser: Parser = Parser.htmlParser()
 ): Document {
     return Ksoup.parse(
-        sourceReader = KsoupEngineInstance.ksoupEngine.pathToFileSource(path.absolutePathString()).toSourceReader(),
+        sourceReader = path.absolutePathString().toSourceFile().toSourceReader(),
         baseUri = baseUri,
         charsetName = charsetName,
         parser = parser

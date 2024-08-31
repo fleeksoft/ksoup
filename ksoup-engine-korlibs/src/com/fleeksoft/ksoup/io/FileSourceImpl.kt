@@ -5,8 +5,8 @@ import korlibs.io.file.VfsFile
 import korlibs.io.file.fullName
 import korlibs.io.file.std.uniVfs
 
-class FileSourceImpl : FileSource {
-    val file: VfsFile
+internal class FileSourceImpl : FileSource {
+    private val file: VfsFile
 
     constructor(file: VfsFile) {
         this.file = file

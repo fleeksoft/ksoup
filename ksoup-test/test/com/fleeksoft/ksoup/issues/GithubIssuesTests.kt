@@ -17,7 +17,6 @@ class GithubIssuesTests {
                     .firstOrNull()?.let { element ->
                         val titles = element.select("div[class=dtit]")
                         val contents = element.select("div[class=img]")
-                        println("titles: ${titles.size}, contents: ${contents.size}")
                         assertEquals(6, titles.size)
                         assertEquals(6, contents.size)
                     }

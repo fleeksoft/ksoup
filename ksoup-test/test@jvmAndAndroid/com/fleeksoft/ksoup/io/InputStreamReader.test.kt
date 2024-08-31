@@ -1,6 +1,5 @@
 package com.fleeksoft.ksoup.io
 
-import com.fleeksoft.ksoup.JvmKotlinxMapper
 import com.fleeksoft.ksoup.internal.SharedConstants
 import com.fleeksoft.ksoup.ported.io.BufferedReader
 import com.fleeksoft.ksoup.ported.io.InputSourceReader
@@ -14,7 +13,7 @@ import kotlin.test.assertEquals
 class InputStreamReader {
 
     private fun String.toInputStreamSourceReader(): SourceReader {
-        return JvmKotlinxMapper.jvmInputStreamToSourceReader(ByteArrayInputStream(this.encodeToByteArray()))
+        return SourceReader.from(ByteArrayInputStream(this.encodeToByteArray()))
     }
 
     @Test

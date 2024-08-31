@@ -6,7 +6,7 @@ import korlibs.io.stream.readAll
 import korlibs.io.stream.readBytes
 
 
-class SourceReaderImpl : SourceReader {
+internal class SourceReaderImpl : SourceReader {
     private val syncStream: SyncStream
 
     constructor(syncStream: SyncStream) {
@@ -14,10 +14,6 @@ class SourceReaderImpl : SourceReader {
     }
 
     constructor(bytes: ByteArray) : this(bytes.openSync())
-
-    override fun skip(count: Long) {
-        syncStream.skip(count.toInt())
-    }
 
     override fun mark(readLimit: Long) {
         syncStream.mark(readLimit.toInt())
@@ -34,10 +30,6 @@ class SourceReaderImpl : SourceReader {
     override fun read(bytes: ByteArray, offset: Int, length: Int): Int {
         return syncStream.read(bytes, offset, length)
     }
-
-    /*override fun availableRead(): Long {
-        return syncStream.availableRead
-    }*/
 
     override fun readAllBytes(): ByteArray {
         return syncStream.readAll()

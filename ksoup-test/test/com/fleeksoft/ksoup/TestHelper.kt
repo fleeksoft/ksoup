@@ -24,9 +24,9 @@ object TestHelper {
     }
 
     fun getResourceAbsolutePath(resourceName: String, absForWindows: Boolean = true): String {
-        if (Platform.isWindows() && !BuildConfig.isKotlinx && absForWindows) {
+        if (Platform.isWindows() && BuildConfig.isKorlibs && absForWindows) {
             return "../../../../testResources/$resourceName"
-        } else if (Platform.isJsOrWasm()) {
+        } else if ((Platform.isJsOrWasm() && BuildConfig.isKorlibs) || (Platform.isWasmJs())) {
             return "https://raw.githubusercontent.com/fleeksoft/ksoup/release/ksoup-test/testResources/$resourceName"
         }
         return "${BuildConfig.PROJECT_ROOT}/ksoup-test/testResources/$resourceName"
@@ -51,7 +51,7 @@ object TestHelper {
 
     private suspend fun readFile(resource: String): SourceReader {
         val abs = getResourceAbsolutePath(resource, absForWindows = false)
-        val bytes = if (Platform.isJsOrWasm()) {
+        val bytes = if (abs.startsWith("https://", ignoreCase = true)) {
             abs.uniVfs.readAll()
         } else {
             SystemFileSystem.source(Path(abs)).buffered().readByteArray()
@@ -61,11 +61,18 @@ object TestHelper {
 
     private suspend fun readGzipFile(resource: String): SourceReader {
         val abs = getResourceAbsolutePath(resource, absForWindows = false)
-        val bytes = if (Platform.isJsOrWasm()) {
+        val bytes = if (abs.startsWith("https://", ignoreCase = true)) {
             abs.uniVfs.readAll()
         } else {
             SystemFileSystem.source(Path(abs)).buffered().readByteArray()
         }
         return bytes.uncompress(GZIP).openSourceReader()
     }
+
+    fun isGzipSupported(): Boolean = BuildConfig.isKorlibs
+    fun isUtf16Supported(): Boolean = !((BuildConfig.isKotlinx || BuildConfig.isOkio || BuildConfig.isKtor2) && Platform.isJsOrWasm())
+    fun isUtf32Supported(): Boolean = !(Platform.isJsOrWasm() || Platform.isWindows() || Platform.isLinux())
+    fun isEUCKRSupported(): Boolean = !(Platform.isJsOrWasm() || Platform.isApple() || Platform.isWindows())
+    fun isGB2312Supported(): Boolean = !(Platform.isApple() || Platform.isWindows() || ((BuildConfig.isKotlinx || BuildConfig.isOkio || BuildConfig.isKtor2) && Platform.isJsOrWasm()))
+    fun canReadResourceFile(): Boolean = !Platform.isWasmJs() || BuildConfig.isKorlibs
 }

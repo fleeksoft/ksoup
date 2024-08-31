@@ -2,7 +2,6 @@ package com.fleeksoft.ksoup.nodes
 
 import com.fleeksoft.ksoup.BuildConfig
 import com.fleeksoft.ksoup.Ksoup
-import com.fleeksoft.ksoup.TestHelper
 import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.parser.Tag
 import com.fleeksoft.ksoup.select.NodeVisitor
@@ -33,10 +32,10 @@ class NodeTest {
         assertEquals("", withBase.absUrl("noval"))
         val dodgyBase = Element(tag, "wtf://no-such-protocol/", attribs)
         assertEquals("http://bar/qux", dodgyBase.absUrl("absHref")) // base fails, but href good, so get that
-        if (BuildConfig.isKotlinx) {
-            assertEquals("", dodgyBase.absUrl("relHref")) // base fails, only rel href, so return nothing
-        } else {
+        if (BuildConfig.isKorlibs) {
             assertEquals("wtf://no-such-protocol/foo", dodgyBase.absUrl("relHref")) // invalid protocol but still can be resolved
+        } else {
+            assertEquals("", dodgyBase.absUrl("relHref")) // base fails, only rel href, so return nothing
         }
     }
 
@@ -96,11 +95,11 @@ class NodeTest {
         val one = doc.select("a").first()
         assertEquals("file:///etc/password", one!!.absUrl("href"))
         val two = doc.select("a")[1]
-        if (BuildConfig.isKotlinx) {
-//            fixme: in kotlinx its different behavoiru
-            assertEquals("file://var/log/messages", two.absUrl("href"))
-        } else {
+        if (BuildConfig.isKorlibs) {
             assertEquals("file:///var/log/messages", two.absUrl("href"))
+        } else {
+            //            fixme: in kotlinx its different behaviour
+            assertEquals("file://var/log/messages", two.absUrl("href"))
         }
     }
 

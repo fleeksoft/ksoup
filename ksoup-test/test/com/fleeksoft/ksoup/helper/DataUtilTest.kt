@@ -1,6 +1,7 @@
 package com.fleeksoft.ksoup.helper
 
-import com.fleeksoft.ksoup.*
+import com.fleeksoft.ksoup.Ksoup
+import com.fleeksoft.ksoup.TestHelper
 import com.fleeksoft.ksoup.io.SourceReader
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parser.Parser
@@ -54,7 +55,6 @@ class DataUtilTest {
             charsetName = "UTF-8",
             parser = Parser.htmlParser(),
         )
-        println("doc: $doc")
         assertEquals("One", doc.head().text())
     }
 
@@ -128,7 +128,7 @@ class DataUtilTest {
 
     @Test
     fun secondMetaElementWithContentTypeContainsCharsetParameter() {
-        if (Platform.isJsOrWasm() || Platform.isApple() || Platform.isWindows()) {
+        if (!TestHelper.isEUCKRSupported()) {
             // FIXME: euc-kr charset not supported
             return
         }
@@ -148,11 +148,10 @@ class DataUtilTest {
 
     @Test
     fun firstMetaElementWithCharsetShouldBeUsedForDecoding() {
-        val html =
-            "<html><head>" +
-                    "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=iso-8859-1\">" +
-                    "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=koi8-u\">" +
-                    "</head><body>Übergrößenträger</body></html>"
+        val html = "<html><head>" +
+                "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=iso-8859-1\">" +
+                "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=koi8-u\">" +
+                "</head><body>Übergrößenträger</body></html>"
         val docByteArrayCharset: Document =
             DataUtil.parseInputSource(
                 sourceReader = dataToStream(data = html, charset = "iso-8859-1"),
@@ -166,7 +165,7 @@ class DataUtilTest {
 
     @Test
     fun supportsBOMinFiles() = runTest {
-        if (BuildConfig.isKotlinx && Platform.isJsOrWasm()) {
+        if (!TestHelper.isUtf16Supported()) {
             // FIXME: UTF-16 charset not supported
             return@runTest
         }
@@ -180,7 +179,7 @@ class DataUtilTest {
         assertContains(doc.title(), "UTF-16LE")
         assertContains(doc.text(), "가각갂갃간갅")
 
-        if (Platform.isJsOrWasm() || Platform.isWindows() || Platform.isLinux()) {
+        if (!TestHelper.isUtf32Supported()) {
             // FIXME: UTF-32 charset not supported
             return@runTest
         }
@@ -197,7 +196,7 @@ class DataUtilTest {
 
     @Test
     fun streamerSupportsBOMinFiles() = runTest {
-        if (BuildConfig.isKotlinx && Platform.isJsOrWasm()) {
+        if (!TestHelper.isUtf16Supported()) {
             // FIXME: UTF-16 charset not supported
             return@runTest
         }
@@ -216,7 +215,7 @@ class DataUtilTest {
         assertContains(doc.title(), "UTF-16LE")
         assertContains(doc.text(), "가각갂갃간갅")
 
-        if (Platform.isJsOrWasm() || Platform.isWindows() || Platform.isLinux()) {
+        if (!TestHelper.isUtf32Supported()) {
             // FIXME: UTF-32 charset not supported
             return@runTest
         }
@@ -252,7 +251,7 @@ class DataUtilTest {
     @Test
     fun supportsZippedUTF8BOM() = runTest {
         val resourceName = "bomtests/bom_utf8.html.gz"
-        val doc: Document = if (BuildConfig.isKotlinx) {
+        val doc: Document = if (!TestHelper.isGzipSupported()) {
             val source = TestHelper.readResource(resourceName)
             Ksoup.parse(sourceReader = source, baseUri = "http://example.com")
         } else {
@@ -296,8 +295,8 @@ class DataUtilTest {
 
     @Test
     fun loadsGzipFile() = runTest {
-        if (BuildConfig.isKotlinx) {
-//            kotlinx module not support gzip
+        if (!TestHelper.isGzipSupported()) {
+//            gzip not supported for this
             return@runTest
         }
         val input: String = TestHelper.getResourceAbsolutePath("htmltests/gzip.html.gz")
@@ -309,8 +308,8 @@ class DataUtilTest {
 
     @Test
     fun loadsZGzipFile() = runTest {
-        if (BuildConfig.isKotlinx) {
-//            kotlinx module not support gzip
+        if (!TestHelper.isGzipSupported()) {
+//            gzip not supported for this
             return@runTest
         }
         // compressed on win, with z suffix
@@ -322,8 +321,8 @@ class DataUtilTest {
 
     @Test
     fun handlesFakeGzipFile() = runTest {
-        if (BuildConfig.isKotlinx) {
-//            kotlinx module not support gzip
+        if (!TestHelper.isGzipSupported()) {
+//            gzip not supported for this
             return@runTest
         }
         val input: String = TestHelper.getResourceAbsolutePath("htmltests/fake-gzip.html.gz")
@@ -334,8 +333,8 @@ class DataUtilTest {
 
     @Test
     fun handlesChunkedInputStream() = runTest {
-        if (BuildConfig.isKotlinx) {
-//            kotlinx module not support gzip
+        if (!TestHelper.isGzipSupported()) {
+//            gzip not supported for this
             return@runTest
         }
         val resourceName = "htmltests/large.html.gz"
