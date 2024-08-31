@@ -7,6 +7,7 @@ on:
   pull_request:
     branches: [ "release", "develop" ]
     paths-ignore: [ "**.md" ]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -38,7 +39,7 @@ jobs:
         continue-on-error: ${{ matrix.config.continueOnError }}
         run: |
           chmod +x ./runTests.sh
-          ./runTests.sh ${{ matrix.libBuildType }}
+          ./runTests.sh ${{ matrix.libBuildType }} ${{ matrix.config.tasks }}
         working-directory: ${{ github.workspace }}
 
 #  deploy:

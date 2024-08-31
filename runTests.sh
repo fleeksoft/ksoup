@@ -33,14 +33,29 @@ error_handler() {
     exit 1
 }
 
+# Function to safely remove a directory if it exists
+safe_remove_dir() {
+    local dir="$1"
+    if [ -d "$dir" ]; then
+        rm -rf "$dir"
+    fi
+}
+
 # Set trap to catch any errors and call the error_handler function
 trap 'error_handler' ERR
 
 # Function to run tests for a specific configuration
 run_tests() {
     local libBuildType="$1"
+    shift
+    local tasks=("$@")
 
-    echo "Running tests with libBuildType=$libBuildType..."
+    if [ ${#tasks[@]} -eq 0 ]; then
+      echo "No specific tasks provided, running all default tests..."
+      tasks=("jvmTest" "testDebugUnitTest" "testReleaseUnitTest" "jsTest" "wasmTest" "iosX64Test" "iosSimulatorArm64Test" "macosX64Test" "macosArm64Test" "tvosX64Test" "tvosSimulatorArm64Test")
+    fi
+
+     echo "Running tests with libBuildType=$libBuildType and tasks=${tasks[*]}..."
 
     # Only add/remove wasm for kotlinx and korlibs
     local wasm_added=0
@@ -53,17 +68,23 @@ run_tests() {
         trap 'error_handler' ERR # Re-enable the trap
     fi
 
+    # Remove build directories if they exist
+    echo "remove build dirs if exists"
+    safe_remove_dir ".kotlin"
+    safe_remove_dir "build"
+    safe_remove_dir ".gradle"
+
     ./gradlew clean -PlibBuildType="$libBuildType" --quiet --warning-mode=none
 
-    echo "Running JVM tests... $libBuildType"
-    ./gradlew jvmTest testDebugUnitTest testReleaseUnitTest -PlibBuildType="$libBuildType" --quiet --warning-mode=none
-
-    echo "Running JS and WASM tests... $libBuildType"
-    rm -rf kotlin-js-store
-    ./gradlew jsTest wasmTest -PlibBuildType="$libBuildType" --quiet --warning-mode=none
-
-    echo "Running iOS, macOS, and tvOS tests... $libBuildType"
-    ./gradlew iosX64Test iosSimulatorArm64Test macosX64Test macosArm64Test tvosX64Test tvosSimulatorArm64Test -PlibBuildType="$libBuildType" --quiet --warning-mode=none
+    for task in "${tasks[@]}"; do
+      safe_remove_dir "kotlin-js-store" #remove it every task to avoid lock issue
+      start_time=$(date +%s)
+      echo "Running $task... $libBuildType"
+      ./gradlew "$task" -PlibBuildType="$libBuildType" --quiet --warning-mode=none
+      end_time=$(date +%s)
+      duration=$((end_time - start_time))
+      echo "Task $task completed in $duration seconds."
+    done
 
     # Restore original module.yaml if wasm was added
     if [ "$wasm_added" -eq 1 ]; then
@@ -87,14 +108,15 @@ is_supported_param() {
 
 # Main script logic
 if [ "$#" -ge 1 ]; then
-    for param in "$@"; do
-        if is_supported_param "$param"; then
-            run_tests "$param"
-        else
-            echo "Error: Unsupported parameter '$param'. Supported parameters are: ${SUPPORTED_PARAMS[*]}"
-            exit 1
-        fi
-    done
+    libBuildType="$1"
+    shift
+
+    if is_supported_param "$libBuildType"; then
+        run_tests "$libBuildType" "$@"
+    else
+        echo "Error: Unsupported parameter '$libBuildType'. Supported parameters are: ${SUPPORTED_PARAMS[*]}"
+        exit 1
+    fi
 else
     for param in "${SUPPORTED_PARAMS[@]}"; do
         run_tests "$param"
