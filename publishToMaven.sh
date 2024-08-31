@@ -12,6 +12,7 @@ PUBLISH_TASK="publishToMavenLocal"
 # Check for the --remote flag
 if [ "$1" == "--remote" ]; then
   PUBLISH_TASK="publishAllPublicationsToMavenCentralRepository"
+  shift # Remove the --remote argument
 fi
 
 # projectModule:libBuildType
