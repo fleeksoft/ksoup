@@ -9,6 +9,7 @@ import com.fleeksoft.ksoup.select.Elements
 import com.fleeksoft.ksoup.select.NodeFilter
 import com.fleeksoft.ksoup.select.NodeVisitor
 import com.fleeksoft.ksoup.select.QueryParser
+import com.fleeksoft.ksoup.select.SelectorTest.Companion.assertSelectedOwnText
 import kotlin.test.*
 
 /**
@@ -2673,7 +2674,7 @@ Three
     }
 
     @Test
-    fun cssSelectorWithAstrix() {
+    fun cssSelectorWithAsterisk() {
         val doc = Ksoup.parse("<div class='vds-items_flex-end [&amp;_>_*:first-child]:vds-pt_0'>One</div><div class='vds-items_flex-end'>Two</div>")
         val div = doc.expectFirst("div")
         val selector = div.cssSelector()
@@ -2682,6 +2683,16 @@ Three
         val selected = doc.select(selector)
         assertEquals(1, selected.size)
         assertEquals(selected.first(), div)
+    }
+
+    @Test
+    fun cssSelectorWithPipe() {
+        val doc: Document = Ksoup.parse("<div><span class='|'>One</div>")
+        val span: Element = doc.expectFirst("div span")
+        val selector: String = span.cssSelector()
+        assertEquals("html > body > div > span.\\|", selector)
+        val selected = doc.select(selector)
+        assertSelectedOwnText(selected, "One")
     }
 
     @Test
