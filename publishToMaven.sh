@@ -15,20 +15,31 @@ if [ "$1" == "--remote" ]; then
 fi
 
 # projectModule:libBuildType
-projects=(
+default_projects=(
   "ksoup-engine-common:"
-  "ksoup-engine-kotlinx:"
-  "ksoup-engine-korlibs:"
-  "ksoup-engine-ktor2:"
-  "ksoup-engine-okio:"
+
+  "ksoup-engine-kotlinx:kotlinx"
   "ksoup:kotlinx"
   "ksoup-network:kotlinx"
+
+  "ksoup-engine-korlibs:korlibs"
   "ksoup:korlibs"
   "ksoup-network-korlibs:korlibs"
+
+  "ksoup-engine-ktor2:ktor2"
   "ksoup:ktor2"
   "ksoup-network-ktor2:ktor2"
+
+  "ksoup-engine-okio:okio"
   "ksoup:okio"
 )
+
+  # Check if projects were passed as arguments
+  if [ "$#" -ne 0 ]; then
+    projects=("$@")
+  else
+    projects=("${default_projects[@]}")
+  fi
 
 # Function to add wasm to platforms list if not already present
 add_wasm_platform() {
@@ -62,6 +73,14 @@ error_handler() {
   exit 1
 }
 
+# Function to safely remove a directory if it exists
+safe_remove_dir() {
+    local dir="$1"
+    if [ -d "$dir" ]; then
+        rm -rf "$dir"
+    fi
+}
+
 # Set trap to catch any errors and call the error_handler function
 trap 'error_handler' ERR
 
@@ -85,6 +104,14 @@ for project in "${projects[@]}"; do
   fi
 
   if [ -n "$buildType" ]; then
+
+    # Remove build directories if they exist
+    echo "remove build dirs if exists"
+    safe_remove_dir ".kotlin"
+    safe_remove_dir "build"
+    safe_remove_dir ".gradle"
+    safe_remove_dir "kotlin-js-store"
+
     ./gradlew clean -PlibBuildType="$buildType" --quiet --warning-mode=none
     echo "Publishing $projectName with libBuildType=$buildType"
     ./gradlew ":$projectName:$PUBLISH_TASK" -PlibBuildType="$buildType" --quiet --warning-mode=none

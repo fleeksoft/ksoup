@@ -1,0 +1,48 @@
+name: publish
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        project:
+          - "ksoup-engine-common:"
+
+          - "ksoup-engine-kotlinx:kotlinx"
+          - "ksoup:kotlinx"
+          - "ksoup-network:kotlinx"
+
+          - "ksoup-engine-korlibs:korlibs"
+          - "ksoup:korlibs"
+          - "ksoup-network-korlibs:korlibs"
+
+          - "ksoup-engine-ktor2:ktor2"
+          - "ksoup:ktor2"
+          - "ksoup-network-ktor2:ktor2"
+
+          - "ksoup-engine-okio:okio"
+          - "ksoup:okio"
+
+    runs-on: macos-latest
+    name: Publish ${{ matrix.project }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup gradle
+        uses: gradle/gradle-build-action@v2
+
+      - name: Publish ${{ matrix.project }}
+        run: |
+          chmod +x ./publishToMaven.sh
+          ./publishToMaven.sh --remote ${{ matrix.project }}
+        working-directory: ${{ github.workspace }}
+
+      - name: Success message
+        run: echo "Publishing of ${{ matrix.project }} completed successfully."
