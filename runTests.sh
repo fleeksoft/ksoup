@@ -6,22 +6,39 @@ set -e
 # Function to add wasm to platforms list if not already present
 add_wasm_platform() {
     local module_file="ksoup/module.yaml"
+    local test_module_file="ksoup-test/module.yaml"
+
+    wasm_added=0
+
 
     if grep -q 'platforms: \[.*wasm' "$module_file"; then
         echo "wasm is already in the platforms list in $module_file"
-        return 0
     else
         echo "Adding wasm to platforms list in $module_file"
         cp "$module_file" "$module_file.bak"
         sed -i.bak 's/\(platforms: \[\)/\1wasm, /' "$module_file"
-        return 1
+        wasm_added=1
+    fi
+
+    if grep -q 'platforms: \[.*wasm' "$test_module_file"; then
+        echo "wasm is already in the platforms list in $test_module_file"
+    else
+        echo "Adding wasm to platforms list in $test_module_file"
+        cp "$test_module_file" "$test_module_file.bak"
+        sed -i.bak 's/\(platforms: \[\)/\1wasm, /' "$test_module_file"
+        wasm_added=1
     fi
 }
 
-# Function to restore the original module.yaml file
+# Function to restore the original module.yaml files
 restore_module_yaml() {
-    echo "Restoring original module.yaml..."
-    mv "ksoup/module.yaml.bak" "ksoup/module.yaml"
+    echo "Restoring original module.yaml files..."
+    if [ -f "ksoup/module.yaml.bak" ]; then
+      mv "ksoup/module.yaml.bak" "ksoup/module.yaml"
+    fi
+    if [ -f "ksoup-test/module.yaml.bak" ]; then
+      mv "ksoup-test/module.yaml.bak" "ksoup-test/module.yaml"
+    fi
 }
 
 # Error handler function to restore module.yaml on failure
@@ -60,12 +77,12 @@ run_tests() {
     # Only add/remove wasm for kotlinx and korlibs
     local wasm_added=0
     if [[ "$libBuildType" == "kotlinx" || "$libBuildType" == "korlibs" ]]; then
-        trap - ERR # Temporarily disable the trap
-        set +e  # Disable exit on error
+#        trap - ERR # Temporarily disable the trap
+#        set +e  # Disable exit on error
         add_wasm_platform
-        wasm_added=$?
-        set -e  # Re-enable exit on error
-        trap 'error_handler' ERR # Re-enable the trap
+#        wasm_added=$?
+#        set -e  # Re-enable exit on error
+#        trap 'error_handler' ERR # Re-enable the trap
     fi
 
     # Remove build directories if they exist
