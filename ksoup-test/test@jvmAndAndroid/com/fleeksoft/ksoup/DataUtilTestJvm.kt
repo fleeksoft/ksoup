@@ -4,7 +4,6 @@ import com.fleeksoft.ksoup.helper.DataUtil
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.ported.io.Charsets
-import com.fleeksoft.ksoup.ported.openSourceReader
 import com.fleeksoft.ksoup.ported.toByteArray
 import kotlinx.coroutines.test.runTest
 import java.io.*
@@ -71,7 +70,7 @@ class DataUtilTestJvm {
             inputStream(secondPart),
         )
         val doc: Document = DataUtil.parseInputSource(
-            sourceReader = sequenceStream.readAllBytes().openSourceReader(),
+            sourceReader = sequenceStream.toSourceReader(),
             charsetName = null,
             baseUri = "",
             parser = Parser.htmlParser(),
@@ -95,7 +94,7 @@ class DataUtilTestJvm {
         val input = getFileAsString(file)
         val expected = Ksoup.parse(html = input, baseUri = "https://example.com")
         val doc: Document = Ksoup.parse(
-            sourceReader = GZIPInputStream(FileInputStream(file)).readAllBytes().openSourceReader(),
+            sourceReader = GZIPInputStream(FileInputStream(file)).toSourceReader(),
             charsetName = null,
             baseUri = "https://example.com",
         )
@@ -129,7 +128,7 @@ class DataUtilTestJvm {
             baseUri = "https://example.com",
         )
         val docThree: Document = Ksoup.parse(
-            sourceReader = GZIPInputStream(FileInputStream(file)).readAllBytes().openSourceReader(),
+            sourceReader = GZIPInputStream(FileInputStream(file)).toSourceReader(),
             charsetName = null,
             baseUri = "https://example.com",
         )
@@ -157,7 +156,7 @@ class DataUtilTestJvm {
             val bytes: ByteArray =
                 if (file.getName().endsWith(".gz")) {
                     val stream: InputStream = GZIPInputStream(FileInputStream(file))
-                    val byteBuffer: ByteArray = DataUtil.readToByteBuffer(stream.readAllBytes().openSourceReader(), 0)
+                    val byteBuffer: ByteArray = DataUtil.readToByteBuffer(stream.toSourceReader(), 0)
                     byteBuffer
                 } else {
                     file.readBytes()

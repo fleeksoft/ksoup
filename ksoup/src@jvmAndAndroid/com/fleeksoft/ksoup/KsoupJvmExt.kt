@@ -1,11 +1,7 @@
 package com.fleeksoft.ksoup
 
-import com.fleeksoft.ksoup.io.FileSource
-import com.fleeksoft.ksoup.io.SourceReader
-import com.fleeksoft.ksoup.io.from
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parser.Parser
-import com.fleeksoft.ksoup.ported.toSourceFile
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
@@ -30,7 +26,7 @@ public fun Ksoup.parseInputStream(
     parser: Parser = Parser.htmlParser(),
 ): Document {
     return parse(
-        sourceReader = SourceReader.from(inputStream),
+        sourceReader = inputStream.toSourceReader(),
         charsetName = charsetName,
         baseUri = baseUri,
         parser = parser,
@@ -54,7 +50,7 @@ public suspend fun Ksoup.parseFile(
     parser: Parser = Parser.htmlParser(),
 ): Document {
     return parseFile(
-        file = FileSource.from(file),
+        file = file.toFileSource(),
         charsetName = charsetName,
         baseUri = baseUri,
         parser = parser,
@@ -80,8 +76,8 @@ suspend fun Ksoup.parsePath(
     charsetName: String? = null,
     parser: Parser = Parser.htmlParser()
 ): Document {
-    return Ksoup.parse(
-        sourceReader = path.absolutePathString().toSourceFile().toSourceReader(),
+    return parseFile(
+        file = path.toFileSource(),
         baseUri = baseUri,
         charsetName = charsetName,
         parser = parser

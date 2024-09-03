@@ -5,6 +5,7 @@ import com.fleeksoft.ksoup.ported.io.BufferedReader
 import com.fleeksoft.ksoup.ported.io.InputSourceReader
 import com.fleeksoft.ksoup.ported.io.Reader
 import com.fleeksoft.ksoup.ported.io.StringReader
+import com.fleeksoft.ksoup.toSourceReader
 import korlibs.io.lang.substr
 import java.io.ByteArrayInputStream
 import kotlin.test.Test
@@ -13,7 +14,7 @@ import kotlin.test.assertEquals
 class InputStreamReader {
 
     private fun String.toInputStreamSourceReader(): SourceReader {
-        return SourceReader.from(ByteArrayInputStream(this.encodeToByteArray()))
+        return ByteArrayInputStream(this.encodeToByteArray()).toSourceReader()
     }
 
     @Test

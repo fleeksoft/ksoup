@@ -14,10 +14,6 @@ class GithubIssue19 {
 
     @Test
     fun testAttributeIncorrectMixCharsetIssue() = runTest {
-        if (Platform.isJsOrWasm()) {
-//            timeout issue
-            return@runTest
-        }
         val document: Document = Ksoup.parseFile(TestHelper.getResourceAbsolutePath("htmltests/issue19.html.gz"))
         val imagesEls: Elements = document.select("img")
         for (imagesEl in imagesEls) {
