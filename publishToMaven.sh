@@ -12,35 +12,45 @@ PUBLISH_TASK="publishToMavenLocal"
 # Check for the --remote flag
 if [ "$1" == "--remote" ]; then
   PUBLISH_TASK="publishAllPublicationsToMavenCentralRepository"
-  shift # Remove the --remote argument
+  shift
 fi
 
-# projectModule:libBuildType
-default_projects=(
-  "ksoup-engine-common:"
+# Default build types if none are passed
+default_build_types=("kotlinx" "korlibs" "ktor2" "okio")
 
-  "ksoup-engine-kotlinx:kotlinx"
-  "ksoup:kotlinx"
-  "ksoup-network:kotlinx"
+# If build types are passed, use them; otherwise, use the default list
+if [ "$#" -ge 1 ]; then
+  build_types=("$@")
+else
+  build_types=("${default_build_types[@]}")
+fi
 
-  "ksoup-engine-korlibs:korlibs"
-  "ksoup:korlibs"
-  "ksoup-network-korlibs:korlibs"
+# Function to add projects based on the key
+add_projects_based_on_key() {
+  local key="$1"
+  case "$key" in
+    "common")
+      projects=("ksoup-engine-common")
+      ;;
+    "kotlinx")
+      projects=("ksoup-engine-kotlinx" "ksoup" "ksoup-network")
+      ;;
+    "korlibs")
+      projects=("ksoup-engine-korlibs" "ksoup" "ksoup-network-korlibs")
+      ;;
+    "ktor2")
+      projects=("ksoup-engine-ktor2" "ksoup" "ksoup-network-ktor2")
+      ;;
+    "okio")
+      projects=("ksoup-engine-okio" "ksoup")
+      ;;
+    *)
+      echo "Unknown key: $key"
+      exit 1
+      ;;
+  esac
+}
 
-  "ksoup-engine-ktor2:ktor2"
-  "ksoup:ktor2"
-  "ksoup-network-ktor2:ktor2"
-
-  "ksoup-engine-okio:okio"
-  "ksoup:okio"
-)
-
-  # Check if projects were passed as arguments
-  if [ "$#" -ne 0 ]; then
-    projects=("$@")
-  else
-    projects=("${default_projects[@]}")
-  fi
 
 # Function to add wasm to platforms list if not already present
 add_wasm_platform() {
@@ -49,20 +59,20 @@ add_wasm_platform() {
   # Check if 'platforms:' line already contains 'wasm'
   if grep -q 'platforms: \[.*wasm' "$module_file"; then
     echo "wasm is already in the platforms list in $module_file"
-    return 0  # Return 0 (indicating wasm was not added)
   else
     echo "Adding wasm to platforms list in $module_file"
     cp "$module_file" "$module_file.bak"
     # Add 'wasm' to the beginning of the platforms list
     sed -i.bak 's/\(platforms: \[\)/\1wasm, /' "$module_file"
-    return 1  # Return 1 (indicating wasm was added)
   fi
 }
 
 # Function to restore the original module.yaml file
 restore_module_yaml() {
-  echo "Restoring original module.yaml in $1"
-  mv "$1/module.yaml.bak" "$1/module.yaml"
+  if [ -f "$1/module.yaml.bak" ]; then
+      echo "Restoring original module.yaml in $1"
+      mv "$1/module.yaml.bak" "$1/module.yaml"
+  fi
 }
 
 # Function to handle errors and restore the original file if needed
@@ -86,46 +96,35 @@ safe_remove_dir() {
 trap 'error_handler' ERR
 
 # Loop through all projects and publish them
-for project in "${projects[@]}"; do
-  # Split the project name and build type
-  IFS=":" read -r projectName buildType <<< "$project"
+for buildType in "${build_types[@]}"; do
+  add_projects_based_on_key "$buildType"
 
-  wasm_added=0
+  # Remove build directories if they exist
+  echo "remove build dirs if exists"
+  safe_remove_dir ".kotlin"
+  safe_remove_dir "build"
+  safe_remove_dir ".gradle"
+  safe_remove_dir "kotlin-js-store"
 
   if [ "$ADD_WASM" = true ] && [[ "$buildType" == "kotlinx" || "$buildType" == "korlibs" ]]; then
-    trap - ERR # Temporarily disable the trap
-    set +e  # Disable exit on error
-    # Add wasm to platforms list if buildType is kotlinx or korlibs
-    add_wasm_platform "$projectName"
-    wasm_added=$?  # Capture the return value indicate if wasm added
-    set -e  # Re-enable exit on error
-    trap 'error_handler' ERR # Re-enable the trap
-  else
-    wasm_added=0  # Set to false if wasm wasn't added
+    echo "check and add wasm to projects"
+    for projectName in "${projects[@]}"; do
+      add_wasm_platform "$projectName"
+    done
   fi
 
-  if [ -n "$buildType" ]; then
+  ./gradlew clean -PlibBuildType="$buildType" --quiet --warning-mode=none
 
-    # Remove build directories if they exist
-    echo "remove build dirs if exists"
-    safe_remove_dir ".kotlin"
-    safe_remove_dir "build"
-    safe_remove_dir ".gradle"
-    safe_remove_dir "kotlin-js-store"
-
-    ./gradlew clean -PlibBuildType="$buildType" --quiet --warning-mode=none
+  for projectName in "${projects[@]}"; do
+    echo "*****buildType: $buildType, project: $projectName"
     echo "Publishing $projectName with libBuildType=$buildType"
-    ./gradlew ":$projectName:$PUBLISH_TASK" -PlibBuildType="$buildType" --quiet --warning-mode=none
-  else
-    ./gradlew clean --quiet --warning-mode=none
-    echo "Publishing $projectName"
-    ./gradlew ":$projectName:$PUBLISH_TASK" --quiet --warning-mode=none
-  fi
+    ./gradlew ":$projectName:$PUBLISH_TASK" -PlibBuildType="$buildType" --quiet --warning-mode=none --no-configuration-cache
+  done
 
-  # Restore the original module.yaml file after publishing if wasm was added
-  if [ "$wasm_added" -eq 1 ]; then
+  echo "check and restore module.yaml if required"
+  for projectName in "${projects[@]}"; do
     restore_module_yaml "$projectName"
-  fi
+  done
 done
 
 echo "Publishing completed successfully."
