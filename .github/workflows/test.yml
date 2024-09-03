@@ -16,7 +16,7 @@ jobs:
             { target: js, os: ubuntu-latest, tasks: jsTest wasmJsTest, continueOnError: false },
             { target: desktop, os: ubuntu-latest, tasks: jvmTest, continueOnError: false },
             { target: windows, os: windows-latest, tasks: mingwX64Test, continueOnError: false },
-            { target: linux, os: windows-latest, tasks: linuxX64Test, continueOnError: false },
+            { target: linux, os: ubuntu-latest, tasks: linuxX64Test, continueOnError: false },
           ]
         libBuildType: [ "korlibs", "kotlinx", "okio", "ktor2" ]
     runs-on: ${{ matrix.config.os }}
