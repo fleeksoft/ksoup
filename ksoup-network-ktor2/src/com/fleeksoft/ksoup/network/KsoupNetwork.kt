@@ -25,8 +25,7 @@ public suspend fun Ksoup.parseGetRequest(
     val httpResponse = NetworkHelperKtor.instance.get(url, httpRequestBuilder = httpRequestBuilder)
 //        url can be changed after redirection
     val finalUrl = httpResponse.request.url.toString()
-    val response = httpResponse.bodyAsText()
-    return parse(html = response, parser = parser, baseUri = finalUrl)
+    return parse(sourceReader = httpResponse.asSourceReader(), parser = parser, baseUri = finalUrl)
 }
 
 /**
@@ -46,16 +45,14 @@ public suspend fun Ksoup.parseSubmitRequest(
     httpRequestBuilder: HttpRequestBuilder.() -> Unit = {},
     parser: Parser = Parser.htmlParser(),
 ): Document {
-    val httpResponse =
-        NetworkHelperKtor.instance.submitForm(
-            url = url,
-            params = params,
-            httpRequestBuilder = httpRequestBuilder,
-        )
+    val httpResponse = NetworkHelperKtor.instance.submitForm(
+        url = url,
+        params = params,
+        httpRequestBuilder = httpRequestBuilder,
+    )
 //            url can be changed after redirection
     val finalUrl = httpResponse.request.url.toString()
-    val result: String = httpResponse.bodyAsText()
-    return parse(html = result, parser = parser, baseUri = finalUrl)
+    return parse(sourceReader = httpResponse.asSourceReader(), parser = parser, baseUri = finalUrl)
 }
 
 /**
@@ -74,13 +71,11 @@ public suspend fun Ksoup.parsePostRequest(
     httpRequestBuilder: HttpRequestBuilder.() -> Unit = {},
     parser: Parser = Parser.htmlParser(),
 ): Document {
-    val httpResponse =
-        NetworkHelperKtor.instance.post(
-            url = url,
-            httpRequestBuilder = httpRequestBuilder,
-        )
+    val httpResponse = NetworkHelperKtor.instance.post(
+        url = url,
+        httpRequestBuilder = httpRequestBuilder,
+    )
 //            url can be changed after redirection
     val finalUrl = httpResponse.request.url.toString()
-    val result: String = httpResponse.bodyAsText()
-    return parse(html = result, parser = parser, baseUri = finalUrl)
+    return parse(sourceReader = httpResponse.asSourceReader(), parser = parser, baseUri = finalUrl)
 }
