@@ -1,8 +1,6 @@
 package com.fleeksoft.ksoup.network
 
 import com.fleeksoft.ksoup.Ksoup
-import com.fleeksoft.ksoup.io.SourceReader
-import com.fleeksoft.ksoup.io.from
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parser.Parser
 import io.ktor.client.request.*
@@ -27,8 +25,7 @@ public suspend fun Ksoup.parseGetRequest(
     val httpResponse = NetworkHelperKtor.instance.get(url, httpRequestBuilder = httpRequestBuilder)
 //        url can be changed after redirection
     val finalUrl = httpResponse.request.url.toString()
-    val sourceReader = SourceReader.from(httpResponse.bodyAsChannel())
-    return parse(sourceReader = sourceReader, parser = parser, baseUri = finalUrl)
+    return parse(sourceReader = httpResponse.asSourceReader(), parser = parser, baseUri = finalUrl)
 }
 
 /**
@@ -56,8 +53,7 @@ public suspend fun Ksoup.parseSubmitRequest(
         )
 //            url can be changed after redirection
     val finalUrl = httpResponse.request.url.toString()
-    val sourceReader = SourceReader.from(httpResponse.bodyAsChannel())
-    return parse(sourceReader = sourceReader, parser = parser, baseUri = finalUrl)
+    return parse(sourceReader = httpResponse.asSourceReader(), parser = parser, baseUri = finalUrl)
 }
 
 /**
@@ -82,6 +78,5 @@ public suspend fun Ksoup.parsePostRequest(
     )
 //            url can be changed after redirection
     val finalUrl = httpResponse.request.url.toString()
-    val sourceReader = SourceReader.from(httpResponse.bodyAsChannel())
-    return parse(sourceReader = sourceReader, parser = parser, baseUri = finalUrl)
+    return parse(sourceReader = httpResponse.asSourceReader(), parser = parser, baseUri = finalUrl)
 }

@@ -14,11 +14,13 @@ class GithubIssue19 {
 
     @Test
     fun testAttributeIncorrectMixCharsetIssue() = runTest {
-        if (Platform.isJsOrWasm()) {
-//            timeout issue
-            return@runTest
+        val resourceName = "htmltests/issue19.html.gz"
+        val document: Document = if (!TestHelper.isGzipSupported()) {
+            val source = TestHelper.readResource(resourceName)
+            Ksoup.parse(sourceReader = source, baseUri = "http://example.com")
+        } else {
+            Ksoup.parseFile(filePath = TestHelper.getResourceAbsolutePath(resourceName), baseUri = "http://example.com")
         }
-        val document: Document = Ksoup.parseFile(TestHelper.getResourceAbsolutePath("htmltests/issue19.html.gz"))
         val imagesEls: Elements = document.select("img")
         for (imagesEl in imagesEls) {
             val attr: String = imagesEl.attr("src")

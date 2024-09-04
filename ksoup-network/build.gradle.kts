@@ -1,14 +1,6 @@
 plugins {
-    alias(libs.plugins.dokka)
+//    alias(libs.plugins.dokka)
     alias(libs.plugins.mavenPublish)
-}
-
-val isWasmEnabled = project.findProperty("isWasmEnabled")?.toString()?.toBoolean() ?: false
-val libBuildType = project.findProperty("libBuildType")?.toString()
-kotlin {
-    if (isWasmEnabled && libBuildType != "dev") {
-        wasmJs()
-    }
 }
 
 group = "com.fleeksoft.ksoup"

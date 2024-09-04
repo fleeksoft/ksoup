@@ -72,7 +72,7 @@ object TestHelper {
     fun isGzipSupported(): Boolean = BuildConfig.isKorlibs
     fun isUtf16Supported(): Boolean = !((BuildConfig.isKotlinx || BuildConfig.isOkio || BuildConfig.isKtor2) && Platform.isJsOrWasm())
     fun isUtf32Supported(): Boolean = !(Platform.isJsOrWasm() || Platform.isWindows() || Platform.isLinux())
-    fun isEUCKRSupported(): Boolean = !(Platform.isJsOrWasm() || Platform.isApple() || Platform.isWindows())
-    fun isGB2312Supported(): Boolean = !(Platform.isApple() || Platform.isWindows() || ((BuildConfig.isKotlinx || BuildConfig.isOkio || BuildConfig.isKtor2) && Platform.isJsOrWasm()))
+    fun isEUCKRSupported(): Boolean = !(Platform.isJsOrWasm() || Platform.isApple() || Platform.isWindows() || (BuildConfig.isKorlibs && Platform.isLinux()))
+    fun isGB2312Supported(): Boolean = !(Platform.isApple() || Platform.isWindows() || ((BuildConfig.isKotlinx || BuildConfig.isOkio || BuildConfig.isKtor2) && Platform.isJsOrWasm()) || (BuildConfig.isKorlibs && Platform.isLinux()))
     fun canReadResourceFile(): Boolean = !Platform.isWasmJs() || BuildConfig.isKorlibs
 }

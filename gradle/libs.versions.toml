@@ -1,7 +1,6 @@
 [versions]
-agp = "8.2.2" #kmp max gradle support 8.2 right now
-#kotlin = "1.9.24"
-kotlin = "2.0.10"
+agp = "8.5.2"
+kotlin = "2.0.20"
 compileSdk = "34"
 minSdk = "21"
 libraryVersion = "0.1.6"
@@ -48,7 +47,7 @@ okio-nodefilesystem = { module = "com.squareup.okio:okio-nodefilesystem", versio
 
 [plugins]
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
-kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+kmp = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 power-assert = { id = "org.jetbrains.kotlin.plugin.power-assert", version.ref = "kotlin" }
 mavenPublish = { id = "com.vanniktech.maven.publish", version.ref = "mavenPublish" }

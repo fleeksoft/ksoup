@@ -7,26 +7,14 @@ jobs:
   build:
     strategy:
       matrix:
-        project:
-          - "ksoup-engine-common:"
-
-          - "ksoup-engine-kotlinx:kotlinx"
-          - "ksoup:kotlinx"
-          - "ksoup-network:kotlinx"
-
-          - "ksoup-engine-korlibs:korlibs"
-          - "ksoup:korlibs"
-          - "ksoup-network-korlibs:korlibs"
-
-          - "ksoup-engine-ktor2:ktor2"
-          - "ksoup:ktor2"
-          - "ksoup-network-ktor2:ktor2"
-
-          - "ksoup-engine-okio:okio"
-          - "ksoup:okio"
-
+        buildType:
+          - "common"
+          - "kotlinx"
+          - "korlibs"
+          - "ktor2"
+          - "okio"
     runs-on: macos-latest
-    name: Publish ${{ matrix.project }}
+    name: Publish ${{ matrix.buildType }}
     steps:
       - uses: actions/checkout@v3
       - name: Setup JDK 17
@@ -38,11 +26,17 @@ jobs:
       - name: Setup gradle
         uses: gradle/gradle-build-action@v2
 
-      - name: Publish ${{ matrix.project }}
+      - name: Publish ${{ matrix.buildType }}
         run: |
           chmod +x ./publishToMaven.sh
-          ./publishToMaven.sh --remote ${{ matrix.project }}
+          ./publishToMaven.sh --remote ${{ matrix.buildType }}
         working-directory: ${{ github.workspace }}
+        env:
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.GPG_KEY }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ secrets.GPG_KEY_ID }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.GPG_KEY_PASSWORD }}
 
       - name: Success message
-        run: echo "Publishing of ${{ matrix.project }} completed successfully."
+        run: echo "Publishing of ${{ matrix.buildType }} completed successfully."

@@ -1,27 +1,27 @@
 product:
-    type: lib
-    platforms: [ jvm, js, android, linuxX64, linuxArm64, tvosArm64, tvosX64, tvosSimulatorArm64, macosX64, macosArm64, iosArm64, iosSimulatorArm64, iosX64, mingwX64 ]
+  type: lib
+  platforms: [ jvm, js, android, linuxX64, linuxArm64, tvosArm64, tvosX64, tvosSimulatorArm64, macosX64, macosArm64, iosArm64, iosSimulatorArm64, iosX64, mingwX64 ]
 
 apply: [ ../common.module-template.yaml ]
 
 aliases:
-    - jvmAndAndroid: [ jvm, android ]
+  - jvmAndAndroid: [ jvm, android ]
 
 repositories:
-    - mavenLocal
+  - mavenLocal
 
 test-dependencies:
-    - ../ksoup
-    - $libs.korlibs.io
-    - $libs.kotlinx.io
-    - $libs.codepoints
-    - $libs.kotlinx.coroutines.test
-    - $libs.kotlinx.datetime
-    - $libs.stately.concurrent
+  - ../ksoup
+  - $libs.korlibs.io
+  - $libs.kotlinx.io
+  - $libs.codepoints
+  - $libs.kotlinx.coroutines.test
+  - $libs.kotlinx.datetime
+  - $libs.stately.concurrent
 
 test-dependencies@jvmAndAndroid:
-    - $libs.jsoup
+  - $libs.jsoup
 
 settings:
-    kotlin:
-        optIns: [ kotlinx.cinterop.BetaInteropApi, kotlinx.cinterop.UnsafeNumber, kotlinx.cinterop.ExperimentalForeignApi, kotlin.experimental.ExperimentalNativeApi ]
+  kotlin:
+    optIns: [ kotlinx.cinterop.BetaInteropApi, kotlinx.cinterop.UnsafeNumber, kotlinx.cinterop.ExperimentalForeignApi, kotlin.experimental.ExperimentalNativeApi ]

@@ -1,5 +1,7 @@
+import com.vanniktech.maven.publish.SonatypeHost
+
 plugins {
-    alias(libs.plugins.dokka)
+//    alias(libs.plugins.dokka)
     alias(libs.plugins.mavenPublish)
 }
 
@@ -33,7 +35,13 @@ kotlin {
     }
 }
 
-val artifactId = if (libBuildType == "korlibs") "ksoup-korlibs" else if (libBuildType == "okio") "ksoup-okio" else "ksoup"
+val artifactId = when (libBuildType) {
+    "korlibs" -> "ksoup-korlibs"
+    "okio" -> "ksoup-okio"
+    "ktor2" -> "ksoup-ktor2"
+    else -> "ksoup"
+}
+
 mavenPublishing {
     coordinates("com.fleeksoft.ksoup", artifactId, libs.versions.libraryVersion.get())
     pom {

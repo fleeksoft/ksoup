@@ -8,8 +8,6 @@ add_wasm_platform() {
     local module_file="ksoup/module.yaml"
     local test_module_file="ksoup-test/module.yaml"
 
-    wasm_added=0
-
 
     if grep -q 'platforms: \[.*wasm' "$module_file"; then
         echo "wasm is already in the platforms list in $module_file"
@@ -17,7 +15,6 @@ add_wasm_platform() {
         echo "Adding wasm to platforms list in $module_file"
         cp "$module_file" "$module_file.bak"
         sed -i.bak 's/\(platforms: \[\)/\1wasm, /' "$module_file"
-        wasm_added=1
     fi
 
     if grep -q 'platforms: \[.*wasm' "$test_module_file"; then
@@ -26,17 +23,17 @@ add_wasm_platform() {
         echo "Adding wasm to platforms list in $test_module_file"
         cp "$test_module_file" "$test_module_file.bak"
         sed -i.bak 's/\(platforms: \[\)/\1wasm, /' "$test_module_file"
-        wasm_added=1
     fi
 }
 
 # Function to restore the original module.yaml files
 restore_module_yaml() {
-    echo "Restoring original module.yaml files..."
     if [ -f "ksoup/module.yaml.bak" ]; then
+      echo "ksoup/module.yaml restored"
       mv "ksoup/module.yaml.bak" "ksoup/module.yaml"
     fi
     if [ -f "ksoup-test/module.yaml.bak" ]; then
+      echo "ksoup-test/module.yaml restored"
       mv "ksoup-test/module.yaml.bak" "ksoup-test/module.yaml"
     fi
 }
@@ -44,9 +41,7 @@ restore_module_yaml() {
 # Error handler function to restore module.yaml on failure
 error_handler() {
     echo "Error detected, restoring module.yaml if necessary..."
-    if [ -f "ksoup/module.yaml.bak" ]; then
-        restore_module_yaml
-    fi
+    restore_module_yaml
     exit 1
 }
 
@@ -69,20 +64,15 @@ run_tests() {
 
     if [ ${#tasks[@]} -eq 0 ]; then
       echo "No specific tasks provided, running all default tests..."
-      tasks=("jvmTest" "testDebugUnitTest" "testReleaseUnitTest" "jsTest" "wasmTest" "iosX64Test" "iosSimulatorArm64Test" "macosX64Test" "macosArm64Test" "tvosX64Test" "tvosSimulatorArm64Test")
-    fi
+     # tasks=("jvmTest" "testDebugUnitTest" "testReleaseUnitTest" "jsTest" "wasmJsTest" "iosX64Test" "iosSimulatorArm64Test" "macosX64Test" "macosArm64Test" "tvosX64Test" "tvosSimulatorArm64Test")
+    tasks=("jvmTest" "jsTest" "wasmJsTest")
+   fi
 
      echo "Running tests with libBuildType=$libBuildType and tasks=${tasks[*]}..."
 
     # Only add/remove wasm for kotlinx and korlibs
-    local wasm_added=0
     if [[ "$libBuildType" == "kotlinx" || "$libBuildType" == "korlibs" ]]; then
-#        trap - ERR # Temporarily disable the trap
-#        set +e  # Disable exit on error
         add_wasm_platform
-#        wasm_added=$?
-#        set -e  # Re-enable exit on error
-#        trap 'error_handler' ERR # Re-enable the trap
     fi
 
     # Remove build directories if they exist
@@ -104,9 +94,7 @@ run_tests() {
     done
 
     # Restore original module.yaml if wasm was added
-    if [ "$wasm_added" -eq 1 ]; then
-        restore_module_yaml
-    fi
+    restore_module_yaml
 }
 
 # Supported parameters

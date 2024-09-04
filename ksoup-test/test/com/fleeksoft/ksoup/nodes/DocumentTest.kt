@@ -221,10 +221,6 @@ class DocumentTest {
 
     @Test
     fun testOverflowClone() {
-        if (Platform.isWasmJs()) {
-            // FIXME: timeout error for wasmjs
-            return
-        }
 
         val sb = StringBuilder()
         sb.append("<head><base href='https://ksoup.org/'>")
