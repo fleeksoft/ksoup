@@ -35,12 +35,13 @@ jobs:
       - name: Run tests for ${{ matrix.libBuildType }} on ${{ matrix.config.target }}
         continue-on-error: ${{ matrix.config.continueOnError }}
         run: |
-          if [[ "$RUNNER_OS" == "Windows" ]]; then
+          if [ "${{ runner.os }}" == "Windows" ]; then
             ./gradlew mingwX64Test -PlibBuildType=${{ matrix.libBuildType }}
           else
             chmod +x ./runTests.sh
             ./runTests.sh ${{ matrix.libBuildType }} ${{ matrix.config.tasks }}
           fi
+        shell: bash
         working-directory: ${{ github.workspace }}
 
       - name: Upload test results from ksoup-test module if failure
