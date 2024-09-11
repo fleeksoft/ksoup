@@ -24,24 +24,26 @@ dependencyResolutionManagement {
 val libBuildType = settings.providers.gradleProperty("libBuildType").get()
 
 include("ksoup-engine-common")
-if (libBuildType == "korlibs" || libBuildType == "common") {
+if (libBuildType == "korlibs" || libBuildType == "dev") {
     include("ksoup-engine-korlibs", "ksoup-network-korlibs")
 }
 
-if (libBuildType == "kotlinx" || libBuildType == "common") {
+if (libBuildType == "kotlinx" || libBuildType == "dev") {
     include("ksoup-engine-kotlinx", "ksoup-network")
 }
 
-if (libBuildType == "okio" || libBuildType == "common") {
+if (libBuildType == "okio" || libBuildType == "dev") {
     include("ksoup-engine-okio", "ksoup-network-ktor2")
 }
 
-if (libBuildType == "ktor2" || libBuildType == "common") {
+if (libBuildType == "ktor2" || libBuildType == "dev") {
     include("ksoup-engine-ktor2", "ksoup-network-ktor2")
 }
 
-include("ksoup")
-include("ksoup-test")
+if (libBuildType != "common") {
+    include("ksoup")
+    include("ksoup-test")
+}
 
 //include("sample:shared", "sample:desktop")
 //include("sample:android", "sample:ios")
