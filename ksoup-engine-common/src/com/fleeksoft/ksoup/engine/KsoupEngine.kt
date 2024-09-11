@@ -5,7 +5,6 @@ import com.fleeksoft.ksoup.io.FileSource
 import com.fleeksoft.ksoup.io.SourceReader
 
 interface KsoupEngine {
-    fun urlResolveOrNull(base: String, relUrl: String): String?
 
     fun openSourceReader(content: String, charset: Charset? = null): SourceReader
 

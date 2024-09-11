@@ -1,7 +1,6 @@
 package com.fleeksoft.ksoup.internal
 
 import com.fleeksoft.ksoup.ported.Character
-import com.fleeksoft.ksoup.ported.resolveOrNull
 import de.cketti.codepoints.deluxe.CodePoint
 import de.cketti.codepoints.deluxe.appendCodePoint
 import de.cketti.codepoints.deluxe.codePointAt
@@ -231,7 +230,7 @@ public object StringUtil {
         // if access url is relative protocol then copy it
         val cleanedBaseUrl = stripControlChars(baseUrl)
         val cleanedRelUrl = stripControlChars(relUrl)
-        return cleanedBaseUrl.resolveOrNull(cleanedRelUrl) ?: ""
+        return URLUtil.resolve(base = cleanedBaseUrl, relative = cleanedRelUrl)
     }
 
     private val controlChars: Regex = Regex("[\\x00-\\x1f]*") // matches ascii 0 - 31, to strip from url
