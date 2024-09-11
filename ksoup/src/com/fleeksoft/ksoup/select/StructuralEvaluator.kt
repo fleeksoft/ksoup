@@ -1,5 +1,6 @@
 package com.fleeksoft.ksoup.select
 
+import com.fleeksoft.ksoup.internal.SoftPool
 import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.nodes.Element
 import com.fleeksoft.ksoup.nodes.NodeIterator
@@ -48,8 +49,7 @@ public abstract class StructuralEvaluator(public val evaluator: Evaluator) : Eva
 
     internal class Has(evaluator: Evaluator) : StructuralEvaluator(evaluator) {
         companion object {
-            private val nodeIterator: ThreadLocal<NodeIterator<Element>> =
-                ThreadLocal { NodeIterator(Element("html"), Element::class) }
+            private val ElementIterPool: SoftPool<NodeIterator<Element>> = SoftPool { NodeIterator(Element("html"), Element::class) }
         }
 
         private val checkSiblings = evalWantsSiblings(evaluator) // evaluating against siblings (or children)
@@ -63,16 +63,18 @@ public abstract class StructuralEvaluator(public val evaluator: Evaluator) : Eva
                     }
                     sib = sib.nextElementSibling()
                 }
-            } else {
-                // otherwise we only want to match children (or below), and not the input element. And we want to minimize GCs so reusing the Iterator obj
-                val it = nodeIterator.get()
-                it.restart(element)
+            }
+            // otherwise we only want to match children (or below), and not the input element. And we want to minimize GCs so reusing the Iterator obj
+            val it = ElementIterPool.borrow()
+            it.restart(element)
+            try {
                 while (it.hasNext()) {
                     val el = it.next()
                     if (el === element) continue  // don't match self, only descendants
-
                     if (evaluator.matches(element, el)) return true
                 }
+            } finally {
+                ElementIterPool.release(it)
             }
             return false
         }

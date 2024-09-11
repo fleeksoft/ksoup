@@ -3,8 +3,8 @@ agp = "8.5.2"
 kotlin = "2.0.20"
 compileSdk = "34"
 minSdk = "21"
-libraryVersion = "0.1.6"
-ktor = "3.0.0-beta-2"
+libraryVersion = "0.1.7"
+ktor = "3.0.0-rc-1"
 ktor2 = "2.3.12"
 coroutines = "1.8.1"
 kotlinxDatetime = "0.6.1"
@@ -17,7 +17,7 @@ dokka = "1.9.20"
 korlibs = "6.0.1"
 mavenPublish = "0.29.0"
 
-stately-concurrent = "2.0.7"
+stately = "2.1.0"
 jsoup = "1.18.1"
 
 [libraries]
@@ -26,6 +26,12 @@ kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-c
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
 ktor2-io = { module = "io.ktor:ktor-io", version.ref = "ktor2" }
 ktor2-http = { module = "io.ktor:ktor-http", version.ref = "ktor2" }
+ktor2-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor2" }
+ktor2-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor2" }
+ktor2-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor2" }
+ktor2-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor2" }
+ktor2-client-js = { module = "io.ktor:ktor-client-js", version.ref = "ktor2" }
+ktor2-client-win = { module = "io.ktor:ktor-client-winhttp", version.ref = "ktor2" }
 ktor-io = { module = "io.ktor:ktor-io", version.ref = "ktor" }
 ktor-http = { module = "io.ktor:ktor-http", version.ref = "ktor" }
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
@@ -40,7 +46,7 @@ kotlinx-io = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version.ref = "
 codepoints = { module = "de.cketti.unicode:kotlin-codepoints-deluxe", version.ref = "codepoints" }
 korlibs-io = { module = "com.soywiz:korlibs-io", version.ref = "korlibs" }
 korlibs-io-network-core = { module = "com.soywiz:korlibs-io-network-core", version.ref = "korlibs" }
-stately-concurrent = { module = "co.touchlab:stately-concurrent-collections", version.ref = "stately-concurrent" }
+stately-concurrency = { module = "co.touchlab:stately-concurrency", version.ref = "stately" }
 jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 okio-nodefilesystem = { module = "com.squareup.okio:okio-nodefilesystem", version.ref = "okio" }

@@ -22,7 +22,6 @@ public enum class HtmlTreeBuilderState {
                 tb.insertCommentNode(t.asComment())
             } else if (t.isDoctype()) {
                 // todo: parse error check on expected doctypes
-                // todo: quirk state check on doctype ids
                 val d: Token.Doctype = t.asDoctype()
                 val doctype =
                     DocumentType(
@@ -33,10 +32,16 @@ public enum class HtmlTreeBuilderState {
                 doctype.setPubSysKey(d.pubSysKey)
                 tb.document.appendChild(doctype)
                 tb.onNodeInserted(doctype)
-                if (d.isForceQuirks) tb.document.quirksMode(Document.QuirksMode.quirks)
+                // todo: quirk state check on more doctype ids, if deemed useful (most are ancient legacy and presumably irrelevant)
+                if (d.isForceQuirks || doctype.name() != "html" || doctype.publicId().equals("HTML", ignoreCase = true)) tb.document.quirksMode(
+                    Document.QuirksMode.quirks
+                )
                 tb.transition(BeforeHtml)
             } else {
                 // todo: check not iframe srcdoc
+
+                // todo: check not iframe srcdoc
+                tb.document.quirksMode(Document.QuirksMode.quirks) // missing doctype
                 tb.transition(BeforeHtml)
                 return tb.process(t) // re-process token
             }

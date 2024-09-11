@@ -16,7 +16,7 @@ if [ "$1" == "--remote" ]; then
 fi
 
 # Default build types if none are passed
-default_build_types=("kotlinx" "korlibs" "ktor2" "okio")
+default_build_types=("common" "kotlinx" "korlibs" "ktor2" "okio")
 
 # If build types are passed, use them; otherwise, use the default list
 if [ "$#" -ge 1 ]; then

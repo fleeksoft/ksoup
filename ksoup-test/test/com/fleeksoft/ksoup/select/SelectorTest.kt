@@ -1,7 +1,6 @@
 package com.fleeksoft.ksoup.select
 
 import com.fleeksoft.ksoup.Ksoup
-import com.fleeksoft.ksoup.TestHelper
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.nodes.Element
 import com.fleeksoft.ksoup.parser.Parser
@@ -85,7 +84,7 @@ class SelectorTest {
 //        Locale.setDefault(locale)
         val h =
             "<div Title=Foo /><div Title=Bar /><div Style=Qux /><div title=Balim /><div title=SLIM />" +
-                "<div data-name='with spaces'/>"
+                    "<div data-name='with spaces'/>"
         val doc = Ksoup.parse(h)
         val withTitle = doc.select("[title]")
         assertEquals(4, withTitle.size)
@@ -1224,6 +1223,55 @@ class SelectorTest {
 
         val emptyAttr = doc.select("p:not([*])")
         assertSelectedOwnText(emptyAttr, "Three")
+    }
+
+    @Test
+    fun divHasSpanPreceding() {
+        val html = "<div><span>abc</span><a>def</a></div>"
+        val q = "div:has(span + a)"
+
+        val doc: Document = Ksoup.parse(html)
+        val els: Elements = doc.select(q)
+        assertEquals(1, els.size)
+        assertEquals("div", els.first()?.normalName())
+    }
+
+    @Test
+    fun divHasDivPreceding() {
+        val html = """
+            <div id=1>
+            <div 1><span>hello</span></div>
+            <div 2><span>there</span></div>
+            
+            </div>
+            """.trimIndent()
+
+        val q = "div:has(>div + div)"
+
+        val doc: Document = Ksoup.parse(html)
+        val els: Elements = doc.select(q)
+        assertEquals(1, els.size)
+        assertEquals("div", els.first()?.normalName())
+        assertEquals("1", els.first()?.id())
+    }
+
+    @Test
+    fun nestedMultiHas() {
+        val html =
+            "<html>" +
+                    "<head></head>" +
+                    "<body>" +
+                    "<div id=o>" +
+                    "<div id=i1><span id=s1>hello</span></div>" +
+                    "<div id=i2><span id=s2>world</span></div>" +
+                    "</div>" +
+                    "</body></html>"
+        val document: Document = Ksoup.parse(html)
+
+        val q = "div:has(> div:has(> span) + div:has(> span))"
+        val els: Elements = document.select(q)
+        assertEquals(1, els.size)
+        assertEquals("o", els[0].id())
     }
 
     companion object {

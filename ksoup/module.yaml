@@ -13,7 +13,7 @@ repositories:
 dependencies:
   - ../ksoup-engine-common: exported
   - $libs.codepoints
-  - $libs.stately.concurrent
+  - $libs.stately.concurrency
 
 test-dependencies:
   - $kotlin-test

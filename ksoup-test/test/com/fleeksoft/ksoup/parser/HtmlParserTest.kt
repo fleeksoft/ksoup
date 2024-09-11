@@ -2251,6 +2251,26 @@ class HtmlParserTest {
         assertEquals("<img multi=\"&#x1f4af;\" single=\"&#x1f4af;\" hexsingle=\"&#x1f4af;\">", img.outerHtml())
     }
 
+    @Test
+    fun tableInPInQuirksMode() {
+        var html = "<p><span><table><tbody><tr><td><span>Hello table data</span></td></tr></tbody></table></span></p>"
+        var doc: Document = Ksoup.parse(html)
+        assertEquals(Document.QuirksMode.quirks, doc.quirksMode())
+        assertEquals(
+            "<p><span><table><tbody><tr><td><span>Hello table data</span></td></tr></tbody></table></span></p>",  // quirks, allows table in p
+            TextUtil.normalizeSpaces(doc.body().html())
+        )
+
+        // doctype set, no quirks
+        html = "<!DOCTYPE html><p><span><table><tbody><tr><td><span>Hello table data</span></td></tr></tbody></table></span></p>"
+        doc = Ksoup.parse(html)
+        assertEquals(Document.QuirksMode.noQuirks, doc.quirksMode())
+        assertEquals(
+            "<p><span></span></p><table><tbody><tr><td><span>Hello table data</span></td></tr></tbody></table><p></p>",  // no quirks, p gets closed
+            TextUtil.normalizeSpaces(doc.body().html())
+        )
+    }
+
     companion object {
         private fun dupeAttributeData(): List<Pair<String, String>> {
             return listOf(
