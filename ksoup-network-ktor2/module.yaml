@@ -14,19 +14,19 @@ repositories:
 dependencies:
   - $libs.kotlinx.coroutines.core
   - ../ksoup: compile-only
-  - $libs.ktor.client.core: exported
+  - $libs.ktor2.client.core: exported
 
 dependencies@jvmAndAndroid:
-  - $libs.ktor.client.okhttp
+  - $libs.ktor2.client.okhttp
 
 dependencies@apple:
-  - $libs.ktor.client.darwin
+  - $libs.ktor2.client.darwin
 
 dependencies@js:
-  - $libs.ktor.client.js
+  - $libs.ktor2.client.js
 
 dependencies@mingw:
-  - $libs.ktor.client.win
+  - $libs.ktor2.client.win
 
 dependencies@linux:
-  - $libs.ktor.client.cio
+  - $libs.ktor2.client.cio
