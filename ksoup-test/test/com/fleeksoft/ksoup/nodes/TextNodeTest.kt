@@ -1,11 +1,10 @@
 package com.fleeksoft.ksoup.nodes
 
 import com.fleeksoft.ksoup.Ksoup
-import com.fleeksoft.ksoup.TestHelper
 import com.fleeksoft.ksoup.TextUtil
 import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.ported.exception.ValidationException
-import de.cketti.codepoints.deluxe.toCodePoint
+import com.fleeksoft.ksoup.ported.toCodePoint
 import kotlin.test.*
 
 /**

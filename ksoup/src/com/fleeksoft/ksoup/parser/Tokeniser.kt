@@ -3,8 +3,8 @@ package com.fleeksoft.ksoup.parser
 import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.nodes.Entities
+import com.fleeksoft.ksoup.ported.appendCodePoint
 import com.fleeksoft.ksoup.ported.codePointsToString
-import de.cketti.codepoints.appendCodePoint
 
 /**
  * Readers the input stream into tokens.

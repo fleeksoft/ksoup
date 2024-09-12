@@ -5,7 +5,7 @@ import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.nodes.Element
 import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.ported.IdentityHashMap
-import de.cketti.codepoints.deluxe.toCodePoint
+import com.fleeksoft.ksoup.ported.toCodePoint
 import kotlin.test.*
 
 /**

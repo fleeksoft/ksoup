@@ -1,7 +1,6 @@
 package com.fleeksoft.ksoup.ported
 
 import com.fleeksoft.ksoup.ported.io.Charsets
-import de.cketti.codepoints.appendCodePoint
 
 internal fun String.isCharsetSupported(): Boolean {
     val result = runCatching { Charsets.forName(this) }.getOrNull()

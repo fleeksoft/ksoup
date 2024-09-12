@@ -1,9 +1,6 @@
 package com.fleeksoft.ksoup.internal
 
-import com.fleeksoft.ksoup.ported.Character
-import de.cketti.codepoints.deluxe.CodePoint
-import de.cketti.codepoints.deluxe.appendCodePoint
-import de.cketti.codepoints.deluxe.codePointAt
+import com.fleeksoft.ksoup.ported.*
 import kotlin.math.min
 
 /**
@@ -94,7 +91,7 @@ public object StringUtil {
         if (string.isNullOrEmpty()) return true
         val l = string.length
         for (i in 0 until l) {
-            if (!isWhitespace(string.codePointAt(i).value)) return false
+            if (!isWhitespace(string.codePointValueAt(i))) return false
         }
         return true
     }
@@ -117,7 +114,7 @@ public object StringUtil {
         if (string.isNullOrEmpty()) return false
         val l = string.length
         for (i in 0 until l) {
-            if (!Character.isDigit(string.codePointAt(i))) return false
+            if (!Character.isDigit(string.codePointValueAt(i))) return false
         }
         return true
     }
@@ -185,7 +182,7 @@ public object StringUtil {
                 accum.append(' ')
                 lastWasWhite = true
             } else if (!isInvisibleChar(c.value)) {
-                accum.appendCodePoint(c)
+                accum.appendCodePoint(c.value)
                 lastWasWhite = false
                 reachedNonWhite = true
             }
