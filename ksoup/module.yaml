@@ -12,7 +12,6 @@ repositories:
 
 dependencies:
   - ../ksoup-engine-common: exported
-  - $libs.codepoints
   - $libs.stately.concurrency
 
 test-dependencies:

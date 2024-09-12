@@ -11,13 +11,11 @@ import com.fleeksoft.ksoup.nodes.Entities.EscapeMode.base
 import com.fleeksoft.ksoup.nodes.Entities.EscapeMode.extended
 import com.fleeksoft.ksoup.parser.CharacterReader
 import com.fleeksoft.ksoup.parser.Parser
+import com.fleeksoft.ksoup.ported.*
 import com.fleeksoft.ksoup.ported.Character
-import com.fleeksoft.ksoup.ported.ThreadLocal
 import com.fleeksoft.ksoup.ported.exception.IOException
 import com.fleeksoft.ksoup.ported.exception.SerializationException
 import com.fleeksoft.ksoup.ported.io.Charsets
-import de.cketti.codepoints.deluxe.CodePoint
-import de.cketti.codepoints.deluxe.codePointAt
 
 
 /**
@@ -83,8 +81,8 @@ public object Entities {
     ): Int {
         val value: String? = multipoints[name]
         if (value != null) {
-            codepoints[0] = value.codePointAt(0).value
-            codepoints[1] = value.codePointAt(1).value
+            codepoints[0] = value.codePointValueAt(0)
+            codepoints[1] = value.codePointValueAt(1)
             return 2
         }
         val codepoint = extended.codepointForName(name)
