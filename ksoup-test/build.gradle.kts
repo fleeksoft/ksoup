@@ -1,7 +1,3 @@
-plugins {
-    alias(libs.plugins.power.assert)
-}
-
 val rootPath = "generated/kotlin"
 val isGithubActions: Boolean = System.getenv("GITHUB_ACTIONS")?.toBoolean() == true
 
