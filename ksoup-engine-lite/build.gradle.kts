@@ -1,52 +1,11 @@
-import com.vanniktech.maven.publish.SonatypeHost
-
 plugins {
-//    alias(libs.plugins.dokka)
     alias(libs.plugins.mavenPublish)
 }
 
 group = "com.fleeksoft.ksoup"
 version = libs.versions.libraryVersion.get()
 
-val libBuildType = project.findProperty("libBuildType")?.toString()
-kotlin {
-    sourceSets {
-        commonMain {
-            dependencies {
-                when (libBuildType) {
-                    "lite" -> {
-                        api(project(":ksoup-engine-lite"))
-                    }
-
-                    "korlibs" -> {
-                        api(project(":ksoup-engine-korlibs"))
-                    }
-
-                    "okio" -> {
-                        api(project(":ksoup-engine-okio"))
-                    }
-
-                    "ktor2" -> {
-                        api(project(":ksoup-engine-ktor2"))
-                    }
-
-                    else -> {
-                        api(project(":ksoup-engine-kotlinx"))
-                    }
-                }
-            }
-        }
-    }
-}
-
-val artifactId = when (libBuildType) {
-    "korlibs" -> "ksoup-korlibs"
-    "okio" -> "ksoup-okio"
-    "ktor2" -> "ksoup-ktor2"
-    "lite" -> "ksoup-lite"
-    else -> "ksoup"
-}
-
+val artifactId = "ksoup-engine-lite"
 mavenPublishing {
     coordinates("com.fleeksoft.ksoup", artifactId, libs.versions.libraryVersion.get())
     pom {

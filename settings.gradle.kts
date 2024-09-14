@@ -24,6 +24,11 @@ dependencyResolutionManagement {
 val libBuildType = settings.providers.gradleProperty("libBuildType").get()
 
 include("ksoup-engine-common")
+
+if (libBuildType == "lite" || libBuildType == "dev") {
+    include("ksoup-engine-lite")
+}
+
 if (libBuildType == "korlibs" || libBuildType == "dev") {
     include("ksoup-engine-korlibs", "ksoup-network-korlibs")
 }

@@ -71,7 +71,7 @@ run_tests() {
      echo "Running tests with libBuildType=$libBuildType and tasks=${tasks[*]}..."
 
     # Only add/remove wasm for kotlinx and korlibs
-    if [[ "$libBuildType" == "kotlinx" || "$libBuildType" == "korlibs" ]]; then
+    if [[ "$libBuildType" == "kotlinx" || "$libBuildType" == "korlibs" || "$libBuildType" == "lite" ]]; then
         add_wasm_platform
     fi
 
@@ -98,7 +98,7 @@ run_tests() {
 }
 
 # Supported parameters
-SUPPORTED_PARAMS=("korlibs" "okio" "kotlinx" "ktor2")
+SUPPORTED_PARAMS=("lite" "korlibs" "okio" "kotlinx" "ktor2")
 
 # Function to check if the provided parameter is supported
 is_supported_param() {
