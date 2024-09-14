@@ -767,8 +767,7 @@ public abstract class Node protected constructor() : KCloneable<Node> {
         depth: Int,
         out: Document.OutputSettings,
     ) {
-        accum.append('\n')
-            .append(StringUtil.padding(depth * out.indentAmount(), out.maxPaddingWidth()))
+        accum.append('\n').append(StringUtil.padding(depth * out.indentAmount(), out.maxPaddingWidth()))
     }
 
     /**

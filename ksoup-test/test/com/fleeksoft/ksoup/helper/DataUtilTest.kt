@@ -39,13 +39,6 @@ class DataUtilTest {
         assertEquals("UTF-8", DataUtil.getCharsetFromContentType("text/html; charset='UTF-8'"))
     }
 
-    private fun dataToStream(
-        data: String,
-        charset: String,
-    ): SourceReader {
-        return data.toByteArray(Charsets.forName(charset)).openSourceReader()
-    }
-
     @Test
     fun discardsSpuriousByteOrderMark() {
         val html = "\uFEFF<html><head><title>One</title></head><body>Two</body></html>"
@@ -138,7 +131,7 @@ class DataUtilTest {
                     "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=euc-kr\">" +
                     "</head><body>한국어</body></html>"
         val doc: Document = DataUtil.parseInputSource(
-            sourceReader = dataToStream(data = html, charset = "euc-kr"),
+            sourceReader = TestHelper.dataToStream(data = html, charset = "euc-kr"),
             baseUri = "http://example.com",
             charsetName = null,
             parser = Parser.htmlParser(),
@@ -152,15 +145,14 @@ class DataUtilTest {
                 "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=iso-8859-1\">" +
                 "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=koi8-u\">" +
                 "</head><body>Übergrößenträger</body></html>"
-        val docByteArrayCharset: Document =
-            DataUtil.parseInputSource(
-                sourceReader = dataToStream(data = html, charset = "iso-8859-1"),
-                baseUri = "http://example.com",
-                charsetName = null,
-                parser = Parser.htmlParser(),
-            )
+        val document = DataUtil.parseInputSource(
+            sourceReader = TestHelper.dataToStream(data = html, charset = "iso-8859-1"),
+            baseUri = "http://example.com",
+            charsetName = null,
+            parser = Parser.htmlParser(),
+        )
 
-        assertEquals("Übergrößenträger", docByteArrayCharset.body().text())
+        assertEquals("Übergrößenträger", document.body().text())
     }
 
     @Test
@@ -362,7 +354,7 @@ class DataUtilTest {
     @Test
     fun handlesUnlimitedRead() = runTest {
         val input: String = TestHelper.readResourceAsString("htmltests/large.html.gz")
-        val byteBuffer: ByteArray = DataUtil.readToByteBuffer(input.openSourceReader(), 0)
+        val byteBuffer: ByteArray = input.openSourceReader().readAllBytes()
         val read = byteBuffer.decodeToString()
         assertEquals(input, read)
     }

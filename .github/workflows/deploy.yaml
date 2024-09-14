@@ -9,6 +9,7 @@ jobs:
       matrix:
         buildType:
           - "common"
+          - "lite"
           - "kotlinx"
           - "korlibs"
           - "ktor2"

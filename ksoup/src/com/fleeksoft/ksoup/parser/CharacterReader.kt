@@ -623,7 +623,7 @@ public class CharacterReader {
     }
 
     override fun toString(): String {
-        return if (bufLength - bufPos < 0) {
+        return if (charBuf == null || bufLength - bufPos < 0) {
             ""
         } else {
             String.buildString(

@@ -156,7 +156,7 @@ class DataUtilTestJvm {
             val bytes: ByteArray =
                 if (file.getName().endsWith(".gz")) {
                     val stream: InputStream = GZIPInputStream(FileInputStream(file))
-                    val byteBuffer: ByteArray = DataUtil.readToByteBuffer(stream.toSourceReader(), 0)
+                    val byteBuffer: ByteArray = stream.toSourceReader().readAllBytes()
                     byteBuffer
                 } else {
                     file.readBytes()

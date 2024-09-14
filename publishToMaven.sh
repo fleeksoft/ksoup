@@ -32,6 +32,9 @@ add_projects_based_on_key() {
     "common")
       projects=("ksoup-engine-common")
       ;;
+    "lite")
+      projects=("ksoup-engine-lite" "ksoup-lite")
+      ;;
     "kotlinx")
       projects=("ksoup-engine-kotlinx" "ksoup" "ksoup-network")
       ;;
