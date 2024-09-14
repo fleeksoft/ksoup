@@ -148,43 +148,6 @@ class StreamDecoder(source: SourceReader, charset: Charset) : Reader() {
         text.toCharArray().copyInto(cbuf, off)
 
         return text.length
-
-        /*var eof = false
-        while (true) {
-            val read = decoder!!.decode(bb!!, cb, length)
-            if (read <= length) {
-//                underflow
-                if (eof) break
-                if (!cb.hasRemaining()) break
-                if ((cb.position() > 0) && !inReady()) break // Block at most once
-
-                val n = readBytes()
-                if (n < 0) {
-                    eof = true
-                    if ((cb.position() == 0) && (bb!!.exhausted())) break
-                }
-                continue
-            }
-            if (bb!!.remaining > 0 && read == length) {
-//                overflow
-                require(cb.position() > 0)
-                break
-            }
-            throw Exception("error decoding stream")
-        }
-
-        *//*if (eof) {
-            // ## Need to flush decoder
-            decoder.reset()
-        }*//*
-
-        if (cb.position() == 0) {
-            if (eof) {
-                return -1
-            }
-            require(false)
-        }
-        return cb.position()*/
     }
 
     fun encodingName(): String {

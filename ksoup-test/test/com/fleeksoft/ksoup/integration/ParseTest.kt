@@ -1,8 +1,6 @@
 package com.fleeksoft.ksoup.integration
 
 import com.fleeksoft.ksoup.Ksoup
-import com.fleeksoft.ksoup.Ksoup.parse
-import com.fleeksoft.ksoup.Ksoup.parseFile
 import com.fleeksoft.ksoup.TestHelper
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parser.Parser
@@ -24,8 +22,9 @@ class ParseTest {
             return@runTest
         }
         // test that <meta charset="gb2312"> works
-        var input = TestHelper.getResourceAbsolutePath("htmltests/meta-charset-1.html")
-        var doc: Document = parseFile(
+        val resourceName = "htmltests/meta-charset-1.html"
+        var input = TestHelper.getResourceAbsolutePath(resourceName)
+        var doc = Ksoup.parseFile(
             filePath = input,
             baseUri = "http://example.com/",
             charsetName = null,
@@ -38,7 +37,7 @@ class ParseTest {
 
         // double check, no charset, falls back to utf8 which is incorrect
         input = TestHelper.getResourceAbsolutePath("htmltests/meta-charset-2.html") //
-        doc = parseFile(
+        doc = Ksoup.parseFile(
             filePath = input,
             baseUri = "http://example.com",
             charsetName = null,
@@ -48,12 +47,11 @@ class ParseTest {
 
         // confirm fallback to utf8
         input = TestHelper.getResourceAbsolutePath("htmltests/meta-charset-3.html")
-        doc =
-            parseFile(
-                filePath = input,
-                baseUri = "http://example.com/",
-                charsetName = null,
-            ) // utf8, no charset
+        doc = Ksoup.parseFile(
+            filePath = input,
+            baseUri = "http://example.com/",
+            charsetName = null,
+        ) // utf8, no charset
         assertEquals("UTF-8", doc.outputSettings().charset().name.uppercase())
         assertEquals("新", doc.text())
     }
@@ -68,7 +66,7 @@ class ParseTest {
             </html>
             """.trimIndent().openSourceReader()
 
-        val doc: Document = parse(sourceReader = input, baseUri = "http://example.com/", charsetName = null)
+        val doc: Document = Ksoup.parse(sourceReader = input, baseUri = "http://example.com/", charsetName = null)
         assertEquals("UTF-8", doc.outputSettings().charset().name.uppercase())
     }
 
@@ -111,7 +109,7 @@ class ParseTest {
         // this tests that if there is a huge illegal character reference, we can get through a buffer and rewind, and still catch that it's an invalid refence,
         // and the parse tree is correct.
         val parser = Parser.htmlParser()
-        val doc = parse(
+        val doc = Ksoup.parse(
             sourceReader = TestHelper.resourceFilePathToStream("htmltests/xwiki-edit.html.gz"),
             baseUri = "https://localhost/",
             charsetName = "UTF-8",
@@ -131,7 +129,7 @@ class ParseTest {
     @Test
     fun testWikiExpandedFromString() = runTest {
         val html = TestHelper.readResourceAsString("htmltests/xwiki-edit.html.gz")
-        val doc = parse(html)
+        val doc = Ksoup.parse(html)
         assertEquals("XWiki Jetty HSQLDB 12.1-SNAPSHOT", doc.select("#xwikiplatformversion").text())
         val wantHtml =
             "<a class=\"list-group-item\" data-id=\"userdirectory\" href=\"/xwiki/bin/admin/XWiki/XWikiPreferences?editor=globaladmin&amp;RIGHTHERERIGHTHERERIGHTHERERIGHTHERE"
@@ -141,7 +139,7 @@ class ParseTest {
     @Test
     fun testWikiFromString() = runTest {
         val html = TestHelper.readResourceAsString("htmltests/xwiki-1324.html.gz")
-        val doc = parse(html)
+        val doc = Ksoup.parse(html)
         assertEquals("XWiki Jetty HSQLDB 12.1-SNAPSHOT", doc.select("#xwikiplatformversion").text())
         val wantHtml =
             "<a class=\"list-group-item\" data-id=\"userdirectory\" href=\"/xwiki/bin/admin/XWiki/XWikiPreferences?editor=globaladmin&amp;section=userdirectory\" title=\"Customize the user directory live table.\">User Directory</a>"

@@ -69,6 +69,16 @@ object TestHelper {
         return bytes.uncompress(GZIP).openSourceReader()
     }
 
+    fun dataToStream(
+        data: String,
+        charset: String,
+    ): SourceReader {
+        if (BuildConfig.isLite) {
+            return data.encodeToByteArray().openSourceReader()
+        }
+        return data.toByteArray(Charsets.forName(charset)).openSourceReader()
+    }
+
     fun isGzipSupported(): Boolean = BuildConfig.isKorlibs
     fun isUtf16Supported(): Boolean = !((BuildConfig.isKotlinx || BuildConfig.isOkio || BuildConfig.isKtor2) && Platform.isJsOrWasm())
     fun isUtf32Supported(): Boolean = !(Platform.isJsOrWasm() || Platform.isWindows() || Platform.isLinux())
