@@ -7,4 +7,6 @@ object Charsets {
     val UTF8: Charset = KsoupEngineInstance.ksoupEngine.getUtf8Charset()
 
     fun forName(name: String): Charset = KsoupEngineInstance.ksoupEngine.charsetForName(name)
+
+    val isOnlyUtf8 = UTF8.onlyUtf8()
 }

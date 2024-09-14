@@ -142,7 +142,12 @@ public object DataUtil {
                 // need to re-decode. (case insensitive check here to match how validate works)
                 foundCharset = foundCharset.trim { it <= ' ' }.replace("[\"']".toRegex(), "")
                 effectiveCharsetName = foundCharset
-                doc = null
+//                if can't change charset don't try other
+                if (Charsets.isOnlyUtf8 && inputSource.exhausted()) {
+                    inputSource.close()
+                } else {
+                    doc = null
+                }
             } else if (inputSource.exhausted()) { // if we have read fully, and the charset was correct, keep that current parse
                 inputSource.close()
             } else {
@@ -182,27 +187,6 @@ public object DataUtil {
             doc.charset(Charsets.UTF8)
         }
         return doc
-    }
-
-    /**
-     * Read the input stream into a byte buffer. To deal with slow input streams, you may interrupt the thread this
-     * method is executing on. The data read until being interrupted will be available.
-     * @param sourceReader the input stream to read from
-     * @param maxSize the maximum size in bytes to read from the stream. Set to 0 to be unlimited.
-     * @return the filled byte buffer
-     */
-    public fun readToByteBuffer(
-        sourceReader: SourceReader,
-        maxSize: Long,
-    ): ByteArray {
-        return if (maxSize == 0L) {
-            sourceReader.readAllBytes()
-        } else {
-//            todo:// check this sources may don't have any stream size
-//            val size = if (!bufferReader.exhausted()) minOf(maxSize, bufferReader.availableRead()) else maxSize
-            val size = maxSize
-            sourceReader.readBytes(size.toInt())
-        }
     }
 
     /**

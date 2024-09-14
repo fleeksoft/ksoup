@@ -22,4 +22,6 @@ interface Charset {
     
     fun decode(stringBuilder: StringBuilder, byteArray: ByteArray, start: Int, end: Int): Int
     fun toByteArray(value: String): ByteArray
+
+    fun onlyUtf8(): Boolean = false
 }
