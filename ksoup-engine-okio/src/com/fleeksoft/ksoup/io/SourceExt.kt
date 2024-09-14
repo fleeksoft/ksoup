@@ -4,7 +4,6 @@ import okio.Path
 import okio.Source
 
 
-fun SourceReader.Companion.from(byteArray: ByteArray): SourceReader = SourceReaderImpl(byteArray)
 fun SourceReader.Companion.from(source: Source): SourceReader = SourceReaderImpl(source)
 
 

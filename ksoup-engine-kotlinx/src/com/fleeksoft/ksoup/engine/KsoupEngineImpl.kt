@@ -6,14 +6,6 @@ import io.ktor.utils.io.charsets.*
 
 object KsoupEngineImpl : KsoupEngine {
 
-    override fun openSourceReader(content: String, charset: Charset?): SourceReader {
-        return SourceReader.from(charset?.toByteArray(content) ?: content.encodeToByteArray())
-    }
-
-    override fun openSourceReader(byteArray: ByteArray): SourceReader {
-        return SourceReader.from(byteArray)
-    }
-
     override fun getUtf8Charset(): Charset {
         return CharsetImpl(Charsets.UTF_8)
     }

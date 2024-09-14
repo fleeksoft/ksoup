@@ -1,7 +1,7 @@
 package com.fleeksoft.ksoup
 
-import com.fleeksoft.ksoup.engine.KsoupEngineImpl
 import com.fleeksoft.ksoup.io.SourceReader
+import com.fleeksoft.ksoup.io.from
 import korlibs.io.compression.deflate.GZIP
 import korlibs.io.compression.uncompress
 import korlibs.io.file.VfsFile
@@ -16,8 +16,8 @@ suspend fun VfsFile.openStream(): SourceReader {
         val zipped =
             (byteArray.size == 2 && byteArray[0].toInt() == 31 && byteArray[1].toInt() == -117) // gzip magic bytes 31(0x1f), -117(0x1f)
         if (zipped) {
-            return KsoupEngineImpl.openSourceReader(this.readAsSyncStream().readAll().uncompress(GZIP))
+            return SourceReader.from(this.readAsSyncStream().readAll().uncompress(GZIP))
         }
     }
-    return KsoupEngineImpl.openSourceReader(this.readAll())
+    return SourceReader.from(this.readAll())
 }

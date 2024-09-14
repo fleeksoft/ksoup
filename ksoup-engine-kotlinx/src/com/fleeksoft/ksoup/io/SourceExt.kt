@@ -7,7 +7,6 @@ import kotlinx.io.Source
 import kotlinx.io.files.Path
 
 
-fun SourceReader.Companion.from(byteArray: ByteArray): SourceReader = SourceReaderImpl(byteArray)
 fun SourceReader.Companion.from(source: Source): SourceReader = SourceReaderImpl(source)
 fun SourceReader.Companion.from(bodyChannel: ByteReadChannel): SourceReader = SourceReaderImpl(bodyChannel.readBuffer)
 

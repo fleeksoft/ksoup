@@ -2,13 +2,8 @@ package com.fleeksoft.ksoup.engine
 
 import com.fleeksoft.ksoup.io.Charset
 import com.fleeksoft.ksoup.io.FileSource
-import com.fleeksoft.ksoup.io.SourceReader
 
 interface KsoupEngine {
-
-    fun openSourceReader(content: String, charset: Charset? = null): SourceReader
-
-    fun openSourceReader(byteArray: ByteArray): SourceReader
 
     fun getUtf8Charset(): Charset
 
