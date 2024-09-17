@@ -16,7 +16,7 @@ if [ "$1" == "--remote" ]; then
 fi
 
 # Default build types if none are passed
-default_build_types=("common" "kotlinx" "korlibs" "ktor2" "okio")
+default_build_types=("common" "lite" "korlibs" "kotlinx" "okio" "ktor2")
 
 # If build types are passed, use them; otherwise, use the default list
 if [ "$#" -ge 1 ]; then
@@ -33,7 +33,7 @@ add_projects_based_on_key() {
       projects=("ksoup-engine-common")
       ;;
     "lite")
-      projects=("ksoup-engine-lite" "ksoup-lite")
+      projects=("ksoup-engine-lite" "ksoup")
       ;;
     "kotlinx")
       projects=("ksoup-engine-kotlinx" "ksoup" "ksoup-network")
@@ -109,7 +109,7 @@ for buildType in "${build_types[@]}"; do
   safe_remove_dir ".gradle"
   safe_remove_dir "kotlin-js-store"
 
-  if [ "$ADD_WASM" = true ] && [[ "$buildType" == "kotlinx" || "$buildType" == "korlibs" ]]; then
+  if [ "$ADD_WASM" = true ] && [[ "$buildType" != "ktor2" && "$buildType" != "okio" ]]; then
     echo "check and add wasm to projects"
     for projectName in "${projects[@]}"; do
       add_wasm_platform "$projectName"

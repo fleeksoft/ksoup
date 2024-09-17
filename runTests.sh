@@ -70,8 +70,8 @@ run_tests() {
 
      echo "Running tests with libBuildType=$libBuildType and tasks=${tasks[*]}..."
 
-    # Only add/remove wasm for kotlinx and korlibs
-    if [[ "$libBuildType" == "kotlinx" || "$libBuildType" == "korlibs" || "$libBuildType" == "lite" ]]; then
+    # kto2 doesn't support wasm
+    if [[ "$libBuildType" != "ktor2" && "$libBuildType" != "okio" ]]; then
         add_wasm_platform
     fi
 
