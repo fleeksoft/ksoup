@@ -11,4 +11,3 @@ dependencies:
   - ../ksoup-engine-common
   - $libs.kotlinx.io: exported
   - $libs.ktor.io
-  - $libs.ktor.http

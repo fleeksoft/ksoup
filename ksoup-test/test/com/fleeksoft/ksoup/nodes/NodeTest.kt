@@ -32,11 +32,7 @@ class NodeTest {
         assertEquals("", withBase.absUrl("noval"))
         val dodgyBase = Element(tag, "wtf://no-such-protocol/", attribs)
         assertEquals("http://bar/qux", dodgyBase.absUrl("absHref")) // base fails, but href good, so get that
-        if (BuildConfig.isKorlibs) {
-            assertEquals("wtf://no-such-protocol/foo", dodgyBase.absUrl("relHref")) // invalid protocol but still can be resolved
-        } else {
-            assertEquals("", dodgyBase.absUrl("relHref")) // base fails, only rel href, so return nothing
-        }
+        assertEquals("wtf://no-such-protocol/foo", dodgyBase.absUrl("relHref")) // invalid protocol but still can be resolved
     }
 
     @Test
@@ -91,23 +87,18 @@ class NodeTest {
 
     @Test
     fun handleAbsOnFileUris() {
-        val doc = Ksoup.parse("<a href='password'>One/a><a href='/var/log/messages'>Two</a>", "file:///etc/")
+        val doc = Ksoup.parse("<a href='password'>One/a><a href='/var/log/messages'>Two</a>", "file:/etc/")
         val one = doc.select("a").first()
-        assertEquals("file:///etc/password", one!!.absUrl("href"))
+        assertEquals("file:/etc/password", one!!.absUrl("href"))
         val two = doc.select("a")[1]
-        if (BuildConfig.isKorlibs) {
-            assertEquals("file:///var/log/messages", two.absUrl("href"))
-        } else {
-            //            fixme: in kotlinx its different behaviour
-            assertEquals("file://var/log/messages", two.absUrl("href"))
-        }
+        assertEquals("file:/var/log/messages", two.absUrl("href"))
     }
 
     @Test
     fun handleAbsOnLocalhostFileUris() {
         val doc = Ksoup.parse("<a href='password'>One/a><a href='/var/log/messages'>Two</a>", "file:///localhost/etc/")
         val one = doc.select("a").first()!!
-        assertEquals("file:///localhost/etc/password", one.absUrl("href"))
+        assertEquals("file://localhost/etc/password", one.absUrl("href"))
     }
 
     @Test

@@ -1,7 +1,3 @@
-plugins {
-    alias(libs.plugins.power.assert)
-}
-
 val rootPath = "generated/kotlin"
 val isGithubActions: Boolean = System.getenv("GITHUB_ACTIONS")?.toBoolean() == true
 
@@ -32,6 +28,7 @@ val generateBuildConfigFile: Task by tasks.creating {
                 const val isKorlibs: Boolean = ${libBuildType == "korlibs"}
                 const val isOkio: Boolean = ${libBuildType == "okio"}
                 const val isKtor2: Boolean = ${libBuildType == "ktor2"}
+                const val isLite: Boolean = ${libBuildType == "lite"}
             }
             """.trimIndent()
         file.get().asFile.writeText(content)

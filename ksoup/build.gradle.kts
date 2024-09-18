@@ -14,6 +14,10 @@ kotlin {
         commonMain {
             dependencies {
                 when (libBuildType) {
+                    "lite" -> {
+                        api(project(":ksoup-engine-lite"))
+                    }
+
                     "korlibs" -> {
                         api(project(":ksoup-engine-korlibs"))
                     }
@@ -39,6 +43,7 @@ val artifactId = when (libBuildType) {
     "korlibs" -> "ksoup-korlibs"
     "okio" -> "ksoup-okio"
     "ktor2" -> "ksoup-ktor2"
+    "lite" -> "ksoup-lite"
     else -> "ksoup"
 }
 

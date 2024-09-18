@@ -12,7 +12,6 @@ dependencies:
   - ../ksoup-engine-common
   - $libs.okio: exported
   - $libs.ktor2.io
-  - $libs.ktor2.http
 
 dependencies@js:
   - $libs.okio.nodefilesystem

@@ -2,7 +2,7 @@ package com.fleeksoft.ksoup.nodes
 
 import com.fleeksoft.ksoup.Ksoup.parse
 import com.fleeksoft.ksoup.parser.Parser
-import de.cketti.codepoints.deluxe.toCodePoint
+import com.fleeksoft.ksoup.ported.toCodePoint
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

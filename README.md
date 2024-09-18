@@ -32,7 +32,11 @@ Ksoup is adept at handling all varieties of HTML found in the wild.
 Include the dependency in `commonMain`. Latest version [![Maven Central](https://img.shields.io/maven-central/v/com.fleeksoft.ksoup/ksoup.svg)](https://central.sonatype.com/artifact/com.fleeksoft.ksoup/ksoup)
 
 Ksoup published in four variants. Pick the one that suits your needs and start building!
-1. **This variant built with [kotlinx-io](https://github.com/Kotlin/kotlinx-io) and [Ktor 3.0.0-rc-1](https://github.com/ktorio/ktor)**
+1. **This variant is built without any external IO or Network dependencies. Use this if you want to parse HTML from a string.**
+   ```kotlin
+   implementation("com.fleeksoft.ksoup:ksoup-lite:<version>")
+    ```
+2. **This variant built with [kotlinx-io](https://github.com/Kotlin/kotlinx-io) and [Ktor 3.0.0-rc-1](https://github.com/ktorio/ktor)**
    ```kotlin
    implementation("com.fleeksoft.ksoup:ksoup:<version>")
    
@@ -41,7 +45,7 @@ Ksoup published in four variants. Pick the one that suits your needs and start b
    implementation("com.fleeksoft.ksoup:ksoup-network:<version>")
     ```
 
-2. **This variant is built with [korlibs-io](https://github.com/korlibs/korlibs-io)**
+3. **This variant is built with [korlibs-io](https://github.com/korlibs/korlibs-io)**
    ```kotlin
    implementation("com.fleeksoft.ksoup:ksoup-korlibs:<version>")
 
@@ -50,7 +54,7 @@ Ksoup published in four variants. Pick the one that suits your needs and start b
    implementation("com.fleeksoft.ksoup:ksoup-network-korlibs:<version>")
     ```
 
-3. **This variant built with [kotlinx-io](https://github.com/Kotlin/kotlinx-io) and [Ktor 2.3.12](https://github.com/ktorio/ktor)**
+4. **This variant built with [kotlinx-io](https://github.com/Kotlin/kotlinx-io) and [Ktor 2.3.12](https://github.com/ktorio/ktor)**
    ```kotlin
    implementation("com.fleeksoft.ksoup:ksoup-ktor2:<version>")
 
@@ -58,7 +62,7 @@ Ksoup published in four variants. Pick the one that suits your needs and start b
     // Ksoup.parseGetRequest, Ksoup.parseSubmitRequest, and Ksoup.parsePostRequest
    implementation("com.fleeksoft.ksoup:ksoup-network-ktor2:<version>")
     ```
-4. **This variant built with [okio](https://github.com/square/okio) and [Ktor 2.3.12](https://github.com/ktorio/ktor)**
+5. **This variant built with [okio](https://github.com/square/okio) and [Ktor 2.3.12](https://github.com/ktorio/ktor)**
    ```kotlin
    implementation("com.fleeksoft.ksoup:ksoup-okio:<version>")
 

@@ -3,14 +3,13 @@ agp = "8.5.2"
 kotlin = "2.0.20"
 compileSdk = "34"
 minSdk = "21"
-libraryVersion = "0.1.7"
+libraryVersion = "0.1.8"
 ktor = "3.0.0-rc-1"
 ktor2 = "2.3.12"
 coroutines = "1.8.1"
 kotlinxDatetime = "0.6.1"
 kotlinx-io = "0.5.3"
 okio = "3.9.0"
-codepoints = "0.9.0"
 dokka = "1.9.20"
 
 #korlibs = "999.0.0.999" # 999.0.0.999 is local version
@@ -43,7 +42,6 @@ ktor-client-js = { module = "io.ktor:ktor-client-js", version.ref = "ktor" }
 ktor-client-win = { module = "io.ktor:ktor-client-winhttp", version.ref = "ktor" }
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }
 kotlinx-io = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version.ref = "kotlinx-io" }
-codepoints = { module = "de.cketti.unicode:kotlin-codepoints-deluxe", version.ref = "codepoints" }
 korlibs-io = { module = "com.soywiz:korlibs-io", version.ref = "korlibs" }
 korlibs-io-network-core = { module = "com.soywiz:korlibs-io-network-core", version.ref = "korlibs" }
 stately-concurrency = { module = "co.touchlab:stately-concurrency", version.ref = "stately" }

@@ -6,8 +6,8 @@ import com.fleeksoft.ksoup.internal.SharedConstants
 import com.fleeksoft.ksoup.nodes.Attributes
 import com.fleeksoft.ksoup.nodes.Range
 import com.fleeksoft.ksoup.ported.KCloneable
+import com.fleeksoft.ksoup.ported.appendCodePoint
 import com.fleeksoft.ksoup.ported.assert
-import de.cketti.codepoints.appendCodePoint
 
 /**
  * Parse tokens for the Tokeniser.
