@@ -199,7 +199,7 @@ public object StringUtil {
     }
 
     public fun inSorted(needle: String, haystack: Array<out String>): Boolean {
-        return haystack.toList().binarySearch(needle) >= 0
+        return haystack.binarySearch(needle) >= 0
     }
 
     /**

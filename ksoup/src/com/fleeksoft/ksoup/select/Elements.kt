@@ -230,7 +230,7 @@ public class Elements(private val delegateList: MutableList<Element> = mutableLi
      * @see .outerHtml
      */
     public fun html(): String {
-        return this.map { it.html() }.joinToString("\n")
+        return this.joinToString("\n") { it.html() }
     }
 
     /**
