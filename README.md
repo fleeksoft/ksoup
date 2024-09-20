@@ -122,6 +122,8 @@ In this example, `Ksoup.parseGetRequest` fetches and parses HTML content from Wi
 #### For further documentation, please check here: [Jsoup](https://jsoup.org/)
 
 ### Ksoup vs. Jsoup Performance: Parsing & Selecting 448KB HTML File [test.tx](https://github.com/fleeksoft/ksoup/blob/develop/ksoup-test/testResources/test.txt)
+![Ksoup vs Jsoup](performance1.png)
+
 ![Ksoup vs Jsoup](performance.png)
 
 ## Open source
