@@ -145,7 +145,9 @@ class StreamDecoder(source: SourceReader, charset: Charset) : Reader() {
 
         if (bb.available() <= 0) return -1
         val text = bb.readText(cs, min(length, bb.size))
-        text.toCharArray().copyInto(cbuf, off)
+        for (i in text.indices) {
+            cbuf[off + i] = text[i]
+        }
 
         return text.length
     }

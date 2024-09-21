@@ -19,7 +19,9 @@ internal object Collector {
         root: Element,
     ): Elements {
         eval.reset()
-        return Elements(root.stream().filter(eval.asPredicate(root)).toList())
+        return Elements().apply {
+            addAll(root.stream().filter(eval.asPredicate(root)))
+        }
     }
 
     /**

@@ -48,6 +48,7 @@ if (libBuildType == "ktor2" || libBuildType == "dev") {
 if (libBuildType != "common") {
     include("ksoup")
     include("ksoup-test")
+    include("ksoup-benchmark")
 }
 
 //include("sample:shared", "sample:desktop")

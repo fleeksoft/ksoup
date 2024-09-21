@@ -46,9 +46,8 @@ class StringReader(s: String) : Reader() {
         }
         if (next >= this.length) return -1
         val n: Int = min(this.length - next, length)
-        val charArray = str!!.toCharArray(startIndex = next, endIndex = next + n)
-        charArray.indices.forEach { i ->
-            cbuf[offset + i] = charArray[i]
+        for (i in 0 until n) {
+            cbuf[offset + i] = str!![next + i]
         }
         next += n
         return n

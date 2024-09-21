@@ -20,7 +20,7 @@ interface Charset {
             }.isSuccess*/
     }
     
-    fun decode(stringBuilder: StringBuilder, byteArray: ByteArray, start: Int, end: Int): Int
+    fun decode(stringBuilder: StringBuilder, byteArray: ByteArray, start: Int, end: Int = byteArray.size): Int
     fun toByteArray(value: String): ByteArray
 
     fun onlyUtf8(): Boolean = false

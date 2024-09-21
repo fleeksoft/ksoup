@@ -69,7 +69,7 @@ public object Entities {
         if (value != null) return value
         val codepoint = extended.codepointForName(name)
         return if (codepoint != empty) {
-            charArrayOf(codepoint.toChar()).concatToString()
+            codepoint.toChar().toString()
         } else {
             emptyName
         }
@@ -420,12 +420,12 @@ public object Entities {
         }
 
         public fun codepointForName(name: String): Int {
-            val index: Int = nameKeys.toList().binarySearch(name)
+            val index: Int = nameKeys.binarySearch(name)
             return if (index >= 0) codeVals[index] else empty
         }
 
         public fun nameForCodepoint(codepoint: Int): String {
-            val index: Int = codeKeys.toList().binarySearch(codepoint)
+            val index: Int = codeKeys.binarySearch(codepoint)
             return if (index >= 0) {
                 // the results are ordered so lower case versions of same codepoint come after uppercase, and we prefer to emit lower
                 // (and binary search for same item with multi results is undefined
