@@ -44,6 +44,17 @@ class PerformanceComparisonTest {
         val jsoupParseTimes = mutableListOf<Long>()
         val jsoupSelectTimes = mutableListOf<Long>()
 
+//        warmup
+        repeat(10) {
+            ksoupTest(ksoupParseTimes, ksoupSelectTimes)
+            jsoupTest(jsoupParseTimes, jsoupSelectTimes)
+        }
+
+        ksoupParseTimes.clear()
+        ksoupSelectTimes.clear()
+        jsoupParseTimes.clear()
+        jsoupSelectTimes.clear()
+
         // Perform multiple tests
         repeat(30) {
             ksoupTest(ksoupParseTimes, ksoupSelectTimes)

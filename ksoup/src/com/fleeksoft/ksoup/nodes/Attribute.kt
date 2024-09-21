@@ -4,6 +4,7 @@ import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.nodes.Document.OutputSettings.Syntax
 import com.fleeksoft.ksoup.ported.KCloneable
+import com.fleeksoft.ksoup.ported.binarySearchBy
 import com.fleeksoft.ksoup.ported.exception.IOException
 import com.fleeksoft.ksoup.ported.exception.SerializationException
 
@@ -351,7 +352,7 @@ public open class Attribute : Map.Entry<String, String?>, KCloneable<Attribute> 
          * Checks if this attribute name is defined as a boolean attribute in HTML5
          */
         public fun isBooleanAttribute(key: String): Boolean {
-            return booleanAttributes.toList().binarySearch { it.compareTo(key.lowercase()) } >= 0
+            return booleanAttributes.binarySearchBy { it.compareTo(key.lowercase()) } >= 0
         }
     }
 }

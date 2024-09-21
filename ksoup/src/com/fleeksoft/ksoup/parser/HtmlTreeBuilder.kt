@@ -26,8 +26,7 @@ public open class HtmlTreeBuilder : TreeBuilder() {
     // fragment parse root; name only copy of context. could be null even if fragment parsing
     private var contextElement: Element? = null
 
-    private var formattingElements: ArrayList<Element?>? =
-        null // active (open) formatting elements
+    private var formattingElements: ArrayList<Element?> = ArrayList() // active (open) formatting elements
     private var tmplInsertMode: ArrayList<HtmlTreeBuilderState>? =
         null // stack of Template Insertion modes
     private var pendingTableCharacters: MutableList<Token.Character>? =
@@ -60,7 +59,6 @@ public open class HtmlTreeBuilder : TreeBuilder() {
         headElement = null
         formElement = null
         contextElement = null
-        formattingElements = ArrayList()
         tmplInsertMode = ArrayList()
         pendingTableCharacters = ArrayList()
         emptyEnd = Token.EndTag(this)
@@ -785,29 +783,29 @@ public open class HtmlTreeBuilder : TreeBuilder() {
     }
 
     private fun lastFormattingElement(): Element? {
-        return if ((formattingElements?.size ?: 0) > 0) {
-            formattingElements!![formattingElements!!.size - 1]
+        return if (formattingElements.size > 0) {
+            formattingElements[formattingElements.size - 1]
         } else {
             null
         }
     }
 
     public fun positionOfElement(el: Element?): Int {
-        for (i in formattingElements!!.indices) {
-            if (el === formattingElements!!.get(i)) return i
+        for (i in formattingElements.indices) {
+            if (el === formattingElements[i]) return i
         }
         return -1
     }
 
     public fun removeLastFormattingElement(): Element? {
-        val size: Int = formattingElements?.size ?: 0
-        return if (size > 0) formattingElements!!.removeAt(size - 1) else null
+        val size: Int = formattingElements.size
+        return if (size > 0) formattingElements.removeAt(size - 1) else null
     }
 
     // active formatting elements
     public fun pushActiveFormattingElements(`in`: Element) {
         checkActiveFormattingElements(`in`)
-        formattingElements!!.add(`in`)
+        formattingElements.add(`in`)
     }
 
     public fun pushWithBookmark(
@@ -817,22 +815,22 @@ public open class HtmlTreeBuilder : TreeBuilder() {
         checkActiveFormattingElements(`in`)
         // catch any range errors and assume bookmark is incorrect - saves a redundant range check.
         try {
-            formattingElements!!.add(bookmark, `in`)
+            formattingElements.add(bookmark, `in`)
         } catch (e: IndexOutOfBoundsException) {
-            formattingElements!!.add(`in`)
+            formattingElements.add(`in`)
         }
     }
 
     public fun checkActiveFormattingElements(`in`: Element) {
         var numSeen = 0
-        val size: Int = formattingElements!!.size - 1
+        val size: Int = formattingElements.size - 1
         var ceil = size - maxUsedFormattingElements
         if (ceil < 0) ceil = 0
         for (pos in size downTo ceil) {
-            val el: Element = formattingElements?.get(pos) ?: break // marker
+            val el: Element = formattingElements[pos] ?: break // marker
             if (isSameFormattingElement(`in`, el)) numSeen++
             if (numSeen == 3) {
-                formattingElements!!.removeAt(pos)
+                formattingElements.removeAt(pos)
                 break
             }
         }
@@ -883,16 +881,16 @@ public open class HtmlTreeBuilder : TreeBuilder() {
     }
 
     public fun clearFormattingElementsToLastMarker() {
-        while (!formattingElements!!.isEmpty()) {
+        while (!formattingElements.isEmpty()) {
             removeLastFormattingElement() ?: break
         }
     }
 
     public fun removeFromActiveFormattingElements(el: Element) {
-        for (pos in formattingElements!!.indices.reversed()) {
+        for (pos in formattingElements.indices.reversed()) {
             val next: Element? = formattingElements?.get(pos)
             if (next === el) {
-                formattingElements!!.removeAt(pos)
+                formattingElements.removeAt(pos)
                 break
             }
         }
@@ -903,7 +901,7 @@ public open class HtmlTreeBuilder : TreeBuilder() {
     }
 
     public fun getActiveFormattingElement(nodeName: String?): Element? {
-        for (pos in formattingElements!!.indices.reversed()) {
+        for (pos in formattingElements.indices.reversed()) {
             val next: Element? = formattingElements?.get(pos)
             if (next == null) {
                 // scope marker
@@ -919,11 +917,11 @@ public open class HtmlTreeBuilder : TreeBuilder() {
         out: Element,
         `in`: Element,
     ) {
-        replaceInQueue(formattingElements!!, out, `in`)
+        replaceInQueue(formattingElements, out, `in`)
     }
 
     public fun insertMarkerToFormattingElements() {
-        formattingElements?.add(null)
+        formattingElements.add(null)
     }
 
     public fun insertInFosterParent(inNode: Node) {

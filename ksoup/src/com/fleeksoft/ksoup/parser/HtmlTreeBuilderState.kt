@@ -916,7 +916,7 @@ public enum class HtmlTreeBuilderState {
         ): Boolean {
             // case insensitive search - goal is to preserve output case, not for the parse to be case sensitive
             val name: String = t.asEndTag().normalName!!
-            val stack: ArrayList<Element> = arrayListOf(*tb.getStack().mapNotNull { it }.toList().toTypedArray())
+            val stack: ArrayList<Element> = arrayListOf(*tb.getStack().mapNotNull { it }.toTypedArray())
 
             // deviate from spec slightly to speed when super deeply nested
             val elFromStack: Element? = tb.getFromStack(name)
@@ -1984,8 +1984,7 @@ public enum class HtmlTreeBuilderState {
                     }
 
                     // Any other end tag
-                    val stack: ArrayList<Element> =
-                        arrayListOf(*tb.getStack().mapNotNull { it }.toList().toTypedArray())
+                    val stack: ArrayList<Element> = arrayListOf(*tb.getStack().mapNotNull { it }.toTypedArray())
                     if (stack.isEmpty()) Validate.wtf("Stack unexpectedly empty")
                     var i: Int = stack.size - 1
                     var el: Element = stack[i]

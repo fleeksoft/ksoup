@@ -17,7 +17,6 @@ import com.fleeksoft.ksoup.select.*
 import kotlin.js.JsName
 import kotlin.jvm.JvmOverloads
 import kotlin.reflect.KClass
-import kotlin.reflect.cast
 
 /**
  * An HTML Element consists of a tag name, attributes, and child nodes (including text nodes and other elements).
@@ -398,8 +397,6 @@ public open class Element : Node {
 
     private inline fun <reified T : Any> filterNodes(clazz: KClass<T>): List<T> {
         return _childNodes.filterIsInstance<T>()
-            .map { clazz.cast(it) }
-            .toList()
     }
 
     /**

@@ -8,9 +8,10 @@ ktor = "3.0.0-rc-1"
 ktor2 = "2.3.12"
 coroutines = "1.8.1"
 kotlinxDatetime = "0.6.1"
-kotlinx-io = "0.5.3"
+kotlinx-io = "0.5.4"
 okio = "3.9.0"
 dokka = "1.9.20"
+kotlinx-benchmark = "0.4.12"
 
 #korlibs = "999.0.0.999" # 999.0.0.999 is local version
 korlibs = "6.0.1"
@@ -48,6 +49,7 @@ stately-concurrency = { module = "co.touchlab:stately-concurrency", version.ref 
 jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 okio-nodefilesystem = { module = "com.squareup.okio:okio-nodefilesystem", version.ref = "okio" }
+kotlinx-benchmark-runtime = { module = "org.jetbrains.kotlinx:kotlinx-benchmark-runtime", version.ref = "kotlinx-benchmark" }
 
 [plugins]
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
@@ -55,3 +57,5 @@ kmp = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 power-assert = { id = "org.jetbrains.kotlin.plugin.power-assert", version.ref = "kotlin" }
 mavenPublish = { id = "com.vanniktech.maven.publish", version.ref = "mavenPublish" }
+kotlinx-benchmark = { id = "org.jetbrains.kotlinx.benchmark", version.ref = "kotlinx-benchmark" }
+allopen = { id = "org.jetbrains.kotlin.plugin.allopen", version.ref = "kotlin" }

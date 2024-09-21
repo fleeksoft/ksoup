@@ -81,22 +81,19 @@ public class QueryParser private constructor(query: String) {
             }
 
             ' ' ->
-                currentEval =
-                    CombiningEvaluator.And(StructuralEvaluator.Parent(currentEval!!), newEval)
+                currentEval = CombiningEvaluator.And(StructuralEvaluator.Parent(currentEval!!), newEval)
 
             '+' ->
-                currentEval =
-                    CombiningEvaluator.And(
-                        StructuralEvaluator.ImmediatePreviousSibling(currentEval!!),
-                        newEval,
-                    )
+                currentEval = CombiningEvaluator.And(
+                    StructuralEvaluator.ImmediatePreviousSibling(currentEval!!),
+                    newEval,
+                )
 
             '~' ->
-                currentEval =
-                    CombiningEvaluator.And(
-                        StructuralEvaluator.PreviousSibling(currentEval!!),
-                        newEval,
-                    )
+                currentEval = CombiningEvaluator.And(
+                    StructuralEvaluator.PreviousSibling(currentEval!!),
+                    newEval,
+                )
 
             ',' -> {
                 val or: CombiningEvaluator.Or

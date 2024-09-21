@@ -19,7 +19,7 @@ public class FormElement(tag: Tag, baseUri: String?, attributes: Attributes?) : 
     private val linkedEls: Elements = Elements()
 
     // contains form submittable elements that were linked during the parse (and due to parse rules, may no longer be a child of this form)
-    private val submittable = QueryParser.parse(StringUtil.join(SharedConstants.FormSubmitTags.toList(), ", "))
+    private val submittable = QueryParser.parse(SharedConstants.FormSubmitTags.joinToString(", "))
 
     /**
      * Get the list of form control elements associated with this form.
