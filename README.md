@@ -102,6 +102,24 @@ headlines.forEach { headline: Element ->
     println("$headlineTitle => $headlineLink")
 }
 ```
+
+### Parsing Metadata from Website
+```kotlin
+//Please note that the com.fleeksoft.ksoup:ksoup-network library is required for Ksoup.parseGetRequest.
+val doc: Document = Ksoup.parseGetRequest(url = "https://en.wikipedia.org/") // suspend function
+val metadata: Metadata = Ksoup.parseMetaData(element = doc) // suspend function
+// or
+val metadata: Metadata = Ksoup.parseMetaData(html = HTML)
+
+println("title: ${metadata.title}")
+println("description: ${metadata.description}")
+println("ogTitle: ${metadata.ogTitle}")
+println("ogDescription: ${metadata.ogDescription}")
+println("twitterTitle: ${metadata.twitterTitle}")
+println("twitterDescription: ${metadata.twitterDescription}")
+// Check com.fleeksoft.ksoup.model.MetaData for more fields
+```
+
 In this example, `Ksoup.parseGetRequest` fetches and parses HTML content from Wikipedia, extracting and printing news headlines and their corresponding links.
 ### Ksoup Public functions
   - Ksoup.parse

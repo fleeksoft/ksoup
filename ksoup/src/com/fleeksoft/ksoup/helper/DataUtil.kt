@@ -59,7 +59,7 @@ public object DataUtil {
      * @throws IOException on IO error
      * @see Connection.Response.streamParser
      */
-    suspend fun streamParser(sourceReader: SourceReader, baseUri: String, charset: Charset?, parser: Parser): StreamParser {
+    fun streamParser(sourceReader: SourceReader, baseUri: String, charset: Charset?, parser: Parser): StreamParser {
         val streamer = StreamParser(parser)
         val charsetName: String? = charset?.name
         val charsetDoc: CharsetDoc = detectCharset(sourceReader, baseUri, charsetName, parser)
