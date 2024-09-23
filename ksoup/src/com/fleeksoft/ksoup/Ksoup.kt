@@ -3,8 +3,11 @@ package com.fleeksoft.ksoup
 import com.fleeksoft.ksoup.helper.DataUtil
 import com.fleeksoft.ksoup.io.FileSource
 import com.fleeksoft.ksoup.io.SourceReader
+import com.fleeksoft.ksoup.model.MetaData
 import com.fleeksoft.ksoup.nodes.Document
+import com.fleeksoft.ksoup.nodes.Element
 import com.fleeksoft.ksoup.parser.Parser
+import com.fleeksoft.ksoup.parser.StreamParser
 import com.fleeksoft.ksoup.ported.toSourceFile
 import com.fleeksoft.ksoup.safety.Cleaner
 import com.fleeksoft.ksoup.safety.Safelist
@@ -184,5 +187,93 @@ public object Ksoup {
         safelist: Safelist,
     ): Boolean {
         return Cleaner(safelist).isValidBodyHtml(bodyHtml)
+    }
+
+    fun parseMetaData(element: Element): MetaData {
+        val title = element.selectFirst("title")?.text()
+        return parseMetaDataInternal(baseUri = element.baseUri(), title = title) { query ->
+            element.selectFirst(query)
+        }
+    }
+
+    fun parseMetaData(
+        html: String,
+        baseUri: String = "",
+        interceptor: ((head: Element, metaData: MetaData) -> Unit)? = null
+    ): MetaData {
+        val head = parse(html = html, baseUri = baseUri).head()
+
+        val title = head.selectFirst("title")?.text()
+        return parseMetaDataInternal(baseUri = baseUri, title = title) { query ->
+            head.selectFirst(query)
+        }.also {
+            interceptor?.invoke(head, it)
+        }
+    }
+
+    fun parseMetaData(
+        sourceReader: SourceReader,
+        baseUri: String = "",
+        interceptor: ((headStream: StreamParser, metaData: MetaData) -> Unit)? = null
+    ): MetaData {
+        val head = DataUtil.streamParser(sourceReader = sourceReader, baseUri = baseUri, null, Parser.htmlParser())
+        val title = head.selectFirst("title")?.text()
+        return parseMetaDataInternal(baseUri = baseUri, title = title) { query ->
+            head.selectFirst(query)
+        }.also {
+            interceptor?.invoke(head, it)
+        }
+    }
+
+    private fun parseMetaDataInternal(baseUri: String, title: String?, selectFirst: (query: String) -> Element?): MetaData {
+        // Extract Open Graph metadata
+        val ogTitle = selectFirst("meta[property=og:title]")?.attr("content")
+        val ogSiteName = selectFirst("meta[property=og:site_name]")?.attr("content")
+        val ogType = selectFirst("meta[property=og:type]")?.attr("content")
+        val ogLocale = selectFirst("meta[property=og:locale]")?.attr("content")
+        val ogDescription = selectFirst("meta[property=og:description]")?.attr("content")
+        val ogImage = selectFirst("meta[property=og:image]")?.attr("content")
+        val ogUrl = selectFirst("meta[property=og:url]")?.attr("content")
+
+        // Extract Twitter metadata
+        val twitterTitle = selectFirst("meta[name=twitter:title]")?.attr("content")
+        val twitterCard = selectFirst("meta[name=twitter:card]")?.attr("content")
+        val twitterDescription = selectFirst("meta[name=twitter:description]")?.attr("content")
+        val twitterImage = selectFirst("meta[name=twitter:image]")?.attr("content")
+
+        // Extract standard metadata
+        val titleTag = selectFirst("meta[name=title]")?.attr("content")
+        val descriptionTag = selectFirst("meta[name=description]")?.attr("content")
+        val author = selectFirst("meta[name=author]")?.attr("content")
+
+        // Extract canonical URL
+        val canonicalTag = selectFirst("link[rel=canonical]")?.attr("href")
+
+        // Fetch favicon
+        var faviconTag = selectFirst("link[rel~=icon]")?.attr("href")
+        if (faviconTag != null && !faviconTag.startsWith("http") && baseUri.isNotEmpty()) {
+            faviconTag = baseUri + faviconTag
+        }
+
+        // Create a MetaData object
+        return MetaData(
+            ogTitle = ogTitle,
+            ogSiteName = ogSiteName,
+            ogType = ogType,
+            ogLocale = ogLocale,
+            ogDescription = ogDescription,
+            ogImage = ogImage,
+            ogUrl = ogUrl,
+            twitterCard = twitterCard,
+            twitterTitle = twitterTitle,
+            twitterDescription = twitterDescription,
+            twitterImage = twitterImage,
+            title = titleTag,
+            description = descriptionTag,
+            canonical = canonicalTag,
+            htmlTitle = title,
+            author = author,
+            favicon = faviconTag
+        )
     }
 }
