@@ -1,5 +1,7 @@
 package com.fleeksoft.ksoup.nodes
 
+import com.fleeksoft.ksoup.internal.Unbaser
+
 /**
  * Create a new DataNode.
  * A data node, for contents of style, script tags etc, where contents should not show in text().
@@ -7,6 +9,10 @@ package com.fleeksoft.ksoup.nodes
  * @param data data contents
  */
 public class DataNode(data: String) : LeafNode(data) {
+
+    public val isPacked: Boolean by lazy {
+        parentNameIs("script") && getWholeData().contains(packedRegex)
+    }
 
     override fun nodeName(): String {
         return "#data"
@@ -22,6 +28,32 @@ public class DataNode(data: String) : LeafNode(data) {
     public fun setWholeData(data: String?): DataNode {
         coreValue(data)
         return this
+    }
+
+    public fun getUnpackedData(): String {
+        return if (isPacked) {
+            getWholeData().replace(packedRegex) { packed ->
+                packedExtractRegex.findAll(packed.value).mapNotNull { matchResult ->
+                    val payload = matchResult.groups[1]?.value
+                    val symtab = matchResult.groups[4]?.value?.split('|')
+                    val radix = matchResult.groups[2]?.value?.toIntOrNull() ?: 10
+                    val count = matchResult.groups[3]?.value?.toIntOrNull()
+                    val unbaser = Unbaser(radix)
+
+                    if (symtab == null || count == null || symtab.size != count) {
+                        null
+                    } else {
+                        payload?.replace(unpackReplaceRegex) { match ->
+                            val word = match.value
+                            val unbased = symtab[unbaser.unbase(word)]
+                            unbased.ifEmpty { word }
+                        }
+                    }
+                }.joinToString(separator = "")
+            }
+        } else {
+            getWholeData()
+        }
     }
 
     public override fun outerHtmlHead(accum: Appendable, depth: Int, out: Document.OutputSettings) {
@@ -51,5 +83,23 @@ public class DataNode(data: String) : LeafNode(data) {
 
     override fun clone(): DataNode {
         return super.clone() as DataNode
+    }
+
+    companion object {
+        /**
+         * Regex to detect packed functions.
+         */
+        private val packedRegex = Regex("eval[(]function[(]p,a,c,k,e,[rd][)][{].*?[}][)]{2}", setOf(RegexOption.IGNORE_CASE, RegexOption.MULTILINE))
+
+        /**
+         * Regex to get and group the packed javascript.
+         * Needed to get information and unpack the code.
+         */
+        private val packedExtractRegex = Regex("[}][(]'(.*)', *(\\d+), *(\\d+), *'(.*?)'[.]split[(]'[|]'[)]", setOf(RegexOption.IGNORE_CASE, RegexOption.MULTILINE))
+
+        /**
+         * Matches function names and variables to de-obfuscate the code.
+         */
+        private val unpackReplaceRegex = Regex("\\b\\w+\\b", setOf(RegexOption.IGNORE_CASE, RegexOption.MULTILINE))
     }
 }
