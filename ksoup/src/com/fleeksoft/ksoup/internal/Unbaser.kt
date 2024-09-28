@@ -5,17 +5,17 @@ import kotlin.math.pow
 internal data class Unbaser(
     private val base: Int
 ) {
-    private val dict by lazy {
-        ALPHABET[selector]?.mapIndexed { index, c ->
-            c to index
-        }?.toMap()
-    }
-
     private val selector: Int = when {
         base > 62 -> 95
         base > 54 -> 62
         base > 52 -> 54
         else -> 52
+    }
+
+    private val dict by lazy {
+        ALPHABET[selector]?.mapIndexed { index, c ->
+            c to index
+        }?.toMap()
     }
 
     fun unbase(value: String): Int {
