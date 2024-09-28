@@ -2271,6 +2271,19 @@ class HtmlParserTest {
         )
     }
 
+    @Test
+    fun packedScript() {
+        val packedJs = "eval(function(p,a,c,k,e,r){e=String;if(!''.replace(/^/,String)){while(c--)r[c]=k[c]||c;k=[function(e){return r[e]}];e=function(){return'\\w+'};c=1};while(c--)if(k[c])p=p.replace(new RegExp('\\b'+e(c)+'\\b','g'),k[c]);return p}('0.1(\"2 3\")',4,4,'console|log|Hello|World'.split('|'),0,{}))"
+        val packedScript = "<script type=\"text/javascript\">$packedJs</script>"
+        val unpackedJs = "console.log(\"Hello World\")"
+        val doc = Ksoup.parse(packedScript)
+        val script = doc.selectFirst("script")!!
+        assertEquals(packedScript, script.outerHtml())
+        val dataNode = script.childNode(0) as DataNode
+        assertEquals(packedJs, dataNode.getWholeData())
+        assertEquals(unpackedJs, dataNode.getUnpackedData())
+    }
+
     companion object {
         private fun dupeAttributeData(): List<Pair<String, String>> {
             return listOf(

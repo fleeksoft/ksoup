@@ -5,6 +5,12 @@ import kotlin.math.pow
 internal data class Unbaser(
     private val base: Int
 ) {
+    private val dict by lazy {
+        ALPHABET[selector]?.mapIndexed { index, c ->
+            c to index
+        }?.toMap()
+    }
+
     private val selector: Int = when {
         base > 62 -> 95
         base > 54 -> 62
@@ -16,12 +22,9 @@ internal data class Unbaser(
         return if (base in 2..36) {
             value.toIntOrNull(base) ?: 0
         } else {
-            val dict = ALPHABET[selector]?.toCharArray()?.mapIndexed { index, c ->
-                c to index
-            }?.toMap()
             var returnVal = 0
 
-            val valArray = value.toCharArray().reversed()
+            val valArray = value.reversed()
             for (i in valArray.indices) {
                 val cipher = valArray[i]
                 returnVal += (base.toFloat().pow(i) * (dict?.get(cipher) ?: 0)).toInt()

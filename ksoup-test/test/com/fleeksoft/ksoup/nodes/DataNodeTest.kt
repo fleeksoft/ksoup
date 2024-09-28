@@ -76,13 +76,4 @@ class DataNodeTest {
         node._parentNode = Element("script")
         assertTrue(node.isPacked)
     }
-
-    @Test
-    fun unpackedData() {
-        val node = DataNode("""
-        eval(function(p,a,c,k,e,r){e=String;if(!''.replace(/^/,String)){while(c--)r[c]=k[c]||c;k=[function(e){return r[e]}];e=function(){return'\\w+'};c=1};while(c--)if(k[c])p=p.replace(new RegExp('\\b'+e(c)+'\\b','g'),k[c]);return p}('0.1("2 3")',4,4,'console|log|Hello|World'.split('|'),0,{}))
-        """.trimIndent())
-        node._parentNode = Element("script")
-        assertEquals("console.log(\"Hello World\")", node.getUnpackedData())
-    }
 }
