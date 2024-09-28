@@ -10,9 +10,8 @@ import com.fleeksoft.ksoup.internal.Unbaser
  */
 public class DataNode(data: String) : LeafNode(data) {
 
-    public val isPacked: Boolean by lazy {
-        parentNameIs("script") && getWholeData().contains(packedRegex)
-    }
+    public val isPacked: Boolean
+        get() = isPacked(getWholeData())
 
     override fun nodeName(): String {
         return "#data"
@@ -31,8 +30,10 @@ public class DataNode(data: String) : LeafNode(data) {
     }
 
     public fun getUnpackedData(): String {
-        return if (isPacked) {
-            getWholeData().replace(packedRegex) { packed ->
+        val currentData = getWholeData()
+
+        return if (isPacked(currentData)) {
+            currentData.replace(packedRegex) { packed ->
                 packedExtractRegex.findAll(packed.value).mapNotNull { matchResult ->
                     val payload = matchResult.groups[1]?.value
                     val symtab = matchResult.groups[4]?.value?.split('|')
@@ -52,7 +53,7 @@ public class DataNode(data: String) : LeafNode(data) {
                 }.joinToString(separator = "")
             }
         } else {
-            getWholeData()
+            currentData
         }
     }
 
@@ -83,6 +84,10 @@ public class DataNode(data: String) : LeafNode(data) {
 
     override fun clone(): DataNode {
         return super.clone() as DataNode
+    }
+
+    private fun isPacked(data: String): Boolean {
+        return parentNameIs("script") && data.contains(packedRegex)
     }
 
     companion object {
