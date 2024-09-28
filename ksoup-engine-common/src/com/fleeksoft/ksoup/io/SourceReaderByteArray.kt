@@ -29,7 +29,7 @@ internal class SourceReaderByteArray(bytes: ByteArray) : SourceReader {
         return if (i == 0) {
             byteArrayOf()
         } else if (i != count) {
-            byteArray.sliceArray(0 until i)
+            byteArray.copyOfRange(0, i)
         } else {
             byteArray
         }

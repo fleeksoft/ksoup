@@ -27,13 +27,9 @@ import com.fleeksoft.ksoup.select.Selector
 public class Document(private val namespace: String, private val location: String?) :
     Element(Tag.valueOf("#root", namespace, ParseSettings.htmlDefault), location) {
     private var outputSettings = OutputSettings()
-    private var parser: Parser?
+    private var parser: Parser = Parser.htmlParser() // default, but overridable
     private var quirksMode = QuirksMode.noQuirks
     private var updateMetaCharset = false
-
-    init {
-        parser = Parser.htmlParser() // default, but overridable
-    }
 
     /**
      * Create a new, empty Document, in the HTML namespace.
@@ -591,7 +587,7 @@ public class Document(private val namespace: String, private val location: Strin
      * @param parser the configured parser to use when further parsing is required for this document.
      * @return this document, for chaining.
      */
-    public fun parser(parser: Parser?): Document {
+    public fun parser(parser: Parser): Document {
         this.parser = parser
         return this
     }

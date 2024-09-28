@@ -20,16 +20,16 @@ class KByteBuffer(capacity: Int) {
     }
 
     fun compact() {
-        if (position == buffer.size || readAvailable == 0) {
+        if (readAvailable > 0) {
+            if (position > 0) {
+                // Use copyInto for efficient copying
+                buffer.copyInto(buffer, destinationOffset = 0, startIndex = position, endIndex = position + readAvailable)
+            }
+            offset = readAvailable
+            position = 0
+        } else {
             position = 0
             offset = 0
-        } else if (position > 0) {
-            val length = size - position
-            (0 until length).forEach { i ->
-                buffer[i] = buffer[i + position]
-            }
-            offset = length
-            position = 0
         }
     }
 
@@ -42,12 +42,12 @@ class KByteBuffer(capacity: Int) {
     }
 
     fun clone(): KByteBuffer {
-        return KByteBuffer(buffer.size).apply {
-            position = this@KByteBuffer.position
-            readAvailable = this@KByteBuffer.readAvailable
-            offset = this@KByteBuffer.offset
-            this@KByteBuffer.buffer.copyInto(buffer)
-        }
+        val kByteBuffer = KByteBuffer(buffer.size)
+        kByteBuffer.position = this.position
+        kByteBuffer.readAvailable = this.readAvailable
+        kByteBuffer.offset = this.offset
+        this.buffer.copyInto(kByteBuffer.buffer)
+        return kByteBuffer
     }
 
     fun readText(charset: Charset, maxBytes: Int): String {
@@ -74,14 +74,14 @@ class KByteBuffer(capacity: Int) {
     }
 
     fun readBytes(count: Int): ByteArray {
-        val byteArray = buffer.sliceArray(position until min(position + count, position + readAvailable))
+        val byteArray = buffer.copyOfRange(position, min(position + count, position + readAvailable))
         position += byteArray.size
         readAvailable -= byteArray.size
         return byteArray
     }
 
     fun readAll(): ByteArray {
-        return buffer.sliceArray(position until position + readAvailable).also {
+        return buffer.copyOfRange(position, position + readAvailable).also {
             position += readAvailable
             readAvailable = 0
         }

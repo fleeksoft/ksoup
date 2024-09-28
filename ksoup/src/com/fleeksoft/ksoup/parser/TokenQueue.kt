@@ -341,29 +341,8 @@ public class TokenQueue(data: String) {
     public companion object {
         private const val ESC = '\\' // escape char for chomp balanced.
 
-        /**
-         * Unescape a \ escaped string.
-         * @param in backslash escaped string
-         * @return unescaped string
-         */
-        /*fun unescape(`in`: String): String {
-            val out: StringBuilder = StringUtil.borrowBuilder()
-            var last = 0.toChar()
-            for (c in `in`.toCharArray()) {
-                if (c == ESC) {
-                    if (last == ESC) {
-                        out.append(c)
-                        c = 0.toChar()
-                    }
-                } else {
-                    out.append(c)
-                }
-                last = c
-            }
-            return StringUtil.releaseBuilder(out)
-        }*/
         public fun unescape(input: String): String {
-            val output = StringBuilder()
+            val output = StringUtil.borrowBuilder();
             var lastChar: Char = 0.toChar()
             for (c in input) {
                 var c1 = c
@@ -377,7 +356,7 @@ public class TokenQueue(data: String) {
                 }
                 lastChar = c1
             }
-            return output.toString()
+            return StringUtil.releaseBuilder(output)
         }
 
         /*
