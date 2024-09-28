@@ -19,6 +19,16 @@ benchmark {
 //            exclude("com.fleeksoft.ksoup.benchmark.KsoupBenchmark")
         }
     }
+}
+
+val rootPath = "generated/kotlin"
+kotlin {
+    sourceSets {
+        commonMain {
+            this.kotlin.srcDir(layout.buildDirectory.file(rootPath))
+        }
+    }
+}
 
 val generateBuildConfigFile: Task by tasks.creating {
     group = "build setup"
