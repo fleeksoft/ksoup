@@ -1,5 +1,6 @@
 package org.jsoup.parser
 
+import com.fleeksoft.ksoup.BuildConfig
 import kotlinx.benchmark.*
 import kotlinx.io.buffered
 import kotlinx.io.files.Path
@@ -18,7 +19,7 @@ class JsoupBenchmark {
     @Setup
     fun setUp() {
         fileData =
-            SystemFileSystem.source(Path("/Users/sabeeh/IdeaProjects/ksoup-benchmark/ksoup-test/testResources/test.txt")).buffered().readString()
+            SystemFileSystem.source(Path("${BuildConfig.PROJECT_ROOT}/ksoup-test/testResources/test.txt")).buffered().readString()
         doc1 = parseHtml()
     }
 

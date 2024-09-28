@@ -1,10 +1,8 @@
 package com.fleeksoft.ksoup.benchmark
 
+import com.fleeksoft.ksoup.BuildConfig
 import com.fleeksoft.ksoup.Ksoup
 import com.fleeksoft.ksoup.nodes.Document
-import com.fleeksoft.ksoup.nodes.Element
-import com.fleeksoft.ksoup.select.Elements
-import com.fleeksoft.ksoup.select.Evaluator
 import kotlinx.benchmark.*
 import kotlinx.io.buffered
 import kotlinx.io.files.Path
@@ -22,7 +20,7 @@ class KsoupBenchmark {
     @Setup
     fun setUp() {
         fileData =
-            SystemFileSystem.source(Path("/Users/sabeeh/IdeaProjects/ksoup-benchmark/ksoup-test/testResources/test.txt")).buffered().readString()
+            SystemFileSystem.source(Path("${BuildConfig.PROJECT_ROOT}/ksoup-test/testResources/test.txt")).buffered().readString()
         doc1 = parseHtml()
     }
 

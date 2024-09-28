@@ -181,7 +181,7 @@ class InputStreamReader {
     }
 
     private fun testMixCharReader(inputData: String) = readerStringTestStarter(inputData) { inputData, reader ->
-        inputData.toCharArray().forEach { char ->
+        inputData.forEach { char ->
             val charArray = CharArray(1)
             assertEquals(1, reader.read(charArray, 0, 1))
             assertEquals(char, charArray[0])
