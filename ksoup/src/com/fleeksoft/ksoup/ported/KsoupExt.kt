@@ -22,7 +22,7 @@ fun String.toByteArray(charset: Charset? = null): ByteArray = charset?.toByteArr
 fun String.toSourceFile(): FileSource = KsoupEngineInstance.ksoupEngine.pathToFileSource(this)
 
 
-public fun <T : Comparable<T>> Array<out T?>.binarySearch(element: T): Int {
+inline fun <T : Comparable<T>> Array<out T?>.binarySearch(element: T): Int {
     var low = 0
     var high = this.size - 1
 
@@ -41,7 +41,7 @@ public fun <T : Comparable<T>> Array<out T?>.binarySearch(element: T): Int {
     return -(low + 1)  // key not found
 }
 
-fun IntArray.binarySearch(key: Int): Int {
+inline fun IntArray.binarySearch(key: Int): Int {
     var low = 0
     var high = this.size - 1
 
@@ -57,7 +57,7 @@ fun IntArray.binarySearch(key: Int): Int {
 }
 
 
-public fun <T> Array<T>.binarySearchBy(comparison: (T) -> Int): Int {
+inline fun <T> Array<T>.binarySearchBy(comparison: (T) -> Int): Int {
 
     var low = 0
     var high = size - 1

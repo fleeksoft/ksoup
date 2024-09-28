@@ -255,7 +255,7 @@ class BufferedReader(reader: Reader, sz: Int = SharedConstants.DEFAULT_CHAR_BUFF
         bufferLoop@ while (true) {
             if (nextChar >= nChars) fill()
             if (nextChar >= nChars) { /* EOF */
-                return if (s != null && s.length > 0) s.toString()
+                return if (s != null && s.isNotEmpty()) s.toString()
                 else null
             }
             var eol = false

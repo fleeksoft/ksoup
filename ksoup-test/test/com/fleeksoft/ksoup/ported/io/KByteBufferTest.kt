@@ -147,7 +147,7 @@ class KByteBufferTest {
         val data = "äöü".toByteArray(Charsets.forName("UTF-8")) // Multi-byte characters
 
         // Write partial data to simulate incomplete multi-byte characters
-        buffer.writeBytes(data.sliceArray(0 until 4), 4) // First character (ä) is 2 bytes
+        buffer.writeBytes(data.copyOfRange(0, 4), 4) // First character (ä) is 2 bytes
 
         // Attempt to decode part of the data (e.g., max = 3, not enough to decode full multi-byte character)
         val result = buffer.readText(Charsets.forName("UTF-8"), 3)
@@ -164,7 +164,7 @@ class KByteBufferTest {
         val data = "äöü".toByteArray(Charsets.forName("UTF-8")) // Multi-byte characters
 
         // Write partial data (2 bytes, just enough to complete the first character ä)
-        buffer.writeBytes(data.sliceArray(0 until 2), 2)
+        buffer.writeBytes(data.copyOfRange(0, 2), 2)
 
         // Attempt to decode the data
         val result = buffer.readText(Charsets.forName("UTF-8"), 2)
@@ -175,7 +175,7 @@ class KByteBufferTest {
         assertEquals(2, buffer.position())
 
         // Write more data to complete the next character
-        buffer.writeBytes(data.sliceArray(2 until data.size), data.size - 2)
+        buffer.writeBytes(data.copyOfRange(2, data.size), data.size - 2)
         assertEquals(data.size - 2, buffer.available())
         assertEquals(2, buffer.position())
 
