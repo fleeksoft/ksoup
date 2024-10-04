@@ -37,11 +37,17 @@ internal class SourceReaderByteArray(bytes: ByteArray) : SourceReader {
 
     override fun read(bytes: ByteArray, offset: Int, length: Int): Int {
         var i = offset
+        var pos = currentPosition
         while (exhausted().not() && i < length) {
             bytes[i] = source[currentPosition++]
             i++
         }
-        return i
+        val totalRead = currentPosition - pos
+        return if (totalRead == 0 && exhausted()) {
+            -1
+        } else {
+            totalRead
+        }
     }
 
     override fun readAllBytes(): ByteArray {
