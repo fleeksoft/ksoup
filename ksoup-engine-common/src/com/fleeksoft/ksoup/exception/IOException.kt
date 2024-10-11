@@ -1,3 +1,3 @@
-package com.fleeksoft.ksoup.ported.exception
+package com.fleeksoft.ksoup.exception
 
 class IOException(msg: String) : Exception(msg)

@@ -1,4 +1,4 @@
-package com.fleeksoft.ksoup.ported.exception
+package com.fleeksoft.ksoup.exception
 
 /**
  * Validation exceptions, as thrown by the methods in [Validate].

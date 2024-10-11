@@ -5,8 +5,8 @@ import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.nodes.Document.OutputSettings.Syntax
 import com.fleeksoft.ksoup.ported.KCloneable
 import com.fleeksoft.ksoup.ported.binarySearchBy
-import com.fleeksoft.ksoup.ported.exception.IOException
-import com.fleeksoft.ksoup.ported.exception.SerializationException
+import com.fleeksoft.ksoup.exception.IOException
+import com.fleeksoft.ksoup.exception.SerializationException
 
 /**
  * A single key + value attribute. (Only used for presentation.)

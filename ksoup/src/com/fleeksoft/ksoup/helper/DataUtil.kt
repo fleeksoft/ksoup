@@ -10,8 +10,8 @@ import com.fleeksoft.ksoup.nodes.Node
 import com.fleeksoft.ksoup.nodes.XmlDeclaration
 import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.parser.StreamParser
-import com.fleeksoft.ksoup.ported.exception.IllegalCharsetNameException
-import com.fleeksoft.ksoup.ported.exception.UncheckedIOException
+import com.fleeksoft.ksoup.exception.IllegalCharsetNameException
+import com.fleeksoft.ksoup.exception.UncheckedIOException
 import com.fleeksoft.ksoup.ported.io.*
 import com.fleeksoft.ksoup.ported.isCharsetSupported
 import com.fleeksoft.ksoup.select.Elements

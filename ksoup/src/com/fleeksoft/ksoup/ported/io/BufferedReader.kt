@@ -1,7 +1,7 @@
 package com.fleeksoft.ksoup.ported.io
 
 import com.fleeksoft.ksoup.internal.SharedConstants
-import com.fleeksoft.ksoup.ported.exception.IOException
+import com.fleeksoft.ksoup.exception.IOException
 import kotlin.math.min
 
 

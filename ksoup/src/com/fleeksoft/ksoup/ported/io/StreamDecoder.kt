@@ -4,7 +4,7 @@ import com.fleeksoft.ksoup.internal.SharedConstants
 import com.fleeksoft.ksoup.io.Charset
 import com.fleeksoft.ksoup.io.KByteBuffer
 import com.fleeksoft.ksoup.io.SourceReader
-import com.fleeksoft.ksoup.ported.exception.IOException
+import com.fleeksoft.ksoup.exception.IOException
 import kotlin.math.min
 
 //https://github.com/openjdk/jdk/blob/jdk23/src/java.base/share/classes/sun/nio/cs/StreamDecoder.java

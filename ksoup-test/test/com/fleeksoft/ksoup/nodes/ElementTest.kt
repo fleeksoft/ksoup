@@ -4,7 +4,7 @@ import com.fleeksoft.ksoup.*
 import com.fleeksoft.ksoup.parser.ParseSettings
 import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.parser.Tag
-import com.fleeksoft.ksoup.ported.exception.ValidationException
+import com.fleeksoft.ksoup.exception.ValidationException
 import com.fleeksoft.ksoup.select.Elements
 import com.fleeksoft.ksoup.select.NodeFilter
 import com.fleeksoft.ksoup.select.NodeVisitor

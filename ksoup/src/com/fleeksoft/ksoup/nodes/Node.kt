@@ -5,8 +5,8 @@ import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.ported.Consumer
 import com.fleeksoft.ksoup.ported.KCloneable
 import com.fleeksoft.ksoup.ported.LinkedList
-import com.fleeksoft.ksoup.ported.exception.IOException
-import com.fleeksoft.ksoup.ported.exception.SerializationException
+import com.fleeksoft.ksoup.exception.IOException
+import com.fleeksoft.ksoup.exception.SerializationException
 import com.fleeksoft.ksoup.select.NodeFilter
 import com.fleeksoft.ksoup.select.NodeTraversor
 import com.fleeksoft.ksoup.select.NodeVisitor

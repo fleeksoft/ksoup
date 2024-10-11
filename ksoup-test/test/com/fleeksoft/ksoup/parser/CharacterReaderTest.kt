@@ -2,7 +2,7 @@ package com.fleeksoft.ksoup.parser
 
 import com.fleeksoft.ksoup.TestHelper
 import com.fleeksoft.ksoup.internal.StringUtil
-import com.fleeksoft.ksoup.ported.exception.UncheckedIOException
+import com.fleeksoft.ksoup.exception.UncheckedIOException
 import com.fleeksoft.ksoup.ported.io.Charsets
 import com.fleeksoft.ksoup.ported.io.StringReader
 import com.fleeksoft.ksoup.ported.toReader
