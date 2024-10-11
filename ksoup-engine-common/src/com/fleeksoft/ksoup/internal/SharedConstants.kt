@@ -1,8 +1,5 @@
 package com.fleeksoft.ksoup.internal
 
-import kotlin.random.Random
-import kotlin.random.nextUInt
-
 /**
  * ksoup constants used between packages. Do not use as they may change without warning. Users will not be able to see
  * this package when modules are enabled.
