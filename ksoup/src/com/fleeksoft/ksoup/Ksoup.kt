@@ -1,13 +1,13 @@
 package com.fleeksoft.ksoup
 
 import com.fleeksoft.ksoup.helper.DataUtil
+import com.fleeksoft.ksoup.io.Charset
 import com.fleeksoft.ksoup.io.FileSource
 import com.fleeksoft.ksoup.io.SourceReader
 import com.fleeksoft.ksoup.model.MetaData
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.nodes.Element
 import com.fleeksoft.ksoup.parser.Parser
-import com.fleeksoft.ksoup.parser.StreamParser
 import com.fleeksoft.ksoup.ported.toSourceFile
 import com.fleeksoft.ksoup.safety.Cleaner
 import com.fleeksoft.ksoup.safety.Safelist
@@ -190,9 +190,12 @@ public object Ksoup {
     }
 
     fun parseMetaData(element: Element): MetaData {
-        val title = element.selectFirst("title")?.text()
+        val el = if (element is Document) {
+            element.headOrNull() ?: element
+        } else element
+        val title = el.selectFirst("title")?.text()
         return parseMetaDataInternal(baseUri = element.baseUri(), title = title) { query ->
-            element.selectFirst(query)
+            el.selectFirst(query)
         }
     }
 
@@ -201,7 +204,7 @@ public object Ksoup {
         baseUri: String = "",
         interceptor: ((head: Element, metaData: MetaData) -> Unit)? = null
     ): MetaData {
-        val head = parse(html = html, baseUri = baseUri).head()
+        val head = parse(html = html, baseUri = baseUri).let { doc -> doc.headOrNull() ?: doc }
 
         val title = head.selectFirst("title")?.text()
         return parseMetaDataInternal(baseUri = baseUri, title = title) { query ->
@@ -214,9 +217,10 @@ public object Ksoup {
     fun parseMetaData(
         sourceReader: SourceReader,
         baseUri: String = "",
-        interceptor: ((headStream: StreamParser, metaData: MetaData) -> Unit)? = null
+        charset: Charset? = null,
+        interceptor: ((head: Element, metaData: MetaData) -> Unit)? = null
     ): MetaData {
-        val head = DataUtil.streamParser(sourceReader = sourceReader, baseUri = baseUri, null, Parser.htmlParser())
+        val head = parse(sourceReader = sourceReader, baseUri = baseUri, charsetName = charset?.name).let { doc -> doc.headOrNull() ?: doc }
         val title = head.selectFirst("title")?.text()
         return parseMetaDataInternal(baseUri = baseUri, title = title) { query ->
             head.selectFirst(query)
@@ -251,8 +255,13 @@ public object Ksoup {
 
         // Fetch favicon
         var faviconTag = selectFirst("link[rel~=icon]")?.attr("href")
-        if (faviconTag != null && !faviconTag.startsWith("http") && baseUri.isNotEmpty()) {
+        if (faviconTag != null && !faviconTag.startsWith("http", ignoreCase = true) && baseUri.isNotEmpty()) {
             faviconTag = baseUri + faviconTag
+        }
+
+        var shortcutIcon = selectFirst("link[rel~=shortcut icon]")?.attr("href")
+        if (shortcutIcon != null && !shortcutIcon.startsWith("http", ignoreCase = true) && baseUri.isNotEmpty()) {
+            shortcutIcon = baseUri + shortcutIcon
         }
 
         // Create a MetaData object
@@ -273,7 +282,8 @@ public object Ksoup {
             canonical = canonicalTag,
             htmlTitle = title,
             author = author,
-            favicon = faviconTag
+            favicon = faviconTag,
+            shortcutIcon = shortcutIcon,
         )
     }
 }

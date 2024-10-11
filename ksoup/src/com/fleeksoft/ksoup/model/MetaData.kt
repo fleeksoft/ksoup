@@ -17,5 +17,6 @@ data class MetaData(
     val canonical: String? = null,
     val htmlTitle: String? = null,
     val author: String? = null,
-    val favicon: String? = null
+    val favicon: String? = null,
+    val shortcutIcon: String? = null
 )

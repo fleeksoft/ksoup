@@ -99,6 +99,24 @@ public class Document(private val namespace: String, private val location: Strin
     }
 
     /**
+    Get this document's {@code head} element.
+    <p>
+    As a side effect, if this Document does not already have an HTML structure, it will be created. If you do not want
+    that, use {@code #selectFirst("head")} instead.
+
+    @return {@code head} element.
+     */
+    public fun headOrNull(): Element? {
+        val html: Element = htmlEl()
+        var el: Element? = html.firstElementChild()
+        while (el != null) {
+            if (el.nameIs("head")) return el
+            el = el.nextElementSibling()
+        }
+        return null
+    }
+
+    /**
     Get this document's {@code <body>} or {@code <frameset>} element.
     <p>
     As a <b>side effect</b>, if this Document does not already have an HTML structure, it will be created with a {@code

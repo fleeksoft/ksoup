@@ -25,7 +25,7 @@ public suspend fun Ksoup.parseGetRequest(
     val httpResponse = NetworkHelperKtor.instance.get(url, httpRequestBuilder = httpRequestBuilder)
 //        url can be changed after redirection
     val finalUrl = httpResponse.request.url.toString()
-    return parse(sourceReader = httpResponse.asSourceReader(), parser = parser, baseUri = finalUrl)
+    return parse(html = httpResponse.bodyAsText(), parser = parser, baseUri = finalUrl)
 }
 
 /**
@@ -52,7 +52,7 @@ public suspend fun Ksoup.parseSubmitRequest(
     )
 //            url can be changed after redirection
     val finalUrl = httpResponse.request.url.toString()
-    return parse(sourceReader = httpResponse.asSourceReader(), parser = parser, baseUri = finalUrl)
+    return parse(html = httpResponse.bodyAsText(), parser = parser, baseUri = finalUrl)
 }
 
 /**
@@ -77,5 +77,5 @@ public suspend fun Ksoup.parsePostRequest(
     )
 //            url can be changed after redirection
     val finalUrl = httpResponse.request.url.toString()
-    return parse(sourceReader = httpResponse.asSourceReader(), parser = parser, baseUri = finalUrl)
+    return parse(html = httpResponse.bodyAsText(), parser = parser, baseUri = finalUrl)
 }

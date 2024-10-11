@@ -79,6 +79,7 @@ class DocumentTest {
         assertEquals("", doc.html())
         val body = doc.body()
         assertEquals("body", body.tagName())
+        assertNull(doc.headOrNull())
         val head = doc.head()
         assertEquals("head", head.tagName())
         assertEquals(
