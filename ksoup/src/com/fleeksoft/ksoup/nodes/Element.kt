@@ -1840,7 +1840,7 @@ public open class Element : Node {
         ): String {
             var el: Element? = start
             while (el != null) {
-                if (el.attributes != null && el.attributes!!.hasKey(key)) return el.attributes!![key]
+                if (el.attributes?.hasKey(key) == true) return el.attributes!![key]
                 el = el.parent()
             }
             return ""
