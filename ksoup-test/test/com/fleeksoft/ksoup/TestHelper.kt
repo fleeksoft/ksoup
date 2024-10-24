@@ -2,9 +2,10 @@ package com.fleeksoft.ksoup
 
 import com.fleeksoft.charset.Charsets
 import com.fleeksoft.charset.toByteArray
-import com.fleeksoft.ksoup.io.SourceReader
+import com.fleeksoft.io.InputStream
+import com.fleeksoft.io.asInputStream
+import com.fleeksoft.io.inputStream
 import com.fleeksoft.ksoup.nodes.Document
-import com.fleeksoft.ksoup.ported.openSourceReader
 import korlibs.io.compression.deflate.GZIP
 import korlibs.io.compression.uncompress
 import korlibs.io.file.std.uniVfs
@@ -15,11 +16,11 @@ import kotlinx.io.readByteArray
 
 object TestHelper {
 
-    suspend fun readGzipResource(resource: String): SourceReader {
+    suspend fun readGzipResource(resource: String): InputStream {
         return readGzipFile(resource)
     }
 
-    suspend fun readResource(resource: String): SourceReader {
+    suspend fun readResource(resource: String): InputStream {
         if (resource.endsWith(".gz") || resource.endsWith(".z")) {
             return readGzipResource(resource)
         }
@@ -44,7 +45,7 @@ object TestHelper {
         return bytes.decodeToString()
     }
 
-    suspend fun resourceFilePathToStream(resource: String): SourceReader {
+    suspend fun resourceFilePathToStream(resource: String): InputStream {
         return if (resource.endsWith(".gz") || resource.endsWith(".z")) {
             readGzipFile(resource)
         } else {
@@ -52,34 +53,33 @@ object TestHelper {
         }
     }
 
-    private suspend fun readFile(resource: String): SourceReader {
+    private suspend fun readFile(resource: String): InputStream {
+        val abs = getResourceAbsolutePath(resource, absForWindows = false)
+        return if (abs.startsWith("https://", ignoreCase = true)) {
+            abs.uniVfs.readAll().inputStream()
+        } else {
+            SystemFileSystem.source(Path(abs)).buffered().asInputStream()
+        }
+    }
+
+    private suspend fun readGzipFile(resource: String): InputStream {
         val abs = getResourceAbsolutePath(resource, absForWindows = false)
         val bytes = if (abs.startsWith("https://", ignoreCase = true)) {
             abs.uniVfs.readAll()
         } else {
             SystemFileSystem.source(Path(abs)).buffered().readByteArray()
         }
-        return bytes.openSourceReader()
+        return bytes.uncompress(GZIP).inputStream()
     }
 
-    private suspend fun readGzipFile(resource: String): SourceReader {
-        val abs = getResourceAbsolutePath(resource, absForWindows = false)
-        val bytes = if (abs.startsWith("https://", ignoreCase = true)) {
-            abs.uniVfs.readAll()
-        } else {
-            SystemFileSystem.source(Path(abs)).buffered().readByteArray()
-        }
-        return bytes.uncompress(GZIP).openSourceReader()
-    }
-
-    fun dataToStream(data: String, charset: String): SourceReader {
-        return data.toByteArray(Charsets.forName(charset)).openSourceReader()
+    fun dataToStream(data: String, charset: String): InputStream {
+        return data.toByteArray(Charsets.forName(charset)).inputStream()
     }
 
     suspend fun parseResource(resourceName: String, baseUri: String = "", charsetName: String? = null): Document {
         return if (!canReadResourceFile() || (!isGzipSupported() && (resourceName.endsWith(".gz") || resourceName.endsWith(".z")))) {
-            val source = readResource(resourceName)
-            Ksoup.parse(sourceReader = source, baseUri = baseUri, charsetName = charsetName)
+            val input = readResource(resourceName)
+            Ksoup.parse(input = input, baseUri = baseUri, charsetName = charsetName)
         } else {
             val input: String = getResourceAbsolutePath(resourceName)
             Ksoup.parseFile(filePath = input, charsetName = charsetName, baseUri = baseUri)

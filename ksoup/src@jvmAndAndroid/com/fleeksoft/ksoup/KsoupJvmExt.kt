@@ -12,7 +12,7 @@ import kotlin.io.path.absolutePathString
 /**
  * Parse the contents of a file as HTML.
  *
- * @param inputStream  input stream to read.
+ * @param input  input stream to read.
  * @param charsetName (optional) character set of file contents. Set to `null` to determine from `http-equiv` meta tag, if
  * present, or fall back to `UTF-8` (which is often safe to do).
  * @param baseUri     The URL where the HTML was retrieved from, to resolve relative links against.
@@ -20,13 +20,13 @@ import kotlin.io.path.absolutePathString
  */
 
 public fun Ksoup.parseInputStream(
-    inputStream: InputStream,
+    input: InputStream,
     baseUri: String,
     charsetName: String? = null,
     parser: Parser = Parser.htmlParser(),
 ): Document {
     return parse(
-        sourceReader = inputStream.toSourceReader(),
+        input = input,
         charsetName = charsetName,
         baseUri = baseUri,
         parser = parser,

@@ -1,5 +1,10 @@
 package com.fleeksoft.ksoup.io
 
+@Deprecated(
+    message = "SourceReaderByteArray is deprecated, use com.fleeksoft.io.ByteArrayInputStream instead.",
+    replaceWith = ReplaceWith("com.fleeksoft.io.ByteArrayInputStream"),
+    level = DeprecationLevel.WARNING
+)
 internal class SourceReaderByteArray(bytes: ByteArray) : SourceReader {
     private var source: ByteArray = bytes
     private var currentPosition: Int = 0

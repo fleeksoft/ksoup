@@ -1,6 +1,6 @@
 package com.fleeksoft.ksoup.nodes
 
-import com.fleeksoft.ksoup.Ksoup.parse
+import com.fleeksoft.ksoup.Ksoup
 import com.fleeksoft.ksoup.parser.ParseSettings
 import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.ported.toCodePoint
@@ -38,7 +38,7 @@ class AttributeTest {
 
     @Test
     fun booleanAttributesAreEmptyStringValues() {
-        val doc = parse("<div hidden>")
+        val doc = Ksoup.parse("<div hidden>")
         val attributes = doc.body().child(0).attributes()
         assertEquals("", attributes["hidden"])
         val first = attributes.iterator().next()
@@ -86,9 +86,9 @@ class AttributeTest {
         assertTrue(Attribute.isBooleanAttribute("rEQUIREd"))
         assertFalse(Attribute.isBooleanAttribute("random string"))
         val html = "<a href=autofocus REQUIRED>One</a>"
-        val doc = parse(html)
+        val doc = Ksoup.parse(html)
         assertEquals("<a href=\"autofocus\" required>One</a>", doc.selectFirst("a")!!.outerHtml())
-        val doc2 = parse(html, Parser.htmlParser().settings(ParseSettings.preserveCase))
+        val doc2 = Ksoup.parse(html, Parser.htmlParser().settings(ParseSettings.preserveCase))
         assertEquals("<a href=\"autofocus\" REQUIRED>One</a>", doc2.selectFirst("a")!!.outerHtml())
     }
 }

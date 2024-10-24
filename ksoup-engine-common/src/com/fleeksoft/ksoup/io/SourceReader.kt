@@ -1,5 +1,10 @@
 package com.fleeksoft.ksoup.io
 
+@Deprecated(
+    message = "SourceReader is deprecated, use com.fleeksoft.io.InputStream instead.",
+    replaceWith = ReplaceWith("com.fleeksoft.io.InputStream"),
+    level = DeprecationLevel.WARNING
+)
 interface SourceReader {
 
     fun mark(readLimit: Long)

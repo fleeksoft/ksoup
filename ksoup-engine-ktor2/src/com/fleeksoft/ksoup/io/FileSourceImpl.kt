@@ -1,5 +1,7 @@
 package com.fleeksoft.ksoup.io
 
+import com.fleeksoft.io.InputStream
+import com.fleeksoft.io.asInputStream
 import kotlinx.io.buffered
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
@@ -17,9 +19,8 @@ class FileSourceImpl : FileSource {
         this.path = Path(filePath)
     }
 
-    override suspend fun toSourceReader(): SourceReader = SourceReader.from(sourceBuffered)
-
     private fun FileSourceImpl.buffered() = SystemFileSystem.source(path).buffered()
+    override suspend fun asInputStream(): InputStream = sourceBuffered.asInputStream()
 
     override fun getPath(): String {
         return this.path.name

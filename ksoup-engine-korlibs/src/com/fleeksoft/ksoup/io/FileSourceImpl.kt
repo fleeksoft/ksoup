@@ -1,6 +1,7 @@
 package com.fleeksoft.ksoup.io
 
-import com.fleeksoft.ksoup.openStream
+import com.fleeksoft.io.InputStream
+import com.fleeksoft.ksoup.inputStream
 import korlibs.io.file.VfsFile
 import korlibs.io.file.fullName
 import korlibs.io.file.std.uniVfs
@@ -16,7 +17,7 @@ internal class FileSourceImpl : FileSource {
         this.file = filePath.uniVfs
     }
 
-    override suspend fun toSourceReader(): SourceReader = this.file.openStream()
+    override suspend fun asInputStream(): InputStream = this.file.inputStream()
 
     override fun getPath(): String {
         return this.file.absolutePath

@@ -12,6 +12,7 @@ repositories:
 
 test-dependencies:
   - ../ksoup
+  - $libs.fleeksoft.kotlinx.io
   - $libs.korlibs.io
   - $libs.kotlinx.io
   - $libs.kotlinx.coroutines.test

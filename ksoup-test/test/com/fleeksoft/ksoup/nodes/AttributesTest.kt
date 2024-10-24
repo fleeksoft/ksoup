@@ -1,7 +1,6 @@
 package com.fleeksoft.ksoup.nodes
 
-import com.fleeksoft.ksoup.Ksoup.parse
-import com.fleeksoft.ksoup.TestHelper
+import com.fleeksoft.ksoup.Ksoup
 import kotlin.test.*
 
 /**
@@ -183,7 +182,7 @@ class AttributesTest {
     @Test
     fun testIteratorRemove() {
         val html = "<div 1=1 2=2 3=3 4=4>"
-        val doc = parse(html)
+        val doc = Ksoup.parse(html)
         val el = doc.expectFirst("div")
         val attrs = el.attributes()
         val iter = attrs.iterator()
@@ -201,7 +200,7 @@ class AttributesTest {
     @Test
     fun testIteratorRemoveConcurrentException() {
         val html = "<div 1=1 2=2 3=3 4=4>"
-        val doc = parse(html)
+        val doc = Ksoup.parse(html)
         val el = doc.expectFirst("div")
         val attrs = el.attributes()
         val iter: Iterator<Attribute> = attrs.iterator()
@@ -279,7 +278,7 @@ class AttributesTest {
     fun testBooleans() {
         // want unknown=null, and known like async=null, async="", and async=async to collapse
         val html = "<a foo bar=\"\" async=async qux=qux defer=deferring ismap inert=\"\">"
-        val el = parse(html).selectFirst("a")
+        val el = Ksoup.parse(html).selectFirst("a")
         assertEquals(
             " foo bar=\"\" async qux=\"qux\" defer=\"deferring\" ismap inert",
             el!!.attributes().html(),

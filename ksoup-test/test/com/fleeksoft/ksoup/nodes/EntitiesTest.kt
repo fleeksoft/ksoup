@@ -1,6 +1,6 @@
 package com.fleeksoft.ksoup.nodes
 
-import com.fleeksoft.ksoup.Ksoup.parse
+import com.fleeksoft.ksoup.Ksoup
 import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.ported.toCodePoint
 import kotlin.test.Test
@@ -142,7 +142,7 @@ class EntitiesTest {
     @Test
     fun letterDigitEntities() {
         val html = "<p>&sup1;&sup2;&sup3;&frac14;&frac12;&frac34;</p>"
-        val doc = parse(html)
+        val doc = Ksoup.parse(html)
         doc.outputSettings().charset("ascii")
         val p = doc.select("p").first()
         assertEquals("&sup1;&sup2;&sup3;&frac14;&frac12;&frac34;", p!!.html())
@@ -161,7 +161,7 @@ class EntitiesTest {
     fun escapesGtInXmlAttributesButNotInHtml() {
         //< is OK in HTML attribute values, but not in XML
         val docHtml = "<a title='<p>One</p>'>One</a>"
-        val doc = parse(docHtml)
+        val doc = Ksoup.parse(docHtml)
         val element = doc.select("a").first()
         doc.outputSettings().escapeMode(Entities.EscapeMode.base)
         assertEquals("<a title=\"<p>One</p>\">One</a>", element!!.outerHtml())
@@ -174,9 +174,9 @@ class EntitiesTest {
         // we escape ascii control characters in both HTML and XML for compatibility. Required in XML and probably
         // easier to read in HTML
         val input = "<a foo=\"&#x1b;esc&#x7;bell\">Text &#x1b; &#x7;</a>"
-        val doc = parse(input)
+        val doc = Ksoup.parse(input)
         assertEquals(input, doc.body().html())
-        val xml = parse(html = input, baseUri = "", parser = Parser.xmlParser())
+        val xml = Ksoup.parse(html = input, baseUri = "", parser = Parser.xmlParser())
         assertEquals(input, xml.html())
     }
 

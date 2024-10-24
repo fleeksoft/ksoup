@@ -1,12 +1,9 @@
 package com.fleeksoft.ksoup.parser
 
-import com.fleeksoft.charset.Charsets
+import com.fleeksoft.io.StringReader
 import com.fleeksoft.ksoup.TestHelper
 import com.fleeksoft.ksoup.exception.UncheckedIOException
 import com.fleeksoft.ksoup.internal.StringUtil
-import com.fleeksoft.io.StringReader
-import com.fleeksoft.ksoup.ported.toReader
-import korlibs.io.lang.substr
 import kotlinx.coroutines.test.runTest
 import kotlin.test.*
 
@@ -17,45 +14,6 @@ import kotlin.test.*
  * @author Sabeeh, fleeksoft@gmail.com
  */
 class CharacterReaderTest {
-
-    @Test
-    fun testUtf16BE() = runTest {
-        if (!TestHelper.isUtf16Supported()) {
-//            not supported in kotlinx for js
-            return@runTest
-        }
-        val firstLine = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">"""
-        val input =
-            TestHelper.readResource("bomtests/bom_utf16be.html").toReader(charset = Charsets.forName("UTF-16BE"))
-
-//            ignore first char (ZWNBSP)\uFEFF:65279
-        val strSize = firstLine.length + 1
-        val charBuffer = CharArray(strSize)
-        assertEquals(strSize, input.read(charBuffer, 0, charBuffer.size))
-        val actualReadLine = charBuffer.concatToString()
-        assertEquals(firstLine.length, actualReadLine.length - 1)
-        assertEquals(firstLine, actualReadLine.substr(1))
-    }
-
-    @Test
-    fun testUtf16LE() = runTest {
-        if (!TestHelper.isUtf16Supported()) {
-//            not supported in kotlinx for js
-            return@runTest
-        }
-
-        val firstLine = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">"""
-        val input = TestHelper.readResource("bomtests/bom_utf16le.html")
-            .toReader(charset = Charsets.forName("UTF-16LE"))
-
-        //            ignore first char (ZWNBSP)\uFEFF:65279
-        val strSize = firstLine.length + 1
-        val charBuffer = CharArray(strSize)
-        assertEquals(strSize, input.read(charBuffer, 0, charBuffer.size))
-        val actualReadLine = charBuffer.concatToString()
-        assertEquals(firstLine.length, actualReadLine.length - 1)
-        assertEquals(firstLine, actualReadLine.substr(1))
-    }
 
     @Test
     fun testReadMixSpecialChar() {

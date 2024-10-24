@@ -1,9 +1,11 @@
 package com.fleeksoft.ksoup.nodes
 
-import com.fleeksoft.ksoup.Ksoup.parse
-import com.fleeksoft.ksoup.TestHelper
+import com.fleeksoft.ksoup.Ksoup
 import com.fleeksoft.ksoup.select.NodeFilter
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class LeafNodeTest {
 
@@ -11,7 +13,7 @@ class LeafNodeTest {
     fun doesNotGetAttributesTooEasily() {
         // test to make sure we're not setting attributes on all nodes right away
         val body = "<p>One <!-- Two --> Three<![CDATA[Four]]></p>"
-        val doc = parse(body)
+        val doc = Ksoup.parse(body)
         assertTrue(hasAnyAttributes(doc)) // should have one - the base uri on the doc
         val html = doc.child(0)
         assertFalse(hasAnyAttributes(html))

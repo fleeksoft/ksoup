@@ -1,6 +1,6 @@
 package com.fleeksoft.ksoup.select
 
-import com.fleeksoft.ksoup.Ksoup.parse
+import com.fleeksoft.ksoup.Ksoup
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parser.Tag
 import kotlin.test.*
@@ -11,7 +11,7 @@ class CssTest {
 
     @BeforeTest
     fun init() {
-        html = parse(htmlString)
+        html = Ksoup.parse(htmlString)
     }
 
     @Test

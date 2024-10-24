@@ -1,5 +1,6 @@
 package com.fleeksoft.ksoup
 
+import com.fleeksoft.io.InputStream
 import com.fleeksoft.ksoup.helper.DataUtil
 import com.fleeksoft.ksoup.io.FileSource
 import com.fleeksoft.ksoup.io.SourceReader
@@ -8,6 +9,7 @@ import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.nodes.Element
 import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.parser.StreamParser
+import com.fleeksoft.ksoup.ported.io.asInputStream
 import com.fleeksoft.ksoup.ported.toSourceFile
 import com.fleeksoft.ksoup.safety.Cleaner
 import com.fleeksoft.ksoup.safety.Safelist
@@ -50,24 +52,42 @@ public object Ksoup {
         return parser.parseInput(html, baseUri)
     }
 
-    /**
-     * Read an buffer reader, and parse it to a Document. You can provide an alternate parser, such as a simple XML
-     * (non-HTML) parser.
-     *
-     * @param sourceReader buffer reader to read. Make sure to close it after parsing.
-     * @param baseUri     The URL where the HTML was retrieved from, to resolve relative links against.
-     * @param charsetName (optional) character set of file contents. Set to `null` to determine from `http-equiv` meta tag, if
-     * present, or fall back to `UTF-8` (which is often safe to do).
-     * @param parser alternate [parser][Parser.xmlParser] to use.
-     * @return sane HTML
-     */
+    @Deprecated(
+        message = "Ksoup.parse(SourceReader) is deprecated, use Ksoup.parse(InputStream) instead.",
+        level = DeprecationLevel.WARNING
+    )
     public fun parse(
         sourceReader: SourceReader,
         baseUri: String,
         charsetName: String? = null,
         parser: Parser = Parser.htmlParser(),
     ): Document {
-        return DataUtil.load(sourceReader = sourceReader, baseUri = baseUri, charsetName = charsetName, parser = parser)
+        return DataUtil.load(
+            input = sourceReader.asInputStream(),
+            baseUri = baseUri,
+            charsetName = charsetName,
+            parser = parser
+        )
+    }
+
+    /**
+     * Read an buffer reader, and parse it to a Document. You can provide an alternate parser, such as a simple XML
+     * (non-HTML) parser.
+     *
+     * @param input stream reader to read. Make sure to close it after parsing.
+     * @param baseUri The URL where the HTML was retrieved from, to resolve relative links against.
+     * @param charsetName (optional) character set of file contents. Set to `null` to determine from `http-equiv` meta tag, if
+     * present, or fall back to `UTF-8` (which is often safe to do).
+     * @param parser alternate [parser][Parser.xmlParser] to use.
+     * @return sane HTML
+     */
+    public fun parse(
+        input: InputStream,
+        baseUri: String,
+        charsetName: String? = null,
+        parser: Parser = Parser.htmlParser(),
+    ): Document {
+        return DataUtil.load(input = input, baseUri = baseUri, charsetName = charsetName, parser = parser)
     }
 
     /**
@@ -87,7 +107,12 @@ public object Ksoup {
         charsetName: String? = null,
         parser: Parser = Parser.htmlParser()
     ): Document {
-        return DataUtil.load(sourceReader = file.toSourceReader(), baseUri = baseUri, charsetName = charsetName, parser = parser)
+        return DataUtil.load(
+            input = file.asInputStream(),
+            baseUri = baseUri,
+            charsetName = charsetName,
+            parser = parser
+        )
     }
 
 
@@ -107,7 +132,12 @@ public object Ksoup {
         charsetName: String? = null,
         parser: Parser = Parser.htmlParser(),
     ): Document {
-        return DataUtil.load(sourceReader = filePath.toSourceFile().toSourceReader(), baseUri = baseUri, charsetName = charsetName, parser = parser)
+        return DataUtil.load(
+            input = filePath.toSourceFile().asInputStream(),
+            baseUri = baseUri,
+            charsetName = charsetName,
+            parser = parser
+        )
     }
 
 
@@ -193,6 +223,14 @@ public object Ksoup {
         }
     }
 
+    /**
+     * Parses metadata from an HTML string.
+     *
+     * @param html HTML content as a String.
+     * @param baseUri Base URI to resolve relative URLs against. Defaults to an empty string.
+     * @param interceptor Optional function to intercept and manipulate the head element and generated MetaData.
+     * @return MetaData object containing parsed metadata information.
+     */
     fun parseMetaData(
         html: String,
         baseUri: String = "",
@@ -208,12 +246,17 @@ public object Ksoup {
         }
     }
 
+    @Deprecated(
+        message = "Ksoup.parseMetaData(SourceReader) is deprecated, use Ksoup.parseMetaData(InputStream) instead.",
+        level = DeprecationLevel.WARNING
+    )
     fun parseMetaData(
         sourceReader: SourceReader,
         baseUri: String = "",
         interceptor: ((headStream: StreamParser, metaData: MetaData) -> Unit)? = null
     ): MetaData {
-        val head = DataUtil.streamParser(sourceReader = sourceReader, baseUri = baseUri, null, Parser.htmlParser())
+        val head =
+            DataUtil.streamParser(input = sourceReader.asInputStream(), baseUri = baseUri, null, Parser.htmlParser())
         val title = head.selectFirst("title")?.text()
         return parseMetaDataInternal(baseUri = baseUri, title = title) { query ->
             head.selectFirst(query)
@@ -222,7 +265,33 @@ public object Ksoup {
         }
     }
 
-    private fun parseMetaDataInternal(baseUri: String, title: String?, selectFirst: (query: String) -> Element?): MetaData {
+    /**
+     * Parses metadata from an HTML InputStream.
+     *
+     * @param input HTML content as a InputStream.
+     * @param baseUri Base URI to resolve relative URLs against. Defaults to an empty string.
+     * @param interceptor Optional function to intercept and manipulate the head element and generated MetaData.
+     * @return MetaData object containing parsed metadata information.
+     */
+    fun parseMetaData(
+        input: InputStream,
+        baseUri: String = "",
+        interceptor: ((headStream: StreamParser, metaData: MetaData) -> Unit)? = null
+    ): MetaData {
+        val head = DataUtil.streamParser(input = input, baseUri = baseUri, null, Parser.htmlParser())
+        val title = head.selectFirst("title")?.text()
+        return parseMetaDataInternal(baseUri = baseUri, title = title) { query ->
+            head.selectFirst(query)
+        }.also {
+            interceptor?.invoke(head, it)
+        }
+    }
+
+    private fun parseMetaDataInternal(
+        baseUri: String,
+        title: String?,
+        selectFirst: (query: String) -> Element?
+    ): MetaData {
         // Extract Open Graph metadata
         val ogTitle = selectFirst("meta[property=og:title]")?.attr("content")
         val ogSiteName = selectFirst("meta[property=og:site_name]")?.attr("content")

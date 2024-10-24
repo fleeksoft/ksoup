@@ -17,7 +17,7 @@ import kotlin.test.assertTrue
 class DataUtilTestJvm {
 
     private fun inputStream(data: String): ByteArrayInputStream {
-        return ByteArrayInputStream(data.encodeToByteArray())
+        return data.byteInputStream()
     }
 
     @Test
@@ -68,8 +68,8 @@ class DataUtilTestJvm {
             inputStream(firstPart),
             inputStream(secondPart),
         )
-        val doc: Document = DataUtil.parseInputSource(
-            sourceReader = sequenceStream.toSourceReader(),
+        val doc: Document = DataUtil.parseInputStream(
+            input = sequenceStream,
             charsetName = null,
             baseUri = "",
             parser = Parser.htmlParser(),
@@ -80,7 +80,7 @@ class DataUtilTestJvm {
     @Test
     fun testLowercaseUtf8CharsetWithInputStream() {
         val inputStream = FileInputStream(TestHelper.getResourceAbsolutePath("htmltests/lowercase-charset-test.html"))
-        val doc: Document = Ksoup.parseInputStream(inputStream = inputStream, baseUri = "", charsetName = null)
+        val doc: Document = Ksoup.parseInputStream(input = inputStream, baseUri = "", charsetName = null)
         val form = doc.select("#form").first()
         assertNotNull(form)
         assertEquals(2, form.children().size)
@@ -93,13 +93,13 @@ class DataUtilTestJvm {
         val input = getFileAsString(file)
         val expected = Ksoup.parse(html = input, baseUri = "https://example.com")
         val doc: Document = Ksoup.parse(
-            sourceReader = GZIPInputStream(FileInputStream(file)).toSourceReader(),
+            input = GZIPInputStream(FileInputStream(file)),
             charsetName = null,
             baseUri = "https://example.com",
         )
 
         val doc2: Document = Ksoup.parseInputStream(
-            inputStream = GZIPInputStream(FileInputStream(file)),
+            input = GZIPInputStream(FileInputStream(file)),
             charsetName = null,
             baseUri = "https://example.com"
         )
@@ -117,17 +117,17 @@ class DataUtilTestJvm {
         //        VaryingReadInputStream stream = new VaryingReadInputStream(ParseTest.inputStreamFrom(input));
         val expected: Document = Ksoup.parse(html = input, baseUri = "https://example.com")
         val doc: Document = Ksoup.parseInputStream(
-            inputStream = inputStreamFrom(input),
+            input = inputStreamFrom(input),
             charsetName = null,
             baseUri = "https://example.com",
         )
         val doc2: Document = Ksoup.parseInputStream(
-            inputStream = GZIPInputStream(FileInputStream(file)),
+            input = GZIPInputStream(FileInputStream(file)),
             charsetName = null,
             baseUri = "https://example.com",
         )
         val docThree: Document = Ksoup.parse(
-            sourceReader = GZIPInputStream(FileInputStream(file)).toSourceReader(),
+            input = GZIPInputStream(FileInputStream(file)),
             charsetName = null,
             baseUri = "https://example.com",
         )
@@ -143,7 +143,7 @@ class DataUtilTestJvm {
 
 
         val doc: Document = Ksoup.parseInputStream(
-            inputStream = GZIPInputStream(FileInputStream(file)),
+            input = GZIPInputStream(FileInputStream(file)),
             charsetName = null,
             baseUri = "https://example.com",
         )
@@ -155,7 +155,7 @@ class DataUtilTestJvm {
             val bytes: ByteArray =
                 if (file.getName().endsWith(".gz")) {
                     val stream: InputStream = GZIPInputStream(FileInputStream(file))
-                    val byteBuffer: ByteArray = stream.toSourceReader().readAllBytes()
+                    val byteBuffer: ByteArray = stream.readAllBytes()
                     byteBuffer
                 } else {
                     file.readBytes()

@@ -1,7 +1,9 @@
 package com.fleeksoft.ksoup.io
 
+import com.fleeksoft.io.InputStream
+
 interface FileSource {
-    suspend fun toSourceReader(): SourceReader
+    suspend fun asInputStream(): InputStream
     fun getPath(): String
     fun getFullName(): String
 

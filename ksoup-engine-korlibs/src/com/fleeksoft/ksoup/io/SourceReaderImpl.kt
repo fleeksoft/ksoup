@@ -23,6 +23,10 @@ internal class SourceReaderImpl : SourceReader {
         syncStream.reset()
     }
 
+    override fun readInt(): Int {
+        return syncStream.read()
+    }
+
     override fun readBytes(count: Int): ByteArray {
         return syncStream.readBytes(count)
     }
@@ -41,12 +45,6 @@ internal class SourceReaderImpl : SourceReader {
 
     override fun close() {
         syncStream.close()
-    }
-
-    override fun readAtMostTo(sink: KByteBuffer, byteCount: Int): Int {
-        val bytes = syncStream.readBytes(byteCount)
-        sink.writeBytes(bytes, bytes.size)
-        return bytes.size
     }
 
 }

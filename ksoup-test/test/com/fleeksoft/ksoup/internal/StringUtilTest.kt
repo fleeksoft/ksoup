@@ -1,7 +1,6 @@
 package com.fleeksoft.ksoup.internal
 
-import com.fleeksoft.ksoup.Ksoup.parse
-import com.fleeksoft.ksoup.TestHelper
+import com.fleeksoft.ksoup.Ksoup
 import com.fleeksoft.ksoup.internal.StringUtil.isAscii
 import com.fleeksoft.ksoup.internal.StringUtil.isBlank
 import com.fleeksoft.ksoup.internal.StringUtil.isNumeric
@@ -9,7 +8,10 @@ import com.fleeksoft.ksoup.internal.StringUtil.isWhitespace
 import com.fleeksoft.ksoup.internal.StringUtil.join
 import com.fleeksoft.ksoup.internal.StringUtil.normaliseWhitespace
 import com.fleeksoft.ksoup.internal.StringUtil.padding
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class StringUtilTest {
 
@@ -111,7 +113,7 @@ class StringUtilTest {
         val test71540chars = "\ud869\udeb2\u304b\u309a  1"
         val test71540charsExpectedSingleWhitespace = "\ud869\udeb2\u304b\u309a 1"
         assertEquals(test71540charsExpectedSingleWhitespace, normaliseWhitespace(test71540chars))
-        val extractedText = parse(test71540chars).text()
+        val extractedText = Ksoup.parse(test71540chars).text()
         assertEquals(test71540charsExpectedSingleWhitespace, extractedText)
     }
 

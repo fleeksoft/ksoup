@@ -27,6 +27,13 @@ internal class SourceReaderImpl : SourceReader {
         sourceMark = null
     }
 
+    override fun readInt(): Int {
+        if (source.exhausted()) {
+            return -1
+        }
+        return source.readByte().toInt() and 0xff
+    }
+
     override fun readBytes(count: Int): ByteArray {
         val byteArray = ByteArray(count)
         var i = 0
@@ -57,11 +64,5 @@ internal class SourceReaderImpl : SourceReader {
 
     override fun close() {
         return source().close()
-    }
-
-    override fun readAtMostTo(sink: KByteBuffer, byteCount: Int): Int {
-        val bytes = readBytes(byteCount)
-        sink.writeBytes(bytes, bytes.size)
-        return bytes.size
     }
 }

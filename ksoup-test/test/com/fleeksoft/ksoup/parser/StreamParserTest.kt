@@ -1,12 +1,12 @@
 package com.fleeksoft.ksoup.parser
 
 import com.fleeksoft.charset.Charsets
+import com.fleeksoft.io.reader
 import com.fleeksoft.ksoup.TestHelper
 import com.fleeksoft.ksoup.helper.DataUtil
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.nodes.Element
 import com.fleeksoft.ksoup.nodes.Node
-import com.fleeksoft.ksoup.ported.toReader
 import com.fleeksoft.ksoup.select.Elements
 import kotlinx.coroutines.test.runTest
 import kotlin.test.*
@@ -66,7 +66,7 @@ class StreamParserTest {
 
     @Test
     fun canReuse() {
-        val parser: StreamParser = StreamParser(Parser.htmlParser())
+        val parser = StreamParser(Parser.htmlParser())
         val html1 = "<p>One<p>Two"
         parser.parse(html1, "")
 
@@ -88,7 +88,7 @@ class StreamParserTest {
 
     @Test
     fun canStopAndCompleteAndReuse() {
-        val parser: StreamParser = StreamParser(Parser.htmlParser())
+        val parser = StreamParser(Parser.htmlParser())
         val html1 = "<p>One<p>Two"
         parser.parse(html1, "")
 
@@ -262,7 +262,7 @@ class StreamParserTest {
     @Test
     fun closedOnComplete() {
         val streamer: StreamParser = basic()
-        val doc: Document? = streamer.complete()
+        val doc: Document = streamer.complete()
         assertTrue(isClosed(streamer))
     }
 
@@ -295,7 +295,7 @@ class StreamParserTest {
     fun canParseFileReader() = runTest {
         val resourceName = "htmltests/large.html.gz"
         val file = TestHelper.getResourceAbsolutePath(resourceName)
-        val reader = TestHelper.readGzipResource(resourceName).toReader()
+        val reader = TestHelper.readGzipResource(resourceName).reader()
         val streamer: StreamParser = StreamParser(Parser.htmlParser()).parse(reader, file)
 
         var last: Element? = null
@@ -314,7 +314,7 @@ class StreamParserTest {
 
         val source = TestHelper.readGzipResource("htmltests/large.html.gz")
         val streamer: StreamParser =
-            DataUtil.streamParser(sourceReader = source, baseUri = "", charset = Charsets.UTF8, parser = Parser.htmlParser())
+            DataUtil.streamParser(input = source, baseUri = "", charset = Charsets.UTF8, parser = Parser.htmlParser())
 
         var last: Element? = null
         var e: Element?
@@ -349,7 +349,7 @@ class StreamParserTest {
         // same as stream, just a different interface
         val html =
             "<tr id=1><td>One</td><tr id=2><td>Two</td></tr><tr id=3><td>Three</td></tr>" // missing </tr>, following <tr> infers it
-        val context: Element = Element("table")
+        val context = Element("table")
 
         StreamParser(Parser.htmlParser()).parseFragment(html, context, "").use { parser ->
             val seen = StringBuilder()
@@ -369,7 +369,7 @@ class StreamParserTest {
     @Test
     fun canSelectAndCompleteFragment() {
         val html = "<tr id=1><td>One</td><tr id=2><td>Two</td></tr><tr id=3><td>Three</td></tr>"
-        val context: Element = Element("table")
+        val context = Element("table")
 
         StreamParser(Parser.htmlParser()).parseFragment(html, context, "").use { parser ->
             val first: Element = parser.expectNext("td")
@@ -399,7 +399,7 @@ class StreamParserTest {
     @Test
     fun canStreamFragmentXml() {
         val html = "<tr id=1><td>One</td></tr><tr id=2><td>Two</td></tr><tr id=3><td>Three</td></tr>"
-        val context: Element = Element("Other")
+        val context = Element("Other")
 
         StreamParser(Parser.xmlParser()).parseFragment(html, context, "").use { parser ->
             val seen = StringBuilder()

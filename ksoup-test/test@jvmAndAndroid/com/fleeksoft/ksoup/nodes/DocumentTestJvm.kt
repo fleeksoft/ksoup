@@ -1,8 +1,6 @@
 package com.fleeksoft.ksoup.nodes
 
 import com.fleeksoft.ksoup.Ksoup
-import com.fleeksoft.ksoup.io.SourceReader
-import com.fleeksoft.ksoup.ported.openSourceReader
 import java.io.StringWriter
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
@@ -52,7 +50,7 @@ class DocumentTestJvm {
 
     @Test
     fun testShiftJisRoundtrip() {
-        val input = (
+        val inputStr = (
                 "<html>" +
                         "<head>" +
                         "<meta http-equiv=\"content-type\" content=\"text/html; charset=Shift_JIS\" />" +
@@ -62,10 +60,9 @@ class DocumentTestJvm {
                         "</body>" +
                         "</html>"
                 )
-        val buffer: SourceReader = input.toByteArray(StandardCharsets.US_ASCII).openSourceReader()
-        val doc: Document = Ksoup.parse(sourceReader = buffer, baseUri = "http://example.com", charsetName = null)
+        val input = inputStr.toByteArray(StandardCharsets.US_ASCII).inputStream()
+        val doc: Document = Ksoup.parse(input = input, baseUri = "https://example.com", charsetName = null)
         doc.outputSettings().escapeMode(Entities.EscapeMode.xhtml)
-        Charsets.UTF_16
         val charset = Charset.forName(doc.outputSettings().charset().name())
         val output = doc.html().toByteArray(charset = charset).toString(charset = charset)
         assertFalse(output.contains("?"), "Should not have contained a '?'.")

@@ -1,10 +1,10 @@
 package com.fleeksoft.ksoup.parser
 
 import com.fleeksoft.charset.Charsets
+import com.fleeksoft.io.byteInputStream
 import com.fleeksoft.ksoup.Ksoup
 import com.fleeksoft.ksoup.TextUtil
 import com.fleeksoft.ksoup.nodes.*
-import com.fleeksoft.ksoup.ported.openSourceReader
 import kotlinx.coroutines.test.runTest
 import kotlin.test.*
 
@@ -63,13 +63,12 @@ class XmlTreeBuilderTest {
     @Test
     fun testSupplyParserToDataStream() = runTest {
         val xmlTest = """<doc><val>One<val>Two</val>Three</val></doc>"""
-        val doc =
-            Ksoup.parse(
-                sourceReader = xmlTest.openSourceReader(),
-                baseUri = "http://foo.com",
-                charsetName = null,
-                parser = Parser.xmlParser(),
-            )
+        val doc = Ksoup.parse(
+            input = xmlTest.byteInputStream(),
+            baseUri = "http://foo.com",
+            charsetName = null,
+            parser = Parser.xmlParser(),
+        )
         assertEquals(
             "<doc><val>One<val>Two</val>Three</val></doc>",
             TextUtil.stripNewlines(doc.html()),
@@ -124,7 +123,7 @@ class XmlTreeBuilderTest {
             <data>äöåéü</data>
         """.trimIndent()
         val doc = Ksoup.parse(
-            sourceReader = xml.openSourceReader(Charsets.forName("ISO-8859-1")),
+            input = xml.byteInputStream(Charsets.forName("ISO-8859-1")),
             baseUri = "http://example.com/",
             charsetName = null,
             parser = Parser.xmlParser()
@@ -256,7 +255,10 @@ class XmlTreeBuilderTest {
     fun handlesLTinScript() {
         val html = "<script> var a=\"<?\"; var b=\"?>\"; </script>"
         val doc = Ksoup.parse(html = html, baseUri = "", parser = Parser.xmlParser())
-        assertEquals("<script> var a=\"<!--?\"; var b=\"?-->\"; </script>", doc.html()) // converted from pseudo xmldecl to comment
+        assertEquals(
+            "<script> var a=\"<!--?\"; var b=\"?-->\"; </script>",
+            doc.html()
+        ) // converted from pseudo xmldecl to comment
     }
 
     @Test

@@ -7,4 +7,8 @@ import java.io.InputStream
 
 
 fun FileSource.Companion.from(file: File): FileSource = FileSource.from(file)
+@Deprecated(
+    message = "SourceReader.Companion.from(InputStream) is deprecated, use com.fleeksoft.InputStream instead.",
+    level = DeprecationLevel.WARNING
+)
 fun SourceReader.Companion.from(inputStream: InputStream): SourceReader = SourceReader.from(inputStream.asSource().buffered())

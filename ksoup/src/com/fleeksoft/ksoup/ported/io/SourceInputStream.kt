@@ -1,13 +1,12 @@
 package com.fleeksoft.ksoup.ported.io
 
-import com.fleeksoft.charset.Charset
-import com.fleeksoft.io.BufferedReader
 import com.fleeksoft.io.InputStream
-import com.fleeksoft.io.InputStreamReader
-import com.fleeksoft.io.buffered
-import com.fleeksoft.io.reader
 import com.fleeksoft.ksoup.io.SourceReader
 
+@Deprecated(
+    message = "SourceInputStream(SourceReader) is deprecated, use com.fleeksoft.io.InputStream instead.",
+    level = DeprecationLevel.WARNING
+)
 class SourceInputStream(private val source: SourceReader) : InputStream() {
     override fun read(): Int {
         if (source.exhausted()) return -1
@@ -39,8 +38,8 @@ class SourceInputStream(private val source: SourceReader) : InputStream() {
     }
 }
 
-fun sourceInputStreamReader(source: SourceReader, charset: Charset = Charsets.UTF8): InputStreamReader =
-    SourceInputStream(source = source).reader(charset)
-
-fun sourceInputStreamBufferedReader(source: SourceReader, charset: Charset = Charsets.UTF8): BufferedReader =
-    sourceInputStreamReader(source, charset).buffered()
+@Deprecated(
+    message = "SourceReader.asInputStream() is deprecated, use com.fleeksoft.io.InputStream instead.",
+    level = DeprecationLevel.WARNING
+)
+fun SourceReader.asInputStream() = SourceInputStream(this)

@@ -8,7 +8,7 @@ import kotlin.test.Test
 import kotlin.test.assertTrue
 
 class GithubIssue19 {
-    val PNG_BASE64_HEADER = "data:image/png;base64,"
+    private val PNG_BASE64_HEADER = "data:image/png;base64,"
 
     //    https://github.com/fleeksoft/ksoup/issues/19
 
@@ -16,8 +16,8 @@ class GithubIssue19 {
     fun testAttributeIncorrectMixCharsetIssue() = runTest {
         val resourceName = "htmltests/issue19.html.gz"
         val document: Document = if (!TestHelper.isGzipSupported()) {
-            val source = TestHelper.readResource(resourceName)
-            Ksoup.parse(sourceReader = source, baseUri = "http://example.com")
+            val input = TestHelper.readResource(resourceName)
+            Ksoup.parse(input = input, baseUri = "http://example.com")
         } else {
             Ksoup.parseFile(filePath = TestHelper.getResourceAbsolutePath(resourceName), baseUri = "http://example.com")
         }

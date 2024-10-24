@@ -2,12 +2,12 @@ package com.fleeksoft.ksoup.nodes
 
 import com.fleeksoft.charset.Charsets
 import com.fleeksoft.charset.toByteArray
+import com.fleeksoft.io.byteInputStream
 import com.fleeksoft.ksoup.Ksoup
 import com.fleeksoft.ksoup.TestHelper
 import com.fleeksoft.ksoup.TextUtil
 import com.fleeksoft.ksoup.parser.ParseSettings
 import com.fleeksoft.ksoup.parser.Parser
-import com.fleeksoft.ksoup.ported.openSourceReader
 import kotlinx.coroutines.test.runTest
 import kotlin.test.*
 
@@ -152,7 +152,11 @@ class DocumentTest {
     fun testLocation() = runTest {
         // tests location vs base href
         val resourceName = "htmltests/basehref.html"
-        val doc = TestHelper.parseResource(resourceName = resourceName, baseUri = "http://example.com/", charsetName = "UTF-8")
+        val doc = TestHelper.parseResource(
+            resourceName = resourceName,
+            baseUri = "http://example.com/",
+            charsetName = "UTF-8"
+        )
         val location = doc.location()
         val baseUri = doc.baseUri()
         assertEquals("http://example.com/", location)
@@ -474,8 +478,8 @@ class DocumentTest {
                         "</body>" +
                         "</html>"
                 )
-        val inputStream = input.encodeToByteArray().openSourceReader()
-        val doc: Document = Ksoup.parse(sourceReader = inputStream, baseUri = "http://example.com", charsetName = null)
+        val inputStream = input.byteInputStream()
+        val doc: Document = Ksoup.parse(input = inputStream, baseUri = "http://example.com", charsetName = null)
         doc.outputSettings().escapeMode(Entities.EscapeMode.xhtml)
         val output = doc.html().toByteArray(doc.outputSettings().charset()).decodeToString()
         assertFalse(output.contains("?"), "Should not have contained a '?'.")

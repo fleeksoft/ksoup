@@ -1,7 +1,7 @@
 package com.fleeksoft.ksoup.nodes
 
 import com.fleeksoft.ksoup.*
-import com.fleeksoft.ksoup.Ksoup.parse
+import com.fleeksoft.ksoup.Ksoup
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -25,7 +25,7 @@ class ElementIT {
                 .append("</p>")
         }
         val html = htmlBuf.toString()
-        val doc = parse(html)
+        val doc = Ksoup.parse(html)
         val start = System.currentTimeMillis()
         val wrapper = Element("div")
         val childNodes = doc.body().childNodes()
@@ -58,7 +58,7 @@ class ElementIT {
                 .append("</p>")
         }
         val html = htmlBuf.toString()
-        val doc = parse(html)
+        val doc = Ksoup.parse(html)
         val start = System.currentTimeMillis()
         val wrapper = Element("div")
         wrapper.append("<p>Prior Content</p>")

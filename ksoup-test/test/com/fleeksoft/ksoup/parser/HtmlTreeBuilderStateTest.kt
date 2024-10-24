@@ -1,6 +1,6 @@
 package com.fleeksoft.ksoup.parser
 
-import com.fleeksoft.ksoup.Ksoup.parse
+import com.fleeksoft.ksoup.Ksoup
 import com.fleeksoft.ksoup.internal.StringUtil.inSorted
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -86,7 +86,7 @@ class HtmlTreeBuilderStateTest {
     </a>
   </body>
 </html>"""
-        val s = parse(html).toString()
+        val s = Ksoup.parse(html).toString()
         assertEquals(
             """<html>
  <head></head>
@@ -114,7 +114,7 @@ class HtmlTreeBuilderStateTest {
     </a>
   </body>
 </html>"""
-        val s = parse(html).toString()
+        val s = Ksoup.parse(html).toString()
         assertEquals(
             """<html>
  <head></head>

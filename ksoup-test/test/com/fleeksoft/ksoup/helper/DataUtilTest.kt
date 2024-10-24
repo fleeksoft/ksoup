@@ -1,13 +1,14 @@
 package com.fleeksoft.ksoup.helper
 
+import com.fleeksoft.charset.Charsets
+import com.fleeksoft.charset.toByteArray
+import com.fleeksoft.io.byteInputStream
+import com.fleeksoft.io.inputStream
 import com.fleeksoft.ksoup.Ksoup
 import com.fleeksoft.ksoup.TestHelper
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parser.Parser
-import com.fleeksoft.charset.Charsets
-import com.fleeksoft.ksoup.ported.openSourceReader
 import com.fleeksoft.ksoup.ported.toSourceFile
-import com.fleeksoft.charset.toByteArray
 import kotlinx.coroutines.test.runTest
 import kotlin.test.*
 
@@ -41,8 +42,8 @@ class DataUtilTest {
     @Test
     fun discardsSpuriousByteOrderMark() {
         val html = "\uFEFF<html><head><title>One</title></head><body>Two</body></html>"
-        val doc: Document = DataUtil.parseInputSource(
-            sourceReader = html.openSourceReader(),
+        val doc: Document = DataUtil.parseInputStream(
+            input = html.byteInputStream(),
             baseUri = "http://foo.com/",
             charsetName = "UTF-8",
             parser = Parser.htmlParser(),
@@ -53,8 +54,8 @@ class DataUtilTest {
     @Test
     fun discardsSpuriousByteOrderMarkWhenNoCharsetSet() {
         val html = "\uFEFF<html><head><title>One</title></head><body>Two</body></html>"
-        val doc: Document = DataUtil.parseInputSource(
-            sourceReader = html.openSourceReader(),
+        val doc: Document = DataUtil.parseInputStream(
+            input = html.byteInputStream(),
             baseUri = "http://foo.com/",
             charsetName = null,
             parser = Parser.htmlParser(),
@@ -103,8 +104,8 @@ class DataUtilTest {
     fun wrongMetaCharsetFallback() {
         val html = "<html><head><meta charset=iso-8></head><body></body></html>"
         val doc: Document =
-            DataUtil.parseInputSource(
-                sourceReader = html.openSourceReader(),
+            DataUtil.parseInputStream(
+                input = html.byteInputStream(),
                 baseUri = "http://example.com",
                 charsetName = null,
                 parser = Parser.htmlParser(),
@@ -129,8 +130,8 @@ class DataUtilTest {
                     "<meta http-equiv=\"Content-Type\" content=\"text/html\">" +
                     "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=euc-kr\">" +
                     "</head><body>한국어</body></html>"
-        val doc: Document = DataUtil.parseInputSource(
-            sourceReader = TestHelper.dataToStream(data = html, charset = "euc-kr"),
+        val doc: Document = DataUtil.parseInputStream(
+            input = TestHelper.dataToStream(data = html, charset = "euc-kr"),
             baseUri = "http://example.com",
             charsetName = null,
             parser = Parser.htmlParser(),
@@ -144,8 +145,8 @@ class DataUtilTest {
                 "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=iso-8859-1\">" +
                 "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=koi8-u\">" +
                 "</head><body>Übergrößenträger</body></html>"
-        val document = DataUtil.parseInputSource(
-            sourceReader = TestHelper.dataToStream(data = html, charset = "iso-8859-1"),
+        val document = DataUtil.parseInputStream(
+            input = TestHelper.dataToStream(data = html, charset = "iso-8859-1"),
             baseUri = "http://example.com",
             charsetName = null,
             parser = Parser.htmlParser(),
@@ -189,15 +190,25 @@ class DataUtilTest {
             return@runTest
         }
         // test files from http://www.i18nl10n.com/korean/utftest/
-        var source = TestHelper.readResource("bomtests/bom_utf16be.html")
+        var input = TestHelper.readResource("bomtests/bom_utf16be.html")
         val parser = Parser.htmlParser()
 
-        var doc: Document = DataUtil.streamParser(sourceReader = source, baseUri = "http://example.com", charset = null, parser = parser).complete()
+        var doc: Document = DataUtil.streamParser(
+            input = input,
+            baseUri = "http://example.com",
+            charset = null,
+            parser = parser
+        ).complete()
         assertContains(doc.title(), "UTF-16BE")
         assertContains(doc.text(), "가각갂갃간갅")
 
-        source = TestHelper.readResource("bomtests/bom_utf16le.html")
-        doc = DataUtil.streamParser(sourceReader = source, baseUri = "http://example.com", charset = null, parser = parser)
+        input = TestHelper.readResource("bomtests/bom_utf16le.html")
+        doc = DataUtil.streamParser(
+            input = input,
+            baseUri = "http://example.com",
+            charset = null,
+            parser = parser
+        )
             .complete()
         assertContains(doc.title(), "UTF-16LE")
         assertContains(doc.text(), "가각갂갃간갅")
@@ -207,14 +218,24 @@ class DataUtilTest {
             return@runTest
         }
 
-        source = TestHelper.readResource("bomtests/bom_utf32be.html")
-        doc = DataUtil.streamParser(sourceReader = source, baseUri = "http://example.com", charset = null, parser = parser)
+        input = TestHelper.readResource("bomtests/bom_utf32be.html")
+        doc = DataUtil.streamParser(
+            input = input,
+            baseUri = "http://example.com",
+            charset = null,
+            parser = parser
+        )
             .complete()
         assertContains(doc.title(), "UTF-32BE")
         assertContains(doc.text(), "가각갂갃간갅")
 
-        source = TestHelper.readResource("bomtests/bom_utf32le.html")
-        doc = DataUtil.streamParser(sourceReader = source, baseUri = "http://example.com", charset = null, parser = parser)
+        input = TestHelper.readResource("bomtests/bom_utf32le.html")
+        doc = DataUtil.streamParser(
+            input = input,
+            baseUri = "http://example.com",
+            charset = null,
+            parser = parser
+        )
             .complete()
         assertContains(doc.title(), "UTF-32LE")
         assertContains(doc.text(), "가각갂갃간갅")
@@ -223,7 +244,7 @@ class DataUtilTest {
     @Test
     fun supportsUTF8BOM() = runTest {
         val source = TestHelper.readResource("bomtests/bom_utf8.html")
-        val doc: Document = Ksoup.parse(sourceReader = source, baseUri = "http://example.com", charsetName = null)
+        val doc: Document = Ksoup.parse(input = source, baseUri = "http://example.com", charsetName = null)
         assertEquals("OK", doc.head().select("title").text())
     }
 
@@ -231,7 +252,7 @@ class DataUtilTest {
     fun noExtraNULLBytes() {
         val b = "<html><head><meta charset=\"UTF-8\"></head><body><div><u>ü</u>ü</div></body></html>"
             .toByteArray(Charsets.UTF8)
-        val doc = Ksoup.parse(b.openSourceReader(), baseUri = "", charsetName = null)
+        val doc = Ksoup.parse(b.inputStream(), baseUri = "", charsetName = null)
         assertFalse(doc.outerHtml().contains("\u0000"))
     }
 
@@ -240,7 +261,7 @@ class DataUtilTest {
         val resourceName = "bomtests/bom_utf8.html.gz"
         val doc: Document = if (!TestHelper.isGzipSupported()) {
             val source = TestHelper.readResource(resourceName)
-            Ksoup.parse(sourceReader = source, baseUri = "http://example.com")
+            Ksoup.parse(input = source, baseUri = "http://example.com")
         } else {
             Ksoup.parseFile(filePath = TestHelper.getResourceAbsolutePath(resourceName), baseUri = "http://example.com")
         }
@@ -256,7 +277,7 @@ class DataUtilTest {
     fun streamerSupportsZippedUTF8BOM() = runTest {
         val source = TestHelper.readGzipResource("bomtests/bom_utf8.html.gz")
         val doc = DataUtil.streamParser(
-            sourceReader = source,
+            input = source,
             baseUri = "http://example.com",
             charset = null,
             parser = Parser.htmlParser()
@@ -275,7 +296,7 @@ class DataUtilTest {
                 "<?xml version=\"1.0\" encoding=\"iso-8859-1\"?>" +
                         "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">" +
                         "<html xmlns=\"http://www.w3.org/1999/xhtml\" lang=\"en\" xml:lang=\"en\">Hellö Wörld!</html>"
-                ).toByteArray(Charsets.forName(encoding)).openSourceReader()
+                ).toByteArray(Charsets.forName(encoding)).inputStream()
         val doc: Document = Ksoup.parse(soup, baseUri = "", charsetName = null)
         assertEquals("Hellö Wörld!", doc.body().text())
     }
@@ -341,7 +362,8 @@ class DataUtilTest {
         val input: String = TestHelper.readResourceAsString("htmltests/large.html.gz")
 
         val expected = Ksoup.parse(input, "https://example.com")
-        val doc: Document = Ksoup.parse(sourceReader = input.openSourceReader(), baseUri = "https://example.com", charsetName = null)
+        val doc: Document =
+            Ksoup.parse(input = input.byteInputStream(), baseUri = "https://example.com", charsetName = null)
 
         assertTrue(doc.hasSameValue(expected))
     }
@@ -349,7 +371,7 @@ class DataUtilTest {
     @Test
     fun handlesUnlimitedRead() = runTest {
         val input: String = TestHelper.readResourceAsString("htmltests/large.html.gz")
-        val byteBuffer: ByteArray = input.openSourceReader().readAllBytes()
+        val byteBuffer: ByteArray = input.byteInputStream().readAllBytes()
         val read = byteBuffer.decodeToString()
         assertEquals(input, read)
     }

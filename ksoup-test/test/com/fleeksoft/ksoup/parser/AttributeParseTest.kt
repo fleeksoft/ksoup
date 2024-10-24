@@ -1,8 +1,10 @@
 package com.fleeksoft.ksoup.parser
 
-import com.fleeksoft.ksoup.Ksoup.parse
-import com.fleeksoft.ksoup.TestHelper
-import kotlin.test.*
+import com.fleeksoft.ksoup.Ksoup
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 /**
  * Test suite for attribute parser.
@@ -15,7 +17,7 @@ class AttributeParseTest {
     fun parsesRoughAttributeString() {
         val html = "<a id=\"123\" class=\"baz = 'bar'\" style = 'border: 2px'qux zim foo = 12 mux=18 />"
         // should be: <id=123>, <class=baz = 'bar'>, <qux=>, <zim=>, <foo=12>, <mux.=18>
-        val el = parse(html).getElementsByTag("a")[0]
+        val el = Ksoup.parse(html).getElementsByTag("a")[0]
         val attr = el.attributes()
         assertEquals(7, attr.size())
         assertEquals("123", attr["id"])
@@ -30,7 +32,7 @@ class AttributeParseTest {
     @Test
     fun handlesNewLinesAndReturns() {
         val html = "<a\r\nfoo='bar\r\nqux'\r\nbar\r\n=\r\ntwo>One</a>"
-        val el = parse(html).select("a").first()
+        val el = Ksoup.parse(html).select("a").first()
         assertEquals(2, el!!.attributes().size())
         assertEquals(
             "bar\r\nqux",
@@ -42,7 +44,7 @@ class AttributeParseTest {
     @Test
     fun parsesEmptyString() {
         val html = "<a />"
-        val el = parse(html).getElementsByTag("a")[0]
+        val el = Ksoup.parse(html).getElementsByTag("a")[0]
         val attr = el.attributes()
         assertEquals(0, attr.size())
     }
@@ -52,7 +54,7 @@ class AttributeParseTest {
         val html = "<a =empty />"
         // TODO this is the weirdest thing in the spec - why not consider this an attribute with an empty name, not where name is '='?
         // am I reading it wrong? https://html.spec.whatwg.org/multipage/parsing.html#before-attribute-name-state
-        val el = parse(html).getElementsByTag("a")[0]
+        val el = Ksoup.parse(html).getElementsByTag("a")[0]
         val attr = el.attributes()
         assertEquals(1, attr.size())
         assertTrue(attr.hasKey("=empty"))
@@ -62,7 +64,7 @@ class AttributeParseTest {
     @Test
     fun strictAttributeUnescapes() {
         val html = "<a id=1 href='?foo=bar&mid&lt=true'>One</a> <a id=2 href='?foo=bar&lt;qux&lg=1'>Two</a>"
-        val els = parse(html).select("a")
+        val els = Ksoup.parse(html).select("a")
         assertEquals("?foo=bar&mid&lt=true", els.first()!!.attr("href"))
         assertEquals("?foo=bar<qux&lg=1", els.last()!!.attr("href"))
     }
@@ -70,14 +72,14 @@ class AttributeParseTest {
     @Test
     fun moreAttributeUnescapes() {
         val html = "<a href='&wr_id=123&mid-size=true&ok=&wr'>Check</a>"
-        val els = parse(html).select("a")
+        val els = Ksoup.parse(html).select("a")
         assertEquals("&wr_id=123&mid-size=true&ok=&wr", els.first()!!.attr("href"))
     }
 
     @Test
     fun parsesBooleanAttributes() {
         val html = "<a normal=\"123\" boolean empty=\"\"></a>"
-        val el = parse(html).select("a").first()
+        val el = Ksoup.parse(html).select("a").first()
         assertEquals("123", el!!.attr("normal"))
         assertEquals("", el.attr("boolean"))
         assertEquals("", el.attr("empty"))
@@ -89,10 +91,10 @@ class AttributeParseTest {
     @Test
     fun dropsSlashFromAttributeName() {
         val html = "<img /onerror='doMyJob'/>"
-        var doc = parse(html)
+        var doc = Ksoup.parse(html)
         assertFalse(doc.select("img[onerror]").isEmpty(), "SelfClosingStartTag ignores last character")
         assertEquals("<img onerror=\"doMyJob\">", doc.body().html())
-        doc = parse(html = html, baseUri = "", parser = Parser.xmlParser())
+        doc = Ksoup.parse(html = html, baseUri = "", parser = Parser.xmlParser())
         assertEquals("<img onerror=\"doMyJob\" />", doc.html())
     }
 }

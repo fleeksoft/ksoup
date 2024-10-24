@@ -1,6 +1,6 @@
 package com.fleeksoft.ksoup.parser
 
-import com.fleeksoft.ksoup.Ksoup.parse
+import com.fleeksoft.ksoup.Ksoup
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -120,7 +120,7 @@ class TokenQueueTest {
 
     @Test
     fun testQuotedPattern() {
-        val doc = parse("<div>\\) foo1</div><div>( foo2</div><div>1) foo3</div>")
+        val doc = Ksoup.parse("<div>\\) foo1</div><div>( foo2</div><div>1) foo3</div>")
         assertEquals(
             "\n\\) foo1",
             doc.select("div:matches(" + Regex.escape("\\)") + ")")[0].childNode(0).toString(),
@@ -164,7 +164,7 @@ class TokenQueueTest {
         ) {
             assertEquals(
                 "#identifier",
-                parse(html).select(selector).first()!!
+                Ksoup.parse(html).select(selector).first()!!
                     .cssSelector(),
             )
         }

@@ -3,6 +3,8 @@ package com.fleeksoft.ksoup.io
 import kotlinx.io.buffered
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
+import com.fleeksoft.io.InputStream
+import com.fleeksoft.io.asInputStream
 
 class FileSourceImpl : FileSource {
     private val path: Path
@@ -17,7 +19,7 @@ class FileSourceImpl : FileSource {
         this.path = Path(filePath)
     }
 
-    override suspend fun toSourceReader(): SourceReader = SourceReader.from(sourceBuffered)
+    override suspend fun asInputStream(): InputStream = sourceBuffered.asInputStream()
 
     private fun FileSourceImpl.buffered() = SystemFileSystem.source(path).buffered()
 

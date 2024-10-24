@@ -9,4 +9,10 @@ import kotlin.io.path.absolutePathString
 
 fun File.toFileSource(): FileSource = FileSource.from(this)
 fun java.nio.file.Path.toFileSource(): FileSource = FileSource.from(this.absolutePathString())
+
+@Deprecated(
+    message = "InputStream.toSourceReader() is deprecated, use inputStream direct.",
+    replaceWith = ReplaceWith("this"),
+    level = DeprecationLevel.WARNING
+)
 fun InputStream.toSourceReader(): SourceReader = SourceReader.from(this)
