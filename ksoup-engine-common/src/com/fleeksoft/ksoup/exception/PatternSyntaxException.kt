@@ -1,4 +1,4 @@
-package com.fleeksoft.ksoup.ported.exception
+package com.fleeksoft.ksoup.exception
 
 public class PatternSyntaxException : Exception {
     public constructor()
