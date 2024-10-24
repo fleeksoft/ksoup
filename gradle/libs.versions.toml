@@ -19,6 +19,7 @@ mavenPublish = "0.29.0"
 
 stately = "2.1.0"
 jsoup = "1.18.1"
+fleeksoft-charset = "0.1.4"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -50,6 +51,8 @@ jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 okio-nodefilesystem = { module = "com.squareup.okio:okio-nodefilesystem", version.ref = "okio" }
 kotlinx-benchmark-runtime = { module = "org.jetbrains.kotlinx:kotlinx-benchmark-runtime", version.ref = "kotlinx-benchmark" }
+fleeksoft-charset = { module = "com.fleeksoft.charset:charset", version.ref = "fleeksoft-charset" }
+fleeksoft-charset-ext = { module = "com.fleeksoft.charset:charset-ext", version.ref = "fleeksoft-charset" }
 
 [plugins]
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
