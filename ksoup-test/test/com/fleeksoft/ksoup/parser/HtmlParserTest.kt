@@ -1290,13 +1290,7 @@ class HtmlParserTest {
     @Test
     fun testInvalidTableContents() = runTest {
         val resourceName = "htmltests/table-invalid-elements.html"
-        val doc: Document = if (!TestHelper.canReadResourceFile()) {
-            val source = TestHelper.readResource(resourceName)
-            Ksoup.parse(sourceReader = source, baseUri = resourceName, charsetName = "UTF-8")
-        } else {
-            val input: String = TestHelper.getResourceAbsolutePath(resourceName)
-            Ksoup.parseFile(filePath = input, charsetName = "UTF-8")
-        }
+        val doc = TestHelper.parseResource(resourceName = resourceName, charsetName = "UTF-8")
         doc.outputSettings().prettyPrint(true)
         val rendered = doc.toString()
         val endOfEmail = rendered.indexOf("Comment")
@@ -1507,13 +1501,7 @@ class HtmlParserTest {
     @Test
     fun testTemplateInsideTable() = runTest {
         val resourceName = "htmltests/table-polymer-template.html"
-        val doc: Document = if (!TestHelper.canReadResourceFile()) {
-            val source = TestHelper.readResource(resourceName)
-            Ksoup.parse(sourceReader = source, baseUri = resourceName, charsetName = "UTF-8")
-        } else {
-            val input: String = TestHelper.getResourceAbsolutePath(resourceName)
-            Ksoup.parseFile(filePath = input, charsetName = "UTF-8")
-        }
+        val doc = TestHelper.parseResource(resourceName = resourceName, charsetName = "UTF-8")
         doc.outputSettings().prettyPrint(true)
         val templates = doc.body().getElementsByTag("template")
         for (template in templates) {
@@ -1550,13 +1538,7 @@ class HtmlParserTest {
     @Test
     fun handlesXmlDeclAndCommentsBeforeDoctype() = runTest {
         val resourceName = "htmltests/comments.html"
-        val doc: Document = if (!TestHelper.canReadResourceFile()) {
-            val source = TestHelper.readResource(resourceName)
-            Ksoup.parse(sourceReader = source, baseUri = resourceName, charsetName = "UTF-8")
-        } else {
-            val input: String = TestHelper.getResourceAbsolutePath(resourceName)
-            Ksoup.parseFile(filePath = input, charsetName = "UTF-8")
-        }
+        val doc = TestHelper.parseResource(resourceName = resourceName, charsetName = "UTF-8")
         assertEquals(
             "<!--?xml version=\"1.0\" encoding=\"utf-8\"?--><!-- so --> <!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\"><!-- what --> <html xml:lang=\"en\" lang=\"en\" xmlns=\"http://www.w3.org/1999/xhtml\"> <!-- now --> <head> <!-- then --> <meta http-equiv=\"Content-type\" content=\"text/html; charset=utf-8\"> <title>A Certain Kind of Test</title> </head> <body> <h1>Hello</h1>h1&gt; (There is a UTF8 hidden BOM at the top of this file.) </body> </html>",
             StringUtil.normaliseWhitespace(doc.html()),
@@ -1583,12 +1565,7 @@ class HtmlParserTest {
     @Test
     fun characterReaderBuffer() = runTest {
         val resourceName = "htmltests/character-reader-buffer.html.gz"
-        val doc: Document = if (!TestHelper.canReadResourceFile() || !TestHelper.isGzipSupported()) {
-            val source = TestHelper.readResource(resourceName)
-            Ksoup.parse(sourceReader = source, baseUri = resourceName, charsetName = "UTF-8")
-        } else {
-            Ksoup.parseFile(filePath = TestHelper.getResourceAbsolutePath(resourceName), charsetName = "UTF-8")
-        }
+        val doc = TestHelper.parseResource(resourceName = resourceName, charsetName = "UTF-8")
         val expectedHref = "http://www.domain.com/path?param_one=value&param_two=value"
         val links = doc.select("a")
         assertEquals(2, links.size)
@@ -2273,7 +2250,8 @@ class HtmlParserTest {
 
     @Test
     fun packedScript() {
-        val packedJs = "eval(function(p,a,c,k,e,r){e=String;if(!''.replace(/^/,String)){while(c--)r[c]=k[c]||c;k=[function(e){return r[e]}];e=function(){return'\\w+'};c=1};while(c--)if(k[c])p=p.replace(new RegExp('\\b'+e(c)+'\\b','g'),k[c]);return p}('0.1(\"2 3\")',4,4,'console|log|Hello|World'.split('|'),0,{}))"
+        val packedJs =
+            "eval(function(p,a,c,k,e,r){e=String;if(!''.replace(/^/,String)){while(c--)r[c]=k[c]||c;k=[function(e){return r[e]}];e=function(){return'\\w+'};c=1};while(c--)if(k[c])p=p.replace(new RegExp('\\b'+e(c)+'\\b','g'),k[c]);return p}('0.1(\"2 3\")',4,4,'console|log|Hello|World'.split('|'),0,{}))"
         val packedScript = "<script type=\"text/javascript\">$packedJs</script>"
         val unpackedJs = "console.log(\"Hello World\")"
         val doc = Ksoup.parse(packedScript)

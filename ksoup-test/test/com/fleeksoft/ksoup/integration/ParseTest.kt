@@ -22,37 +22,23 @@ class ParseTest {
             return@runTest
         }
         // test that <meta charset="gb2312"> works
-        val resourceName = "htmltests/meta-charset-1.html"
-        var input = TestHelper.getResourceAbsolutePath(resourceName)
-        var doc = Ksoup.parseFile(
-            filePath = input,
-            baseUri = "http://example.com/",
-            charsetName = null,
-        ) // gb2312, has html5 <meta charset>
+        var doc = TestHelper.parseResource("htmltests/meta-charset-1.html", baseUri = "http://example.com/") // gb2312, has html5 <meta charset>
 
         // FIXME: different name on different platforms
-        assertContains(arrayOf("GBK", "GB2312"), doc.outputSettings().charset().name.uppercase())
+        assertContains(arrayOf("GBK", "GB2312"), doc.outputSettings().charset().name().uppercase())
 
         assertEquals("新", doc.text())
 
         // double check, no charset, falls back to utf8 which is incorrect
-        input = TestHelper.getResourceAbsolutePath("htmltests/meta-charset-2.html") //
-        doc = Ksoup.parseFile(
-            filePath = input,
-            baseUri = "http://example.com",
-            charsetName = null,
-        ) // gb2312, no charset
-        assertEquals("UTF-8", doc.outputSettings().charset().name.uppercase())
+        doc = TestHelper.parseResource("htmltests/meta-charset-2.html", baseUri = "http://example.com/") // gb2312, no charset
+
+        assertEquals("UTF-8", doc.outputSettings().charset().name().uppercase())
         assertNotEquals("新", doc.text())
 
         // confirm fallback to utf8
-        input = TestHelper.getResourceAbsolutePath("htmltests/meta-charset-3.html")
-        doc = Ksoup.parseFile(
-            filePath = input,
-            baseUri = "http://example.com/",
-            charsetName = null,
-        ) // utf8, no charset
-        assertEquals("UTF-8", doc.outputSettings().charset().name.uppercase())
+        doc = TestHelper.parseResource("htmltests/meta-charset-3.html", baseUri = "http://example.com/") // utf8, no charset
+
+        assertEquals("UTF-8", doc.outputSettings().charset().name().uppercase())
         assertEquals("新", doc.text())
     }
 
@@ -73,13 +59,7 @@ class ParseTest {
     @Test
     fun testLowercaseUtf8Charset() = runTest {
         val resourceName = "htmltests/lowercase-charset-test.html"
-        val doc: Document = if (!TestHelper.canReadResourceFile()) {
-            val source = TestHelper.readResource(resourceName)
-            Ksoup.parse(sourceReader = source, baseUri = resourceName)
-        } else {
-            val input: String = TestHelper.getResourceAbsolutePath(resourceName)
-            Ksoup.parseFile(filePath = input)
-        }
+        val doc = TestHelper.parseResource(resourceName)
         val form = doc.select("#form").first()
         assertEquals(2, form!!.children().size)
         assertEquals("UTF-8", doc.outputSettings().charset().name().uppercase())
