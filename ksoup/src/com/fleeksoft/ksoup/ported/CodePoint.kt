@@ -9,10 +9,8 @@ import kotlin.jvm.JvmInline
  * - [Int.toCodePoint]
  * - [Char.toCodePoint]
  */
-@JvmInline
-value class CodePoint internal constructor(val value: Int) {
-    val charCount: Int
-        get() = if (value >= Character.MIN_SUPPLEMENTARY_CODE_POINT) 2 else 1
+class CodePoint internal constructor(val value: Int) {
+    val charCount: Int = if (value >= Character.MIN_SUPPLEMENTARY_CODE_POINT) 2 else 1
 
     init {
         require(Character.isValidCodePoint(value)) { "Not a valid code point" }

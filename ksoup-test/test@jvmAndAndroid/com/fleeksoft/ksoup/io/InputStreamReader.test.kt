@@ -39,7 +39,7 @@ class InputStreamReader {
         testBody(input, StringReader(input))
         testBody(input, BufferedReader(StringReader(input)))
         testBody(input, BufferedReader(InputSourceReader(input.toInputStreamSourceReader())))
-        testBody(input, BufferedReader(InputSourceReader(input.toInputStreamSourceReader()), SharedConstants.DefaultBufferSize))
+        testBody(input, BufferedReader(InputSourceReader(input.toInputStreamSourceReader()), SharedConstants.DEFAULT_BYTE_BUFFER_SIZE))
     }
 
     @Test

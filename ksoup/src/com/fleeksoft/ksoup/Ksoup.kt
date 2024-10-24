@@ -28,10 +28,7 @@ public object Ksoup {
      * before the HTML declares a `<base href>` tag.
      * @return sane HTML
      */
-    public fun parse(
-        html: String,
-        baseUri: String = "",
-    ): Document {
+    public fun parse(html: String, baseUri: String = ""): Document {
         return Parser.parse(html, baseUri)
     }
 

@@ -30,7 +30,7 @@ class ReaderTest {
         testBody(input, StringReader(input))
         testBody(input, BufferedReader(StringReader(input)))
         testBody(input, BufferedReader(InputSourceReader(input.openSourceReader())))
-        testBody(input, BufferedReader(InputSourceReader(input.openSourceReader()), SharedConstants.DefaultBufferSize))
+        testBody(input, BufferedReader(InputSourceReader(input.openSourceReader()), SharedConstants.DEFAULT_BYTE_BUFFER_SIZE))
     }
 
     @Test

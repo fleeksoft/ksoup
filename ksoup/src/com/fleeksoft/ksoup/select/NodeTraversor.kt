@@ -5,29 +5,25 @@ import com.fleeksoft.ksoup.ported.assert
 import com.fleeksoft.ksoup.select.NodeFilter.FilterResult
 
 /**
-* A depth-first node traversor. Use to walk through all nodes under and including the specified root node, in document
-* order. The {@link NodeVisitor#head(Node, int)} and {@link NodeVisitor#tail(Node, int)} methods will be called for
-* each node.
-* <p> During traversal, structural changes to nodes are supported (e.g. {{@link Node#replaceWith(Node)},
-* {@link Node#remove()}}
-* </p>
-*/
+ * A depth-first node traversor. Use to walk through all nodes under and including the specified root node, in document
+ * order. The {@link NodeVisitor#head(Node, int)} and {@link NodeVisitor#tail(Node, int)} methods will be called for
+ * each node.
+ * <p> During traversal, structural changes to nodes are supported (e.g. {{@link Node#replaceWith(Node)},
+ * {@link Node#remove()}}
+ * </p>
+ */
 public object NodeTraversor {
     /**
-     Run a depth-first traverse of the root and all of its descendants.
-     @param visitor Node visitor.
-     @param root the initial node point to traverse.
-     @see NodeVisitor
+    Run a depth-first traverse of the root and all of its descendants.
+    @param visitor Node visitor.
+    @param root the initial node point to traverse.
+    @see NodeVisitor
      */
-    public fun traverse(
-        visitor: NodeVisitor,
-        root: Node,
-    ) {
+    public fun traverse(visitor: NodeVisitor, root: Node) {
         var node: Node? = root
         var depth = 0
         while (node != null) {
-            val parent: Node? =
-                node.parentNode() // remember parent to find nodes that get replaced in .head
+            val parent: Node? = node.parentNode() // remember parent to find nodes that get replaced in .head
             val origSize = parent?.childNodeSize() ?: 0
             val next: Node? = node.nextSibling()
             visitor.head(node, depth) // visit current node

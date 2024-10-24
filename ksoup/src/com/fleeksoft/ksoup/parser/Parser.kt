@@ -167,16 +167,9 @@ public class Parser {
          *
          * @return parsed Document
          */
-        public fun parse(
-            html: String,
-            baseUri: String,
-        ): Document {
+        public fun parse(html: String, baseUri: String): Document {
             val treeBuilder: TreeBuilder = HtmlTreeBuilder()
-            return treeBuilder.parse(
-                StringReader(html),
-                baseUri,
-                Parser(treeBuilder),
-            )
+            return treeBuilder.parse(StringReader(html), baseUri, Parser(treeBuilder))
         }
 
         /**

@@ -78,12 +78,7 @@ public abstract class TreeBuilder {
         return doc
     }
 
-    public fun parseFragment(
-        inputFragment: String,
-        context: Element?,
-        baseUri: String,
-        parser: Parser,
-    ): List<Node> {
+    public fun parseFragment(inputFragment: String, context: Element?, baseUri: String, parser: Parser): List<Node> {
         initialiseParse(StringReader(inputFragment), baseUri, parser)
         initialiseParseFragment(context)
         runParser()

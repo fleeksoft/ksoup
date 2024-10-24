@@ -3,7 +3,6 @@ package com.fleeksoft.ksoup.ported.io
 import com.fleeksoft.ksoup.exception.IOException
 import kotlin.math.min
 
-
 abstract class Reader {
     companion object {
         private const val TRANSFER_BUFFER_SIZE: Int = 8192
@@ -11,24 +10,6 @@ abstract class Reader {
         /** Maximum skip-buffer size  */
         private const val maxSkipBufferSize: Int = 8192
     }
-
-    /*override fun read(cb: CharBuffer): Int {
-        val nread: Int
-        if (cb.hasArray()) {
-            val cbuf: CharArray = cb.array()
-            val pos: Int = cb.position()
-            val rem: Int = max(cb.limit() - pos, 0)
-            val off: Int = cb.arrayOffset() + pos
-            nread = this.read(cbuf, off, rem)
-            if (nread > 0) cb.setPosition(pos + nread)
-        } else {
-            val len: Int = cb.remaining()
-            val cbuf = CharArray(len)
-            nread = read(cbuf, 0, len)
-            if (nread > 0) cb.put(cbuf, 0, nread)
-        }
-        return nread
-    }*/
 
 
     open fun read(): Int {

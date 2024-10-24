@@ -65,10 +65,4 @@ internal class SourceReaderByteArray(bytes: ByteArray) : SourceReader {
 //        markedPosition = null
         isClosed = true
     }
-
-    override fun readAtMostTo(sink: KByteBuffer, byteCount: Int): Int {
-        val bytes = readBytes(byteCount)
-        sink.writeBytes(bytes, bytes.size)
-        return bytes.size
-    }
 }
