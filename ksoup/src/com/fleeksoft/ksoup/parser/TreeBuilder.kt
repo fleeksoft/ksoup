@@ -3,8 +3,8 @@ package com.fleeksoft.ksoup.parser
 import com.fleeksoft.ksoup.internal.SharedConstants
 import com.fleeksoft.ksoup.nodes.*
 import com.fleeksoft.ksoup.parser.Parser.Companion.NamespaceHtml
-import com.fleeksoft.ksoup.ported.io.Reader
-import com.fleeksoft.ksoup.ported.io.StringReader
+import com.fleeksoft.io.Reader
+import com.fleeksoft.io.StringReader
 import com.fleeksoft.ksoup.select.NodeVisitor
 
 /**

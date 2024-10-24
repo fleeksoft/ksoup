@@ -6,8 +6,8 @@ import com.fleeksoft.ksoup.nodes.Element
 import com.fleeksoft.ksoup.nodes.Node
 import com.fleeksoft.ksoup.ported.LinkedList
 import com.fleeksoft.ksoup.exception.UncheckedIOException
-import com.fleeksoft.ksoup.ported.io.Reader
-import com.fleeksoft.ksoup.ported.io.StringReader
+import com.fleeksoft.io.Reader
+import com.fleeksoft.io.StringReader
 import com.fleeksoft.ksoup.select.Evaluator
 import com.fleeksoft.ksoup.select.NodeVisitor
 import com.fleeksoft.ksoup.select.QueryParser

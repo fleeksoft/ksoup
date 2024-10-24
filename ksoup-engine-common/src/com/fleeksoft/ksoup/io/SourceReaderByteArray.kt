@@ -18,6 +18,14 @@ internal class SourceReaderByteArray(bytes: ByteArray) : SourceReader {
         }
     }
 
+    override fun readInt(): Int {
+        return if (!exhausted()) {
+            source[currentPosition++].toInt() and 0xff
+        } else {
+            -1
+        }
+    }
+
 
     override fun readBytes(count: Int): ByteArray {
         val byteArray = ByteArray(count)

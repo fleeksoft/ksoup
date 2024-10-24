@@ -6,6 +6,8 @@ interface SourceReader {
 
     fun reset()
 
+    fun readInt(): Int
+
     fun readBytes(count: Int): ByteArray
 
     fun read(bytes: ByteArray, offset: Int = 0, length: Int = bytes.size): Int

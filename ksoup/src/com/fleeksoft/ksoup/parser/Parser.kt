@@ -3,8 +3,8 @@ package com.fleeksoft.ksoup.parser
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.nodes.Element
 import com.fleeksoft.ksoup.nodes.Node
-import com.fleeksoft.ksoup.ported.io.Reader
-import com.fleeksoft.ksoup.ported.io.StringReader
+import com.fleeksoft.io.Reader
+import com.fleeksoft.io.StringReader
 
 /**
  * Parses HTML or XML into a [com.fleeksoft.ksoup.nodes.Document]. Generally, it is simpler to use one of the parse methods in
@@ -54,18 +54,11 @@ public class Parser {
         return treeBuilder.parse(StringReader(input), baseUri, this)
     }
 
-    public fun parseInput(
-        inputHtml: Reader,
-        baseUri: String,
-    ): Document {
-        return treeBuilder.parse(inputHtml, baseUri, this)
+    public fun parseInput(reader: Reader, baseUri: String): Document {
+        return treeBuilder.parse(reader, baseUri, this)
     }
 
-    public fun parseFragmentInput(
-        fragment: String,
-        context: Element?,
-        baseUri: String,
-    ): List<Node> {
+    public fun parseFragmentInput(fragment: String, context: Element?, baseUri: String): List<Node> {
         return treeBuilder.parseFragment(fragment, context, baseUri, this)
     }
     // gets & sets

@@ -8,7 +8,7 @@ import com.fleeksoft.ksoup.parser.HtmlTreeBuilderState.Constants.InTableFoster
 import com.fleeksoft.ksoup.parser.HtmlTreeBuilderState.ForeignContent
 import com.fleeksoft.ksoup.parser.Parser.Companion.NamespaceHtml
 import com.fleeksoft.ksoup.ported.assert
-import com.fleeksoft.ksoup.ported.io.Reader
+import com.fleeksoft.io.Reader
 import kotlin.jvm.JvmOverloads
 
 /**

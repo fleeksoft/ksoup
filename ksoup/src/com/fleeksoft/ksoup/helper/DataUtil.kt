@@ -1,6 +1,11 @@
 package com.fleeksoft.ksoup.helper
 
 import com.fleeksoft.charset.Charset
+import com.fleeksoft.io.Reader
+import com.fleeksoft.io.buffered
+import com.fleeksoft.io.reader
+import com.fleeksoft.ksoup.exception.IllegalCharsetNameException
+import com.fleeksoft.ksoup.exception.UncheckedIOException
 import com.fleeksoft.ksoup.internal.SharedConstants
 import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.io.SourceReader
@@ -10,9 +15,9 @@ import com.fleeksoft.ksoup.nodes.Node
 import com.fleeksoft.ksoup.nodes.XmlDeclaration
 import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.parser.StreamParser
-import com.fleeksoft.ksoup.exception.IllegalCharsetNameException
-import com.fleeksoft.ksoup.exception.UncheckedIOException
-import com.fleeksoft.ksoup.ported.io.*
+import com.fleeksoft.ksoup.ported.io.Charsets
+import com.fleeksoft.ksoup.ported.io.SourceInputStream
+import com.fleeksoft.ksoup.ported.io.sourceInputStreamReader
 import com.fleeksoft.ksoup.ported.isCharsetSupported
 import com.fleeksoft.ksoup.select.Elements
 import kotlin.random.Random
@@ -68,10 +73,7 @@ public object DataUtil {
         val streamer = StreamParser(parser)
         val charsetName: String? = charset?.name()
         val charsetDoc: CharsetDoc = detectCharset(sourceReader, baseUri, charsetName, parser)
-        val reader = BufferedReader(
-            InputSourceReader(source = charsetDoc.input, charset = charsetDoc.charset),
-            SharedConstants.DEFAULT_BYTE_BUFFER_SIZE
-        )
+        val reader = SourceInputStream(source = charsetDoc.input).reader(charsetDoc.charset).buffered(SharedConstants.DEFAULT_BYTE_BUFFER_SIZE)
         streamer.parse(reader, baseUri) // initializes the parse and the document, but does not step() it
 
         return streamer
@@ -98,12 +100,7 @@ public object DataUtil {
     )
 
 
-    private fun detectCharset(
-        inputSource: SourceReader,
-        baseUri: String,
-        charsetName: String?,
-        parser: Parser
-    ): CharsetDoc {
+    private fun detectCharset(inputSource: SourceReader, baseUri: String, charsetName: String?, parser: Parser): CharsetDoc {
         var effectiveCharsetName: String? = charsetName
 
         var doc: Document? = null
@@ -118,7 +115,7 @@ public object DataUtil {
 //            input.max(firstReadBufferSize)
             inputSource.mark(firstReadBufferSize)
             try {
-                val reader = InputSourceReader(source = inputSource, charset = Charsets.UTF8)
+                val reader: Reader = sourceInputStreamReader(inputSource, Charsets.UTF8)
                 doc = parser.parseInput(reader, baseUri)
                 inputSource.reset()
 //                input.max(origMax); // reset for a full read if required // @TODO implement it
@@ -189,7 +186,7 @@ public object DataUtil {
         val doc: Document
         val charset: Charset = charsetDoc.charset
 
-        val reader = InputSourceReader(input, charset)
+        val reader = sourceInputStreamReader(input, charset)
         try {
             doc = parser.parseInput(reader, baseUri)
         } catch (e: UncheckedIOException) {

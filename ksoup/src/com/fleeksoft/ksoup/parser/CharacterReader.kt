@@ -4,8 +4,8 @@ import com.fleeksoft.ksoup.internal.SoftPool
 import com.fleeksoft.ksoup.ported.buildString
 import com.fleeksoft.ksoup.exception.IOException
 import com.fleeksoft.ksoup.exception.UncheckedIOException
-import com.fleeksoft.ksoup.ported.io.Reader
-import com.fleeksoft.ksoup.ported.io.StringReader
+import com.fleeksoft.io.Reader
+import com.fleeksoft.io.StringReader
 import kotlin.math.abs
 import kotlin.math.min
 
@@ -73,7 +73,7 @@ public class CharacterReader {
         bufPos = 0
         while (bufLength < BufferSize) {
             try {
-                val read = reader!!.read(cbuf = charBuf!!, offset = bufLength, length = charBuf!!.size - bufLength)
+                val read = reader!!.read(charBuf!!, bufLength, charBuf!!.size - bufLength)
                 if (read == -1) {
                     readFully = true
                     break
