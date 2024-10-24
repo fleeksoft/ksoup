@@ -7,7 +7,7 @@ import kotlin.math.max
 
 
 class CharsetImpl(override val name: String) : Charset {
-    private var charset: io.ktor.utils.io.charsets.Charset = Charsets.forName(name)
+    private var charset: io.ktor.utils.io.charsets.Charset = Charset.forName(name)
     private val charsetDecoder by lazy { this.charset.newDecoder() }
 
     constructor(charset: io.ktor.utils.io.charsets.Charset) : this(charset.name) {

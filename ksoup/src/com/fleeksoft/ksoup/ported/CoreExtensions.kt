@@ -1,10 +1,9 @@
 package com.fleeksoft.ksoup.ported
 
-import com.fleeksoft.ksoup.ported.io.Charsets
+import com.fleeksoft.charset.Charsets
 
 internal fun String.isCharsetSupported(): Boolean {
-    val result = runCatching { Charsets.forName(this) }.getOrNull()
-    return result != null
+    return Charsets.isSupported(this)
 }
 
 internal fun IntArray.codePointsToString(): String {
@@ -19,10 +18,7 @@ internal fun IntArray.codePointsToString(): String {
     }
 }
 
-internal fun <E> ArrayList<E>.removeRange(
-    fromIndex: Int,
-    toIndex: Int,
-) {
+internal fun <E> ArrayList<E>.removeRange(fromIndex: Int, toIndex: Int) {
     for (i in (toIndex - 1) downTo fromIndex) {
         this.removeAt(i)
     }

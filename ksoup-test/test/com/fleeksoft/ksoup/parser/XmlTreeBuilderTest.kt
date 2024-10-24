@@ -1,9 +1,9 @@
 package com.fleeksoft.ksoup.parser
 
+import com.fleeksoft.charset.Charsets
 import com.fleeksoft.ksoup.Ksoup
 import com.fleeksoft.ksoup.TextUtil
 import com.fleeksoft.ksoup.nodes.*
-import com.fleeksoft.ksoup.ported.io.Charsets
 import com.fleeksoft.ksoup.ported.openSourceReader
 import kotlinx.coroutines.test.runTest
 import kotlin.test.*
@@ -119,17 +119,17 @@ class XmlTreeBuilderTest {
 
     @Test
     fun testDetectCharsetEncodingDeclaration() = runTest {
-        val xmlCharset = """
+        val xml = """
             <?xml version="1.0" encoding="ISO-8859-1"?>
             <data>äöåéü</data>
         """.trimIndent()
         val doc = Ksoup.parse(
-            sourceReader = xmlCharset.openSourceReader(charset = Charsets.forName("ISO-8859-1")),
+            sourceReader = xml.openSourceReader(Charsets.forName("ISO-8859-1")),
             baseUri = "http://example.com/",
             charsetName = null,
-            parser = Parser.xmlParser(),
+            parser = Parser.xmlParser()
         )
-        assertEquals("ISO-8859-1", doc.charset().name.uppercase())
+        assertEquals("ISO-8859-1", doc.charset().name().uppercase())
         assertEquals(
             "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><data>äöåéü</data>",
             TextUtil.stripNewlines(doc.html()),

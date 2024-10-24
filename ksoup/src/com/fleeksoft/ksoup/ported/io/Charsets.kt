@@ -1,12 +1,12 @@
 package com.fleeksoft.ksoup.ported.io
 
-import com.fleeksoft.ksoup.KsoupEngineInstance
-import com.fleeksoft.ksoup.io.Charset
+import com.fleeksoft.charset.Charset
+import com.fleeksoft.charset.Charsets
 
 object Charsets {
-    val UTF8: Charset = KsoupEngineInstance.ksoupEngine.getUtf8Charset()
+    val UTF8: Charset = Charsets.UTF8
 
-    fun forName(name: String): Charset = KsoupEngineInstance.ksoupEngine.charsetForName(name)
+    fun forName(name: String): Charset = Charsets.forName(name)
 
-    val isOnlyUtf8 = UTF8.onlyUtf8()
+    const val isOnlyUtf8 = false
 }

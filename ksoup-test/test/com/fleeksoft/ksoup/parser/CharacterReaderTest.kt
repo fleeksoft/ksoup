@@ -1,9 +1,9 @@
 package com.fleeksoft.ksoup.parser
 
+import com.fleeksoft.charset.Charsets
 import com.fleeksoft.ksoup.TestHelper
+import com.fleeksoft.ksoup.exception.UncheckedIOException
 import com.fleeksoft.ksoup.internal.StringUtil
-import com.fleeksoft.ksoup.ported.exception.UncheckedIOException
-import com.fleeksoft.ksoup.ported.io.Charsets
 import com.fleeksoft.ksoup.ported.io.StringReader
 import com.fleeksoft.ksoup.ported.toReader
 import korlibs.io.lang.substr
@@ -28,7 +28,10 @@ class CharacterReaderTest {
         val input = TestHelper.readResource("bomtests/bom_utf16be.html").toReader(charset = Charsets.forName("UTF-16BE"))
 
 //            ignore first char (ZWNBSP)\uFEFF:65279
-        val actualReadLine = input.readString(firstLine.length + 1)
+        val strSize = firstLine.length + 1
+        val charBuffer = CharArray(strSize)
+        assertEquals(strSize, input.read(charBuffer))
+        val actualReadLine = charBuffer.concatToString()
         assertEquals(firstLine.length, actualReadLine.length - 1)
         assertEquals(firstLine, actualReadLine.substr(1))
     }
@@ -45,7 +48,10 @@ class CharacterReaderTest {
             .toReader(charset = Charsets.forName("UTF-16LE"))
 
         //            ignore first char (ZWNBSP)\uFEFF:65279
-        val actualReadLine = input.readString(firstLine.length + 1)
+        val strSize = firstLine.length + 1
+        val charBuffer = CharArray(strSize)
+        assertEquals(strSize, input.read(charBuffer))
+        val actualReadLine = charBuffer.concatToString()
         assertEquals(firstLine.length, actualReadLine.length - 1)
         assertEquals(firstLine, actualReadLine.substr(1))
     }

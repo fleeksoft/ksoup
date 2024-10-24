@@ -161,7 +161,7 @@ class TokeniserTest {
         for (i in Tokeniser.win1252Extensions.indices) {
             val s = byteArrayOf((i + Tokeniser.win1252ExtensionsStart).toByte()).decodeToString()
             // TODO: check it
-//                String(byteArrayOf((i + Tokeniser.win1252ExtensionsStart).toByte()), Charsets.forName("Windows-1252"))
+//                String(byteArrayOf((i + Tokeniser.win1252ExtensionsStart).toByte()), Charset.forName("Windows-1252"))
             assertEquals(1, s.length)
 
             // some of these characters are illegal

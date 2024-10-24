@@ -2,9 +2,9 @@ package com.fleeksoft.ksoup.parser
 
 import com.fleeksoft.ksoup.Ksoup.parse
 import com.fleeksoft.ksoup.nodes.Document
-import com.fleeksoft.ksoup.ported.io.Charsets
 import com.fleeksoft.ksoup.ported.openSourceReader
-import com.fleeksoft.ksoup.ported.toByteArray
+import com.fleeksoft.charset.Charsets
+import com.fleeksoft.charset.toByteArray
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

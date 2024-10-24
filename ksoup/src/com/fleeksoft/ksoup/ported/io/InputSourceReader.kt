@@ -1,7 +1,8 @@
 package com.fleeksoft.ksoup.ported.io
 
-import com.fleeksoft.ksoup.io.Charset
 import com.fleeksoft.ksoup.io.SourceReader
+import com.fleeksoft.charset.Charset
+import com.fleeksoft.charset.Charsets
 
 
 class InputSourceReader(source: SourceReader, charset: Charset = Charsets.UTF8) : Reader() {

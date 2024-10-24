@@ -1,9 +1,10 @@
 package com.fleeksoft.ksoup
 
+import com.fleeksoft.charset.Charsets
+import com.fleeksoft.charset.toByteArray
 import com.fleeksoft.ksoup.io.SourceReader
-import com.fleeksoft.ksoup.ported.io.Charsets
+import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.ported.openSourceReader
-import com.fleeksoft.ksoup.ported.toByteArray
 import korlibs.io.compression.deflate.GZIP
 import korlibs.io.compression.uncompress
 import korlibs.io.file.std.uniVfs
@@ -71,21 +72,34 @@ object TestHelper {
         return bytes.uncompress(GZIP).openSourceReader()
     }
 
-    fun dataToStream(
-        data: String,
-        charset: String,
-    ): SourceReader {
-        if (BuildConfig.isLite) {
-            return data.encodeToByteArray().openSourceReader()
-        }
+    fun dataToStream(data: String, charset: String): SourceReader {
         return data.toByteArray(Charsets.forName(charset)).openSourceReader()
     }
 
+    suspend fun parseResource(resourceName: String, baseUri: String = "", charsetName: String? = null): Document {
+        return if (!canReadResourceFile() || (!isGzipSupported() && (resourceName.endsWith(".gz") || resourceName.endsWith(".z")))) {
+            val source = readResource(resourceName)
+            Ksoup.parse(sourceReader = source, baseUri = baseUri, charsetName = charsetName)
+        } else {
+            val input: String = getResourceAbsolutePath(resourceName)
+            Ksoup.parseFile(filePath = input, charsetName = charsetName, baseUri = baseUri)
+        }
+    }
+
     fun isGzipSupported(): Boolean = BuildConfig.isKorlibs
-    fun isUtf16Supported(): Boolean = !(((BuildConfig.isKotlinx || BuildConfig.isOkio || BuildConfig.isKtor2) && Platform.isJsOrWasm()) || BuildConfig.isLite)
-    fun isUtf32Supported(): Boolean = !(Platform.isJsOrWasm() || Platform.isWindows() || Platform.isLinux())
-    fun isEUCKRSupported(): Boolean = !(Platform.isJsOrWasm() || Platform.isApple() || Platform.isWindows() || (BuildConfig.isKorlibs && Platform.isLinux()))
-    fun isGB2312Supported(): Boolean = !(BuildConfig.isLite || Platform.isApple() || Platform.isWindows() || ((BuildConfig.isKotlinx || BuildConfig.isOkio || BuildConfig.isKtor2) && Platform.isJsOrWasm()) || (BuildConfig.isKorlibs && Platform.isLinux()))
+    fun isShiftJsSupported(): Boolean = true
+
+    //    fun isUtf16Supported(): Boolean = !(((BuildConfig.isKotlinx || BuildConfig.isOkio || BuildConfig.isKtor2) && Platform.isJsOrWasm()))
+    fun isUtf16Supported(): Boolean = true
+
+    //    fun isUtf32Supported(): Boolean = !(Platform.isJsOrWasm() || Platform.isWindows() || Platform.isLinux())
+    fun isUtf32Supported(): Boolean = true
+
+    //    fun isEUCKRSupported(): Boolean = !(Platform.isJsOrWasm() || Platform.isApple() || Platform.isWindows() || (BuildConfig.isKorlibs && Platform.isLinux()))
+    fun isEUCKRSupported(): Boolean = true
+
+    //    fun isGB2312Supported(): Boolean = !(Platform.isApple() || Platform.isWindows() || ((BuildConfig.isKotlinx || BuildConfig.isOkio || BuildConfig.isKtor2) && Platform.isJsOrWasm()) || (BuildConfig.isKorlibs && Platform.isLinux()))
+    fun isGB2312Supported(): Boolean = true
 
     fun canReadResourceFile(): Boolean = (!Platform.isWasmJs() || BuildConfig.isKorlibs) && !BuildConfig.isLite
 

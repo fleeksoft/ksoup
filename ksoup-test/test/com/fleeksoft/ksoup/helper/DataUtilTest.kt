@@ -2,13 +2,12 @@ package com.fleeksoft.ksoup.helper
 
 import com.fleeksoft.ksoup.Ksoup
 import com.fleeksoft.ksoup.TestHelper
-import com.fleeksoft.ksoup.io.SourceReader
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parser.Parser
-import com.fleeksoft.ksoup.ported.io.Charsets
+import com.fleeksoft.charset.Charsets
 import com.fleeksoft.ksoup.ported.openSourceReader
-import com.fleeksoft.ksoup.ported.toByteArray
 import com.fleeksoft.ksoup.ported.toSourceFile
+import com.fleeksoft.charset.toByteArray
 import kotlinx.coroutines.test.runTest
 import kotlin.test.*
 
@@ -61,7 +60,7 @@ class DataUtilTest {
             parser = Parser.htmlParser(),
         )
         assertEquals("One", doc.head().text())
-        assertEquals("UTF-8", doc.outputSettings().charset().name.uppercase())
+        assertEquals("UTF-8", doc.outputSettings().charset().name().uppercase())
     }
 
     @Test
@@ -161,13 +160,11 @@ class DataUtilTest {
             // FIXME: UTF-16 charset not supported
             return@runTest
         }
-        var input = TestHelper.getResourceAbsolutePath("bomtests/bom_utf16be.html")
-        var doc: Document =
-            Ksoup.parseFile(filePath = input, baseUri = "http://example.com", charsetName = null)
+        var doc = TestHelper.parseResource(resourceName = "bomtests/bom_utf16be.html", baseUri = "http://example.com")
         assertContains(doc.title(), "UTF-16BE")
         assertContains(doc.text(), "가각갂갃간갅")
-        input = TestHelper.getResourceAbsolutePath("bomtests/bom_utf16le.html")
-        doc = Ksoup.parseFile(filePath = input, baseUri = "http://example.com", charsetName = null)
+
+        doc = TestHelper.parseResource(resourceName = "bomtests/bom_utf16le.html", baseUri = "http://example.com")
         assertContains(doc.title(), "UTF-16LE")
         assertContains(doc.text(), "가각갂갃간갅")
 
@@ -176,12 +173,11 @@ class DataUtilTest {
             return@runTest
         }
 
-        input = TestHelper.getResourceAbsolutePath("bomtests/bom_utf32be.html")
-        doc = Ksoup.parseFile(filePath = input, baseUri = "http://example.com", charsetName = null)
+        doc = TestHelper.parseResource(resourceName = "bomtests/bom_utf32be.html", baseUri = "http://example.com")
         assertContains(doc.title(), "UTF-32BE")
         assertContains(doc.text(), "가각갂갃간갅")
-        input = TestHelper.getResourceAbsolutePath("bomtests/bom_utf32le.html")
-        doc = Ksoup.parseFile(filePath = input, baseUri = "http://example.com", charsetName = null)
+
+        doc = TestHelper.parseResource(resourceName = "bomtests/bom_utf32le.html", baseUri = "http://example.com")
         assertContains(doc.title(), "UTF-32LE")
         assertContains(doc.text(), "가각갂갃간갅")
     }
@@ -196,8 +192,7 @@ class DataUtilTest {
         var source = TestHelper.readResource("bomtests/bom_utf16be.html")
         val parser = Parser.htmlParser()
 
-        var doc: Document = DataUtil.streamParser(sourceReader = source, baseUri = "http://example.com", charset = null, parser = parser)
-            .complete()
+        var doc: Document = DataUtil.streamParser(sourceReader = source, baseUri = "http://example.com", charset = null, parser = parser).complete()
         assertContains(doc.title(), "UTF-16BE")
         assertContains(doc.text(), "가각갂갃간갅")
 

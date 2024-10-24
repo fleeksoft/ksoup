@@ -1,11 +1,11 @@
 package com.fleeksoft.ksoup.parser
 
+import com.fleeksoft.charset.Charsets
 import com.fleeksoft.ksoup.TestHelper
 import com.fleeksoft.ksoup.helper.DataUtil
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.nodes.Element
 import com.fleeksoft.ksoup.nodes.Node
-import com.fleeksoft.ksoup.ported.io.Charsets
 import com.fleeksoft.ksoup.ported.toReader
 import com.fleeksoft.ksoup.select.Elements
 import kotlinx.coroutines.test.runTest

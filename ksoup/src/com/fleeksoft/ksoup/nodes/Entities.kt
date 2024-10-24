@@ -4,7 +4,6 @@ package com.fleeksoft.ksoup.nodes
 
 import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.internal.StringUtil
-import com.fleeksoft.ksoup.io.Charset
 import com.fleeksoft.ksoup.nodes.Document.OutputSettings
 import com.fleeksoft.ksoup.nodes.Document.OutputSettings.Syntax
 import com.fleeksoft.ksoup.nodes.Entities.EscapeMode.base
@@ -13,9 +12,11 @@ import com.fleeksoft.ksoup.parser.CharacterReader
 import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.ported.*
 import com.fleeksoft.ksoup.ported.Character
-import com.fleeksoft.ksoup.ported.exception.IOException
-import com.fleeksoft.ksoup.ported.exception.SerializationException
-import com.fleeksoft.ksoup.ported.io.Charsets
+import com.fleeksoft.ksoup.exception.IOException
+import com.fleeksoft.ksoup.exception.SerializationException
+import com.fleeksoft.charset.Charset
+import com.fleeksoft.charset.CharsetEncoder
+import com.fleeksoft.charset.Charsets
 
 
 /**
@@ -34,8 +35,19 @@ public object Entities {
     private const val emptyName = ""
     private const val codepointRadix = 36
     private val codeDelims = charArrayOf(',', ';')
-    private val multipoints: HashMap<String, String> =
-        HashMap<String, String>() // name -> multiple character references
+    private val multipoints: HashMap<String, String> = HashMap<String, String>() // name -> multiple character references
+
+    // cache the last used fallback encoder to save recreating on every use
+    private val LocalEncoder = ThreadLocal<CharsetEncoder?> { null }
+
+    private fun encoderFor(charset: Charset): CharsetEncoder {
+        var encoder = LocalEncoder.get();
+        if (encoder == null || encoder.charset() != charset) {
+            encoder = charset.newEncoder();
+            LocalEncoder.setValue(encoder);
+        }
+        return encoder;
+    }
 
     /**
      * Check if the input is a known named entity
@@ -135,8 +147,8 @@ public object Entities {
 
     // this method does a lot, but other breakups cause rescanning and stringbuilder generations
     private fun doEscape(data: String, accum: Appendable, mode: EscapeMode, syntax: Syntax, charset: Charset, options: Int) {
-        val fallback: Charset = charset
-        val coreCharset: CoreCharset = CoreCharset.byName(charset.name)
+        val coreCharset: CoreCharset = CoreCharset.byName(charset.name())
+        val fallback: CharsetEncoder = encoderFor(charset)
         val length = data.length
         var codePoint: CodePoint
         var lastWasWhite = false
@@ -188,11 +200,11 @@ public object Entities {
         escapeMode: EscapeMode,
         syntax: Syntax,
         coreCharset: CoreCharset,
-        fallback: Charset
+        fallback: CharsetEncoder
     ) {
         // surrogate pairs, split implementation for efficiency on single char common case (saves creating strings, char[]):
         val c = codePoint.value.toChar()
-        if (codePoint.value < Character.MIN_SUPPLEMENTARY_CODE_POINT || fallback.name.uppercase() == "ASCII" || fallback.name.uppercase() == "US-ASCII" || fallback.name.uppercase() == "ISO-8859-1") {
+        if (codePoint.value < Character.MIN_SUPPLEMENTARY_CODE_POINT) {
             when {
                 c == '&' -> {
                     accum.append("&amp;")
@@ -200,22 +212,12 @@ public object Entities {
 
                 c.code == 0xA0 -> {
                     appendNbsp(accum, escapeMode)
-                    /*if (escapeMode != EscapeMode.xhtml) {
-                        accum.append("&nbsp;")
-                    } else {
-                        accum.append("&#xa0;")
-                    }*/
                 }
 
                 c == '<' -> {
 
                     // escape when in character data or when in a xml attribute val or XML syntax; not needed in html attr val
                     appendLt(accum, options, escapeMode, syntax)
-                    /*if (!inAttribute || escapeMode == EscapeMode.xhtml || out.syntax() === OutputSettings.Syntax.xml) {
-                        accum.append("&lt;")
-                    } else {
-                        accum.append(c)
-                    }*/
                 }
 
                 c == '>' -> {
@@ -247,7 +249,7 @@ public object Entities {
                 }
             }
         } else {
-            if (fallback.canEncode(codePoint.toChars().concatToString())) {
+            if (canEncode(coreCharset, c, fallback)) {
                 val chars = charBuf.get()
                 val len = codePoint.toChars(chars, 0)
                 if (accum is StringBuilder) {
@@ -285,11 +287,7 @@ public object Entities {
         }
     }
 
-    private fun appendEncoded(
-        accum: Appendable,
-        escapeMode: EscapeMode,
-        codePoint: Int,
-    ) {
+    private fun appendEncoded(accum: Appendable, escapeMode: EscapeMode, codePoint: Int) {
         val name = escapeMode.nameForCodepoint(codePoint)
         if (emptyName != name) {
             // ok for identity check
@@ -340,11 +338,11 @@ public object Entities {
     private fun canEncode(
         charset: CoreCharset,
         c: Char,
-        fallback: Charset,
+        fallback: CharsetEncoder,
     ): Boolean {
         // todo add more charset tests if impacted by Android's bad perf in canEncode
         return when (charset) {
-            CoreCharset.asciiExt -> c.code <= 0xFF // ISO-8859-1 range from 0x00 to 0xFF
+            CoreCharset.ascii -> c.code <= 0x80
             CoreCharset.utf -> !(c >= Character.MIN_SURROGATE && c.code < (Character.MAX_SURROGATE.code + 1)) // !Character.isSurrogate(c); but not in Android 10 desugar;
             else -> fallback.canEncode(c)
         }
@@ -437,7 +435,7 @@ public object Entities {
     }
 
     public enum class CoreCharset {
-        asciiExt, // ISO-8859-1
+        ascii, // ISO-8859-1
         utf,
         fallback,
         ;
@@ -445,7 +443,7 @@ public object Entities {
         public companion object {
 
             public fun byName(name: String): CoreCharset {
-                if (name.uppercase() == "US-ASCII" || name.uppercase() == "ASCII" || name.uppercase() == "ISO-8859-1") return asciiExt
+                if (name.uppercase() == "US-ASCII") return ascii
                 return if (name.startsWith("UTF-")) utf else fallback
             }
         }

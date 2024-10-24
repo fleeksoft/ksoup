@@ -46,7 +46,7 @@ class DocumentTestJvm {
         thread.start()
         thread.join()
         assertEquals(html, out[0])
-        assertEquals(StandardCharsets.US_ASCII.name(), doc.outputSettings().charset().name)
+        assertEquals(StandardCharsets.US_ASCII.name(), doc.outputSettings().charset().name())
         assertEquals(asci, p.outerHtml())
     }
 
@@ -66,7 +66,7 @@ class DocumentTestJvm {
         val doc: Document = Ksoup.parse(sourceReader = buffer, baseUri = "http://example.com", charsetName = null)
         doc.outputSettings().escapeMode(Entities.EscapeMode.xhtml)
         Charsets.UTF_16
-        val charset = Charset.forName(doc.outputSettings().charset().name)
+        val charset = Charset.forName(doc.outputSettings().charset().name())
         val output = doc.html().toByteArray(charset = charset).toString(charset = charset)
         assertFalse(output.contains("?"), "Should not have contained a '?'.")
         assertTrue(

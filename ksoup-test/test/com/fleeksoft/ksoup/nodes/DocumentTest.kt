@@ -1,11 +1,13 @@
 package com.fleeksoft.ksoup.nodes
 
-import com.fleeksoft.ksoup.*
+import com.fleeksoft.charset.Charsets
+import com.fleeksoft.charset.toByteArray
+import com.fleeksoft.ksoup.Ksoup
+import com.fleeksoft.ksoup.TestHelper
+import com.fleeksoft.ksoup.TextUtil
 import com.fleeksoft.ksoup.parser.ParseSettings
 import com.fleeksoft.ksoup.parser.Parser
-import com.fleeksoft.ksoup.ported.io.Charsets
 import com.fleeksoft.ksoup.ported.openSourceReader
-import com.fleeksoft.ksoup.ported.toByteArray
 import kotlinx.coroutines.test.runTest
 import kotlin.test.*
 
@@ -46,7 +48,7 @@ class DocumentTest {
         val doc = Ksoup.parse("<p title=π>π & < > </p>")
         // default is utf-8
         assertEquals("<p title=\"π\">π &amp; &lt; &gt;</p>", doc.body().html())
-        assertEquals("UTF-8", doc.outputSettings().charset().name.uppercase())
+        assertEquals("UTF-8", doc.outputSettings().charset().name().uppercase())
 
         doc.outputSettings().charset("ISO-8859-1")
         assertEquals(Entities.EscapeMode.base, doc.outputSettings().escapeMode())
@@ -150,13 +152,7 @@ class DocumentTest {
     fun testLocation() = runTest {
         // tests location vs base href
         val resourceName = "htmltests/basehref.html"
-        val doc: Document = if (!TestHelper.canReadResourceFile()) {
-            val source = TestHelper.readResource(resourceName)
-            Ksoup.parse(sourceReader = source, baseUri = "http://example.com/", charsetName = "UTF-8")
-        } else {
-            val input: String = TestHelper.getResourceAbsolutePath(resourceName)
-            Ksoup.parseFile(filePath = input, baseUri = "http://example.com/", charsetName = "UTF-8")
-        }
+        val doc = TestHelper.parseResource(resourceName = resourceName, baseUri = "http://example.com/", charsetName = "UTF-8")
         val location = doc.location()
         val baseUri = doc.baseUri()
         assertEquals("http://example.com/", location)
@@ -269,7 +265,7 @@ class DocumentTest {
 </html>"""
         assertEquals(htmlCharsetUTF8, doc.toString())
         val selectedElement = doc.select("meta[charset]").first()
-        assertEquals(charsetUtf8, doc.charset().name.uppercase())
+        assertEquals(charsetUtf8, doc.charset().name().uppercase())
         assertEquals(charsetUtf8, selectedElement!!.attr("charset"))
         assertEquals(doc.charset(), doc.outputSettings().charset())
     }
@@ -287,7 +283,7 @@ class DocumentTest {
 </html>"""
         assertEquals(htmlCharsetISO, doc.toString())
         val selectedElement = doc.select("meta[charset]").first()
-        assertEquals(charsetIso8859, doc.charset().name.uppercase())
+        assertEquals(charsetIso8859, doc.charset().name().uppercase())
         assertEquals(charsetIso8859, selectedElement!!.attr("charset"))
         assertEquals(doc.charset(), doc.outputSettings().charset())
     }
@@ -375,7 +371,7 @@ class DocumentTest {
 </root>"""
         assertEquals(xmlCharsetUTF8, doc.toString())
         val selectedNode = doc.childNode(0) as XmlDeclaration
-        assertEquals(charsetUtf8, doc.charset().name.uppercase())
+        assertEquals(charsetUtf8, doc.charset().name().uppercase())
         assertEquals(charsetUtf8, selectedNode.attr("encoding"))
         assertEquals(doc.charset(), doc.outputSettings().charset())
     }
@@ -391,7 +387,7 @@ class DocumentTest {
 </root>"""
         assertEquals(xmlCharsetISO, doc.toString())
         val selectedNode = doc.childNode(0) as XmlDeclaration
-        assertEquals(charsetIso8859, doc.charset().name.uppercase())
+        assertEquals(charsetIso8859, doc.charset().name().uppercase())
         assertEquals(charsetIso8859, selectedNode.attr("encoding"))
         assertEquals(doc.charset(), doc.outputSettings().charset())
     }
@@ -464,7 +460,7 @@ class DocumentTest {
 
     @Test
     fun testShiftJisRoundtrip() {
-        if (Platform.isJsOrWasm()) {
+        if (!TestHelper.isShiftJsSupported()) {
             // Shift_JIS not supported
             return
         }

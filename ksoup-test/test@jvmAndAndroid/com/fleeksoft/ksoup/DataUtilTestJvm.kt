@@ -5,6 +5,7 @@ import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parser.Parser
 import kotlinx.coroutines.test.runTest
 import java.io.*
+import java.nio.charset.StandardCharsets
 import java.nio.file.Path
 import java.util.zip.GZIPInputStream
 import kotlin.test.Test
@@ -83,7 +84,7 @@ class DataUtilTestJvm {
         val form = doc.select("#form").first()
         assertNotNull(form)
         assertEquals(2, form.children().size)
-        assertEquals("UTF-8", doc.outputSettings().charset().name.uppercase())
+        assertEquals("UTF-8", doc.outputSettings().charset().name().uppercase())
     }
 
     @Test
@@ -163,7 +164,7 @@ class DataUtilTestJvm {
         }
 
         fun inputStreamFrom(s: String): InputStream {
-            return ByteArrayInputStream(s.toByteArray(Charsets.UTF8))
+            return ByteArrayInputStream(s.toByteArray(StandardCharsets.UTF_8))
         }
     }
 }

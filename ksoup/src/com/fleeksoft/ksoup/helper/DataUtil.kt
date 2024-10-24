@@ -1,8 +1,8 @@
 package com.fleeksoft.ksoup.helper
 
+import com.fleeksoft.charset.Charset
 import com.fleeksoft.ksoup.internal.SharedConstants
 import com.fleeksoft.ksoup.internal.StringUtil
-import com.fleeksoft.ksoup.io.Charset
 import com.fleeksoft.ksoup.io.SourceReader
 import com.fleeksoft.ksoup.nodes.Comment
 import com.fleeksoft.ksoup.nodes.Document
@@ -22,7 +22,7 @@ import kotlin.random.Random
  */
 public object DataUtil {
     private val charsetPattern: Regex = Regex("charset=\\s*['\"]?([^\\s,;'\"]*)", RegexOption.IGNORE_CASE)
-    private val defaultCharsetName: String = Charsets.UTF8.name // used if not found in header or meta charset
+    private val defaultCharsetName: String = Charsets.UTF8.name() // used if not found in header or meta charset
     private const val firstReadBufferSize: Long = (1024 * 5).toLong()
     private val mimeBoundaryChars = "-_1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray()
     public const val boundaryLength: Int = 32
@@ -41,7 +41,12 @@ public object DataUtil {
         charsetName: String? = null,
         parser: Parser = Parser.htmlParser(),
     ): Document {
-        return parseInputSource(sourceReader = sourceReader, baseUri = baseUri, charsetName = charsetName, parser = parser)
+        return parseInputSource(
+            sourceReader = sourceReader,
+            baseUri = baseUri,
+            charsetName = charsetName,
+            parser = parser
+        )
     }
 
     /**
@@ -61,9 +66,12 @@ public object DataUtil {
      */
     fun streamParser(sourceReader: SourceReader, baseUri: String, charset: Charset?, parser: Parser): StreamParser {
         val streamer = StreamParser(parser)
-        val charsetName: String? = charset?.name
+        val charsetName: String? = charset?.name()
         val charsetDoc: CharsetDoc = detectCharset(sourceReader, baseUri, charsetName, parser)
-        val reader = BufferedReader(InputSourceReader(source = charsetDoc.input, charset = charsetDoc.charset), SharedConstants.DefaultBufferSize)
+        val reader = BufferedReader(
+            InputSourceReader(source = charsetDoc.input, charset = charsetDoc.charset),
+            SharedConstants.DEFAULT_BYTE_BUFFER_SIZE
+        )
         streamer.parse(reader, baseUri) // initializes the parse and the document, but does not step() it
 
         return streamer
@@ -73,7 +81,8 @@ public object DataUtil {
         val doc: Document
         var charsetDoc: CharsetDoc? = null
         try {
-            charsetDoc = detectCharset(inputSource = sourceReader, baseUri = baseUri, charsetName = charsetName, parser = parser)
+            charsetDoc =
+                detectCharset(inputSource = sourceReader, baseUri = baseUri, charsetName = charsetName, parser = parser)
             doc = parseInputSource(charsetDoc = charsetDoc, baseUri = baseUri, parser = parser)
         } finally {
             sourceReader.close()
@@ -89,7 +98,12 @@ public object DataUtil {
     )
 
 
-    private fun detectCharset(inputSource: SourceReader, baseUri: String, charsetName: String?, parser: Parser): CharsetDoc {
+    private fun detectCharset(
+        inputSource: SourceReader,
+        baseUri: String,
+        charsetName: String?,
+        parser: Parser
+    ): CharsetDoc {
         var effectiveCharsetName: String? = charsetName
 
         var doc: Document? = null
@@ -162,7 +176,8 @@ public object DataUtil {
 
         // finally: prepare the return struct
         if (effectiveCharsetName == null) effectiveCharsetName = defaultCharsetName
-        val charset: Charset = if (effectiveCharsetName == defaultCharsetName) Charsets.UTF8 else Charsets.forName(effectiveCharsetName)
+        val charset: Charset =
+            if (effectiveCharsetName == defaultCharsetName) Charsets.UTF8 else com.fleeksoft.charset.Charsets.forName(effectiveCharsetName)
         return CharsetDoc(charset = charset, doc = doc, input = inputSource)
     }
 
@@ -212,7 +227,6 @@ public object DataUtil {
         return try {
             when {
                 cleanedStr.isCharsetSupported() -> cleanedStr
-                cleanedStr.uppercase().isCharsetSupported() -> cleanedStr.uppercase()
                 else -> null
             }
         } catch (e: IllegalCharsetNameException) {

@@ -1663,19 +1663,18 @@ class ElementTest {
 
     @Test
     fun testNormalizesInvisiblesInText() {
-        val escaped = "This\u00ADis&#x200b;one\u00ADlong\u00ADword"
-        val decoded =
-            "This\u00ADis\u200Bone\u00ADlong\u00ADword" // browser would not display those soft hyphens / other chars, so we don't want them in the text
+        val escaped = "This&shy;is&#x200b;one&shy;long&shy;word"
+        // browser would not display those soft hyphens / other chars, so we don't want them in the text
+        val decoded = "This\u00ADis\u200Bone\u00ADlong\u00ADword"
         val doc = Ksoup.parse("<p>$escaped")
         val p = doc.select("p").first()
-        doc.outputSettings()
-            .charset("ISO-8859-1") // so that the outer html is easier to see with escaped invisibles
+        doc.outputSettings().charset("ascii") // so that the outer html is easier to see with escaped invisibles
         assertEquals("Thisisonelongword", p!!.text()) // text is normalized
-        assertEquals("<p>$escaped</p>", p.outerHtml()) // html / whole text keeps &shy etc;
+        val outHtml = p.outerHtml()
+        assertEquals("<p>$escaped</p>", outHtml) // html / whole text keeps &shy etc;
         assertEquals(decoded, p.textNodes()[0].getWholeText())
-        val matched =
-            doc.select("p:contains(Thisisonelongword)")
-                .first() // really just oneloneword, no invisibles
+        val matched = doc.select("p:contains(Thisisonelongword)")
+            .first() // really just oneloneword, no invisibles
         assertEquals("p", matched!!.nodeName())
         assertTrue(matched.`is`(":containsOwn(Thisisonelongword)"))
     }

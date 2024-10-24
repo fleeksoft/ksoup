@@ -2,15 +2,15 @@ package com.fleeksoft.ksoup.nodes
 
 import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.internal.StringUtil
-import com.fleeksoft.ksoup.io.Charset
 import com.fleeksoft.ksoup.parser.ParseSettings
 import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.parser.Tag
 import com.fleeksoft.ksoup.ported.KCloneable
-import com.fleeksoft.ksoup.ported.io.Charsets
 import com.fleeksoft.ksoup.select.Elements
 import com.fleeksoft.ksoup.select.Evaluator
 import com.fleeksoft.ksoup.select.Selector
+import com.fleeksoft.charset.Charset
+import com.fleeksoft.charset.Charsets
 
 /**
  * A HTML Document.
@@ -316,9 +316,9 @@ public class Document(private val namespace: String, private val location: Strin
             if (syntax == OutputSettings.Syntax.html) {
                 val metaCharset: Element? = selectFirst("meta[charset]")
                 if (metaCharset != null) {
-                    metaCharset.attr("charset", charset().name)
+                    metaCharset.attr("charset", charset().name())
                 } else {
-                    head().appendElement("meta").attr("charset", charset().name)
+                    head().appendElement("meta").attr("charset", charset().name())
                 }
                 select("meta[name=charset]").remove() // Remove obsolete elements
             } else if (syntax == OutputSettings.Syntax.xml) {
@@ -326,18 +326,18 @@ public class Document(private val namespace: String, private val location: Strin
                 if (node is XmlDeclaration) {
                     var decl: XmlDeclaration = node
                     if (decl.name() == "xml") {
-                        decl.attr("encoding", charset().name)
+                        decl.attr("encoding", charset().name())
                         if (decl.hasAttr("version")) decl.attr("version", "1.0")
                     } else {
                         decl = XmlDeclaration("xml", false)
                         decl.attr("version", "1.0")
-                        decl.attr("encoding", charset().name)
+                        decl.attr("encoding", charset().name())
                         prependChild(decl)
                     }
                 } else {
                     val decl = XmlDeclaration("xml", false)
                     decl.attr("version", "1.0")
-                    decl.attr("encoding", charset().name)
+                    decl.attr("encoding", charset().name())
                     prependChild(decl)
                 }
             }
@@ -417,21 +417,8 @@ public class Document(private val namespace: String, private val location: Strin
          * @return the document's output settings, for chaining
          */
         public fun charset(charset: String): OutputSettings {
-            // FIXME: ascii not supported on some targest fallback to ISO-8859-1
-            if (charset.lowercase() == "ascii" || charset.lowercase() == "us-ascii") {
-                runCatching {
-                    charset(Charsets.forName(charset))
-                }.onFailure {
-                    charset(Charsets.forName("ISO-8859-1"))
-                }
-            } else {
-                charset(Charsets.forName(charset))
-            }
+            charset(Charsets.forName(charset))
             return this
-        }
-
-        public fun encoder(): Charset {
-            return charset
         }
 
         /**

@@ -67,7 +67,7 @@ class ParseTest {
             """.trimIndent().openSourceReader()
 
         val doc: Document = Ksoup.parse(sourceReader = input, baseUri = "http://example.com/", charsetName = null)
-        assertEquals("UTF-8", doc.outputSettings().charset().name.uppercase())
+        assertEquals("UTF-8", doc.outputSettings().charset().name().uppercase())
     }
 
     @Test
@@ -82,7 +82,7 @@ class ParseTest {
         }
         val form = doc.select("#form").first()
         assertEquals(2, form!!.children().size)
-        assertEquals("UTF-8", doc.outputSettings().charset().name.uppercase())
+        assertEquals("UTF-8", doc.outputSettings().charset().name().uppercase())
     }
 
     @Test
