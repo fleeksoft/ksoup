@@ -6,8 +6,8 @@ import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.nodes.Range.AttributeRange.Companion.UntrackedAttr
 import com.fleeksoft.ksoup.parser.ParseSettings
 import com.fleeksoft.ksoup.ported.KCloneable
-import com.fleeksoft.ksoup.ported.exception.IOException
-import com.fleeksoft.ksoup.ported.exception.SerializationException
+import com.fleeksoft.ksoup.exception.IOException
+import com.fleeksoft.ksoup.exception.SerializationException
 
 /**
  * The attributes of an Element.

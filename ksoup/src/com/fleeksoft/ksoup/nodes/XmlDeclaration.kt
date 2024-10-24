@@ -1,8 +1,8 @@
 package com.fleeksoft.ksoup.nodes
 
 import com.fleeksoft.ksoup.internal.StringUtil
-import com.fleeksoft.ksoup.ported.exception.IOException
-import com.fleeksoft.ksoup.ported.exception.SerializationException
+import com.fleeksoft.ksoup.exception.IOException
+import com.fleeksoft.ksoup.exception.SerializationException
 
 /**
  * An XML Declaration.

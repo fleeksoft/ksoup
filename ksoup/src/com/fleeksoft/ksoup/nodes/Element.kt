@@ -11,7 +11,7 @@ import com.fleeksoft.ksoup.parser.Tag
 import com.fleeksoft.ksoup.parser.TokenQueue.Companion.escapeCssIdentifier
 import com.fleeksoft.ksoup.ported.AtomicBoolean
 import com.fleeksoft.ksoup.ported.Consumer
-import com.fleeksoft.ksoup.ported.exception.PatternSyntaxException
+import com.fleeksoft.ksoup.exception.PatternSyntaxException
 import com.fleeksoft.ksoup.ported.jsSupportedRegex
 import com.fleeksoft.ksoup.select.*
 import kotlin.js.JsName

@@ -2,8 +2,8 @@ package com.fleeksoft.ksoup.parser
 
 import com.fleeksoft.ksoup.internal.SoftPool
 import com.fleeksoft.ksoup.ported.buildString
-import com.fleeksoft.ksoup.ported.exception.IOException
-import com.fleeksoft.ksoup.ported.exception.UncheckedIOException
+import com.fleeksoft.ksoup.exception.IOException
+import com.fleeksoft.ksoup.exception.UncheckedIOException
 import com.fleeksoft.ksoup.ported.io.Reader
 import com.fleeksoft.ksoup.ported.io.StringReader
 import kotlin.math.abs
