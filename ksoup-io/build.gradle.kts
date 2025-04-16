@@ -14,8 +14,8 @@ mavenPublishing {
         description.set("Ksoup is a Kotlin Multiplatform library for working with HTML and XML, and offers an easy-to-use API for URL fetching, data parsing, extraction, and manipulation using DOM and CSS selectors.")
         licenses {
             license {
-                name.set("Apache-2.0")
-                url.set("https://opensource.org/licenses/Apache-2.0")
+                name.set("MIT License")
+                url.set("https://opensource.org/licenses/MIT")
             }
         }
         url.set("https://github.com/fleeksoft/ksoup")
