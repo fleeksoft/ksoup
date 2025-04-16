@@ -1,3 +1,11 @@
+/*
+ * Kotlin port of jsoup's Safelist.java
+ * Copyright © 2009–2025 Jonathan Hedley
+ * Copyright © 2023–2025 FLEEK SOFT
+ * Licensed under the MIT License
+ * https://jsoup.org
+ */
+
 package com.fleeksoft.ksoup.safety
 /*
     Thank you to Ryan Grove (wonko.com) for the Ruby HTML cleaner http://github.com/rgrove/sanitize/, which inspired

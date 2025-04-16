@@ -1,3 +1,11 @@
+/*
+ * Kotlin port of jsoup's Entities.java
+ * Copyright © 2009–2025 Jonathan Hedley
+ * Copyright © 2023–2025 FLEEK SOFT
+ * Licensed under the MIT License
+ * https://jsoup.org
+ */
+
 @file:OptIn(ExperimentalStdlibApi::class)
 
 package com.fleeksoft.ksoup.nodes
