@@ -11,11 +11,7 @@ package com.fleeksoft.ksoup.nodes
 import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.internal.StringUtil
 
-/**
- * A text node.
- *
- * @author Sabeeh, fleeksoft@gmail.com
- */
+
 public open class TextNode(text: String) : LeafNode(text) {
 
     override fun nodeName(): String {

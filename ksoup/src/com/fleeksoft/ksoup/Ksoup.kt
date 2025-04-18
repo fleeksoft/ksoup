@@ -12,7 +12,6 @@ import com.fleeksoft.ksoup.safety.Safelist
 /**
  * The core public access point to the com.fleeksoft.ksoup functionality.
  *
- * @author Sabeeh
  */
 public object Ksoup {
 

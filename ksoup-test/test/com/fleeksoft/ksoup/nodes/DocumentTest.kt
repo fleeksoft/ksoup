@@ -16,7 +16,6 @@ import kotlin.test.*
 /**
  * Tests for Document.
  *
- * @author Sabeeh, fleeksoft@gmail.com
  */
 class DocumentTest {
 

@@ -11,7 +11,6 @@ import kotlin.test.*
 /**
  * Tests that the selector selects correctly.
  *
- * @author Sabeeh, fleeksoft@gmail.com
  */
 class SelectorTest {
 

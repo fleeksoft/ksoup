@@ -9,7 +9,6 @@ import kotlin.test.assertTrue
 /**
  * Test suite for attribute parser.
  *
- * @author Sabeeh, fleeksoft@gmail.com
  */
 class AttributeParseTest {
 

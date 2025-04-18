@@ -13,7 +13,6 @@ import kotlin.test.*
 /**
  * Tests for the cleaner.
  *
- * @author Sabeeh, fleeksoft@gmail.com
  */
 class CleanerTest {
 

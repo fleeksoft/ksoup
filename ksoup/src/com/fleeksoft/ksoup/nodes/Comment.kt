@@ -14,7 +14,6 @@ import com.fleeksoft.ksoup.parser.Parser
 /**
  * A comment node.
  *
- * @author Sabeeh, fleeksoft@gmail.com
  */
 public class Comment(data: String) : LeafNode(data) {
     override fun nodeName(): String {

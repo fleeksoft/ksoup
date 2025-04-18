@@ -11,7 +11,6 @@ import kotlin.test.*
 /**
  * Tests Nodes
  *
- * @author Sabeeh, fleeksoft@gmail.com
  */
 class NodeTest {
 

@@ -14,7 +14,6 @@ import com.fleeksoft.ksoup.internal.StringUtil
 /**
  * A character queue with parsing helpers.
  *
- * @author Sabeeh
  */
 public class TokenQueue(data: String) {
     private var queue: String

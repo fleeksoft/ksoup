@@ -15,7 +15,6 @@ import kotlin.test.*
 /**
  * Tests for Element (DOM stuff mostly).
  *
- * @author Sabeeh
  */
 class ElementTest {
 

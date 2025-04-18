@@ -11,7 +11,6 @@ import kotlin.test.Test
 /**
  * Tests for ElementList.
  *
- * @author Sabeeh, fleeksoft@gmail.com
  */
 class ElementsTest {
 

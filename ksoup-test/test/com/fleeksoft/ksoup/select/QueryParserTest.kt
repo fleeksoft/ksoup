@@ -9,7 +9,6 @@ import kotlin.test.assertFailsWith
 /**
  * Tests for the Selector Query Parser.
  *
- * @author Sabeeh
  */
 class QueryParserTest {
 

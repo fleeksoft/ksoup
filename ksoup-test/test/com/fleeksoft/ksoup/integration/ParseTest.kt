@@ -12,7 +12,6 @@ import kotlin.test.*
 /**
  * Integration test: parses from real-world example HTML.
  *
- * @author Sabeeh, fleeksoft@gmail.com
  */
 class ParseTest {
 

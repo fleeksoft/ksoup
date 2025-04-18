@@ -21,12 +21,6 @@ import com.fleeksoft.charset.Charset
 import com.fleeksoft.charset.Charsets
 
 /**
- * A HTML Document.
- *
- * @author Sabeeh, fleeksoft@gmail.com
- */
-
-/**
  * Create a new, empty Document, in the specified namespace.
  * @param namespace the namespace of this Document's root node.
  * @param location base URI of document

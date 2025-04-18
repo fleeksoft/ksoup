@@ -18,7 +18,6 @@ import kotlin.jvm.JvmOverloads
 /**
  * Tag capabilities.
  *
- * @author Sabeeh, fleeksoft@gmail.com
  */
 public data class Tag(
     /**

@@ -15,9 +15,6 @@ import com.fleeksoft.io.Reader
 import com.fleeksoft.io.StringReader
 import com.fleeksoft.ksoup.select.NodeVisitor
 
-/**
- * @author Sabeeh
- */
 public abstract class TreeBuilder {
     public lateinit var parser: Parser
         internal set

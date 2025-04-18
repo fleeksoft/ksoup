@@ -26,7 +26,6 @@ import kotlin.reflect.cast
  *
  * Methods that [set][.set], [remove][.remove], or [replace][.replaceAll] Elements in the list will also act on the underlying [DOM][com.fleeksoft.ksoup.nodes.Document].
  *
- * @author Sabeeh, fleeksoft@gmail.com
  */
 public class Elements(private val delegateList: MutableList<Element> = mutableListOf()) :
     MutableList<Element> by delegateList {

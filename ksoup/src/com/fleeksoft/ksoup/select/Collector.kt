@@ -13,7 +13,6 @@ import com.fleeksoft.ksoup.nodes.Element
 /**
  * Collects a list of elements that match the supplied criteria.
  *
- * @author Sabeeh
  */
 internal object Collector {
     /**

@@ -5,7 +5,6 @@ import kotlin.test.*
 
 /**
  * Tag tests.
- * @author Sabeeh, fleeksoft@gmail.com
  */
 class TagTest {
 

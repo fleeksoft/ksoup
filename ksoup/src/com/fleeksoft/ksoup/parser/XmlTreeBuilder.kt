@@ -19,7 +19,6 @@ import com.fleeksoft.io.StringReader
  *
  * Usage example: `Document xmlDoc = Ksoup.parse(html, baseUrl, Parser.xmlParser());`
  *
- * @author Sabeeh
  */
 public open class XmlTreeBuilder : TreeBuilder() {
     override fun defaultSettings(): ParseSettings {

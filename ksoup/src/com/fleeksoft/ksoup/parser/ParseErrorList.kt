@@ -8,11 +8,7 @@
 
 package com.fleeksoft.ksoup.parser
 
-/**
- * A container for ParseErrors.
- *
- * @author Sabeeh
- */
+
 public class ParseErrorList private constructor(
     private val initialCapacity: Int,
     public val maxSize: Int,

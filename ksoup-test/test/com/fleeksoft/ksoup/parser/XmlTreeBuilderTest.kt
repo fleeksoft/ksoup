@@ -13,7 +13,6 @@ import kotlin.test.*
 /**
  * Tests XmlTreeBuilder.
  *
- * @author Sabeeh
  */
 class XmlTreeBuilderTest {
 

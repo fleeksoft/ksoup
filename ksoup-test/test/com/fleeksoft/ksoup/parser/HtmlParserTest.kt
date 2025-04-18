@@ -11,7 +11,6 @@ import kotlin.test.*
 /**
  * Tests for the Parser
  *
- * @author Sabeeh, fleeksoft@gmail.com
  */
 class HtmlParserTest {
 

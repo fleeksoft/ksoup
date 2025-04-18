@@ -6,7 +6,6 @@ import kotlin.test.*
 /**
  * Tests for Attributes.
  *
- * @author Sabeeh
  */
 class AttributesTest {
 
