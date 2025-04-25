@@ -2,7 +2,6 @@ package com.fleeksoft.ksoup.nodes
 
 import com.fleeksoft.ksoup.Ksoup
 import kotlin.test.*
-import kotlin.test.Test
 
 class CommentTest {
     private val comment = Comment(" This is one heck of a comment! ")
@@ -44,11 +43,10 @@ class CommentTest {
         val doc = Ksoup.parse(html)
         val out = doc.body().html()
         assertEquals(
-            """<div>
- <!-- comment --> Text
-</div>
-<p><!-- comment --> Text</p>""",
-            out,
+            "<div>\n" +
+                    " <!-- comment -->\n Text\n" +
+                    "</div>\n" +
+                    "<p><!-- comment --> Text</p>", out
         )
         val doc2 = Ksoup.parse(out)
         val out2 = doc2.body().html()
