@@ -14,6 +14,7 @@ import com.fleeksoft.ksoup.parser.Parser
 import kotlinx.coroutines.test.runTest
 import kotlin.test.*
 
+
 class DataUtilTest {
 
     @Test
@@ -216,8 +217,7 @@ class DataUtilTest {
             baseUri = "http://example.com",
             charset = null,
             parser = parser
-        )
-            .complete()
+        ).complete()
         assertContains(doc.title(), "UTF-16LE")
         assertContains(doc.text(), "가각갂갃간갅")
 
@@ -232,8 +232,7 @@ class DataUtilTest {
             baseUri = "http://example.com",
             charset = null,
             parser = parser
-        )
-            .complete()
+        ).complete()
         assertContains(doc.title(), "UTF-32BE")
         assertContains(doc.text(), "가각갂갃간갅")
 
@@ -243,8 +242,7 @@ class DataUtilTest {
             baseUri = "http://example.com",
             charset = null,
             parser = parser
-        )
-            .complete()
+        ).complete()
         assertContains(doc.title(), "UTF-32LE")
         assertContains(doc.text(), "가각갂갃간갅")
     }
