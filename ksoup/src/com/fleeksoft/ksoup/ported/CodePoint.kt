@@ -1,7 +1,5 @@
 package com.fleeksoft.ksoup.ported
 
-import kotlin.jvm.JvmInline
-
 /**
  * Represents a Unicode code point.
  *
