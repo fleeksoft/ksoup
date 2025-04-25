@@ -8,11 +8,14 @@
 
 package com.fleeksoft.ksoup.parser
 
+import com.fleeksoft.io.Reader
+import com.fleeksoft.io.StringReader
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.nodes.Element
 import com.fleeksoft.ksoup.nodes.Node
-import com.fleeksoft.io.Reader
-import com.fleeksoft.io.StringReader
+import com.fleeksoft.ksoup.nodes.TagSet
+import com.fleeksoft.ksoup.ported.KCloneable
+import kotlin.js.JsName
 
 /**
  * Parses HTML or XML into a [com.fleeksoft.ksoup.nodes.Document]. Generally, it is simpler to use one of the parse methods in
@@ -20,10 +23,13 @@ import com.fleeksoft.io.StringReader
  *
  * Note that a Parser instance object is not threadsafe. To reuse a Parser configuration in a multi-threaded
  * environment, use [.newInstance] to make copies.  */
-public class Parser {
+public class Parser: KCloneable<Parser> {
     private var treeBuilder: TreeBuilder
     private var errors: ParseErrorList
     private var settings: ParseSettings?
+    @JsName("_tagSet")
+    var tagSet: TagSet? = null
+        private set
 
     /**
      * Test if position tracking is enabled. If it is, Nodes will have a Position to track where in the original input
@@ -51,6 +57,10 @@ public class Parser {
         return Parser(this)
     }
 
+    public override fun clone(): Parser {
+        return Parser(this)
+    }
+
     private constructor(copy: Parser) {
         treeBuilder = copy.treeBuilder.newInstance() // because extended
         errors = ParseErrorList(copy.errors) // only copies size, not contents
@@ -59,7 +69,7 @@ public class Parser {
     }
 
     public fun parseInput(input: String, baseUri: String): Document {
-        return treeBuilder.parse(StringReader(input), baseUri, this)
+        return parseInput(StringReader(input), baseUri)
     }
 
     public fun parseInput(reader: Reader, baseUri: String): Document {
@@ -67,9 +77,13 @@ public class Parser {
     }
 
     public fun parseFragmentInput(fragment: String, context: Element?, baseUri: String): List<Node> {
+        return parseFragmentInput(StringReader(fragment), context, baseUri)
+    }
+
+
+    fun parseFragmentInput(fragment: Reader, context: Element?, baseUri: String): List<Node> {
         return treeBuilder.parseFragment(fragment, context, baseUri, this)
     }
-    // gets & sets
 
     /**
      * Get the TreeBuilder currently in use.
@@ -142,11 +156,38 @@ public class Parser {
     }
 
     /**
+     * Set a custom TagSet to use for this Parser. This allows you to define your own tags, and control how they are
+     * parsed. For example, you can set a tag to preserve whitespace, or to be treated as a block tag.
+     *
+     * You can start with the [TagSet.Html] defaults and customize, or a new empty TagSet.
+     *
+     * @param tagSet the TagSet to use. This gets copied, so that changes that the parse makes (tags found in the document will be added) do not clobber the original TagSet.
+     * @return this Parser
+     * @since 1.20.1
+     */
+    fun tagSet(tagSet: TagSet): Parser {
+        this.tagSet = TagSet(tagSet) // copy it as we are going to mutate it
+        return this
+    }
+
+    /**
+     * Get the current TagSet for this Parser, which will be either this parser's default, or one that you have set.
+     * @return the current TagSet. After the parse, this will contain any new tags that were found in the document.
+     * @since 1.20.1
+     */
+    fun tagSet(): TagSet {
+        if (tagSet == null)
+            tagSet = treeBuilder.defaultTagSet()
+        return tagSet!!
+    }
+
+    /**
      * (An internal method, visible for Element. For HTML parse, signals that script and style text should be treated as
      * Data Nodes).
      */
+    @Deprecated("internal method, no longer used, and will be removed")
     public fun isContentForTagData(normalName: String): Boolean {
-        return getTreeBuilder().isContentForTagData(normalName)
+        return tagSet().valueOf(normalName, defaultNamespace()).`is`(Tag.Data)
     }
 
     public fun defaultNamespace(): String {
@@ -195,7 +236,7 @@ public class Parser {
             if (errorList != null) {
                 parser.errors = errorList
             }
-            return treeBuilder.parseFragment(fragmentHtml, context, baseUri, parser)
+            return treeBuilder.parseFragment(StringReader(fragmentHtml), context, baseUri, parser)
         }
 
         /**
@@ -205,12 +246,9 @@ public class Parser {
          * @param baseUri base URI of document (i.e. original fetch location), for resolving relative URLs.
          * @return list of nodes parsed from the input XML.
          */
-        public fun parseXmlFragment(
-            fragmentXml: String,
-            baseUri: String,
-        ): List<Node> {
+        public fun parseXmlFragment(fragmentXml: String, baseUri: String): List<Node> {
             val treeBuilder = XmlTreeBuilder()
-            return treeBuilder.parseFragment(fragmentXml, null, baseUri, Parser(treeBuilder))
+            return treeBuilder.parseFragment(StringReader(fragmentXml), null, baseUri, Parser(treeBuilder))
         }
 
         /**

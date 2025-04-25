@@ -27,7 +27,6 @@ class HtmlTreeBuilderStateTest {
         HtmlTreeBuilderState.Constants.InBodyEndClosers,
         HtmlTreeBuilderState.Constants.InBodyEndOtherErrors,
         HtmlTreeBuilderState.Constants.InBodyEndAdoptionFormatters,
-        HtmlTreeBuilderState.Constants.InBodyEndTableFosters,
         HtmlTreeBuilderState.Constants.InTableToBody,
         HtmlTreeBuilderState.Constants.InTableAddBody,
         HtmlTreeBuilderState.Constants.InTableToHead,
@@ -56,7 +55,7 @@ class HtmlTreeBuilderStateTest {
         ensureSorted(
             constantArrays,
         )
-        assertEquals(40, constantArrays.size)
+        assertEquals(39, constantArrays.size)
     }
 
     @Test

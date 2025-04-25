@@ -8,6 +8,7 @@
 
 package com.fleeksoft.ksoup.parser
 
+import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.nodes.DocumentType
 
 /**
@@ -39,7 +40,7 @@ public enum class TokeniserState {
             readCharRef(t, Data)
         }
     },
-    Rcdata {
+    Rcdata { // Rcdata has text with character references
         // / handles data in title, textarea etc
         override fun read(t: Tokeniser, r: CharacterReader) {
             when (r.current()) {
@@ -98,8 +99,12 @@ public enum class TokeniserState {
                 '!' -> t.advanceTransition(MarkupDeclarationOpen)
                 '/' -> t.advanceTransition(EndTagOpen)
                 '?' -> {
-                    t.createBogusCommentPending()
-                    t.transition(BogusComment)
+                    if (t.syntax == Document.OutputSettings.Syntax.xml) {
+                        t.advanceTransition(MarkupProcessingOpen)
+                    } else {
+                        t.createBogusCommentPending()
+                        t.transition(TokeniserState.BogusComment)
+                    }
                 }
 
                 else ->
@@ -175,7 +180,7 @@ public enum class TokeniserState {
                 t.emitTagPending()
                 t.transition(TagOpen) // straight into TagOpen, as we came from < and looks like we're on a start tag
             } else {
-                t.emit("<")
+                t.emit('<')
                 t.transition(Rcdata)
             }
         }
@@ -236,7 +241,7 @@ public enum class TokeniserState {
 
         private fun anythingElse(t: Tokeniser, r: CharacterReader) {
             t.emit("</")
-            t.emit(t.dataBuffer)
+            t.emit(t.dataBuffer.value())
             r.unconsume()
             t.transition(Rcdata)
         }
@@ -276,13 +281,13 @@ public enum class TokeniserState {
                 }
 
                 eof -> {
-                    t.emit("<")
+                    t.emit('<')
                     t.eofError(this)
                     t.transition(Data)
                 }
 
                 else -> {
-                    t.emit("<")
+                    t.emit('<')
                     r.unconsume()
                     t.transition(ScriptData)
                 }
@@ -412,7 +417,7 @@ public enum class TokeniserState {
             if (r.matchesAsciiAlpha()) {
                 t.createTempBuffer()
                 t.dataBuffer.append(r.current())
-                t.emit("<")
+                t.emit('<')
                 t.emit(r.current())
                 t.advanceTransition(ScriptDataDoubleEscapeStart)
             } else if (r.matches('/')) {
@@ -590,6 +595,18 @@ public enum class TokeniserState {
                     t.transition(AttributeName)
                 }
 
+                '?' -> {
+                    // Handle trailing ? in <?xml...?>
+                    // Explicitly check the condition, as Kotlin's 'when' doesn't fall through by default
+                    if (t.tagPending !is Token.XmlDecl) {
+                        // If not an XmlDecl, execute the default logic
+                        t.tagPending.newAttribute()
+                        r.unconsume()
+                        t.transition(AttributeName)
+                    }
+                    // If it *is* an XmlDecl, do nothing (like the Java break)
+                }
+
                 else -> {
                     t.tagPending.newAttribute()
                     r.unconsume()
@@ -624,6 +641,14 @@ public enum class TokeniserState {
                 '"', '\'', '<' -> {
                     t.error(this)
                     t.tagPending.appendAttributeName(c, pos, r.pos())
+                }
+
+                '?' -> {
+                    if (t.syntax == Document.OutputSettings.Syntax.xml && t.tagPending is Token.XmlDecl) {
+                        t.transition(AfterAttributeName)
+                    } else {
+                        t.tagPending.appendAttributeName(c, pos, r.pos())
+                    }
                 }
 
                 else -> t.tagPending.appendAttributeName(c, pos, r.pos())
@@ -840,6 +865,16 @@ public enum class TokeniserState {
                     t.transition(Data)
                 }
 
+                '?' -> { // Handle trailing ? in <?xml...?>
+                    if (t.tagPending is Token.XmlDecl) {
+                        // do nothing (break equivalent)
+                    } else {
+                        r.unconsume()
+                        t.error(this)
+                        t.transition(BeforeAttributeName)
+                    }
+                }
+
                 else -> {
                     r.unconsume()
                     t.error(this)
@@ -853,7 +888,7 @@ public enum class TokeniserState {
             val c: Char = r.consume()
             when (c) {
                 '>' -> {
-                    t.tagPending.isSelfClosing = true
+                    t.tagPending.selfClosing = true
                     t.emitTagPending()
                     t.transition(Data)
                 }
@@ -884,7 +919,7 @@ public enum class TokeniserState {
             }
         }
     },
-    MarkupDeclarationOpen {
+    MarkupDeclarationOpen { // from <!
         override fun read(t: Tokeniser, r: CharacterReader) {
             if (r.matchConsume("--")) {
                 t.createCommentPending()
@@ -898,8 +933,26 @@ public enum class TokeniserState {
                 t.createTempBuffer()
                 t.transition(CdataSection)
             } else {
+                if (t.syntax == Document.OutputSettings.Syntax.xml && r.matchesAsciiAlpha()) {
+                    t.createXmlDeclPending(true)
+                    t.transition(TagName) // treat <!ENTITY as XML Declaration, with tag-like handling
+                } else {
+                    t.error(this)
+                    t.createBogusCommentPending()
+                    t.transition(BogusComment)
+                }
+            }
+        }
+    },
+    MarkupProcessingOpen { // From <? in syntax XML
+        override fun read(t: Tokeniser, r: CharacterReader) {
+            if (r.matchesAsciiAlpha()) {
+                t.createXmlDeclPending(false)
+                t.transition(TagName) // treat <?xml... as XML Declaration (processing instruction), with tag-like handling
+            } else {
                 t.error(this)
                 t.createBogusCommentPending()
+                t.commentPending.append('?') // push the ? to the start of the comment
                 t.transition(BogusComment)
             }
         }
@@ -1077,7 +1130,7 @@ public enum class TokeniserState {
                     t.eofError(this)
                     t.error(this)
                     t.createDoctypePending()
-                    t.doctypePending.isForceQuirks = true
+                    t.doctypePending.forceQuirks = true
                     t.emitDoctypePending()
                     t.transition(Data)
                 }
@@ -1085,7 +1138,7 @@ public enum class TokeniserState {
                 '>' -> {
                     t.error(this)
                     t.createDoctypePending()
-                    t.doctypePending.isForceQuirks = true
+                    t.doctypePending.forceQuirks = true
                     t.emitDoctypePending()
                     t.transition(Data)
                 }
@@ -1116,7 +1169,7 @@ public enum class TokeniserState {
                 eof -> {
                     t.eofError(this)
                     t.createDoctypePending()
-                    t.doctypePending.isForceQuirks = true
+                    t.doctypePending.forceQuirks = true
                     t.emitDoctypePending()
                     t.transition(Data)
                 }
@@ -1131,7 +1184,7 @@ public enum class TokeniserState {
     },
     DoctypeName {
         override fun read(t: Tokeniser, r: CharacterReader) {
-            if (r.matchesLetter()) {
+            if (r.matchesAsciiAlpha()) {
                 val name: String = r.consumeLetterSequence()
                 t.doctypePending.name.append(name)
                 return
@@ -1150,7 +1203,7 @@ public enum class TokeniserState {
 
                 eof -> {
                     t.eofError(this)
-                    t.doctypePending.isForceQuirks = true
+                    t.doctypePending.forceQuirks = true
                     t.emitDoctypePending()
                     t.transition(Data)
                 }
@@ -1163,7 +1216,7 @@ public enum class TokeniserState {
         override fun read(t: Tokeniser, r: CharacterReader) {
             if (r.isEmpty()) {
                 t.eofError(this)
-                t.doctypePending.isForceQuirks = true
+                t.doctypePending.forceQuirks = true
                 t.emitDoctypePending()
                 t.transition(Data)
                 return
@@ -1181,7 +1234,7 @@ public enum class TokeniserState {
                 t.transition(AfterDoctypeSystemKeyword)
             } else {
                 t.error(this)
-                t.doctypePending.isForceQuirks = true
+                t.doctypePending.forceQuirks = true
                 t.advanceTransition(BogusDoctype)
             }
         }
@@ -1205,21 +1258,21 @@ public enum class TokeniserState {
 
                 '>' -> {
                     t.error(this)
-                    t.doctypePending.isForceQuirks = true
+                    t.doctypePending.forceQuirks = true
                     t.emitDoctypePending()
                     t.transition(Data)
                 }
 
                 eof -> {
                     t.eofError(this)
-                    t.doctypePending.isForceQuirks = true
+                    t.doctypePending.forceQuirks = true
                     t.emitDoctypePending()
                     t.transition(Data)
                 }
 
                 else -> {
                     t.error(this)
-                    t.doctypePending.isForceQuirks = true
+                    t.doctypePending.forceQuirks = true
                     t.transition(BogusDoctype)
                 }
             }
@@ -1238,21 +1291,21 @@ public enum class TokeniserState {
 
                 '>' -> {
                     t.error(this)
-                    t.doctypePending.isForceQuirks = true
+                    t.doctypePending.forceQuirks = true
                     t.emitDoctypePending()
                     t.transition(Data)
                 }
 
                 eof -> {
                     t.eofError(this)
-                    t.doctypePending.isForceQuirks = true
+                    t.doctypePending.forceQuirks = true
                     t.emitDoctypePending()
                     t.transition(Data)
                 }
 
                 else -> {
                     t.error(this)
-                    t.doctypePending.isForceQuirks = true
+                    t.doctypePending.forceQuirks = true
                     t.transition(BogusDoctype)
                 }
             }
@@ -1269,14 +1322,14 @@ public enum class TokeniserState {
 
                 '>' -> {
                     t.error(this)
-                    t.doctypePending.isForceQuirks = true
+                    t.doctypePending.forceQuirks = true
                     t.emitDoctypePending()
                     t.transition(Data)
                 }
 
                 eof -> {
                     t.eofError(this)
-                    t.doctypePending.isForceQuirks = true
+                    t.doctypePending.forceQuirks = true
                     t.emitDoctypePending()
                     t.transition(Data)
                 }
@@ -1299,14 +1352,14 @@ public enum class TokeniserState {
 
                 '>' -> {
                     t.error(this)
-                    t.doctypePending.isForceQuirks = true
+                    t.doctypePending.forceQuirks = true
                     t.emitDoctypePending()
                     t.transition(Data)
                 }
 
                 eof -> {
                     t.eofError(this)
-                    t.doctypePending.isForceQuirks = true
+                    t.doctypePending.forceQuirks = true
                     t.emitDoctypePending()
                     t.transition(Data)
                 }
@@ -1343,14 +1396,14 @@ public enum class TokeniserState {
 
                 eof -> {
                     t.eofError(this)
-                    t.doctypePending.isForceQuirks = true
+                    t.doctypePending.forceQuirks = true
                     t.emitDoctypePending()
                     t.transition(Data)
                 }
 
                 else -> {
                     t.error(this)
-                    t.doctypePending.isForceQuirks = true
+                    t.doctypePending.forceQuirks = true
                     t.transition(BogusDoctype)
                 }
             }
@@ -1380,14 +1433,14 @@ public enum class TokeniserState {
 
                 eof -> {
                     t.eofError(this)
-                    t.doctypePending.isForceQuirks = true
+                    t.doctypePending.forceQuirks = true
                     t.emitDoctypePending()
                     t.transition(Data)
                 }
 
                 else -> {
                     t.error(this)
-                    t.doctypePending.isForceQuirks = true
+                    t.doctypePending.forceQuirks = true
                     t.transition(BogusDoctype)
                 }
             }
@@ -1400,7 +1453,7 @@ public enum class TokeniserState {
                 '\t', '\n', '\r', '\u000c', ' ' -> t.transition(BeforeDoctypeSystemIdentifier)
                 '>' -> {
                     t.error(this)
-                    t.doctypePending.isForceQuirks = true
+                    t.doctypePending.forceQuirks = true
                     t.emitDoctypePending()
                     t.transition(Data)
                 }
@@ -1419,14 +1472,14 @@ public enum class TokeniserState {
 
                 eof -> {
                     t.eofError(this)
-                    t.doctypePending.isForceQuirks = true
+                    t.doctypePending.forceQuirks = true
                     t.emitDoctypePending()
                     t.transition(Data)
                 }
 
                 else -> {
                     t.error(this)
-                    t.doctypePending.isForceQuirks = true
+                    t.doctypePending.forceQuirks = true
                     t.emitDoctypePending()
                 }
             }
@@ -1445,21 +1498,21 @@ public enum class TokeniserState {
 
                 '>' -> {
                     t.error(this)
-                    t.doctypePending.isForceQuirks = true
+                    t.doctypePending.forceQuirks = true
                     t.emitDoctypePending()
                     t.transition(Data)
                 }
 
                 eof -> {
                     t.eofError(this)
-                    t.doctypePending.isForceQuirks = true
+                    t.doctypePending.forceQuirks = true
                     t.emitDoctypePending()
                     t.transition(Data)
                 }
 
                 else -> {
                     t.error(this)
-                    t.doctypePending.isForceQuirks = true
+                    t.doctypePending.forceQuirks = true
                     t.transition(BogusDoctype)
                 }
             }
@@ -1476,14 +1529,14 @@ public enum class TokeniserState {
 
                 '>' -> {
                     t.error(this)
-                    t.doctypePending.isForceQuirks = true
+                    t.doctypePending.forceQuirks = true
                     t.emitDoctypePending()
                     t.transition(Data)
                 }
 
                 eof -> {
                     t.eofError(this)
-                    t.doctypePending.isForceQuirks = true
+                    t.doctypePending.forceQuirks = true
                     t.emitDoctypePending()
                     t.transition(Data)
                 }
@@ -1503,14 +1556,14 @@ public enum class TokeniserState {
 
                 '>' -> {
                     t.error(this)
-                    t.doctypePending.isForceQuirks = true
+                    t.doctypePending.forceQuirks = true
                     t.emitDoctypePending()
                     t.transition(Data)
                 }
 
                 eof -> {
                     t.eofError(this)
-                    t.doctypePending.isForceQuirks = true
+                    t.doctypePending.forceQuirks = true
                     t.emitDoctypePending()
                     t.transition(Data)
                 }
@@ -1531,7 +1584,7 @@ public enum class TokeniserState {
 
                 eof -> {
                     t.eofError(this)
-                    t.doctypePending.isForceQuirks = true
+                    t.doctypePending.forceQuirks = true
                     t.emitDoctypePending()
                     t.transition(Data)
                 }
@@ -1566,7 +1619,7 @@ public enum class TokeniserState {
             val data: String = r.consumeTo("]]>")
             t.dataBuffer.append(data)
             if (r.matchConsume("]]>") || r.isEmpty()) {
-                t.emit(Token.CData(t.dataBuffer.toString()))
+                t.emit(Token.CData(t.dataBuffer.value()))
                 t.transition(Data)
             } // otherwise, buffer underrun, stay in data section
         }
@@ -1580,7 +1633,7 @@ public enum class TokeniserState {
 
         // char searches. must be sorted, used in inSorted. MUST update TokenisetStateTest if more arrays are added.
         public val attributeNameCharsSorted: CharArray =
-            charArrayOf('\t', '\n', '\u000c', '\r', ' ', '"', '\'', '/', '<', '=', '>')
+            charArrayOf('\t', '\n', '\u000c', '\r', ' ', '"', '\'', '/', '<', '=', '>', '?')
         public val attributeValueUnquoted: CharArray = charArrayOf(
             nullChar,
             '\t',
@@ -1604,12 +1657,8 @@ public enum class TokeniserState {
          * Handles RawtextEndTagName, ScriptDataEndTagName, and ScriptDataEscapedEndTagName. Same body impl, just
          * different else exit transitions.
          */
-        private fun handleDataEndTag(
-            t: Tokeniser,
-            r: CharacterReader,
-            elseTransition: TokeniserState,
-        ) {
-            if (r.matchesLetter()) {
+        private fun handleDataEndTag(t: Tokeniser, r: CharacterReader, elseTransition: TokeniserState) {
+            if (r.matchesAsciiAlpha()) {
                 val name: String = r.consumeLetterSequence()
                 t.tagPending.appendTagName(name)
                 t.dataBuffer.append(name)
@@ -1635,7 +1684,7 @@ public enum class TokeniserState {
             }
             if (needsExitTransition) {
                 t.emit("</")
-                t.emit(t.dataBuffer)
+                t.emit(t.dataBuffer.value())
                 t.transition(elseTransition)
             }
         }
@@ -1679,7 +1728,7 @@ public enum class TokeniserState {
             primary: TokeniserState,
             fallback: TokeniserState
         ) {
-            if (r.matchesLetter()) {
+            if (r.matchesAsciiAlpha()) {
                 val name: String = r.consumeLetterSequence()
                 t.dataBuffer.append(name)
                 t.emit(name)
@@ -1687,7 +1736,7 @@ public enum class TokeniserState {
             }
             when (val c: Char = r.consume()) {
                 '\t', '\n', '\r', '\u000c', ' ', '/', '>' -> {
-                    if (t.dataBuffer.toString() == "script") {
+                    if (t.dataBuffer.value() == "script") {
                         t.transition(primary)
                     } else {
                         t.transition(fallback)

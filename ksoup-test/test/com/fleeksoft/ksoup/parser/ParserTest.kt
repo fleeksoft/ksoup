@@ -6,6 +6,7 @@ import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parseInput
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotSame
 
 class ParserTest {
 
@@ -34,5 +35,26 @@ class ParserTest {
         )
         val text = parsed.selectFirst("p")?.wholeText()
         assertEquals("H\u00E9llo, w\u00F6rld!", text)
+    }
+
+    @Test
+    fun testClone() {
+        // Test HTML parser cloning
+        val htmlParser = Parser.htmlParser()
+        val htmlClone = htmlParser.clone()
+        assertNotSame(htmlParser, htmlClone)
+        // Ensure the tree builder instances are different
+        assertNotSame(htmlParser.getTreeBuilder(), htmlClone.getTreeBuilder())
+        // Check that settings are cloned properly (for example, tag case settings)
+        assertEquals(htmlParser.settings()!!.preserveTagCase(), htmlClone.settings()!!.preserveTagCase())
+        assertEquals(htmlParser.settings()!!.preserveAttributeCase(), htmlClone.settings()!!.preserveAttributeCase())
+
+        // Test XML parser cloning
+        val xmlParser = Parser.xmlParser()
+        val xmlClone = xmlParser.clone()
+        assertNotSame(xmlParser, xmlClone)
+        assertNotSame(xmlParser.getTreeBuilder(), xmlClone.getTreeBuilder())
+        assertEquals(xmlParser.settings()!!.preserveTagCase(), xmlClone.settings()!!.preserveTagCase())
+        assertEquals(xmlParser.settings()!!.preserveAttributeCase(), xmlClone.settings()!!.preserveAttributeCase())
     }
 }
