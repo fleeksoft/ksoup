@@ -29,7 +29,7 @@ object TestHelper {
         if (Platform.isWindows() && BuildConfig.isKorlibs && absForWindows) {
             return "../../../../testResources/$resourceName"
         } else if (Platform.isJsOrWasm() && BuildConfig.isKorlibs) {
-            return "https://raw.githubusercontent.com/fleeksoft/ksoup/release/ksoup-test/testResources/$resourceName"
+            return "https://raw.githubusercontent.com/fleeksoft/ksoup/release-0.2.3/ksoup-test/testResources/$resourceName"
         }
         return "${BuildConfig.PROJECT_ROOT}/ksoup-test/testResources/$resourceName"
     }
