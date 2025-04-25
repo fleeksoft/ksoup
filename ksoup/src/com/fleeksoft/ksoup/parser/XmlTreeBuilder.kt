@@ -8,10 +8,12 @@
 
 package com.fleeksoft.ksoup.parser
 
-import com.fleeksoft.ksoup.nodes.*
-import com.fleeksoft.ksoup.parser.Parser.Companion.NamespaceXml
 import com.fleeksoft.io.Reader
 import com.fleeksoft.io.StringReader
+import com.fleeksoft.ksoup.internal.SharedConstants
+import com.fleeksoft.ksoup.nodes.*
+import com.fleeksoft.ksoup.parser.Parser.Companion.NamespaceXml
+
 
 /**
  * Use the `XmlTreeBuilder` when you want to parse XML without any of the HTML DOM rules being applied to the
@@ -21,6 +23,8 @@ import com.fleeksoft.io.StringReader
  *
  */
 public open class XmlTreeBuilder : TreeBuilder() {
+    private val namespacesStack: ArrayDeque<HashMap<String, String>> = ArrayDeque<HashMap<String, String>>() // stack of namespaces, prefix => urn
+
     override fun defaultSettings(): ParseSettings {
         return ParseSettings.preserveCase
     }
@@ -31,23 +35,45 @@ public open class XmlTreeBuilder : TreeBuilder() {
             .syntax(Document.OutputSettings.Syntax.xml)
             .escapeMode(Entities.EscapeMode.xhtml)
             .prettyPrint(false) // as XML, we don't understand what whitespace is significant or not
+
+        namespacesStack.clear()
+        val ns = hashMapOf<String, String>()
+        ns["xml"] = NamespaceXml
+        ns[""] = NamespaceXml
+        namespacesStack.add(ns)
     }
+
+    override fun initialiseParseFragment(context: Element?) {
+        super.initialiseParseFragment(context)
+        if (context == null) return
+
+        // transition to the tag's text state if available
+        val textState: TokeniserState? = context.tag().textState()
+        if (textState != null) tokeniser?.transition(textState)
+
+        // reconstitute the namespace stack by traversing the element and its parents (top down)
+        val chain = context.parents() // Assuming 'parents()' returns a MutableList<Element>
+        chain.add(0, context)
+        for (i in chain.size - 1 downTo 0) {
+            val el = chain[i]
+            val namespaces = HashMap(namespacesStack.first())
+            namespacesStack.addFirst(namespaces)
+            if (el.attributesSize() > 0) {
+                processNamespaces(el.attributes(), namespaces)
+            }
+        }
+    }
+
 
     override fun completeParseFragment(): List<Node> {
         return doc.childNodes()
     }
 
-    public fun parse(
-        input: Reader,
-        baseUri: String? = null,
-    ): Document {
+    public fun parse(input: Reader, baseUri: String? = null): Document {
         return parse(input, baseUri ?: "", Parser(this))
     }
 
-    public fun parse(
-        input: String,
-        baseUri: String? = null,
-    ): Document {
+    public fun parse(input: String, baseUri: String? = null): Document {
         return parse(StringReader(input), baseUri ?: "", Parser(this))
     }
 
@@ -59,31 +85,59 @@ public open class XmlTreeBuilder : TreeBuilder() {
         return NamespaceXml
     }
 
+    public override fun defaultTagSet(): TagSet {
+        return TagSet() // an empty tagset
+    }
+
     override fun process(token: Token): Boolean {
         currentToken = token
 
+        // start tag, end tag, doctype, xmldecl, comment, character, eof
         when (token.type) {
             Token.TokenType.StartTag -> insertElementFor(token.asStartTag())
             Token.TokenType.EndTag -> popStackToClose(token.asEndTag())
             Token.TokenType.Comment -> insertCommentFor(token.asComment())
             Token.TokenType.Character -> insertCharacterFor(token.asCharacter())
             Token.TokenType.Doctype -> insertDoctypeFor(token.asDoctype())
+            Token.TokenType.XmlDecl -> insertXmlDeclarationFor(token.asXmlDecl())
             Token.TokenType.EOF -> {}
         }
         return true
     }
 
-    public fun insertElementFor(startTag: Token.StartTag) {
-        val tag = tagFor(startTag.name(), settings)
-        if (startTag.attributes != null) startTag.attributes!!.deduplicate(settings!!)
+    fun insertElementFor(startTag: Token.StartTag) {
+        // handle namespace for tag
+        val namespaces = HashMap(namespacesStack.firstOrNull() ?: hashMapOf())
+        namespacesStack.addFirst(namespaces)
 
-        val el = Element(tag, null, settings!!.normalizeAttributes(startTag.attributes))
+        val attributes = startTag.attributes
+        if (attributes != null) {
+            attributes.deduplicate(settings!!)
+            processNamespaces(attributes, namespaces)
+            applyNamespacesToAttributes(attributes, namespaces)
+        }
+
+        val tagName = startTag.tagName.value()
+        val ns = resolveNamespace(tagName, namespaces)
+        val tag = tagFor(tagName, startTag.normalName!!, ns!!, settings!!)
+        val el = Element(tag, null, settings!!.normalizeAttributes(attributes))
         currentElement().appendChild(el)
         push(el)
 
-        if (startTag.isSelfClosing) {
-            tag.setSelfClosing()
-            pop() // push & pop ensures onNodeInserted & onNodeClosed
+        when {
+            startTag.selfClosing -> {
+                tag.setSeenSelfClose()
+                pop() // push & pop ensures onNodeInserted & onNodeClosed
+            }
+
+            tag.isEmpty() -> {
+                pop() // custom defined void tag
+            }
+
+            else -> {
+                val textState = tag.textState()
+                if (textState != null) tokeniser!!.transition(textState)
+            }
         }
     }
 
@@ -94,20 +148,15 @@ public open class XmlTreeBuilder : TreeBuilder() {
 
     public fun insertCommentFor(commentToken: Token.Comment) {
         val comment = Comment(commentToken.getData())
-        var insert: LeafNode? = comment
-        if (commentToken.bogus && comment.isXmlDeclaration()) {
-            // xml declarations are emitted as bogus comments (which is right for html, but not xml)
-            // so we do a bit of a hack and parse the data as an element to pull the attributes out
-            // todo - refactor this to parse more appropriately
-            val decl = comment.asXmlDeclaration() // else, we couldn't parse it as a decl, so leave as a comment
-            if (decl != null) insert = decl
-        }
-        insertLeafNode(insert)
+        insertLeafNode(comment)
     }
 
     public fun insertCharacterFor(token: Token.Character) {
-        val data: String = token.data!!
-        insertLeafNode(if (token.isCData()) CDataNode(data) else TextNode(data))
+        val data: String = token.getData()
+        val node = if (token.isCData()) CDataNode(data)
+        else if (currentElement().tag().`is`(Tag.Data)) DataNode(data)
+        else TextNode(data)
+        insertLeafNode(node)
     }
 
     public fun insertDoctypeFor(token: Token.Doctype) {
@@ -121,6 +170,17 @@ public open class XmlTreeBuilder : TreeBuilder() {
         insertLeafNode(doctypeNode)
     }
 
+    fun insertXmlDeclarationFor(token: Token.XmlDecl) {
+        val decl = XmlDeclaration(token.name(), token.isDeclaration)
+        token.attributes?.let { decl.attributes().addAll(it) }
+        insertLeafNode(decl)
+    }
+
+    override fun pop(): Element {
+        namespacesStack.removeFirst()
+        return super.pop()
+    }
+
     /**
      * If the stack contains an element with this tag's name, pop up the stack to remove the first occurrence. If not
      * found, skips.
@@ -129,12 +189,12 @@ public open class XmlTreeBuilder : TreeBuilder() {
      */
     private fun popStackToClose(endTag: Token.EndTag) {
         // like in HtmlTreeBuilder - don't scan up forever for very (artificially) deeply nested stacks
-        val elName = settings!!.normalizeTag(endTag.tagName!!)
+        val elName = settings!!.normalizeTag(endTag.name())
         var firstFound: Element? = null
 
         val bottom: Int = getStack().size - 1
         val upper =
-            if (bottom >= XmlTreeBuilder.maxQueueDepth) bottom - XmlTreeBuilder.maxQueueDepth else 0
+            if (bottom >= maxQueueDepth) bottom - maxQueueDepth else 0
 
         for (pos in getStack().size - 1 downTo upper) {
             val next = _stack!![pos]!!
@@ -155,5 +215,45 @@ public open class XmlTreeBuilder : TreeBuilder() {
 
     public companion object {
         private const val maxQueueDepth = 256 // an arbitrary tension point between real XML and crafted pain
+        const val XmlnsKey: String = "xmlns"
+        const val XmlnsPrefix: String = "xmlns:"
+
+        fun processNamespaces(attributes: Attributes, namespaces: HashMap<String, String>) {
+            // process attributes for namespaces (xmlns, xmlns:)
+            for (attr in attributes) {
+                val key: String = attr.key
+                val value: String = attr.value
+                if (key == XmlnsKey) {
+                    namespaces.put("", value) // new default for this level
+                } else if (key.startsWith(XmlnsPrefix)) {
+                    val nsPrefix = key.substring(XmlnsPrefix.length)
+                    namespaces.put(nsPrefix, value)
+                }
+            }
+        }
+
+        private fun applyNamespacesToAttributes(attributes: Attributes, namespaces: HashMap<String, String>) {
+            // second pass, apply namespace to attributes. Collects them first then adds (as userData is an attribute)
+            val attrPrefix: MutableMap<String, String> = HashMap()
+            for (attr in attributes) {
+                val prefix = attr.prefix()
+                if (!prefix.isEmpty()) {
+                    if (prefix == XmlnsKey) continue
+                    val ns = namespaces[prefix]
+                    if (ns != null) attrPrefix.put(SharedConstants.XmlnsAttr + prefix, ns)
+                }
+            }
+            for (entry in attrPrefix.entries) attributes.userData(entry.key, entry.value)
+        }
+
+        private fun resolveNamespace(tagName: String, namespaces: HashMap<String, String>): String? {
+            var ns = namespaces[""]
+            val pos = tagName.indexOf(':')
+            if (pos > 0) {
+                val prefix = tagName.substring(0, pos)
+                if (namespaces.containsKey(prefix)) ns = namespaces[prefix]
+            }
+            return ns
+        }
     }
 }

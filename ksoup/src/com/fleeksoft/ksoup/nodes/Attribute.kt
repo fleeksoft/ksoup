@@ -8,13 +8,14 @@
 
 package com.fleeksoft.ksoup.nodes
 
+import com.fleeksoft.io.exception.IOException
+import com.fleeksoft.ksoup.exception.SerializationException
 import com.fleeksoft.ksoup.helper.Validate
+import com.fleeksoft.ksoup.internal.SharedConstants
 import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.nodes.Document.OutputSettings.Syntax
 import com.fleeksoft.ksoup.ported.KCloneable
 import com.fleeksoft.ksoup.ported.binarySearchBy
-import com.fleeksoft.io.exception.IOException
-import com.fleeksoft.ksoup.exception.SerializationException
 
 /**
  * A single key + value attribute. (Only used for presentation.)
@@ -35,7 +36,7 @@ public open class Attribute : Map.Entry<String, String?>, KCloneable<Attribute> 
     public constructor(key: String, value: String?) : this(key, value, null)
 
     /**
-     * Get the attribute key.
+     * Get the attribute's key (aka name).
      * @return the attribute key
      */
     final override val key: String
@@ -48,11 +49,7 @@ public open class Attribute : Map.Entry<String, String?>, KCloneable<Attribute> 
      * @param parent the containing Attributes (this Attribute is not automatically added to said Attributes)
      * @see .createFromEncoded
      */
-    public constructor(
-        key: String,
-        value: String?,
-        parent: Attributes?,
-    ) {
+    public constructor(key: String, value: String?, parent: Attributes?) {
         var sKey = key
         sKey = sKey.trim { it <= ' ' }
         Validate.notEmpty(sKey) // trimming could potentially make empty, so validate here
@@ -118,6 +115,40 @@ public open class Attribute : Map.Entry<String, String?>, KCloneable<Attribute> 
         }
         this.attributeValue = newValue
         return Attributes.checkNotNull(oldVal)
+    }
+
+    /**
+     * Get this attribute's key prefix, if it has one; else the empty string.
+     * For example, the attribute {@code og:title} has prefix {@code og}, and local {@code title}.
+     * @return the tag's prefix
+     */
+    fun prefix(): String {
+        val pos = key.indexOf(':')
+        return if (pos == -1) "" else key.substring(0, pos)
+    }
+
+    /**
+     * Get this attribute's local name. The local name is the name without the prefix (if any).
+     * For example, the attribute key {@code og:title} has local name {@code title}.
+     * @return the tag's local name
+     */
+    fun localName(): String {
+        val pos = key.indexOf(':')
+        return if (pos == -1) key else key.substring(pos + 1)
+    }
+
+    /**
+     * Get this attribute's namespace URI, if the attribute was prefixed with a defined namespace name. Otherwise, returns
+     * the empty string. These will only be defined if using the XML parser.
+     * @return the tag's namespace URI, or empty string if not defined
+     */
+    fun namespace(): String {
+        return if (parent != null) {
+            val ns = parent?.userData(SharedConstants.XmlnsAttr + prefix()) as? String
+            ns ?: ""
+        } else {
+            ""
+        }
     }
 
     /**
@@ -276,10 +307,7 @@ public open class Attribute : Map.Entry<String, String?>, KCloneable<Attribute> 
          * @return the original key if it's valid; a key with invalid characters replaced with "_" otherwise; or null if a valid key could not be created.
          */
 
-        public fun getValidKey(
-            key: String,
-            syntax: Syntax,
-        ): String? {
+        public fun getValidKey(key: String, syntax: Syntax): String? {
             return when (syntax) {
                 Syntax.xml -> {
                     if (!isValidXmlKey(key)) {
@@ -333,10 +361,7 @@ public open class Attribute : Map.Entry<String, String?>, KCloneable<Attribute> 
          * @param encodedValue HTML attribute encoded value
          * @return attribute
          */
-        public fun createFromEncoded(
-            unencodedKey: String,
-            encodedValue: String,
-        ): Attribute {
+        public fun createFromEncoded(unencodedKey: String, encodedValue: String): Attribute {
             val value: String = Entities.unescape(encodedValue, true)
             return Attribute(unencodedKey, value, null) // parent will get set when Put
         }
@@ -346,19 +371,9 @@ public open class Attribute : Map.Entry<String, String?>, KCloneable<Attribute> 
         }
 
         // collapse unknown foo=null, known checked=null, checked="", checked=checked; write out others
-        protected fun shouldCollapseAttribute(
-            key: String,
-            value: String?,
-            out: Document.OutputSettings,
-        ): Boolean {
-            return out.syntax() === Syntax.html && (value == null || (
-                    value.isEmpty() ||
-                            value.equals(
-                                key,
-                                ignoreCase = true,
-                            )
-                    ) && isBooleanAttribute(key)
-                    )
+        protected fun shouldCollapseAttribute(key: String, value: String?, out: Document.OutputSettings): Boolean {
+            return out.syntax() === Syntax.html &&
+                    (value == null || (value.isEmpty() || value.equals(key, ignoreCase = true)) && isBooleanAttribute(key))
         }
 
         /**

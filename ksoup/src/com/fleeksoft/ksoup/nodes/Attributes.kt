@@ -16,6 +16,7 @@ import com.fleeksoft.ksoup.parser.ParseSettings
 import com.fleeksoft.ksoup.ported.KCloneable
 import com.fleeksoft.io.exception.IOException
 import com.fleeksoft.ksoup.exception.SerializationException
+import kotlin.js.JsName
 
 /**
  * The attributes of an Element.
@@ -34,7 +35,10 @@ import com.fleeksoft.ksoup.exception.SerializationException
  */
 public class Attributes : Iterable<Attribute>, KCloneable<Attributes> {
     // the number of instance fields is kept as low as possible giving an object size of 24 bytes
-    private var size = 0 // number of slots used (not total capacity, which is keys.length)
+
+    @JsName("_size")
+    var size = 0 // number of slots used (not total capacity, which is keys.length)
+        private set
     internal var keys: Array<String?> =
         arrayOfNulls(InitialCapacity) // keys is not null, but contents may be. Same for vals
     internal var vals =
