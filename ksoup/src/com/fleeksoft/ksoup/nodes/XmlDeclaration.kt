@@ -8,17 +8,17 @@
 
 package com.fleeksoft.ksoup.nodes
 
-import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.io.exception.IOException
 import com.fleeksoft.ksoup.exception.SerializationException
+import com.fleeksoft.ksoup.internal.StringUtil
 
 /**
- * An XML Declaration.
+ * An XML Declaration. Includes support for treating the declaration contents as pseudo‑attributes.
+ *
+ * @param name           name of the declaration
+ * @param isDeclaration  true if a declaration (first char `!`), false for a processing instruction (first char `?`)
  */
-public class XmlDeclaration(
-    name: String,
-    private val isProcessingInstruction: Boolean // <! if true, <? if false, declaration (and last data char should be ?)
-) : LeafNode(name) {
+class XmlDeclaration(name: String, private val isDeclaration: Boolean) : LeafNode(name) {
 
     override fun nodeName(): String {
         return "#declaration"
@@ -63,26 +63,18 @@ public class XmlDeclaration(
         }
     }
 
-    override fun outerHtmlHead(
-        accum: Appendable,
-        depth: Int,
-        out: Document.OutputSettings,
-    ) {
+    override fun outerHtmlHead(accum: Appendable, out: Document.OutputSettings) {
         accum
             .append("<")
-            .append(if (isProcessingInstruction) "!" else "?")
+            .append(if (isDeclaration) "!" else "?")
             .append(coreValue())
         getWholeDeclaration(accum, out)
         accum
-            .append(if (isProcessingInstruction) "!" else "?")
+            .append(if (isDeclaration) "" else "?")
             .append(">")
     }
 
-    override fun outerHtmlTail(
-        accum: Appendable,
-        depth: Int,
-        out: Document.OutputSettings,
-    ) {
+    override fun outerHtmlTail(accum: Appendable, out: Document.OutputSettings) {
     }
 
     override fun toString(): String {
@@ -90,7 +82,7 @@ public class XmlDeclaration(
     }
 
     override fun createClone(): Node {
-        return XmlDeclaration(this.value as String, this.isProcessingInstruction)
+        return XmlDeclaration(this.value as String, this.isDeclaration)
     }
 
     override fun clone(): XmlDeclaration {

@@ -8,12 +8,15 @@
 
 package com.fleeksoft.ksoup.parser
 
-import com.fleeksoft.ksoup.internal.SoftPool
-import com.fleeksoft.ksoup.ported.buildString
-import com.fleeksoft.io.exception.IOException
-import com.fleeksoft.ksoup.exception.UncheckedIOException
 import com.fleeksoft.io.Reader
 import com.fleeksoft.io.StringReader
+import com.fleeksoft.io.exception.IOException
+import com.fleeksoft.ksoup.exception.UncheckedIOException
+import com.fleeksoft.ksoup.internal.SoftPool
+import com.fleeksoft.ksoup.internal.StringUtil
+import com.fleeksoft.ksoup.internal.StringUtil.isAsciiLetter
+import com.fleeksoft.ksoup.internal.StringUtil.isHexDigit
+import com.fleeksoft.ksoup.ported.buildString
 import kotlin.math.abs
 import kotlin.math.min
 
@@ -231,6 +234,10 @@ public class CharacterReader {
         return if (isEmptyNoBufferUp()) EOF else charBuf!![bufPos]
     }
 
+    /**
+    Consume one character off the queue.
+    @return first character on queue, or EOF if the queue is empty.
+     */
     public fun consume(): Char {
         bufferUp()
         val value = if (isEmptyNoBufferUp()) EOF else charBuf!![bufPos]
@@ -329,6 +336,13 @@ public class CharacterReader {
         }
     }
 
+    /**
+    Reads the characters up to (but not including) the specified case-sensitive string.
+    <p>If the sequence is not found in the buffer, will return the remainder of the current buffered amount, less the
+    length of the sequence, such that this call may be repeated.
+    @param seq the delimiter
+    @return the chars read
+     */
     public fun consumeTo(seq: String): String {
         val offset = nextIndexOf(seq)
         return if (offset != -1) {
@@ -361,114 +375,79 @@ public class CharacterReader {
     }
 
     /**
+     * Read characters while the input predicate returns true.
+     * @return characters read
+     */
+    fun consumeMatching(func: (Char) -> Boolean): String {
+        return consumeMatching(func, -1)
+    }
+
+    /**
+     * Read characters while the input predicate returns true, up to a maximum length.
+     * @param func predicate to test
+     * @param maxLength maximum length to read. -1 indicates no maximum
+     * @return characters read
+     */
+    fun consumeMatching(func: (Char) -> Boolean, maxLength: Int): String {
+        bufferUp()
+        var pos = bufPos
+        val start = pos
+        val remaining = bufLength
+        val valBuf = charBuf
+
+        while (pos < remaining && (maxLength == -1 || pos - start < maxLength) && func(valBuf!![pos])) {
+            pos++
+        }
+
+        bufPos = pos
+        return if (pos > start) cacheString(charBuf, stringCache, start, pos - start) else ""
+    }
+
+    /**
      * Read characters until the first of any delimiters is found.
      * @param chars delimiters to scan for
      * @return characters read up to the matched delimiter.
      */
-    public fun consumeToAny(vararg chars: Char): String {
-        bufferUp()
-        var pos = bufPos
-        val start = pos
-        val remaining = bufLength
-        val value = charBuf
-        val charLen = chars.size
-        var i: Int
-        OUTER@ while (pos < remaining) {
-            i = 0
-            while (i < charLen) {
-                if (value!![pos] == chars[i]) break@OUTER
-                i++
-            }
-            pos++
+    fun consumeToAny(vararg chars: Char): String {
+        return consumeMatching { c ->  // seeks until we see one of the terminating chars
+            chars.none { seek -> c == seek }
         }
-        bufPos = pos
-        return if (pos > start) cacheString(charBuf, stringCache, start, pos - start) else ""
+    }
+
+
+    fun CharArray.binarySearch(c: Char): Int {
+        // FIXME: don't have binary search for CharArray
+        return this.indexOf(c)
     }
 
     public fun consumeToAnySorted(vararg chars: Char): String {
-        bufferUp()
-        var pos = bufPos
-        val start = pos
-        val remaining = bufLength
-        val value = charBuf ?: return ""
-        while (pos < remaining) {
-            if (chars.contains(value[pos])) break
-            pos++
-        }
-        bufPos = pos
-        return if (bufPos > start) cacheString(charBuf, stringCache, start, pos - start) else ""
+        return consumeMatching { c: Char -> chars.binarySearch(c) < 0 } // matches until a hit
     }
 
     public fun consumeData(): String {
-        // &, <, null
-        // bufferUp(); // no need to bufferUp, just called consume()
-        var pos = bufPos
-        val start = pos
-        val remaining = bufLength
-        val value = charBuf
-        OUTER@ while (pos < remaining) {
-            when (value!![pos]) {
-                '&', '<', TokeniserState.nullChar -> break@OUTER
-                else -> pos++
-            }
-        }
-        bufPos = pos
-        return if (pos > start) cacheString(charBuf, stringCache, start, pos - start) else ""
+        // consumes until &, <, null
+        return consumeMatching { c -> c != '&' && c != '<' && c != TokeniserState.nullChar }
     }
 
     public fun consumeAttributeQuoted(single: Boolean): String {
         // null, " or ', &
-        // bufferUp(); // no need to bufferUp, just called consume()
-        var pos = bufPos
-        val start = pos
-        val remaining = bufLength
-        val value = charBuf
-
-        OUTER@ while (pos < remaining) {
-            when (value!![pos]) {
-                '&', TokeniserState.nullChar -> break@OUTER
-                '\'' -> if (single) break@OUTER
-                '"' -> if (!single) break@OUTER
-            }
-            pos++
-        }
-        bufPos = pos
-        return if (pos > start) cacheString(charBuf, stringCache, start, pos - start) else ""
+        return consumeMatching { c: Char -> c != TokeniserState.nullChar && c != '&' && (if (single) c != '\'' else c != '"') }
     }
 
     public fun consumeRawData(): String {
         // <, null
-        // bufferUp(); // no need to bufferUp, just called consume()
-        var pos = bufPos
-        val start = pos
-        val remaining = bufLength
-        val value = charBuf
-        OUTER@ while (pos < remaining) {
-            when (value!![pos]) {
-                '<', TokeniserState.nullChar -> break@OUTER
-                else -> pos++
-            }
-        }
-        bufPos = pos
-        return if (pos > start) cacheString(charBuf, stringCache, start, pos - start) else ""
+        return consumeMatching { c: Char -> c != '<' && c != TokeniserState.nullChar }
     }
 
     public fun consumeTagName(): String {
-        // '\t', '\n', '\r', '\u000c', ' ', '/', '>'
+        // '\t', '\n', '\r', '\f', ' ', '/', '>'
         // NOTE: out of spec; does not stop and append on nullChar but eats
-        bufferUp()
-        var pos = bufPos
-        val start = pos
-        val remaining = bufLength
-        val value = charBuf ?: return ""
-        OUTER@ while (pos < remaining) {
-            when (value[pos]) {
-                '\t', '\n', '\r', '\u000c', ' ', '/', '>' -> break@OUTER // for form feed '\u000c' to '\u000c'
+        return consumeMatching { c: Char ->
+            when (c) {
+                '\t', '\n', '\r', '\u000c', ' ', '/', '>' -> return@consumeMatching false
             }
-            pos++
+            true
         }
-        bufPos = pos
-        return if (pos > start) cacheString(charBuf, stringCache, start, pos - start) else ""
     }
 
     public fun consumeToEnd(): String {
@@ -479,47 +458,30 @@ public class CharacterReader {
     }
 
     public fun consumeLetterSequence(): String {
-        bufferUp()
-        val start = bufPos
-        while (bufPos < bufLength) {
-            val c = charBuf!![bufPos]
-            if (c in 'A'..'Z' || c in 'a'..'z' || c.isLetter()) bufPos++ else break
-        }
-        return cacheString(charBuf, stringCache, start, bufPos - start)
+        return consumeMatching { ch: Char -> ch.isLetter() }
     }
 
     public fun consumeLetterThenDigitSequence(): String {
         bufferUp()
         val start = bufPos
         while (bufPos < bufLength) {
-            val c = charBuf!![bufPos]
-            if (c in 'A'..'Z' || c in 'a'..'z' || c.isLetter()) bufPos++ else break
+            if (isAsciiLetter(charBuf!![bufPos])) bufPos++
+            else break
         }
         while (!isEmptyNoBufferUp()) {
-            val c = charBuf!![bufPos]
-            if (c in '0'..'9') bufPos++ else break
+            if (StringUtil.isDigit(charBuf!![bufPos])) bufPos++
+            else break
         }
+
         return cacheString(charBuf, stringCache, start, bufPos - start)
     }
 
     public fun consumeHexSequence(): String {
-        bufferUp()
-        val start = bufPos
-        while (bufPos < bufLength) {
-            val c = charBuf!![bufPos]
-            if (c in '0'..'9' || c in 'A'..'F' || c in 'a'..'f') bufPos++ else break
-        }
-        return cacheString(charBuf, stringCache, start, bufPos - start)
+        return consumeMatching({ c: Char -> isHexDigit(c) })
     }
 
     public fun consumeDigitSequence(): String {
-        bufferUp()
-        val start = bufPos
-        while (bufPos < bufLength) {
-            val c = charBuf!![bufPos]
-            if (c in '0'..'9') bufPos++ else break
-        }
-        return cacheString(charBuf, stringCache, start, bufPos - start)
+        return consumeMatching { c: Char -> c >= '0' && c <= '9' }
     }
 
     public fun matches(c: Char): Boolean {
@@ -538,14 +500,24 @@ public class CharacterReader {
         bufferUp()
         val scanLength = seq.length
         if (scanLength > bufLength - bufPos) return false
-        for (offset in 0 until scanLength) {
-            val upScan = seq[offset].uppercaseChar()
-            val upTarget = charBuf!![bufPos + offset].uppercaseChar()
-            if (upScan != upTarget) return false
+
+        for (offset in 0..<scanLength) {
+            var scan = seq[offset]
+            var target = charBuf!![bufPos + offset]
+            if (scan == target) continue
+
+            scan = scan.uppercaseChar()
+            target = target.uppercaseChar()
+            if (scan != target) return false
         }
         return true
     }
 
+    /**
+    Tests if the next character in the queue matches any of the characters in the sequence, case sensitively.
+    @param seq list of characters to check for
+    @return true if any matched, false if none did
+     */
     public fun matchesAny(vararg seq: Char): Boolean {
         if (isEmpty()) return false
         bufferUp()
@@ -561,26 +533,18 @@ public class CharacterReader {
         return !isEmpty() && seq.contains(charBuf!![bufPos])
     }
 
-    public fun matchesLetter(): Boolean {
-        if (isEmpty()) return false
-        val c = charBuf!![bufPos]
-        return c in 'A'..'Z' || c in 'a'..'z' || c.isLetter()
-    }
-
     /**
      * Checks if the current pos matches an ascii alpha (A-Z a-z) per https://infra.spec.whatwg.org/#ascii-alpha
      * @return if it matches or not
      */
     public fun matchesAsciiAlpha(): Boolean {
-        if (isEmpty()) return false
-        val c = charBuf!![bufPos]
-        return c in 'A'..'Z' || c in 'a'..'z'
+        if (isEmpty()) return false;
+        return isAsciiLetter(charBuf!![bufPos])
     }
 
     public fun matchesDigit(): Boolean {
         if (isEmpty()) return false
-        val c = charBuf!![bufPos]
-        return c in '0'..'9'
+        return StringUtil.isDigit(charBuf!![bufPos])
     }
 
     public fun matchConsume(seq: String): Boolean {
@@ -631,23 +595,12 @@ public class CharacterReader {
     }
 
     override fun toString(): String {
-        return if (charBuf == null || bufLength - bufPos < 0) {
-            ""
-        } else {
-            String.buildString(
-                charBuf!!,
-                bufPos,
-                bufLength - bufPos,
-            )
-        }
+        if (bufLength - bufPos < 0) return ""
+        return charBuf!!.concatToString(bufPos, bufPos + (bufLength - bufPos))
     }
 
     // just used for testing
-    public fun rangeEquals(
-        start: Int,
-        count: Int,
-        cached: String,
-    ): Boolean {
+    public fun rangeEquals(start: Int, count: Int, cached: String): Boolean {
         return rangeEquals(charBuf, start, count, cached)
     }
 
@@ -670,12 +623,7 @@ public class CharacterReader {
          * That saves both having to create objects as hash keys, and running through the entry list, at the expense of
          * some more duplicates.
          */
-        private fun cacheString(
-            charBuf: CharArray?,
-            stringCache: Array<String?>?,
-            start: Int,
-            count: Int,
-        ): String {
+        private fun cacheString(charBuf: CharArray?, stringCache: Array<String?>?, start: Int, count: Int): String {
             // don't cache strings that are too big
             if (count > MaxStringCacheLen) return String.buildString(charBuf!!, start, count)
             if (count < 1) return ""
@@ -703,12 +651,7 @@ public class CharacterReader {
         /**
          * Check if the value of the provided range equals the string.
          */
-        public fun rangeEquals(
-            charBuf: CharArray?,
-            start: Int,
-            count: Int,
-            cached: String,
-        ): Boolean {
+        public fun rangeEquals(charBuf: CharArray?, start: Int, count: Int, cached: String): Boolean {
             var loopCount = count
             if (loopCount == cached.length) {
                 var i = start

@@ -10,11 +10,10 @@ package com.fleeksoft.ksoup.nodes
 
 import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.internal.StringUtil
+import com.fleeksoft.ksoup.parser.ParseSettings
 import com.fleeksoft.ksoup.ported.Consumer
 import com.fleeksoft.ksoup.ported.KCloneable
 import com.fleeksoft.ksoup.ported.LinkedList
-import com.fleeksoft.io.exception.IOException
-import com.fleeksoft.ksoup.exception.SerializationException
 import com.fleeksoft.ksoup.select.NodeFilter
 import com.fleeksoft.ksoup.select.NodeTraversor
 import com.fleeksoft.ksoup.select.NodeVisitor
@@ -142,12 +141,11 @@ public abstract class Node protected constructor() : KCloneable<Node> {
      * @param attributeValue The attribute value.
      * @return this (for chaining)
      */
-    public open fun attr(
-        attributeKey: String,
-        attributeValue: String?,
-    ): Node {
-        val normalizedAttributeKey = NodeUtils.parser(this).settings()!!.normalizeAttribute(attributeKey)
-        attributes().putIgnoreCase(normalizedAttributeKey, attributeValue)
+    public open fun attr(attributeKey: String, attributeValue: String?): Node {
+        val doc = ownerDocument()
+        val settings = if (doc != null) doc.parser()?.settings() else ParseSettings.htmlDefault
+        val attributeKey = settings!!.normalizeAttribute(attributeKey)
+        attributes().putIgnoreCase(attributeKey, attributeValue)
         return this
     }
 
@@ -468,10 +466,6 @@ public abstract class Node protected constructor() : KCloneable<Node> {
         return firstChild
     }
 
-    internal open fun nodelistChanged() {
-        // Element overrides this to clear its shadow children elements
-    }
-
     /**
      * Replace this node in the DOM with the supplied node.
      * @param `in` the node that will replace the existing node.
@@ -705,7 +699,8 @@ public abstract class Node protected constructor() : KCloneable<Node> {
     }
 
     public fun outerHtml(accum: Appendable) {
-        NodeTraversor.traverse(OuterHtmlVisitor(accum, NodeUtils.outputSettings(this)), this)
+        val printer = Printer.printerFor(this, accum)
+        NodeTraversor.traverse(printer, this)
     }
 
     /**
@@ -713,17 +708,9 @@ public abstract class Node protected constructor() : KCloneable<Node> {
      * @param accum accumulator to place HTML into
      * @throws com.fleeksoft.io.exception.IOException if appending to the given accumulator fails.
      */
-    internal abstract fun outerHtmlHead(
-        accum: Appendable,
-        depth: Int,
-        out: Document.OutputSettings,
-    )
+    internal abstract fun outerHtmlHead(accum: Appendable, out: Document.OutputSettings)
 
-    internal abstract fun outerHtmlTail(
-        accum: Appendable,
-        depth: Int,
-        out: Document.OutputSettings,
-    )
+    internal abstract fun outerHtmlTail(accum: Appendable, out: Document.OutputSettings)
 
     /**
      * Write this node and its children to the given [Appendable].
@@ -807,6 +794,7 @@ public abstract class Node protected constructor() : KCloneable<Node> {
         return if (o == null || this::class != o::class) false else this.outerHtml() == (o as Node).outerHtml()
     }
 
+//    Mimics Java’s clone, copying only primitive values and object references.
     internal abstract fun createClone(): Node
 
     /**
@@ -822,23 +810,23 @@ public abstract class Node protected constructor() : KCloneable<Node> {
     override fun clone(): Node {
         val thisClone = doClone(null) // splits for orphan
 
-        // Queue up nodes that need their children cloned (BFS).
-        return applyDeepClone(thisClone)
-    }
 
-    private fun applyDeepClone(thisClone: Node): Node {
+        // Queue up nodes that need their children cloned (BFS).
         val nodesToProcess: LinkedList<Node> = mutableListOf()
         nodesToProcess.add(thisClone)
-        while (nodesToProcess.isNotEmpty()) {
-            val currParent: Node = nodesToProcess.removeAt(0)
+
+        while (!nodesToProcess.isEmpty()) {
+            val currParent: Node = nodesToProcess.removeFirst()
+
             val size = currParent.childNodeSize()
-            for (i in 0 until size) {
-                val childNodes = currParent.ensureChildNodes()
-                val childClone = childNodes[i].doClone(currParent)
+            for (i in 0..<size) {
+                val childNodes: MutableList<Node> = currParent.ensureChildNodes()
+                val childClone: Node = childNodes[i].doClone(currParent)
                 childNodes[i] = childClone
                 nodesToProcess.add(childClone)
             }
         }
+
         return thisClone
     }
 
@@ -870,28 +858,6 @@ public abstract class Node protected constructor() : KCloneable<Node> {
             }
         }
         return clone
-    }
-
-    private class OuterHtmlVisitor(private val accum: Appendable, private val out: Document.OutputSettings) :
-        NodeVisitor {
-
-        override fun head(node: Node, depth: Int) {
-            try {
-                node.outerHtmlHead(accum, depth, out)
-            } catch (exception: IOException) {
-                throw SerializationException(exception)
-            }
-        }
-
-        override fun tail(node: Node, depth: Int) {
-            if (node.nodeName() != "#text") { // saves a void hit.
-                try {
-                    node.outerHtmlTail(accum, depth, out)
-                } catch (exception: IOException) {
-                    throw SerializationException(exception)
-                }
-            }
-        }
     }
 
     public companion object {

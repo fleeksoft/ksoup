@@ -24,22 +24,11 @@ public class CDataNode(text: String?) : TextNode(text!!) {
         return getWholeText()
     }
 
-    override fun outerHtmlHead(
-        accum: Appendable,
-        depth: Int,
-        out: Document.OutputSettings,
-    ) {
+    override fun outerHtmlHead(accum: Appendable, out: Document.OutputSettings) {
         accum
             .append("<![CDATA[")
             .append(getWholeText())
-    }
-
-    override fun outerHtmlTail(
-        accum: Appendable,
-        depth: Int,
-        out: Document.OutputSettings,
-    ) {
-        accum.append("]]>")
+            .append("]]>")
     }
 
     override fun clone(): CDataNode {

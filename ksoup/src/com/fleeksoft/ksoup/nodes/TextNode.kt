@@ -62,43 +62,8 @@ public open class TextNode(text: String) : LeafNode(text) {
         return tailNode
     }
 
-    override fun outerHtmlHead(accum: Appendable, depth: Int, out: Document.OutputSettings) {
-        val prettyPrint: Boolean = out.prettyPrint()
-        val normaliseWhite = prettyPrint && !Element.preserveWhitespace(_parentNode)
-        var escape = Entities.ForText
-        if (normaliseWhite) {
-            escape = escape or Entities.Normalise
-            val parent: Element? = if (_parentNode is Element) _parentNode as Element? else null
-            val trimLikeBlock = parent != null && (parent.tag().isBlock || parent.tag().formatAsBlock())
-
-            if ((trimLikeBlock && _siblingIndex == 0) || _parentNode is Document) escape = escape or Entities.TrimLeading
-            if (trimLikeBlock && nextSibling() == null) escape = escape or Entities.TrimTrailing
-
-            // if this text is just whitespace, and the next node will cause an indent, skip this text:
-            val next: Node? = nextSibling()
-            val prev: Node? = previousSibling()
-            val isBlank = isBlank()
-            val couldSkip =
-                next is Element && next.shouldIndent(out) || next is TextNode && next.isBlank() || prev is Element && (
-                        prev.isBlock() || prev.nameIs("br")
-                        ) // br is a bit special - make sure we don't get a dangling blank line, but not a block otherwise wraps in head
-            if (couldSkip && isBlank) return
-            if (
-                (prev == null && parent != null && parent.tag().formatAsBlock() && !isBlank) ||
-                (out.outline() && siblingNodes().isNotEmpty() && !isBlank) ||
-                (prev != null && prev.nameIs("br")) // special case wrap on inline <br> - doesn't make sense as a block tag
-            ) {
-                indent(accum, depth, out)
-            }
-        }
-        Entities.escape(accum, coreValue(), out, escape)
-    }
-
-    override fun outerHtmlTail(
-        accum: Appendable,
-        depth: Int,
-        out: Document.OutputSettings,
-    ) {
+    override fun outerHtmlHead(accum: Appendable, out: Document.OutputSettings) {
+        Entities.escape(accum, coreValue(), out, Entities.ForText)
     }
 
     override fun toString(): String {

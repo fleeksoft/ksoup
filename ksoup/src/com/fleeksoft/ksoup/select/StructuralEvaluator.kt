@@ -24,10 +24,7 @@ public abstract class StructuralEvaluator(public val evaluator: Evaluator) : Eva
     public val threadMemo: ThreadLocal<IdentityHashMap<Element, IdentityHashMap<Element, Boolean>>> =
         ThreadLocal { IdentityHashMap() }
 
-    public fun memoMatches(
-        root: Element,
-        element: Element,
-    ): Boolean {
+    public fun memoMatches(root: Element, element: Element): Boolean {
         val rootMemo = threadMemo.get()
         val memo: MutableMap<Element, Boolean> = rootMemo.getOrPut(root) { IdentityHashMap() }
         return memo.getOrPut(element) { evaluator.matches(root, element) }
@@ -35,6 +32,7 @@ public abstract class StructuralEvaluator(public val evaluator: Evaluator) : Eva
 
     override fun reset() {
         threadMemo.get().clear()
+        evaluator.reset()
         super.reset()
     }
 
@@ -121,7 +119,7 @@ public abstract class StructuralEvaluator(public val evaluator: Evaluator) : Eva
         }
     }
 
-    internal class Not(evaluator: Evaluator) : StructuralEvaluator(evaluator) {
+    class Not(evaluator: Evaluator) : StructuralEvaluator(evaluator) {
         override fun matches(
             root: Element,
             element: Element,
@@ -138,11 +136,11 @@ public abstract class StructuralEvaluator(public val evaluator: Evaluator) : Eva
         }
     }
 
-    public class Parent(evaluator: Evaluator) : StructuralEvaluator(evaluator) {
-        override fun matches(
-            root: Element,
-            element: Element,
-        ): Boolean {
+    /**
+     * Any Ancestor (i.e., ascending parent chain.).
+     */
+    public class Ancestor(evaluator: Evaluator) : StructuralEvaluator(evaluator) {
+        override fun matches(root: Element, element: Element): Boolean {
             if (root === element) return false
             var parent: Element? = element.parent()
             while (parent != null) {
@@ -154,7 +152,7 @@ public abstract class StructuralEvaluator(public val evaluator: Evaluator) : Eva
         }
 
         override fun cost(): Int {
-            return 2 * evaluator.cost()
+            return 8 * evaluator.cost() // probably lower than has(), but still significant, depending on doc and el depth.
         }
 
         override fun toString(): String {
@@ -180,10 +178,7 @@ public abstract class StructuralEvaluator(public val evaluator: Evaluator) : Eva
             _cost += evaluator.cost()
         }
 
-        override fun matches(
-            root: Element,
-            element: Element,
-        ): Boolean {
+        override fun matches(root: Element, element: Element): Boolean {
             var el: Element? = element
             if (el === root) return false // cannot match as the second eval (first parent test) would be above the root
             for (i in evaluators.indices.reversed()) {
@@ -197,6 +192,13 @@ public abstract class StructuralEvaluator(public val evaluator: Evaluator) : Eva
 
         override fun cost(): Int {
             return _cost
+        }
+
+        override fun reset() {
+            for (evaluator in evaluators) {
+                evaluator.reset()
+            }
+            super.reset()
         }
 
         override fun toString(): String {
@@ -229,10 +231,7 @@ public abstract class StructuralEvaluator(public val evaluator: Evaluator) : Eva
     }
 
     internal class ImmediatePreviousSibling(evaluator: Evaluator) : StructuralEvaluator(evaluator) {
-        override fun matches(
-            root: Element,
-            element: Element,
-        ): Boolean {
+        override fun matches(root: Element, element: Element): Boolean {
             if (root === element) return false
             val prev: Element? = element.previousElementSibling()
             return prev != null && memoMatches(root, prev)

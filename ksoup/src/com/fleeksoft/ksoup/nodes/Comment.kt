@@ -8,7 +8,6 @@
 
 package com.fleeksoft.ksoup.nodes
 
-import com.fleeksoft.ksoup.parser.ParseSettings
 import com.fleeksoft.ksoup.parser.Parser
 
 /**
@@ -27,26 +26,11 @@ public class Comment(data: String) : LeafNode(data) {
         return this
     }
 
-    override fun outerHtmlHead(
-        accum: Appendable,
-        depth: Int,
-        out: Document.OutputSettings,
-    ) {
-        if (out.prettyPrint() && (
-                    isEffectivelyFirst() && _parentNode is Element &&
-                            (_parentNode as Element).tag()
-                                .formatAsBlock() || out.outline()
-                    )
-        ) {
-            indent(accum, depth, out)
-        }
+    override fun outerHtmlHead(accum: Appendable, out: Document.OutputSettings) {
         accum
             .append("<!--")
             .append(getData())
             .append("-->")
-    }
-
-    override fun outerHtmlTail(accum: Appendable, depth: Int, out: Document.OutputSettings) {
     }
 
     override fun createClone(): Node {
@@ -57,6 +41,13 @@ public class Comment(data: String) : LeafNode(data) {
         return super.clone() as Comment
     }
 
+    /**
+     * Check if this comment looks like an XML Declaration. This is the case when the HTML parser sees an XML
+     * declaration or processing instruction. Other than doctypes, those aren't part of HTML, and will be parsed as a
+     * bogus comment.
+     * @return true if it looks like, maybe, it's an XML Declaration.
+     * @see #asXmlDeclaration()
+     */
     public fun isXmlDeclaration(): Boolean {
         val data = getData()
         return isXmlDeclarationData(data)
@@ -68,24 +59,12 @@ public class Comment(data: String) : LeafNode(data) {
      */
 
     public fun asXmlDeclaration(): XmlDeclaration? {
-        val data = getData()
-        var decl: XmlDeclaration? = null
-        val declContent = data.substring(1, data.length - 1)
-        // make sure this bogus comment is not immediately followed by another, treat as comment if so
-        if (isXmlDeclarationData(declContent)) return null
-        val fragment = "<$declContent>"
-        // use the HTML parser not XML, so we don't get into a recursive XML Declaration on contrived data
-        val doc: Document = Parser.htmlParser().settings(ParseSettings.preserveCase).parseInput(fragment, baseUri())
-        if (doc.body().childrenSize() > 0) {
-            val el: Element = doc.body().child(0)
-            decl =
-                XmlDeclaration(
-                    NodeUtils.parser(doc).settings()!!.normalizeTag(el.tagName()),
-                    data.startsWith("!"),
-                )
-            decl.attributes().addAll(el.attributes())
-        }
-        return decl
+        val fragment = "<" + getData() + ">"
+        val parser = Parser.xmlParser()
+        val nodes: List<Node> = parser.parseFragmentInput(fragment, null, "")
+        if (!nodes.isEmpty() && nodes[0] is XmlDeclaration)
+            return nodes[0] as XmlDeclaration
+        return null
     }
 
     public companion object {

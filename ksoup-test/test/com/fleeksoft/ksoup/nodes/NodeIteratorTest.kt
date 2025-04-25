@@ -1,7 +1,6 @@
 package com.fleeksoft.ksoup.nodes
 
 import com.fleeksoft.ksoup.Ksoup
-import com.fleeksoft.ksoup.TestHelper
 import kotlin.test.*
 
 class NodeIteratorTest {
@@ -239,10 +238,7 @@ class NodeIteratorTest {
     }
 
     companion object {
-        fun <T : Node> assertIterates(
-            it: NodeIterator<T>,
-            expected: String?,
-        ) {
+        fun <T : Node> assertIterates(it: Iterator<T>, expected: String?) {
             var previous: Node? = null
             val actual = StringBuilder()
             while (it.hasNext()) {
@@ -264,10 +260,7 @@ class NodeIteratorTest {
             assertIterates(it, expected)
         }
 
-        fun trackSeen(
-            node: Node,
-            actual: StringBuilder,
-        ) {
+        fun trackSeen(node: Node, actual: StringBuilder) {
             if (node is Element) {
                 val el = node
                 actual.append(el.tagName())

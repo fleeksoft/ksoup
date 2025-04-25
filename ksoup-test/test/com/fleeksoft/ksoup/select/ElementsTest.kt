@@ -1,12 +1,11 @@
 package com.fleeksoft.ksoup.select
 
 import com.fleeksoft.ksoup.Ksoup
-import com.fleeksoft.ksoup.TestHelper
 import com.fleeksoft.ksoup.TextUtil
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.nodes.Node
 import kotlin.test.*
-import kotlin.test.Test
+
 
 /**
  * Tests for ElementList.
@@ -531,7 +530,7 @@ class ElementsTest {
         assertEquals(1, divs.size)
         assertFalse(ps.removeAll(divs))
         assertEquals(2, ps.size)
-        assertEquals("<p>One</p>\n<p>Four</p>\n<div>\n Div\n</div>", doc.body().html())
+        assertEquals("<p>One</p>\n<p>Four</p>\n<div>Div</div>", doc.body().html())
     }
 
     @Test
@@ -547,10 +546,12 @@ class ElementsTest {
         assertEquals(2, ps.size)
         assertTrue(removed)
         assertEquals(2, midPs.size)
-        assertEquals("<p>Two</p>\n<p>Three</p>\n<div>\n Div\n</div>", doc.body().html())
+        assertEquals("<p>Two</p>\n<p>Three</p>\n<div>Div</div>", doc.body().html())
+
         val psAgain = doc.select("p")
         assertFalse(midPs.retainAll(psAgain))
-        assertEquals("<p>Two</p>\n<p>Three</p>\n<div>\n Div\n</div>", doc.body().html())
+
+        assertEquals("<p>Two</p>\n<p>Three</p>\n<div>Div</div>", doc.body().html())
     }
 
     @Test
@@ -608,9 +609,62 @@ class ElementsTest {
         }
 
         // check dom
-        assertEquals(
-            "<div> One</div><div> Two</div><div> Three</div><div> Four</div>",
-            TextUtil.normalizeSpaces(doc.body().html()),
-        )
+        // check dom
+        assertEquals("<div>One</div><div>Two</div><div>Three</div><div>Four</div>", TextUtil.normalizeSpaces(doc.body().html()))
+    }
+
+    @Test
+    fun selectFirst() {
+        val doc = Ksoup.parse("<p>One</p><p>Two <span>Ksoup</span></p><p><span>Three</span></p>")
+        val span = doc.children().selectFirst("span")
+        assertNotNull(span)
+        assertEquals("Ksoup", span.text())
+    }
+
+    @Test
+    fun selectFirstNullOnNoMatch() {
+        val doc = Ksoup.parse("<p>One</p><p>Two</p><p>Three</p>")
+        val span = doc.children().selectFirst("span")
+        assertNull(span)
+    }
+
+    @Test
+    fun expectFirst() {
+        val doc = Ksoup.parse("<p>One</p><p>Two <span>Ksoup</span></p><p><span>Three</span></p>")
+        val span = doc.children().expectFirst("span")
+        assertNotNull(span)
+        assertEquals("Ksoup", span.text())
+    }
+
+    @Test
+    fun expectFirstThrowsOnNoMatch() {
+        val doc = Ksoup.parse("<p>One</p><p>Two</p><p>Three</p>")
+
+        var threw = false
+        try {
+            doc.children().expectFirst("span")
+        } catch (e: IllegalArgumentException) {
+            threw = true
+            assertEquals("No elements matched the query 'span' in the elements.", e.message)
+        }
+        assertTrue(threw)
+    }
+
+    @Test
+    fun selectFirstFromPreviousSelect() {
+        val doc = Ksoup.parse("<div><p>One</p></div><div><p><span>Two</span></p></div><div><p><span>Three</span></p></div>")
+        val divs = doc.select("div")
+        assertEquals(3, divs.size)
+
+        val span = divs.selectFirst("p span")
+        assertNotNull(span)
+        assertEquals("Two", span.text())
+
+        // test roots
+        assertNotNull(span.selectFirst("span")) // reselect self
+        assertNull(span.selectFirst(">span")) // no span>span
+
+        assertNotNull(divs.selectFirst("div")) // reselect self, similar to element.select
+        assertNull(divs.selectFirst(">div")) // no div>div
     }
 }

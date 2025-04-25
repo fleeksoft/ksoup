@@ -1,16 +1,19 @@
 package com.fleeksoft.ksoup.nodes
 
 import com.fleeksoft.ksoup.*
+import com.fleeksoft.ksoup.Ksoup.parseBodyFragment
+import com.fleeksoft.ksoup.exception.ValidationException
+import com.fleeksoft.ksoup.internal.StringUtil
+import com.fleeksoft.ksoup.nodes.NodeIteratorTest.Companion.assertIterates
 import com.fleeksoft.ksoup.parser.ParseSettings
 import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.parser.Tag
-import com.fleeksoft.ksoup.exception.ValidationException
 import com.fleeksoft.ksoup.select.Elements
 import com.fleeksoft.ksoup.select.NodeFilter
-import com.fleeksoft.ksoup.select.NodeVisitor
 import com.fleeksoft.ksoup.select.QueryParser
 import com.fleeksoft.ksoup.select.SelectorTest.Companion.assertSelectedOwnText
 import kotlin.test.*
+
 
 /**
  * Tests for Element (DOM stuff mostly).
@@ -444,6 +447,14 @@ class ElementTest {
     }
 
     @Test
+    fun formatNoTrailingSpace() {
+        // https://github.com/jhy/Ksoup/issues/2215
+        val html = "<html>\n <head></head>\n <body>\n  a\n  <div>\n  </div>\n </body>\n</html>"
+        val doc: Document = Ksoup.parse(html)
+        assertEquals("<html>\n <head></head>\n <body>\n  a\n  <div></div>\n </body>\n</html>", doc.html())
+    }
+
+    @Test
     fun testFormatHtml() {
         val doc =
             Ksoup.parse("<title>Format test</title><div><p>Hello <span>ksoup <span>users</span></span></p><p>Good.</p></div>")
@@ -456,11 +467,11 @@ class ElementTest {
     @Test
     fun testFormatOutline() {
         val doc =
-            Ksoup.parse("<title>Format test</title><div><p>Hello <span>ksoup <span>users</span></span></p><p>Good.</p></div>")
+            Ksoup.parse("<title>Format test</title><div><p>Hello <span>Ksoup <span>users</span></span></p><p>Good.</p></div>")
         doc.outputSettings().outline(true)
         assertEquals(
-            "<html>\n <head>\n  <title>Format test</title>\n </head>\n <body>\n  <div>\n   <p>\n    Hello \n    <span>\n     ksoup \n     <span>users</span>\n    </span>\n   </p>\n   <p>Good.</p>\n  </div>\n </body>\n</html>",
-            doc.html(),
+            "<html>\n <head>\n  <title>Format test</title>\n </head>\n <body>\n  <div>\n   <p>\n    Hello\n    <span>\n     Ksoup\n     <span>users</span>\n    </span>\n   </p>\n   <p>Good.</p>\n  </div>\n </body>\n</html>",
+            doc.html()
         )
     }
 
@@ -476,43 +487,43 @@ class ElementTest {
 
     @Test
     fun testIndentLevel() {
-        // deep to test default and extended max
-        val divs = StringBuilder()
-        (0..39).forEach { i ->
-            divs.append("<div>")
+        // build a deep chain of <div> tags + "Foo"
+        val divs = buildString {
+            repeat(40) { append("<div>") }
+            append("Foo")
         }
-        divs.append("Foo")
-        val doc = Ksoup.parse(divs.toString())
+
+        val doc = Ksoup.parse(divs)
         val settings = doc.outputSettings()
+
+        // 1) default maxPaddingWidth should be 30
         val defaultMax = 30
         assertEquals(defaultMax, settings.maxPaddingWidth())
         var html = doc.html()
         assertTrue(
             html.contains(
-                """                              <div>
-                              Foo
-                              </div>""",
-            ),
+                "\n${StringUtil.padding(defaultMax, -1)}<div>Foo</div>\n"
+            )
         )
+
+        // 2) bump to 32
         settings.maxPaddingWidth(32)
         assertEquals(32, settings.maxPaddingWidth())
         html = doc.html()
         assertTrue(
             html.contains(
-                """                                <div>
-                                Foo
-                                </div>""",
-            ),
+                "\n${StringUtil.padding(32, -1)}<div>Foo</div>\n"
+            )
         )
+
+        // 3) disable limit (-1 => unlimited), so padding = depth(41)
         settings.maxPaddingWidth(-1)
         assertEquals(-1, settings.maxPaddingWidth())
         html = doc.html()
         assertTrue(
             html.contains(
-                """                                         <div>
-                                          Foo
-                                         </div>""",
-            ),
+                "\n${StringUtil.padding(41, -1)}<div>Foo</div>\n"
+            )
         )
     }
 
@@ -562,19 +573,15 @@ class ElementTest {
 
     @Test
     fun testBasicFormats() {
-        val html =
-            "<span>0</span>.<div><span>1</span>-<span>2</span><p><span>3</span>-<span>4</span><div>5</div>"
-        val doc = Ksoup.parse(html)
+        val html = "<span>0</span>.<div><span>1</span>-<span>2</span><p> <span>3</span>-<span>4</span><div> 5 </div>"
+        val doc: Document = Ksoup.parse(html)
         assertEquals(
-            """<span>0</span>.
-<div>
- <span>1</span>-<span>2</span>
- <p><span>3</span>-<span>4</span></p>
- <div>
-  5
- </div>
-</div>""",
-            doc.body().html(),
+            "<span>0</span>.\n" +
+                    "<div>\n" +
+                    " <span>1</span>-<span>2</span>\n" +
+                    " <p><span>3</span>-<span>4</span></p>\n" +
+                    " <div>5</div>\n" +
+                    "</div>", doc.body().html()
         )
     }
 
@@ -606,11 +613,7 @@ class ElementTest {
             doc.select("div").first()!!
                 .outerHtml(),
         )
-        assertEquals(
-            "<div>\n <p>Hello</p>\n <p>there</p>\n</div>\n<div>\n Another\n</div>",
-            doc.select("body").first()!!
-                .html(),
-        )
+        assertEquals("<div>\n <p>Hello</p>\n <p>there</p>\n</div>\n<div>Another</div>", doc.select("body").first()!!.html())
     }
 
     @Test
@@ -700,10 +703,7 @@ class ElementTest {
         val div = doc.getElementById("1")
         div!!.appendText(" there & now >")
         assertEquals("Hello there & now >", div.text())
-        assertEquals(
-            "<p>Hello</p> there &amp; now &gt;",
-            TextUtil.stripNewlines(div.html()),
-        )
+        assertEquals("<p>Hello</p>there &amp; now &gt;", TextUtil.stripNewlines(div.html()))
     }
 
     @Test
@@ -712,10 +712,7 @@ class ElementTest {
         val div = doc.getElementById("1")
         div!!.prependText("there & now > ")
         assertEquals("there & now > Hello", div.text())
-        assertEquals(
-            "there &amp; now &gt; <p>Hello</p>",
-            TextUtil.stripNewlines(div.html()),
-        )
+        assertEquals("there &amp; now &gt;\n<p>Hello</p>", div.html())
     }
 
     @Test
@@ -842,15 +839,14 @@ class ElementTest {
 
     @Test
     fun testWrapArtificialStructure() {
+
         // div normally couldn't get into a p, but explicitly want to wrap
         val doc = Ksoup.parse("<p>Hello <i>there</i> now.")
-        val i = doc.selectFirst("i")
-        i!!.wrap("<div id=id1></div> quite")
+        val i = doc.expectFirst("i")
+        i.wrap("<div id=id1></div> quite")
         assertEquals("div", i.parent()!!.tagName())
-        assertEquals(
-            "<p>Hello <div id=\"id1\"><i>there</i></div> quite now.</p>",
-            TextUtil.stripNewlines(doc.body().html()),
-        )
+        assertEquals("<p>Hello\n <div id=\"id1\">\n  <i>there</i>\n </div>\n quite now.</p>", (doc.body().html()))
+
     }
 
     @Test
@@ -909,10 +905,7 @@ class ElementTest {
         assertEquals("div", div.tagName())
         assertSame(div, p.parent())
         assertSame(body, div.parent())
-        assertEquals(
-            "<div><p>Hello</p></div> There",
-            TextUtil.stripNewlines(doc.body().html()),
-        )
+        assertEquals("<div><p>Hello</p></div>There", TextUtil.stripNewlines(doc.body().html()))
     }
 
     @Test
@@ -967,7 +960,7 @@ class ElementTest {
     @Test
     fun orphanDivToString() {
         val orphan = Element("div").id("foo").text("Hello")
-        assertEquals("<div id=\"foo\">\n Hello\n</div>", orphan.toString())
+        assertEquals("<div id=\"foo\">Hello</div>", orphan.toString())
     }
 
     @Test
@@ -1057,6 +1050,14 @@ class ElementTest {
     }
 
     @Test
+    fun testSetTag() {
+        val doc: Document = Ksoup.parse("<div><em>Hello</em></div>")
+        val el = doc.expectFirst("em")
+        el.tag(Tag("I", Parser.NamespaceHtml))
+        assertEquals("<I>Hello</I>", el.outerHtml()) // case-sensitive path
+    }
+
+    @Test
     fun testHtmlContainsOuter() {
         val doc = Ksoup.parse("<title>Check</title> <div>Hello there</div>")
         doc.outputSettings().indentAmount(0)
@@ -1143,10 +1144,7 @@ class ElementTest {
         ) // children is NOT backed by div1.childNodes but a wrapper, so should still be 4 (but re-parented)
         assertEquals(0, div1.childNodeSize())
         assertEquals(4, div2.childNodeSize())
-        assertEquals(
-            "<div id=\"1\"></div>\n<div id=\"2\">\n Text \n <p>One</p> Text \n <p>Two</p>\n</div>",
-            doc.body().html(),
-        )
+        assertEquals("<div id=\"1\"></div>\n<div id=\"2\">\n Text\n <p>One</p>\n Text\n <p>Two</p>\n</div>", doc.body().html())
     }
 
     @Test
@@ -1206,8 +1204,8 @@ class ElementTest {
         assertEquals(4, div1.childNodeSize()) // not moved -- cloned
         assertEquals(2, div2.childNodeSize())
         assertEquals(
-            "<div id=\"1\">Text <p>One</p> Text <p>Two</p></div><div id=\"2\"><p>One cloned</p><p>Two</p></div>",
-            TextUtil.stripNewlines(doc.body().html()),
+            "<div id=\"1\">\n Text\n <p>One</p>\n Text\n <p>Two</p>\n</div>\n<div id=\"2\">\n <p>One cloned</p>\n <p>Two</p>\n</div>",
+            doc.body().html()
         )
     }
 
@@ -1565,13 +1563,10 @@ class ElementTest {
         assertEquals(2, els.size)
         assertEquals(4, els2.size)
         assertEquals(
-            """
-            <p><a>One</a></p>
-            <p>P3</p>
-            <p><a>Two</a></p>
-            <p>P4</p>Three
-            """.trimIndent(),
-            div.html(),
+            "<p><a>One</a></p>\n" +
+                    "<p>P3</p>\n" +
+                    "<p><a>Two</a></p>\n" +
+                    "<p>P4</p>\nThree", div.html()
         )
         assertEquals("P3", els2[1].text())
         assertEquals("P4", els2[3].text())
@@ -1581,13 +1576,12 @@ class ElementTest {
         assertEquals("span", els3[2].tagName())
         assertEquals("Another", els3[2].text())
         assertEquals(
-            """
-            <p><a>One</a></p>
-            <p>P3</p><span>Another</span>
-            <p><a>Two</a></p>
-            <p>P4</p>Three
-            """.trimIndent(),
-            div.html(),
+            "<p><a>One</a></p>\n" +
+                    "<p>P3</p>\n" +
+                    "<span>Another</span>\n" +
+                    "<p><a>Two</a></p>\n" +
+                    "<p>P4</p>\n" +
+                    "Three", div.html()
         )
     }
 
@@ -1896,7 +1890,7 @@ class ElementTest {
 
         // TODO: use atomic integer
         var counter = 0
-        val div2 = div.traverse(NodeVisitor { node, depth -> ++counter })
+        val div2 = div.traverse { node, depth -> ++counter }
         assertEquals(7, counter)
         assertEquals(div2, div)
     }
@@ -1908,7 +1902,7 @@ class ElementTest {
         assertNotNull(div)
         // TODO: use atomic integer
         var counter = 0
-        val div2 = div.traverse(NodeVisitor { node, depth -> ++counter })
+        val div2 = div.traverse { node, depth -> ++counter }
         assertEquals(7, counter)
         assertEquals(div2, div)
     }
@@ -2229,14 +2223,14 @@ class ElementTest {
     fun childNodesAccessorDoesNotVivify() {
         val doc = Ksoup.parse("<p></p>")
         val p = doc.selectFirst("p")
-        assertFalse(p!!.hasChildNodes())
-        assertEquals(0, p.childNodeSize())
-        assertEquals(0, p.childrenSize())
-        val childNodes = p.childNodes()
-        assertEquals(0, childNodes.size)
-        val children = p.children()
-        assertEquals(0, children.size)
-        assertFalse(p.hasChildNodes())
+        assertEquals(false, p?.hasChildNodes())
+        assertEquals(0, p?.childNodeSize())
+        assertEquals(0, p?.childrenSize())
+        val childNodes = p?.childNodes()
+        assertEquals(0, childNodes?.size)
+        val children = p?.children()
+        assertEquals(0, children?.size)
+        assertEquals(false, p?.hasChildNodes())
     }
 
     @Test
@@ -2336,7 +2330,7 @@ class ElementTest {
     fun wrapTextAfterBr() {
         val html = "<p>Hello<br>there<br>now.</p>"
         val doc = Ksoup.parse(html)
-        assertEquals("<p>Hello<br>\n there<br>\n now.</p>", doc.body().html())
+        assertEquals("<p>Hello\n <br>\n there\n <br>\n now.</p>", doc.body().html())
     }
 
     @Test
@@ -2350,15 +2344,8 @@ class ElementTest {
     fun prettyprintBrWhenNotFirstChild() {
         val h = "<div><p><br>Foo</p><br></div>"
         val doc = Ksoup.parse(h)
-        assertEquals(
-            """<div>
- <p><br>
-  Foo</p>
- <br>
-</div>""",
-            doc.body().html(),
-        )
-        // br gets wrapped if in div, but not in p (block vs inline), but always wraps after
+        assertEquals("<div>\n <p>\n  <br>\n  Foo\n </p>\n <br>\n</div>", doc.body().html())
+        // br gets wrapped
     }
 
     @Test
@@ -2521,9 +2508,12 @@ Three
 
     @Test
     fun textnodeInBlockIndent() {
-        val html = "<div>\n{{ msg }} \n </div>\n<div>\n{{ msg }} \n </div>"
-        val doc = Ksoup.parse(html)
-        assertEquals("<div>\n {{ msg }}\n</div>\n<div>\n {{ msg }}\n</div>", doc.body().html())
+        val html = "<div>\nmsg \n </div>\n<div>\nmsg \n </div><div><div>msg</div></div><div>msg<p>msg</p></div>"
+        val doc: Document = Ksoup.parse(html)
+        assertEquals(
+            "<div>msg</div>\n<div>msg</div>\n<div>\n <div>msg</div>\n</div>\n<div>\n msg\n <p>msg</p>\n</div>",
+            doc.body().html()
+        )
     }
 
     @Test
@@ -2538,11 +2528,11 @@ Three
         val html = "<body><div> <p> One Two </p> <a>  Hello </a><p>\nSome text \n</p>\n </div>"
         val doc = Ksoup.parse(html)
         assertEquals(
-            """<div>
- <p>One Two</p><a> Hello </a>
- <p>Some text</p>
-</div>""",
-            doc.body().html(),
+            "<div>\n" +
+                    " <p>One Two</p>\n" +
+                    " <a> Hello </a>\n" +
+                    " <p>Some text</p>\n" +
+                    "</div>", doc.body().html()
         )
     }
 
@@ -2563,9 +2553,9 @@ Three
         var html = "<bar><p/>\n</bar>"
         var doc = Ksoup.parse(html)
         assertEquals("<bar>\n <p></p>\n</bar>", doc.body().html())
-        html = "<foo>\n  <bar />\n</foo>"
+        html = "<foo>\n  <bar /></foo>"
         doc = Ksoup.parse(html)
-        assertEquals("<foo>\n <bar />\n</foo>", doc.body().html())
+        assertEquals("<foo>\n <bar></bar>\n</foo>", doc.body().html())
     }
 
     @Test
@@ -2573,7 +2563,7 @@ Three
         val html = "<p>Lorem ipsum</p>\n<span>Thanks</span>"
         val doc = Ksoup.parse(html)
         val outHtml = doc.body().html()
-        assertEquals("<p>Lorem ipsum</p><span>Thanks</span>", outHtml)
+        assertEquals("<p>Lorem ipsum</p>\n<span>Thanks</span>", outHtml)
     }
 
     @Test
@@ -2616,6 +2606,30 @@ Three
     fun cssSelectorNoParent() {
         val el = Element("div")
         assertEquals("div", el.cssSelector())
+    }
+
+    @Test
+    fun cssSelectorParentWithId() {
+        // https://github.com/jhy/jsoup/issues/2282
+        val doc = Ksoup.parse("<div><div id=id1><p>A</p></div><div><p>B</p></div><div class='c1 c2'><p>C</p></div></div>")
+        val els = doc.select("p")
+        val pA = els[0]
+        val pB = els[1]
+        val pC = els[2]
+        assertEquals("#id1 > p", pA.cssSelector())
+        assertEquals("html > body > div > div:nth-child(2) > p", pB.cssSelector())
+        assertEquals("html > body > div > div.c1.c2 > p", pC.cssSelector())
+    }
+
+    @Test
+    fun cssSelectorWithNonUniqueId() {
+        val doc = Ksoup.parse("<main id=out><div><div id=in>One</div><div id=in>Two</div></div></main>")
+        val two = doc.expectFirst("div:containsOwn(Two)")
+        val selector = two.cssSelector()
+        assertEquals("#out > div > div:nth-child(2)", selector)
+        val found = doc.select(selector)
+        assertEquals(1, found.size)
+        assertEquals(two, found.first())
     }
 
     @Test
@@ -2691,6 +2705,28 @@ Three
         assertEquals("html > body > div > span.\\|", selector)
         val selected = doc.select(selector)
         assertSelectedOwnText(selected, "One")
+    }
+
+    @Test
+    fun cssSelectorCombined() {
+        // https://github.com/jhy/jsoup/issues/1984
+        val doc =
+            Ksoup.parse("<img class='e\u0301'><p class=👨‍👨‍👧‍👧></p><a class='\uD83D\uDC68\u200D\uD83D\uDC68\u200D\uD83D\uDC67\u200D\uD83D\uDC67'></a>")
+        val img = doc.expectFirst("img")
+        val p = doc.expectFirst("p")
+        val a = doc.expectFirst("a")
+
+        val imgQ = img.cssSelector()
+        val pQ = p.cssSelector()
+        val aQ = a.cssSelector()
+
+        assertEquals("html > body > img.é", imgQ) // previously was img.e\́; chrome gives literal body > img.e\\u0301
+        assertEquals("html > body > p.👨‍👨‍👧‍👧", pQ) // chrome gives body > p.👨‍👨‍👧‍👧
+        assertEquals("html > body > a.👨‍👨‍👧‍👧", aQ) // body > a.👨‍👨‍👧‍👧
+
+        assertSame(img, doc.expectFirst(imgQ))
+        assertSame(p, doc.expectFirst(pQ))
+        assertSame(a, doc.expectFirst(aQ))
     }
 
     @Test
@@ -2879,8 +2915,9 @@ Three
                     "//]]></script>\n" +
                     "<style>/*<![CDATA[*/\n" +
                     "3 && 4\n" +
-                    "/*]]>*/</style> 5 &amp;&amp; 6",
-            xml,
+                    "/*]]>*/</style>\n" +
+                    "5 &amp;&amp; 6",
+            xml
         )
 
         val xmlDoc: Document = Ksoup.parse(xml, Parser.xmlParser())
@@ -2906,27 +2943,23 @@ Three
         val scriptEl = doc.expectFirst("script")
         val scriptDataNode = scriptEl.childNode(0) as DataNode
         assertEquals(
-            (
-                    "//<![CDATA[\n" +
-                            "1 && 2\n" +
-                            "//]]>"
-                    ),
-            scriptDataNode.getWholeData(),
+            "//<![CDATA[\n" +
+                    "1 && 2\n" +
+                    "//]]>", scriptDataNode.getWholeData()
         )
 
         doc.outputSettings().syntax(Document.OutputSettings.Syntax.xml)
         val p = doc.expectFirst("p")
         val xml = p.html()
         assertEquals(
-            (
-                    "<script>//<![CDATA[\n" +
-                            "1 && 2\n" +
-                            "//]]></script>\n" +
-                            "<style>\n" +
-                            "/*<![CDATA[*/3 && 4\n" +
-                            "/*]]>*/</style> 5 &amp;&amp; 6"
-                    ),
-            xml,
+            "<script>//<![CDATA[\n" +
+                    "1 && 2\n" +
+                    "//]]></script>\n" +
+                    "<style>\n" +
+                    "/*<![CDATA[*/3 && 4\n" +
+                    "/*]]>*/</style>\n" +
+                    "5 &amp;&amp; 6",
+            xml
         )
 
         val xmlDoc: Document = Ksoup.parse(xml, Parser.xmlParser())
@@ -2945,10 +2978,10 @@ Three
         val doc = Ksoup.parse("<div>One</div>")
         val buffer = StringBuilder()
         doc.body().outerHtml(buffer)
-        assertEquals("<body>\n <div>\n  One\n </div>\n</body>", buffer.toString())
+        assertEquals("<body>\n <div>One</div>\n</body>", buffer.toString())
         val builder = StringBuilder()
         doc.body().outerHtml(builder)
-        assertEquals("<body>\n <div>\n  One\n </div>\n</body>", builder.toString())
+        assertEquals("<body>\n <div>One</div>\n</body>", builder.toString())
     }
 
     @Test
@@ -2971,18 +3004,17 @@ Three
         val doc = Ksoup.parse(h)
         val out = doc.body().html()
         assertEquals(
-            """<table>
- <tbody>
-  <tr>
-   <td>
-    <p style="display:inline;">A</p>
-    <p style="display:inline;">B</p></td>
-  </tr>
- </tbody>
-</table>""",
-            out,
+            "<table>\n" +
+                    " <tbody>\n" +
+                    "  <tr>\n" +
+                    "   <td>\n" +
+                    "    <p style=\"display:inline;\">A</p>\n" +
+                    "    <p style=\"display:inline;\">B</p>\n" +
+                    "   </td>\n" +
+                    "  </tr>\n" +
+                    " </tbody>\n" +
+                    "</table>", out
         )
-        // todo - I would prefer the </td> to wrap down there - but need to reimplement pretty printer to simplify and track indented state
     }
 
     @Test
@@ -3067,20 +3099,122 @@ Three
         assertEquals("CLASS=\"YES\"", attr.html())
     }
 
+    @Test
+    fun testSelectStream() {
+        val doc = Ksoup.parse("<div>Hello world</div>")
+        var div: Element = doc.select("div").asSequence().first()
+
+        assertEquals("Hello world", div.text())
+
+        div = doc.selectStream("div").first()
+
+        assertEquals("Hello world", div.text())
+    }
+
+    @Test
+    fun elementIsIterable() {
+        val doc = Ksoup.parse("<div><a id=1>One</a> Two <a id=2>Three<b>Four</a><a id=3>Five</a></div>")
+        val expect = "div;a#1;a#2;b;b;a#3;" // elements only, in doc order
+        val div = doc.expectFirst("div")
+
+        // for each pattern
+        var seen = StringBuilder()
+        for (el in div) {
+            NodeIteratorTest.Companion.trackSeen(el, seen)
+        }
+        assertEquals(expect, seen.toString())
+
+        // iterator
+        seen = StringBuilder()
+        val iterator: Iterator<Element> = div.iterator()
+        assertIterates(iterator, expect)
+    }
+
+    @Test
+    fun htmlToXmlNormalizes() {
+        // https://github.com/jhy/Ksoup/issues/1496
+        val `in` = "<p\u226F\u0322>One</p\u226F\u0322>"
+        val doc = Ksoup.parse(`in`)
+        doc.outputSettings().prettyPrint(false)
+        val html = doc.body().html()
+        doc.outputSettings().syntax(Document.OutputSettings.Syntax.xml)
+        val xml = doc.body().html()
+        assertEquals("<p≯̢>One</p≯̢>", html)
+        assertEquals("<p_>One</p_>", xml)
+    }
+
+    @Test
+    fun invalidCharactersDiscardedInXml() {
+        // https://github.com/jhy/Ksoup/issues/1743
+        val invalid = "AAA&#xc;BBB\u000cCCC\uFFFE\uFFFFDDD"
+        val doc = parseBodyFragment(invalid)
+        doc.outputSettings().syntax(Document.OutputSettings.Syntax.xml).prettyPrint(false)
+        val cleaned = doc.body().html()
+        assertFalse(cleaned.contains("\u000c"))
+        assertFalse(cleaned.contains("&#xc;"))
+        assertFalse(cleaned.contains("\uFFFE"))
+        assertFalse(cleaned.contains("\uFFFF"))
+        assertTrue(cleaned.matches("AAA *BBB *CCC *DDD".toRegex()))
+    }
+
+    @Test
+    fun asList() {
+        // supports https://github.com/jhy/Ksoup/issues/2100
+        val doc = Ksoup.parse("<p id=1>One</p><p>Two</p><p>Three</p>")
+        val els = doc.select("p")
+        val list = els.asList()
+        assertEquals(els.size, list.size)
+
+        // does not modify backing DOM
+        list.removeAt(0)
+        assertEquals(3, els.size)
+        assertEquals(2, list.size)
+
+        val el = doc.expectFirst("#1")
+        assertSame(doc, el.ownerDocument())
+    }
+
+    @Test
+    fun deselect() {
+        // supports https://github.com/jhy/Ksoup/issues/2100
+        val doc = Ksoup.parse("<div><p>One</p><p>Two</p><p>Three</p></div>")
+        val els = doc.select("p")
+        val parent = doc.expectFirst("div")
+
+        val removedByIndex = els.deselect(1)
+        assertEquals("Two", removedByIndex.text())
+        assertEquals(2, els.size)
+        assertEquals(3, parent.childrenSize())
+
+        val toRemove = doc.expectFirst("p:contains(Three)")
+        val removedByObject = els.deselect(toRemove)
+        assertTrue(removedByObject)
+        assertEquals(1, els.size)
+        assertEquals(3, parent.childrenSize())
+    }
+
+    @Test
+    fun deselectAll() {
+        val doc = Ksoup.parse("<div><p>One</p><p>Two</p><p>Three</p></div>")
+        val els = doc.select("p")
+        val parent = doc.expectFirst("div")
+
+        els.deselectAll()
+        assertEquals(0, els.size)
+        assertEquals(3, parent.childrenSize())
+    }
+
     companion object {
-        private fun validateScriptContents(
-            src: String,
-            el: Element?,
-        ) {
-            assertEquals("", el!!.text()) // it's not text
+        private fun validateScriptContents(src: String, el: Element) {
+            assertEquals("", el.text()) // it's not text
             assertEquals("", el.ownText())
             assertEquals("", el.wholeText())
             assertEquals(src, el.html())
             assertEquals(src, el.data())
         }
 
-        private fun validateXmlScriptContents(el: Element?) {
-            assertEquals("var foo = 5 < 2; var bar = 1 && 2;", el!!.text())
+        private fun validateXmlScriptContents(el: Element) {
+            assertEquals("var foo = 5 < 2; var bar = 1 && 2;", el.text())
             assertEquals("var foo = 5 < 2; var bar = 1 && 2;", el.ownText())
             assertEquals("var foo = 5 < 2;\nvar bar = 1 && 2;", el.wholeText())
             assertEquals("var foo = 5 &lt; 2;\nvar bar = 1 &amp;&amp; 2;", el.html())

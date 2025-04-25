@@ -1,11 +1,3 @@
-/*
- * Kotlin port of jsoup's DataNode.java
- * Copyright © 2009–2025 Jonathan Hedley
- * Copyright © 2023–2025 FLEEK SOFT
- * Licensed under the MIT License
- * https://jsoup.org
- */
-
 package com.fleeksoft.ksoup.nodes
 
 import com.fleeksoft.ksoup.internal.Unbaser
@@ -65,7 +57,7 @@ public class DataNode(data: String) : LeafNode(data) {
         }
     }
 
-    public override fun outerHtmlHead(accum: Appendable, depth: Int, out: Document.OutputSettings) {
+    public override fun outerHtmlHead(accum: Appendable, out: Document.OutputSettings) {
         /* For XML output, escape the DataNode in a CData section. The data may contain pseudo-CData content if it was
         parsed as HTML, so don't double up Cdata. Output in polyglot HTML / XHTML / XML format. */
         val data = getWholeData()
@@ -79,11 +71,8 @@ public class DataNode(data: String) : LeafNode(data) {
             }
         } else {
             // In HTML, data is not escaped in the output of data nodes, so < and & in script, style is OK
-            accum.append(getWholeData())
+            accum.append(data)
         }
-    }
-
-    override fun outerHtmlTail(accum: Appendable, depth: Int, out: Document.OutputSettings) {
     }
 
     override fun createClone(): Node {

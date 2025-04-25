@@ -16,7 +16,10 @@ import com.fleeksoft.ksoup.nodes.*
 import com.fleeksoft.ksoup.parser.ParseSettings
 
 /**
- * Evaluates that an element matches the selector.
+ * An Evaluator tests if an element meets the selector's requirements. Obtain an evaluator for a given CSS selector
+ * with {@link QueryParser#parse}. If you are executing the same selector on many elements (or documents), it
+ * can be more efficient to compile and reuse an Evaluator than to reparse the selector on each invocation of select().
+ * <p>Evaluators are thread-safe and may be used concurrently across multiple documents.</p>
  */
 public abstract class Evaluator protected constructor() {
     /**
@@ -76,15 +79,12 @@ public abstract class Evaluator protected constructor() {
      * Evaluator for tag name that starts with prefix; used for ns|*
      */
     public class TagStartsWith(private val tagName: String) : Evaluator() {
-        override fun matches(
-            root: Element,
-            element: Element,
-        ): Boolean {
+        override fun matches(root: Element, element: Element): Boolean {
             return element.normalName().startsWith(tagName)
         }
 
         override fun toString(): String {
-            return tagName
+            return "${tagName}|*"
         }
     }
 
@@ -100,7 +100,7 @@ public abstract class Evaluator protected constructor() {
         }
 
         override fun toString(): String {
-            return tagName
+            return "*|${tagName}"
         }
     }
 
@@ -128,15 +128,12 @@ public abstract class Evaluator protected constructor() {
      * Evaluator for element class
      */
     public class Class(private val className: String) : Evaluator() {
-        override fun matches(
-            root: Element,
-            element: Element,
-        ): Boolean {
+        override fun matches(root: Element, element: Element): Boolean {
             return element.hasClass(className)
         }
 
         override fun cost(): Int {
-            return 6 // does whitespace scanning
+            return 8 // does whitespace scanning; more than .contains()
         }
 
         override fun toString(): String {
@@ -295,13 +292,10 @@ public abstract class Evaluator protected constructor() {
     /**
      * Evaluator for attribute name/value matching (value regex matching)
      */
-    internal class AttributeWithValueMatching(key: String?, var regex: Regex) : Evaluator() {
+    class AttributeWithValueMatching(key: String?, var regex: Regex) : Evaluator() {
         var key: String = normalize(key)
 
-        override fun matches(
-            root: Element,
-            element: Element,
-        ): Boolean {
+        override fun matches(root: Element, element: Element): Boolean {
             // TODO: test regex.find vs pattern.matcher
             return element.hasAttr(key) && regex.find(element.attr(key)) != null
         }
@@ -311,7 +305,7 @@ public abstract class Evaluator protected constructor() {
         }
 
         override fun toString(): String {
-            return "[$key~=$regex]"
+            return "[$key~=${regex.pattern}]"
         }
     }
 
@@ -345,11 +339,8 @@ public abstract class Evaluator protected constructor() {
     /**
      * Evaluator for any / all element matching
      */
-    internal class AllElements : Evaluator() {
-        override fun matches(
-            root: Element,
-            element: Element,
-        ): Boolean {
+    class AllElements : Evaluator() {
+        override fun matches(root: Element, element: Element): Boolean {
             return true
         }
 
@@ -365,7 +356,7 @@ public abstract class Evaluator protected constructor() {
     /**
      * Evaluator for matching by sibling index number (e &lt; idx)
      */
-    internal class IndexLessThan(index: Int) : IndexEvaluator(index) {
+    class IndexLessThan(index: Int) : IndexEvaluator(index) {
         override fun matches(
             root: Element,
             element: Element,
@@ -381,7 +372,7 @@ public abstract class Evaluator protected constructor() {
     /**
      * Evaluator for matching by sibling index number (e &gt; idx)
      */
-    internal class IndexGreaterThan(index: Int) : IndexEvaluator(index) {
+    class IndexGreaterThan(index: Int) : IndexEvaluator(index) {
         override fun matches(
             root: Element,
             element: Element,
@@ -397,7 +388,7 @@ public abstract class Evaluator protected constructor() {
     /**
      * Evaluator for matching by sibling index number (e = idx)
      */
-    internal class IndexEquals(index: Int) : IndexEvaluator(index) {
+    class IndexEquals(index: Int) : IndexEvaluator(index) {
         override fun matches(
             root: Element,
             element: Element,
@@ -413,11 +404,8 @@ public abstract class Evaluator protected constructor() {
     /**
      * Evaluator for matching the last sibling (css :last-child)
      */
-    internal class IsLastChild : Evaluator() {
-        override fun matches(
-            root: Element,
-            element: Element,
-        ): Boolean {
+    class IsLastChild : Evaluator() {
+        override fun matches(root: Element, element: Element): Boolean {
             val p: Element? = element.parent()
             return p != null && p !is Document && element === p.lastElementChild()
         }
@@ -439,35 +427,43 @@ public abstract class Evaluator protected constructor() {
         }
     }
 
-    public abstract class CssNthEvaluator(protected val a: Int, protected val b: Int) : Evaluator() {
-        public constructor(b: Int) : this(0, b)
+    /**
+     * Base class for CSS :nth-* evaluators (e.g. :nth-child, :nth-of-type).
+     */
+    abstract class CssNthEvaluator(val a: Int, val b: Int) : Evaluator() {
 
-        override fun matches(
-            root: Element,
-            element: Element,
-        ): Boolean {
-            val p: Element? = element.parent()
-            if (p == null || p is Document) return false
+        /** Convenience constructor for just an offset (a = 0). */
+        constructor(offset: Int) : this(0, offset)
+
+        override fun matches(root: Element, element: Element): Boolean {
+            val parent = element.parent() ?: return false
+            if (parent is Document) return false
+
             val pos = calculatePosition(root, element)
-            return if (a == 0) pos == b else (pos - b) * a >= 0 && (pos - b) % a == 0
-        }
-
-        override fun toString(): String {
-            if (a == 0) return ":$pseudoClass($b)"
-            return if (b == 0) {
-                ":$pseudoClass(${a}n)"
+            return if (a == 0) {
+                pos == b
             } else {
-                val sign = if (b >= 0) "+" else ""
-                ":$pseudoClass(${a}n${sign}$b)"
+                (pos - b) * a >= 0 && (pos - b) % a == 0
             }
         }
 
-        protected abstract val pseudoClass: String?
+        override fun toString(): String {
+            val pseudo = getPseudoClass()
+            return when {
+                a == 0 -> ":$pseudo($b)"
+                b == 0 -> ":$pseudo(${a}n)"
+                else -> {
+                    val sign = if (b >= 0) "+$b" else "$b"
+                    ":$pseudo(${a}n$sign)"
+                }
+            }
+        }
 
-        protected abstract fun calculatePosition(
-            root: Element,
-            element: Element,
-        ): Int
+        /** Returns the CSS pseudo-class (e.g. "nth-child"). */
+        protected abstract fun getPseudoClass(): String
+
+        /** Computes the position of [element] under [root]. */
+        protected abstract fun calculatePosition(root: Element, element: Element): Int
     }
 
     /**
@@ -475,67 +471,53 @@ public abstract class Evaluator protected constructor() {
      *
      * @see IndexEquals
      */
-    public open class IsNthChild(a: Int, b: Int) : CssNthEvaluator(a, b) {
-        override fun calculatePosition(
-            root: Element,
-            element: Element,
-        ): Int {
-            return element.elementSiblingIndex() + 1
-        }
+    class IsNthChild(a: Int, b: Int) : CssNthEvaluator(a, b) {
+        override fun calculatePosition(root: Element, element: Element): Int =
+            element.elementSiblingIndex() + 1
 
-        override val pseudoClass: String = "nth-child"
+        override fun getPseudoClass(): String = "nth-child"
     }
 
     /**
-     * css pseudo class :nth-last-child
+     * css pseudo‑class :nth‑last‑child
      *
      * @see IndexEquals
      */
-    public class IsNthLastChild(a: Int, b: Int) : CssNthEvaluator(a, b) {
-        override fun calculatePosition(
-            root: Element,
-            element: Element,
-        ): Int {
-            val parent: Element? = element.parent()
-            return if (parent == null) {
-                0
-            } else {
-                parent.childrenSize() - element.elementSiblingIndex()
-            }
-        }
+    class IsNthLastChild(a: Int, b: Int) : CssNthEvaluator(a, b) {
+        override fun calculatePosition(root: Element, element: Element): Int =
+            element.parent()?.let { it.childrenSize() - element.elementSiblingIndex() } ?: 0
 
-        override val pseudoClass: String = "nth-last-child"
+        override fun getPseudoClass(): String = "nth-last-child"
     }
 
     /**
-     * css pseudo class nth-of-type
-     *
+     * css pseudo‑class nth‑of‑type
      */
-    public open class IsNthOfType(a: Int, b: Int) : CssNthEvaluator(a, b) {
-        override fun calculatePosition(
-            root: Element,
-            element: Element,
-        ): Int {
-            val parent: Element = element.parent() ?: return 0
+    open class IsNthOfType(a: Int, b: Int) : CssNthEvaluator(a, b) {
+        override fun calculatePosition(root: Element, element: Element): Int {
+            val parent = element.parent() ?: return 0
+
             var pos = 0
-            val size: Int = parent.childNodeSize()
+            val size = parent.childNodeSize()
             for (i in 0 until size) {
-                val node: Node = parent.childNode(i)
+                val node = parent.childNode(i)
                 if (node.normalName() == element.normalName()) pos++
-                if (node === element) break
+                if (node == element) break
             }
             return pos
         }
 
-        override val pseudoClass: String = "nth-of-type"
+        override fun getPseudoClass(): String = "nth-of-type"
     }
 
-    public open class IsNthLastOfType(a: Int, b: Int) : CssNthEvaluator(a, b) {
-        override fun calculatePosition(
-            root: Element,
-            element: Element,
-        ): Int {
-            element.parent() ?: return 0
+
+    /**
+     * css pseudo‑class nth‑last‑of‑type
+     */
+    open class IsNthLastOfType(a: Int, b: Int) : CssNthEvaluator(a, b) {
+        override fun calculatePosition(root: Element, element: Element): Int {
+            val parent = element.parent() ?: return 0
+
             var pos = 0
             var next: Element? = element
             while (next != null) {
@@ -545,17 +527,14 @@ public abstract class Evaluator protected constructor() {
             return pos
         }
 
-        override val pseudoClass: String = "nth-last-of-type"
+        override fun getPseudoClass(): String = "nth-last-of-type"
     }
 
     /**
      * Evaluator for matching the first sibling (css :first-child)
      */
     public class IsFirstChild : Evaluator() {
-        override fun matches(
-            root: Element,
-            element: Element,
-        ): Boolean {
+        override fun matches(root: Element, element: Element): Boolean {
             val p: Element? = element.parent()
             return p != null && p !is Document && element === p.firstElementChild()
         }
@@ -754,16 +733,13 @@ public abstract class Evaluator protected constructor() {
      * Evaluator for matching Element (and its descendants) text with regex
      */
     public class Matches(private val pattern: Regex) : Evaluator() {
-        override fun matches(
-            root: Element,
-            element: Element,
-        ): Boolean {
+        override fun matches(root: Element, element: Element): Boolean {
             return pattern.containsMatchIn(element.text())
         }
 
         override fun cost(): Int = 8
 
-        override fun toString(): String = ":matches($pattern)"
+        override fun toString(): String = ":matches(${pattern.pattern})"
     }
 
     /**
@@ -779,7 +755,7 @@ public abstract class Evaluator protected constructor() {
 
         override fun cost(): Int = 7
 
-        override fun toString(): String = ":matchesOwn($pattern)"
+        override fun toString(): String = ":matchesOwn(${pattern.pattern})"
     }
 
     /**
@@ -795,7 +771,7 @@ public abstract class Evaluator protected constructor() {
 
         override fun cost(): Int = 8
 
-        override fun toString(): String = ":matchesWholeText($pattern)"
+        override fun toString(): String = ":matchesWholeText(${pattern.pattern})"
     }
 
     /**
@@ -811,7 +787,7 @@ public abstract class Evaluator protected constructor() {
 
         override fun cost(): Int = 7
 
-        override fun toString(): String = ":matchesWholeOwnText($pattern)"
+        override fun toString(): String = ":matchesWholeOwnText(${pattern.pattern})"
     }
 
     public class MatchText : Evaluator() {

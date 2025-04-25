@@ -105,6 +105,8 @@ public abstract class LeafNode : Node {
         return EmptyNodes
     }
 
+    override fun outerHtmlTail(accum: Appendable, out: Document.OutputSettings) {}
+
     protected override fun doClone(parent: Node?): LeafNode {
         val clone = super.doClone(parent) as LeafNode
 

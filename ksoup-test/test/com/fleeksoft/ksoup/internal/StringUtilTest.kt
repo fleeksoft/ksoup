@@ -2,7 +2,9 @@ package com.fleeksoft.ksoup.internal
 
 import com.fleeksoft.ksoup.Ksoup
 import com.fleeksoft.ksoup.internal.StringUtil.isAscii
+import com.fleeksoft.ksoup.internal.StringUtil.isAsciiLetter
 import com.fleeksoft.ksoup.internal.StringUtil.isBlank
+import com.fleeksoft.ksoup.internal.StringUtil.isHexDigit
 import com.fleeksoft.ksoup.internal.StringUtil.isNumeric
 import com.fleeksoft.ksoup.internal.StringUtil.isWhitespace
 import com.fleeksoft.ksoup.internal.StringUtil.join
@@ -174,5 +176,74 @@ class StringUtilTest {
         assertFalse(isAscii("🧔"))
         assertFalse(isAscii("测试"))
         assertFalse(isAscii("测试.com"))
+    }
+
+    @Test
+    fun isAsciiLetter() {
+        assertTrue(isAsciiLetter('a'))
+        assertTrue(isAsciiLetter('n'))
+        assertTrue(isAsciiLetter('z'))
+        assertTrue(isAsciiLetter('A'))
+        assertTrue(isAsciiLetter('N'))
+        assertTrue(isAsciiLetter('Z'))
+
+        assertFalse(isAsciiLetter(' '))
+        assertFalse(isAsciiLetter('-'))
+        assertFalse(isAsciiLetter('0'))
+        assertFalse(isAsciiLetter('ß'))
+        assertFalse(isAsciiLetter('Ě'))
+    }
+
+    @Test
+    fun isDigit() {
+        assertTrue(StringUtil.isDigit('0'))
+        assertTrue(StringUtil.isDigit('1'))
+        assertTrue(StringUtil.isDigit('2'))
+        assertTrue(StringUtil.isDigit('3'))
+        assertTrue(StringUtil.isDigit('4'))
+        assertTrue(StringUtil.isDigit('5'))
+        assertTrue(StringUtil.isDigit('6'))
+        assertTrue(StringUtil.isDigit('7'))
+        assertTrue(StringUtil.isDigit('8'))
+        assertTrue(StringUtil.isDigit('9'))
+        assertFalse(StringUtil.isDigit('a'))
+        assertFalse(StringUtil.isDigit('A'))
+        assertFalse(StringUtil.isDigit('ä'))
+        assertFalse(StringUtil.isDigit('Ä'))
+        assertFalse(StringUtil.isDigit('١'))
+        assertFalse(StringUtil.isDigit('୳'))
+    }
+
+    @Test
+    fun isHexDigit() {
+        assertTrue(isHexDigit('0'))
+        assertTrue(isHexDigit('1'))
+        assertTrue(isHexDigit('2'))
+        assertTrue(isHexDigit('3'))
+        assertTrue(isHexDigit('4'))
+        assertTrue(isHexDigit('5'))
+        assertTrue(isHexDigit('6'))
+        assertTrue(isHexDigit('7'))
+        assertTrue(isHexDigit('8'))
+        assertTrue(isHexDigit('9'))
+        assertTrue(isHexDigit('a'))
+        assertTrue(isHexDigit('b'))
+        assertTrue(isHexDigit('c'))
+        assertTrue(isHexDigit('d'))
+        assertTrue(isHexDigit('e'))
+        assertTrue(isHexDigit('f'))
+        assertTrue(isHexDigit('A'))
+        assertTrue(isHexDigit('B'))
+        assertTrue(isHexDigit('C'))
+        assertTrue(isHexDigit('D'))
+        assertTrue(isHexDigit('E'))
+        assertTrue(isHexDigit('F'))
+
+        assertFalse(isHexDigit('g'))
+        assertFalse(isHexDigit('G'))
+        assertFalse(isHexDigit('ä'))
+        assertFalse(isHexDigit('Ä'))
+        assertFalse(isHexDigit('١'))
+        assertFalse(isHexDigit('୳'))
     }
 }
