@@ -20,9 +20,10 @@ import com.fleeksoft.ksoup.nodes.Document.OutputSettings.Syntax
  */
 public class DocumentType(private val name: String, private val publicId: String, private val systemId: String) : LeafNode(name) {
     init {
-        attr(NameKey, name)
-        attr(PublicId, publicId)
-        attr(SystemId, systemId)
+        attributes()
+            .add(NameKey, name)
+            .add(PublicId, publicId)
+            .add(SystemId, systemId)
         updatePubSyskey()
     }
 
@@ -32,9 +33,9 @@ public class DocumentType(private val name: String, private val publicId: String
 
     private fun updatePubSyskey() {
         if (has(PublicId)) {
-            attr(PubSysKey, PUBLIC_KEY)
+            attributes().add(PubSysKey, PUBLIC_KEY)
         } else if (has(SystemId)) {
-            attr(PubSysKey, SYSTEM_KEY)
+            attributes().add(PubSysKey, SYSTEM_KEY)
         }
     }
 
@@ -66,32 +67,22 @@ public class DocumentType(private val name: String, private val publicId: String
         return "#doctype"
     }
 
-    override fun outerHtmlHead(
-        accum: Appendable,
-        depth: Int,
-        out: Document.OutputSettings,
-    ) {
-        // add a newline if the doctype has a preceding node (which must be a comment)
-        if (_siblingIndex > 0 && out.prettyPrint()) accum.append('\n')
-
+    override fun outerHtmlHead(accum: Appendable, out: Document.OutputSettings) {
         if (out.syntax() == Syntax.html && !has(PublicId) && !has(SystemId)) {
             // looks like a html5 doctype, go lowercase for aesthetics
             accum.append("<!doctype")
         } else {
             accum.append("<!DOCTYPE")
         }
-        if (has(NameKey)) accum.append(" ").append(attr(NameKey))
-        if (has(PubSysKey)) accum.append(" ").append(attr(PubSysKey))
-        if (has(PublicId)) accum.append(" \"").append(attr(PublicId)).append('"')
-        if (has(SystemId)) accum.append(" \"").append(attr(SystemId)).append('"')
+        if (has(NameKey))
+            accum.append(" ").append(attr(NameKey))
+        if (has(PubSysKey))
+            accum.append(" ").append(attr(PubSysKey))
+        if (has(PublicId))
+            accum.append(" \"").append(attr(PublicId)).append('"')
+        if (has(SystemId))
+            accum.append(" \"").append(attr(SystemId)).append('"')
         accum.append('>')
-    }
-
-    override fun outerHtmlTail(
-        accum: Appendable,
-        depth: Int,
-        out: Document.OutputSettings,
-    ) {
     }
 
     override fun createClone(): Node {
