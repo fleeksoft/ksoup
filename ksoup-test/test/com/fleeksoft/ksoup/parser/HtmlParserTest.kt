@@ -8,6 +8,7 @@ import com.fleeksoft.ksoup.safety.Safelist
 import kotlinx.coroutines.test.runTest
 import kotlin.test.*
 
+
 /**
  * Tests for the Parser
  *
@@ -158,7 +159,7 @@ class HtmlParserTest {
     fun testSelectWithOption() {
         val parser = Parser.htmlParser()
         parser.setTrackErrors(10)
-        val document = parser.parseInput("<select><option>Option 1</option></select>", "http://ksoup.org")
+        parser.parseInput("<select><option>Option 1</option></select>", "http://ksoup.org")
         assertEquals(0, parser.getErrors().size)
     }
 
@@ -219,10 +220,7 @@ class HtmlParserTest {
     fun handlesTextAfterData() {
         val h = "<html><body>pre <script>inner</script> aft</body></html>"
         val doc = Ksoup.parse(h)
-        assertEquals(
-            "<html><head></head><body>pre <script>inner</script> aft</body></html>",
-            TextUtil.stripNewlines(doc.html()),
-        )
+        assertEquals("<html><head></head><body>pre<script>inner</script>aft</body></html>", TextUtil.stripNewlines(doc.html()))
     }
 
     @Test
@@ -238,8 +236,8 @@ class HtmlParserTest {
         // preserve because the tag is marked as preserve white space
         val doc = Ksoup.parse("<textarea>\n\tOne\n\tTwo\n\tThree\n</textarea>")
         val expect = "One\n\tTwo\n\tThree" // the leading and trailing spaces are dropped as a convenience to authors
-        val el = doc.select("textarea").first()
-        assertEquals(expect, el!!.text())
+        val el = doc.expectFirst("textarea")
+        assertEquals(expect, el.text())
         assertEquals(expect, el.value())
         assertEquals(expect, el.html())
         assertEquals(
@@ -394,7 +392,7 @@ class HtmlParserTest {
         assertEquals("<html>\n <foo><&amp;", div!!.text())
         assertEquals(0, div.children().size)
         assertEquals(1, div.childNodeSize()) // no elements, one text node
-        assertEquals("<div id=\"1\"><![CDATA[\n<html>\n <foo><&amp;]]>\n</div>", div.outerHtml())
+        assertEquals("<div id=\"1\"><![CDATA[\n<html>\n <foo><&amp;]]></div>", div.outerHtml())
         val cdata = div.textNodes()[0] as CDataNode
         assertEquals("\n<html>\n <foo><&amp;", cdata.text())
     }
@@ -498,10 +496,7 @@ class HtmlParserTest {
 
     @Test
     fun parseBodyIsIndexNoAttributes() {
-        val expectedHtml = """<form>
- <hr><label>This is a searchable index. Enter search keywords: <input name="isindex"></label>
- <hr>
-</form>"""
+        val expectedHtml = "<isindex></isindex>"
         var doc = Ksoup.parse("<isindex>")
         assertEquals(expectedHtml, doc.body().html())
         doc = Ksoup.parseBodyFragment("<isindex>")
@@ -512,65 +507,64 @@ class HtmlParserTest {
 
     @Test
     fun handlesUnknownNamespaceTags() {
-        // note that the first foo:bar should not really be allowed to be self closing, if parsed in html mode.
         val h = "<foo:bar id='1' /><abc:def id=2>Foo<p>Hello</p></abc:def><foo:bar>There</foo:bar>"
-        val doc = Ksoup.parse(h)
+        val parser = Parser.htmlParser()
+        parser.tagSet().valueOf("foo:bar", Parser.NamespaceHtml).set(Tag.SelfClose)
+        val doc: Document = Ksoup.parse(h, parser)
         assertEquals(
-            "<foo:bar id=\"1\" /><abc:def id=\"2\">Foo<p>Hello</p></abc:def><foo:bar>There</foo:bar>",
-            TextUtil.stripNewlines(doc.body().html()),
+            "<foo:bar id=\"1\"></foo:bar><abc:def id=\"2\">Foo<p>Hello</p></abc:def><foo:bar>There</foo:bar>",
+            TextUtil.stripNewlines(doc.body().html())
         )
     }
 
+    // we used to allow self-closing for any tag in html, but spec no longer allows
     @Test
     fun handlesKnownEmptyBlocks() {
-        // if a known tag, allow self closing outside of spec, but force an end tag. unknown tags can be self closing.
+        // by default, self-closing flag has no impact (see detailed tests for self-closing below)
         val h =
-            "<div id='1' /><script src='/foo' /><div id=2><img /><img></div><a id=3 /><i /><foo /><foo>One</foo> <hr /> hr text <hr> hr text two"
+            "<div id='1' /><script src='/foo'></script><div id=2><img /><img></div><a id=3 /><i /><foo /><foo>One</foo> <hr /> hr text <hr> hr text two"
         val doc = Ksoup.parse(h)
         assertEquals(
-            "<div id=\"1\"></div><script src=\"/foo\"></script><div id=\"2\"><img><img></div><a id=\"3\"></a><i></i><foo /><foo>One</foo><hr> hr text <hr> hr text two",
-            TextUtil.stripNewlines(doc.body().html()),
+            "<div id=\"1\"><script src=\"/foo\"></script><div id=\"2\"><img><img></div><a id=\"3\"><i><foo><foo>One</foo><hr>hr text<hr>hr text two</foo></i></a></div>",
+            TextUtil.stripNewlines(doc.body().html())
         )
     }
 
     @Test
-    fun handlesKnownEmptyNoFrames() {
+    fun handlesEmptyNoFrames() {
+        // can modify parser to allow self closing
         val h = "<html><head><noframes /><meta name=foo></head><body>One</body></html>"
-        val doc = Ksoup.parse(h)
-        assertEquals(
-            "<html><head><noframes></noframes><meta name=\"foo\"></head><body>One</body></html>",
-            TextUtil.stripNewlines(doc.html()),
-        )
+        val parser = Parser.htmlParser()
+        parser.tagSet().valueOf("noframes", Parser.NamespaceHtml).set(Tag.SelfClose)
+        val doc = Ksoup.parse(h, parser)
+        assertEquals("<html><head><noframes></noframes><meta name=\"foo\"></head><body>One</body></html>", TextUtil.stripNewlines(doc.html()))
     }
 
     @Test
     fun handlesKnownEmptyStyle() {
         val h = "<html><head><style /><meta name=foo></head><body>One</body></html>"
-        val doc = Ksoup.parse(h)
-        assertEquals(
-            "<html><head><style></style><meta name=\"foo\"></head><body>One</body></html>",
-            TextUtil.stripNewlines(doc.html()),
-        )
+        val parser = Parser.htmlParser()
+        parser.tagSet().valueOf("style", Parser.NamespaceHtml).set(Tag.SelfClose)
+        val doc = Ksoup.parse(h, parser)
+        assertEquals("<html><head><style></style><meta name=\"foo\"></head><body>One</body></html>", TextUtil.stripNewlines(doc.html()))
     }
 
     @Test
     fun handlesKnownEmptyTitle() {
         val h = "<html><head><title /><meta name=foo></head><body>One</body></html>"
-        val doc = Ksoup.parse(h)
-        assertEquals(
-            "<html><head><title></title><meta name=\"foo\"></head><body>One</body></html>",
-            TextUtil.stripNewlines(doc.html()),
-        )
+        val parser = Parser.htmlParser()
+        parser.tagSet().valueOf("title", Parser.NamespaceHtml).set(Tag.SelfClose)
+        val doc = Ksoup.parse(h, parser)
+        assertEquals("<html><head><title></title><meta name=\"foo\"></head><body>One</body></html>", TextUtil.stripNewlines(doc.html()))
     }
 
     @Test
     fun handlesKnownEmptyIframe() {
         val h = "<p>One</p><iframe id=1 /><p>Two"
-        val doc = Ksoup.parse(h)
-        assertEquals(
-            "<html><head></head><body><p>One</p><iframe id=\"1\"></iframe><p>Two</p></body></html>",
-            TextUtil.stripNewlines(doc.html()),
-        )
+        val parser = Parser.htmlParser()
+        parser.tagSet().valueOf("iframe", Parser.NamespaceHtml).set(Tag.SelfClose)
+        val doc = Ksoup.parse(h, parser)
+        assertEquals("<html><head></head><body><p>One</p><iframe id=\"1\"></iframe><p>Two</p></body></html>", TextUtil.stripNewlines(doc.html()))
     }
 
     @Test
@@ -705,8 +699,8 @@ class HtmlParserTest {
         val doc =
             Ksoup.parse("<h1>Hello <h2>There <hgroup><h1>Another<h2>headline</hgroup> <hgroup><h1>More</h1><p>stuff</p></hgroup>")
         assertEquals(
-            "<h1>Hello</h1><h2>There <hgroup><h1>Another</h1><h2>headline</h2></hgroup><hgroup><h1>More</h1><p>stuff</p></hgroup></h2>",
-            TextUtil.stripNewlines(doc.body().html()),
+            "<h1>Hello</h1><h2>There<hgroup><h1>Another</h1><h2>headline</h2></hgroup><hgroup><h1>More</h1><p>stuff</p></hgroup></h2>",
+            TextUtil.stripNewlines(doc.body().html())
         )
     }
 
@@ -724,17 +718,14 @@ class HtmlParserTest {
         // h* tags (h1 .. h9) in browsers can handle any internal content other than other h*. which is not per any
         // spec, which defines them as containing phrasing content only. so, reality over theory.
         val doc = Ksoup.parse("<h1>Hello <div>There</div> now</h1> <h2>More <h3>Content</h3></h2>")
-        assertEquals(
-            "<h1>Hello <div>There</div> now</h1><h2>More</h2><h3>Content</h3>",
-            TextUtil.stripNewlines(doc.body().html()),
-        )
+        assertEquals("<h1>Hello<div>There</div>now</h1><h2>More</h2><h3>Content</h3>", TextUtil.stripNewlines(doc.body().html()))
     }
 
     @Test
     fun testSpanContents() {
         // like h1 tags, the spec says SPAN is phrasing only, but browsers and publisher treat span as a block tag
         val doc = Ksoup.parse("<span>Hello <div>there</div> <span>now</span></span>")
-        assertEquals("<span>Hello <div>there</div><span>now</span></span>", TextUtil.stripNewlines(doc.body().html()))
+        assertEquals("<span>Hello <div>there</div> <span>now</span></span>", TextUtil.stripNewlines(doc.body().html()))
     }
 
     @Test
@@ -761,14 +752,14 @@ class HtmlParserTest {
     fun testAFlowContents() {
         // html5 has <a> as either phrasing or block
         val doc = Ksoup.parse("<a>Hello <div>there</div> <span>now</span></a>")
-        assertEquals("<a>Hello <div>there</div><span>now</span></a>", TextUtil.stripNewlines(doc.body().html()))
+        assertEquals("<a>Hello \n <div>there</div> \n <span>now</span></a>", (doc.body().html()))
     }
 
     @Test
     fun testFontFlowContents() {
         // html5 has no definition of <font>; often used as flow
         val doc = Ksoup.parse("<font>Hello <div>there</div> <span>now</span></font>")
-        assertEquals("<font>Hello <div>there</div><span>now</span></font>", TextUtil.stripNewlines(doc.body().html()))
+        assertEquals("<font>Hello <div>there</div> <span>now</span></font>", TextUtil.stripNewlines(doc.body().html()))
     }
 
     @Test
@@ -790,13 +781,15 @@ class HtmlParserTest {
 
     @Test
     fun handlesMisnestedAInDivs() {
-        val h = "<a href='#1'><div><div><a href='#2'>child</a></div</div></a>"
-        val w =
-            "<a href=\"#1\"></a> <div> <a href=\"#1\"></a> <div> <a href=\"#1\"></a><a href=\"#2\">child</a> </div> </div>"
-        val doc = Ksoup.parse(h)
+        val h = "<a 1><div 2><div 3><a 4>child</a></div></div></a>"
+        val w = "<a 1></a> <div 2> <a 1=\"\"></a> <div 3> <a 1=\"\"></a><a 4>child</a> </div> </div>" // chrome checked
+
+
+        // todo - come back to how we copy the attributes, to keep boolean setting (not ="")
+        val doc: Document = Ksoup.parse(h)
         assertEquals(
             StringUtil.normaliseWhitespace(w),
-            StringUtil.normaliseWhitespace(doc.body().html()),
+            StringUtil.normaliseWhitespace(doc.body().html())
         )
     }
 
@@ -865,7 +858,7 @@ class HtmlParserTest {
         val h = "<p><b>One</p> <table><tr><td><p><i>Three<p>Four</i></td></tr></table> <p>Five</p>"
         val doc = Ksoup.parse(h)
         val want =
-            "<p><b>One</b></p><b><table><tbody><tr><td><p><i>Three</i></p><p><i>Four</i></p></td></tr></tbody></table><p>Five</p></b>"
+            "<p><b>One</b></p><b> <table><tbody><tr><td><p><i>Three</i></p><p><i>Four</i></p></td></tr></tbody></table> <p>Five</p></b>"
         assertEquals(want, TextUtil.stripNewlines(doc.body().html()))
     }
 
@@ -1073,14 +1066,14 @@ class HtmlParserTest {
     fun tracksErrorsWhenRequested() {
         val html = "<p>One</p href='no'>\n<!DOCTYPE html>\n&arrgh;<font />&#33 &amp &#x110000;<br /></div><foo"
         val parser = Parser.htmlParser().setTrackErrors(500)
-        val doc: Document = Ksoup.parse(html = html, baseUri = "http://example.com", parser = parser)
+        Ksoup.parse(html = html, baseUri = "http://example.com", parser = parser)
 
         val errors: List<ParseError> = parser.getErrors()
-        assertEquals(9, errors.size)
+        assertEquals(10, errors.size)
         assertEquals("<1:21>: Attributes incorrectly present on end tag [/p]", errors[0].toString())
         assertEquals("<2:16>: Unexpected Doctype token [<!doctype html>] when in state [InBody]", errors[1].toString())
         assertEquals("<3:2>: Invalid character reference: invalid named reference [arrgh]", errors[2].toString())
-        assertEquals("<3:16>: Tag [font] cannot be self closing; not a void tag", errors[3].toString())
+        assertEquals("<3:16>: Tag [font] cannot be self-closing; not a void tag", errors.get(3).toString())
         assertEquals("<3:20>: Invalid character reference: missing semicolon on [&#33]", errors[4].toString())
         assertEquals("<3:25>: Invalid character reference: missing semicolon on [&amp]", errors[5].toString())
         assertEquals(
@@ -1089,13 +1082,14 @@ class HtmlParserTest {
         )
         assertEquals("<3:48>: Unexpected EndTag token [</div>] when in state [InBody]", errors[7].toString())
         assertEquals("<3:53>: Unexpectedly reached end of file (EOF) in input state [TagName]", errors[8].toString())
+        assertEquals("<3:53>: Unexpected EOF token [] when in state [InBody]", errors.get(9).toString())
     }
 
     @Test
     fun tracksLimitedErrorsWhenRequested() {
         val html = "<p>One</p href='no'>\n<!DOCTYPE html>\n&arrgh;<font /><br /><foo"
         val parser = Parser.htmlParser().setTrackErrors(3)
-        val doc = parser.parseInput(html, "http://example.com")
+        parser.parseInput(html, "http://example.com")
         val errors: List<ParseError> = parser.getErrors()
         assertEquals(3, errors.size)
         assertEquals("<1:21>: Attributes incorrectly present on end tag [/p]", errors[0].toString())
@@ -1113,7 +1107,7 @@ class HtmlParserTest {
     fun noErrorsByDefault() {
         val html = "<p>One</p href='no'>&arrgh;<font /><br /><foo"
         val parser = Parser.htmlParser()
-        val doc = Ksoup.parse(html = html, baseUri = "http://example.com", parser = parser)
+        Ksoup.parse(html = html, baseUri = "http://example.com", parser = parser)
         val errors: List<ParseError> = parser.getErrors()
         assertEquals(0, errors.size)
     }
@@ -1122,7 +1116,7 @@ class HtmlParserTest {
     fun optionalPClosersAreNotErrors() {
         val html = "<body><div><p>One<p>Two</div></body>"
         val parser = Parser.htmlParser().setTrackErrors(128)
-        val doc = Ksoup.parse(html = html, baseUri = "", parser = parser)
+        Ksoup.parse(html = html, baseUri = "", parser = parser)
         val errors = parser.getErrors()
         assertEquals(0, errors.size)
     }
@@ -1192,7 +1186,7 @@ class HtmlParserTest {
 
     @Test
     fun findsBasePrefixEntity() {
-        // https://github.com/jhy/jsoup/issues/2207
+        // https://github.com/jhy/Ksoup/issues/2207
         var html = "a&nbspc&shyc I'm &notit; I tell you. I'm &notin; I tell you."
         var doc = Ksoup.parse(html)
         doc.outputSettings().escapeMode(Entities.EscapeMode.extended).charset("ascii")
@@ -1225,8 +1219,8 @@ class HtmlParserTest {
         val html = "<?xml encoding='UTF-8' ?><body>One</body>"
         val doc = Ksoup.parse(html)
         assertEquals(
-            "<!--?xml encoding='UTF-8' ?--> <html> <head></head> <body> One </body> </html>",
-            StringUtil.normaliseWhitespace(doc.outerHtml()),
+            "<!--?xml encoding='UTF-8' ?--> <html> <head></head> <body>One</body> </html>",
+            StringUtil.normaliseWhitespace(doc.outerHtml())
         )
     }
 
@@ -1342,11 +1336,12 @@ class HtmlParserTest {
 
     @Test
     fun testNormalisesIsIndex() {
-        val doc = Ksoup.parse("<body><isindex action='/submit'></body>")
-        val html = doc.outerHtml()
+        val doc: Document = Ksoup.parse("<body><isindex action='/submit'></body>")
+
+        // There used to be rules so this became: <form action="/submit"> <hr><label>This is a searchable index. Enter search keywords: <input name="isindex"></label> <hr> </form>
         assertEquals(
-            "<form action=\"/submit\"> <hr><label>This is a searchable index. Enter search keywords: <input name=\"isindex\"></label> <hr> </form>",
-            StringUtil.normaliseWhitespace(doc.body().html()),
+            "<isindex action=\"/submit\"></isindex>",
+            StringUtil.normaliseWhitespace(doc.body().html())
         )
     }
 
@@ -1394,12 +1389,9 @@ class HtmlParserTest {
             """.trimIndent()
         val body = Ksoup.parseBodyFragment(html)
         assertEquals(
-            """<script type="text/javascript">console.log('foo');</script>
-<div id="somecontent">
- some content
-</div>
-<script type="text/javascript">console.log('bar');</script>""",
-            body.body().html(),
+            "<script type=\"text/javascript\">console.log('foo');</script>\n" +
+                    "<div id=\"somecontent\">some content</div>\n" +
+                    "<script type=\"text/javascript\">console.log('bar');</script>", body.body().html()
         )
     }
 
@@ -1408,9 +1400,10 @@ class HtmlParserTest {
         val html = "<!doctype HTML><DIV ID=1>One</DIV>"
         val doc = Ksoup.parse(html)
         assertEquals(
-            "<!doctype html> <html> <head></head> <body> <div id=\"1\"> One </div> </body> </html>",
-            StringUtil.normaliseWhitespace(doc.outerHtml()),
+            "<!doctype html> <html> <head></head> <body> <div id=\"1\">One</div> </body> </html>",
+            StringUtil.normaliseWhitespace(doc.outerHtml())
         )
+
         val div = doc.selectFirst("#1")
         div!!.after("<TaG>One</TaG>")
         assertEquals("<tag>One</tag>", TextUtil.stripNewlines(div.nextElementSibling()!!.outerHtml()))
@@ -1487,7 +1480,7 @@ class HtmlParserTest {
         val parser = Parser.htmlParser()
         parser.settings(ParseSettings.preserveCase)
         val doc = parser.parseInput(html, "")
-        assertEquals("<r> <X> A </X> <y> B </y> </r>", StringUtil.normaliseWhitespace(doc.body().html()))
+        assertEquals("<r>\n <X>A</X><y>B</y>\n</r>", doc.body().html())
     }
 
     @Test
@@ -1495,21 +1488,20 @@ class HtmlParserTest {
         val html = "<r><X>A</X><y>B</y></r>"
         val parser = Parser.htmlParser()
         val doc = parser.parseInput(html, "")
-        assertEquals("<r> <x> A </x> <y> B </y> </r>", StringUtil.normaliseWhitespace(doc.body().html()))
+        assertEquals("<r>\n <x>A</x><y>B</y>\n</r>", doc.body().html())
     }
 
     @Test
     fun preservedCaseLinksCantNest() {
         val html = "<A>ONE <A>Two</A></A>"
         val doc = Parser.htmlParser().settings(ParseSettings.preserveCase).parseInput(html, "")
-        // assertEquals("<A>ONE </A><A>Two</A>", StringUtil.normaliseWhitespace(doc.body().html()));
         assertEquals("<A>ONE </A><A>Two</A>", doc.body().html())
     }
 
     @Test
     fun normalizesDiscordantTags() {
         val document = Ksoup.parse("<div>test</DIV><p></p>")
-        assertEquals("<div>\n test\n</div>\n<p></p>", document.body().html())
+        assertEquals("<div>test</div>\n<p></p>", document.body().html())
     }
 
     @Test
@@ -1520,7 +1512,7 @@ class HtmlParserTest {
         assertEquals(0, parser.getErrors().size)
         assertTrue(Ksoup.isValid(html, Safelist.basic()))
         val clean = Ksoup.clean(html, Safelist.basic())
-        assertEquals("<p>test<br>\n test<br></p>", clean)
+        assertEquals("<p>test\n <br>\n test\n <br></p>", clean)
     }
 
     @Test
@@ -1528,14 +1520,11 @@ class HtmlParserTest {
         val html = "<p>test</p>\n\n<div /><div>Two</div>"
         val parser = Parser.htmlParser().setTrackErrors(5)
         parser.parseInput(html, "")
-        assertEquals(1, parser.getErrors().size)
-        assertEquals(
-            "<3:8>: Tag [div] cannot be self closing; not a void tag",
-            parser.getErrors()[0].toString(),
-        )
+        assertErrorsContain("<3:8>: Tag [div] cannot be self-closing; not a void tag", parser.getErrors())
+
         assertFalse(Ksoup.isValid(html, Safelist.relaxed()))
-        val clean = Ksoup.clean(html, Safelist.relaxed())
-        assertEquals("<p>test</p> <div></div> <div> Two </div>", StringUtil.normaliseWhitespace(clean))
+        val clean: String = Ksoup.clean(html, Safelist.relaxed())
+        assertEquals("<p>test</p> <div> <div>Two</div> </div>", StringUtil.normaliseWhitespace(clean)) // did not close
     }
 
     @Test
@@ -1579,9 +1568,25 @@ class HtmlParserTest {
     fun handlesXmlDeclAndCommentsBeforeDoctype() = runTest {
         val resourceName = "htmltests/comments.html"
         val doc = TestHelper.parseResource(resourceName = resourceName, charsetName = "UTF-8")
+
+        // split out to confirm comment nodes indent correct
         assertEquals(
-            "<!--?xml version=\"1.0\" encoding=\"utf-8\"?--><!-- so --> <!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\"><!-- what --> <html xml:lang=\"en\" lang=\"en\" xmlns=\"http://www.w3.org/1999/xhtml\"> <!-- now --> <head> <!-- then --> <meta http-equiv=\"Content-type\" content=\"text/html; charset=utf-8\"> <title>A Certain Kind of Test</title> </head> <body> <h1>Hello</h1>h1&gt; (There is a UTF8 hidden BOM at the top of this file.) </body> </html>",
-            StringUtil.normaliseWhitespace(doc.html()),
+            "<!--?xml version=\"1.0\" encoding=\"utf-8\"?-->\n" +
+                    "<!-- so -->\n" +
+                    "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n" +
+                    "<!-- what -->\n" +
+                    "<html xml:lang=\"en\" lang=\"en\" xmlns=\"http://www.w3.org/1999/xhtml\">\n" +
+                    " <!-- now -->\n" +
+                    " <head>\n" +
+                    "  <!-- then -->\n" +
+                    "  <meta http-equiv=\"Content-type\" content=\"text/html; charset=utf-8\">\n" +
+                    "  <title>A Certain Kind of Test</title>\n" +
+                    " </head>\n" +
+                    " <body>\n" +
+                    "  <h1>Hello</h1>\n" +
+                    "  (There is a UTF8 hidden BOM at the top of this file.)\n" +
+                    " </body>\n" +
+                    "</html>", doc.html()
         )
         assertEquals("A Certain Kind of Test", doc.head().select("title").text())
     }
@@ -1618,7 +1623,12 @@ class HtmlParserTest {
 
     @Test
     fun selfClosingTextAreaDoesntLeaveDroppings() {
-        val doc = Ksoup.parse("<div><div><textarea/></div></div>")
+        // https://github.com/jhy/jsoup/issues/1220
+        // must be configured to allow self closing
+        val html = "<div><div><textarea/></div></div>"
+        val parser = Parser.htmlParser()
+        parser.tagSet().valueOf("textarea", Parser.NamespaceHtml).set(Tag.SelfClose)
+        val doc: Document = Ksoup.parse(html, parser)
         assertFalse(doc.body().html().contains("&lt;"))
         assertFalse(doc.body().html().contains("&gt;"))
         assertEquals("<div><div><textarea></textarea></div></div>", TextUtil.stripNewlines(doc.body().html()))
@@ -1781,8 +1791,8 @@ class HtmlParserTest {
         ) // text normalizes, wholeText retains original spaces incl tabs
         assertEquals("One\tTwo Three Four", doc.body().text())
         assertEquals(
-            "<pre>One\tTwo</pre><span> Three Four</span>",
-            doc.body().html(),
+            "<pre>One\tTwo</pre>\n<span> Three Four</span>",
+            doc.body().html()
         ) // html output provides normalized space, incl tab in pre but not in span
         doc.outputSettings().prettyPrint(false)
         assertEquals(
@@ -1832,7 +1842,7 @@ class HtmlParserTest {
         assertEquals(1, nodes.size)
         val node = nodes[0]
         assertEquals("h2", node.nodeName())
-        assertEquals("<p>\n <h2>text</h2></p>", node.parent()!!.outerHtml())
+        assertEquals("<p>\n <h2>text</h2>\n</p>", node.parent()!!.outerHtml())
     }
 
     @Test
@@ -1842,8 +1852,8 @@ class HtmlParserTest {
         assertEquals(2, nodes.size)
         val node = nodes[0]
         assertEquals(
-            "<p>\n <p></p><a></a></p>",
-            node.parent()!!.outerHtml(),
+            "<p><p></p><a></a></p>",
+            TextUtil.stripNewlines(node.parent()!!.outerHtml())
         ) // mis-nested because fragment forced into the element, OK
     }
 
@@ -1852,7 +1862,14 @@ class HtmlParserTest {
         val html = "<a>\n<b>\n<div>\n<a>test</a>\n</div>\n</b>\n</a>"
         val doc = Ksoup.parse(html)
         assertNotNull(doc)
-        assertEquals("<a> <b> </b></a><b><div><a> </a><a>test</a></div></b>", TextUtil.stripNewlines(doc.body().html()))
+        assertEquals("<a> <b> </b></a><b><div><a> </a><a>test</a></div> </b>", TextUtil.stripNewlines(doc.body().html()))
+    }
+
+    @Test
+    fun adoption() = runTest {
+        // https://github.com/jhy/jsoup/issues/2267
+        val doc = TestHelper.parseResource("/htmltests/adopt-1.html")
+        assertEquals("TEXT-AAA TEXT-BBB TEXT-CCC TEXT-DDD", doc.text())
     }
 
     @Test
@@ -1985,8 +2002,8 @@ class HtmlParserTest {
         val doc = Ksoup.parse("<template><isindex action>")
         assertNotNull(doc)
         assertEquals(
-            "<template><form><hr><label>This is a searchable index. Enter search keywords: <input name=\"isindex\"></label><hr></form></template>",
-            TextUtil.stripNewlines(doc.head().html()),
+            "<template><isindex action></isindex></template>",
+            TextUtil.stripNewlines(doc.head().html())
         )
     }
 
@@ -2002,6 +2019,25 @@ class HtmlParserTest {
             "<template><select></select><input></template>",
             TextUtil.stripNewlines(doc.head().html()),
         )
+    }
+
+    @Test
+    fun templateInLi() {
+        // https://github.com/jhy/jsoup/issues/2258
+        val html = "<ul><li>L1</li><li>L2 <template><li>T1</li><li>T2</template></li><li>L3</ul>"
+        val doc: Document = Ksoup.parse(html)
+        assertEquals(
+            "<ul><li>L1</li><li>L2<template><li>T1</li><li>T2</li></template></li><li>L3</li></ul>",
+            TextUtil.stripNewlines(doc.body().html())
+        )
+    }
+
+    @Test
+    fun templateInButton() {
+        // https://github.com/jhy/jsoup/issues/2271
+        val html = "<button><template><button></button></template></button>"
+        val doc: Document = Ksoup.parse(html)
+        assertEquals(html, TextUtil.stripNewlines(doc.body().html()))
     }
 
     @Test
@@ -2113,7 +2149,7 @@ class HtmlParserTest {
         val html = "<div>"
         val parser = Parser.htmlParser()
         parser.setTrackErrors(10)
-        val doc = Ksoup.parse(html, parser)
+        Ksoup.parse(html, parser)
         val errors = parser.getErrors()
         assertEquals(1, errors.size)
         assertEquals("Unexpected EOF token [] when in state [InBody]", errors[0].errorMsg)
@@ -2124,7 +2160,7 @@ class HtmlParserTest {
         val html = "<body>"
         val parser = Parser.htmlParser()
         parser.setTrackErrors(10)
-        val doc = Ksoup.parse(html, parser)
+        Ksoup.parse(html, parser)
         val errors = parser.getErrors()
         assertEquals(0, errors.size)
     }
@@ -2185,16 +2221,7 @@ class HtmlParserTest {
         assertSvgNamespace(doc.expectFirst("text"))
         assertMathNamespace(doc.expectFirst("ms"))
         val serialized = doc.expectFirst("div").html()
-        assertEquals(
-            """<math>
- <mi>
-  <p>One</p>
-  <svg>
-   <text>Blah</text>
-  </svg></mi><ms></ms>
-</math>""",
-            serialized,
-        )
+        assertEquals("<math>\n <mi>\n  <p>One</p>\n  <svg>\n   <text>Blah</text>\n  </svg>\n </mi><ms></ms>\n</math>", serialized)
     }
 
     @Test
@@ -2298,15 +2325,12 @@ class HtmlParserTest {
 
     @Test
     fun gtAfterTagClose() {
-        // https://github.com/jhy/jsoup/issues/2230
+        // https://github.com/jhy/Ksoup/issues/2230
         val html = "<div>Div</div<> <a>One<a<b>Hello</b>"
         // this gives us an element "a<b", which is gross, but to the spec & browsers
         val doc = Ksoup.parse(html)
         val body = doc.body()
-        assertEquals(
-            "<div> Div <a>One<a<b> Hello </a<b></a></div>",
-            TextUtil.normalizeSpaces(body.html())
-        )
+        assertEquals("<div>\n Div <a>One<a<b>Hello</a<b></a>\n</div>", body.html())
 
         val abs = doc.getElementsByTag("a<b")
         assertEquals(1, abs.size)
@@ -2317,7 +2341,7 @@ class HtmlParserTest {
 
     @Test
     fun ltInAttrStart() {
-        // https://github.com/jhy/jsoup/issues/1483
+        // https://github.com/jhy/Ksoup/issues/1483
         val html = "<a before='foo' <junk after='bar'>One</a>"
         val doc = Ksoup.parse(html)
         assertEquals(
@@ -2333,7 +2357,7 @@ class HtmlParserTest {
 
     @Test
     fun pseudoAttributeComment() {
-        // https://github.com/jhy/jsoup/issues/1938
+        // https://github.com/jhy/Ksoup/issues/1938
         val html = "  <h1>before</h1> <div <!--=\"\" id=\"hidden\" --=\"\"> <h1>within</h1> </div> <h1>after</h1>"
         val doc = Ksoup.parse(html)
         assertEquals(
@@ -2358,6 +2382,83 @@ class HtmlParserTest {
         val dataNode = script.childNode(0) as DataNode
         assertEquals(packedJs, dataNode.getWholeData())
         assertEquals(unpackedJs, dataNode.getUnpackedData())
+    }
+
+    fun assertErrorsContain(msg: String?, errors: ParseErrorList) {
+        assertFalse(errors.isEmpty())
+        for (error in errors) {
+            if (error.toString().contains(msg!!)) {
+                return
+            }
+        }
+        fail("Expected to find error message [$msg] in $errors")
+    }
+
+    fun assertErrorsDoNotContain(msg: String?, errors: ParseErrorList) {
+        for (error in errors) {
+            if (error.toString().contains(msg!!)) {
+                fail("Did not expect to find error message [$msg] in $errors")
+            }
+        }
+    }
+
+    @Test
+    fun selfClosing() {
+        // in HTML spec by default: void tags can be marked self-closing; foreign elements can self close; other instances are errors and the self-close is ignored
+        // voids are not serialized as self-closing
+        val parser = Parser.htmlParser().setTrackErrors(10)
+        var html = "<div id=1 /><p>Foo"
+        var doc = Ksoup.parse(html, parser)
+        var errors = parser.getErrors()
+        assertErrorsContain("<1:13>: Tag [div] cannot be self-closing; not a void tag", errors)
+        assertEquals("<div id=\"1\"><p>Foo</p></div>", TextUtil.stripNewlines(doc.body().html()))
+
+        // voids are OK to be self close, but we don't emit them
+        html = "<img /><input />"
+        doc = Ksoup.parse(html, parser)
+        errors = parser.getErrors()
+        assertErrorsDoNotContain("cannot be self-closing", errors)
+        assertEquals("<img><input>", TextUtil.stripNewlines(doc.body().html()))
+
+        // unknown tags won't be self-closing by default
+        html = "<unknown />Foo"
+        doc = Ksoup.parse(html, parser)
+        errors = parser.getErrors()
+        assertErrorsContain("Tag [unknown] cannot be self-closing;", errors)
+        assertEquals("<unknown>Foo</unknown>", TextUtil.stripNewlines(doc.body().html()))
+
+        // foreign elements can self close
+        html = "<svg /><svg><femerge /><foo /></svg>" // femerge is known to tagset, foo is not
+        doc = Ksoup.parse(html, parser)
+        errors = parser.getErrors()
+        assertEquals(0, errors.size)
+        assertEquals("<svg /><svg><femerge /><foo /></svg>", TextUtil.stripNewlines(doc.body().html()))
+        // check namespace of foo
+        val foo = doc.expectFirst("foo")
+        assertEquals(Parser.NamespaceSvg, foo.tag().namespace())
+    }
+
+    @Test
+    fun canControlSelfClosing() {
+        // by supplying a customized tagset, can allow both known and custom tags to self close during parse
+        // to be valid HTML, the emit will not include the self-closing, but user can switch to xml
+        val parser = Parser.htmlParser().setTrackErrors(10).tagSet(TagSet.Html())
+        val tags = parser.tagSet()
+        val custom = tags.valueOf("custom", Parser.NamespaceHtml).set(Tag.SelfClose)
+        val div = tags.valueOf("div", Parser.NamespaceHtml).set(Tag.SelfClose)
+
+        val html = "<div /><custom /><custom>Foo</custom>"
+        val doc = Ksoup.parse(html, parser)
+        val errors = parser.getErrors()
+        assertEquals(0, errors.size)
+        assertEquals("<div></div><custom></custom><custom>Foo</custom>", TextUtil.stripNewlines(doc.body().html()))
+
+        assertTrue(custom.`is`(Tag.SeenSelfClose))
+        assertTrue(div.`is`(Tag.SeenSelfClose))
+
+        // in xml syntax will allow those self closes (with customized tagset)
+        doc.outputSettings().syntax(Document.OutputSettings.Syntax.xml)
+        assertEquals("<div /><custom /><custom>Foo</custom>", TextUtil.stripNewlines(doc.body().html()))
     }
 
     companion object {
