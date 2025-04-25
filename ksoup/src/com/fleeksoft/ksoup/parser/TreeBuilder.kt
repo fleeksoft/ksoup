@@ -8,11 +8,10 @@
 
 package com.fleeksoft.ksoup.parser
 
+import com.fleeksoft.io.Reader
 import com.fleeksoft.ksoup.internal.SharedConstants
 import com.fleeksoft.ksoup.nodes.*
 import com.fleeksoft.ksoup.parser.Parser.Companion.NamespaceHtml
-import com.fleeksoft.io.Reader
-import com.fleeksoft.io.StringReader
 import com.fleeksoft.ksoup.select.NodeVisitor
 
 public abstract class TreeBuilder {
@@ -27,12 +26,12 @@ public abstract class TreeBuilder {
         private set
 
     public var _stack: ArrayList<Element?>? = null // the stack of open elements
+        private set
     public open var baseUri: String? = null // current base uri, for creating new elements
     public var currentToken: Token? = null // currentToken is used only for error tracking.
     public var settings: ParseSettings? = null
+    var tagSet: TagSet? = null // the tags we're using in this parse
 
-    // tags we've used in this parse; saves tag GC for custom tags.
-    private var seenTags: MutableMap<String, Tag>? = null
     var nodeListener: NodeVisitor? = null // optional listener for node add / removes
 
     private lateinit var start: Token.StartTag // start tag to process
@@ -55,9 +54,10 @@ public abstract class TreeBuilder {
 
         // when tracking errors or source ranges, enable newline tracking for better legibility
         reader.trackNewlines(parser.isTrackErrors() || trackSourceRange)
+        if (parser.isTrackErrors()) parser.getErrors().clear()
         tokeniser = Tokeniser(this)
         _stack = ArrayList(32)
-        seenTags = HashMap()
+        tagSet = parser.tagSet()
         start = Token.StartTag(this)
         currentToken = start // init current token to the virtual start token.
         this.baseUri = baseUri
@@ -70,7 +70,6 @@ public abstract class TreeBuilder {
         reader.close()
         tokeniser = null
         _stack = null
-        seenTags = null
     }
 
     public fun parse(input: Reader, baseUri: String, parser: Parser): Document {
@@ -79,8 +78,8 @@ public abstract class TreeBuilder {
         return doc
     }
 
-    public fun parseFragment(inputFragment: String, context: Element?, baseUri: String, parser: Parser): List<Node> {
-        initialiseParse(StringReader(inputFragment), baseUri, parser)
+    public fun parseFragment(inputFragment: Reader, context: Element?, baseUri: String, parser: Parser): List<Node> {
+        initialiseParse(inputFragment, baseUri, parser)
         initialiseParseFragment(context)
         runParser()
         return completeParseFragment()
@@ -164,7 +163,7 @@ public abstract class TreeBuilder {
      * Removes the last Element from the stack, hits onNodeClosed, and then returns it.
      * @return
      */
-    public fun pop(): Element {
+    public open fun pop(): Element {
         val size = _stack?.size
         val removed = if (size != null) _stack?.removeAt(size - 1) else null
         removed?.let { onNodeClosed(it) }
@@ -229,35 +228,12 @@ public abstract class TreeBuilder {
         if (errors.canAddError()) errors.add(ParseError(reader, msg))
     }
 
-    /**
-     * (An internal method, visible for Element. For HTML parse, signals that script and style text should be treated as
-     * Data Nodes).
-     */
-    public open fun isContentForTagData(normalName: String): Boolean {
-        return false
+    fun tagFor(tagName: String, normalName: String, namespace: String, settings: ParseSettings): Tag {
+        return tagSet!!.valueOf(tagName, normalName, namespace, settings.preserveTagCase())
     }
 
-    protected fun tagFor(
-        tagName: String,
-        namespace: String,
-        settings: ParseSettings?,
-    ): Tag {
-        val cached: Tag? =
-            seenTags!![tagName] // note that we don't normalize the cache key. But tag via valueOf may be normalized.
-        if (cached == null || cached.namespace() != namespace) {
-            // only return from cache if the namespace is the same. not running nested cache to save double hit on the common flow
-            val tag: Tag = Tag.valueOf(tagName, namespace, settings)
-            seenTags!![tagName] = tag
-            return tag
-        }
-        return cached
-    }
-
-    public fun tagFor(
-        tagName: String,
-        settings: ParseSettings?,
-    ): Tag {
-        return tagFor(tagName, defaultNamespace(), settings)
+    fun tagFor(token: Token.Tag): Tag {
+        return tagSet!!.valueOf(token.name(), token.normalName!!, defaultNamespace(), settings!!.preserveTagCase())
     }
 
     /**
@@ -266,6 +242,10 @@ public abstract class TreeBuilder {
      */
     public open fun defaultNamespace(): String {
         return NamespaceHtml
+    }
+
+    open fun defaultTagSet(): TagSet {
+        return TagSet.Html();
     }
 
     /**
@@ -288,10 +268,7 @@ public abstract class TreeBuilder {
         nodeListener?.tail(node, getStack().size)
     }
 
-    private fun trackNodePosition(
-        node: Node,
-        isStart: Boolean,
-    ) {
+    fun trackNodePosition(node: Node, isStart: Boolean) {
         if (!trackSourceRange) return
 
         val token = currentToken!!
@@ -314,7 +291,7 @@ public abstract class TreeBuilder {
                     endPos = startPos
                 }
             } else { // closing tag
-                if (!node.tag().isEmpty && !node.tag().isSelfClosing()) {
+                if (!node.tag().isEmpty() && !node.tag().isSelfClosing()) {
                     if (!token.isEndTag() || node.normalName() != token.asEndTag().normalName) {
                         endPos = startPos
                     }
