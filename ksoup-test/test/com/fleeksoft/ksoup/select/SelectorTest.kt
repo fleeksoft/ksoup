@@ -6,7 +6,10 @@ import com.fleeksoft.ksoup.nodes.Element
 import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.ported.IdentityHashMap
 import com.fleeksoft.ksoup.ported.toCodePoint
+import com.fleeksoft.ksoup.select.Selector.escapeCssIdentifier
+import com.fleeksoft.ksoup.select.Selector.unescapeCssIdentifier
 import kotlin.test.*
+
 
 /**
  * Tests that the selector selects correctly.
@@ -364,6 +367,19 @@ class SelectorTest {
         assertEquals("p", divChilds[0].tagName())
         assertEquals("p", divChilds[1].tagName())
         assertEquals("span", divChilds[2].tagName())
+    }
+
+    @Test
+    fun streamParentChildStar() {
+        val h = "<div id=1><p>Hello<p><b>there</b></p></div><div id=2><span>Hi</span></div>"
+        val doc: Document = Ksoup.parse(h)
+
+        val divChilds: List<Element?> = doc.selectStream("div > *").toList()
+
+        assertEquals(3, divChilds.size)
+        assertEquals("p", divChilds[0]!!.tagName())
+        assertEquals("p", divChilds[1]!!.tagName())
+        assertEquals("span", divChilds[2]!!.tagName())
     }
 
     @Test
@@ -1192,8 +1208,8 @@ class SelectorTest {
             Ksoup.parse("<div id=parent><span class=child></span><span class=child></span><span class=child></span></div>")
         val q = "#parent [class*=child], .some-other-selector .nested"
         assertEquals(
-            "(Or (And (Parent (Id '#parent'))(AttributeWithValueContaining '[class*=child]'))(And (Class '.nested')(Parent (Class '.some-other-selector'))))",
-            EvaluatorDebug.sexpr(q),
+            "(Or (And (AttributeWithValueContaining '[class*=child]')(Ancestor (Id '#parent')))(And (Class '.nested')(Ancestor (Class '.some-other-selector'))))",
+            EvaluatorDebug.sexpr(q)
         )
         val els: Elements = doc.select(q)
         assertEquals(3, els.size)
@@ -1273,12 +1289,115 @@ class SelectorTest {
         assertEquals("o", els[0].id())
     }
 
+    @Test
+    fun negativeNthChild() {
+        // https://github.com/jhy/Ksoup/issues/1147
+        val html = "<p>1</p> <p>2</p> <p>3</p> <p>4</p>"
+        val doc: Document = Ksoup.parse(html)
+
+        // Digitless
+        val pos = doc.select("p:nth-child(n+2)")
+        assertSelectedOwnText(pos, "2", "3", "4")
+
+        val neg = doc.select("p:nth-child(-n+2)")
+        assertSelectedOwnText(neg, "1", "2")
+
+        val combo = doc.select("p:nth-child(n+2):nth-child(-n+2)")
+        assertSelectedOwnText(combo, "2")
+
+        // Digitful, 2n+2 or -1n+2
+        val pos2 = doc.select("p:nth-child(2n+2)")
+        assertSelectedOwnText(pos2, "2", "4")
+
+        val neg2 = doc.select("p:nth-child(-1n+2)")
+        assertSelectedOwnText(neg2, "1", "2")
+    }
+
+    @Test
+    fun notResetCascades() {
+        val track = ResetTracker()
+        val structEval = StructuralEvaluator.Not(track)
+
+        val doc: Document = Ksoup.parse("<div><p>Test</p></div>")
+        val p = doc.expectFirst("p")
+        structEval.matches(doc, p)
+
+        assertFalse(structEval.threadMemo.get().isEmpty())
+        assertFalse(track.resetCalled)
+
+        structEval.reset()
+        assertTrue(structEval.threadMemo.get().isEmpty())
+        assertTrue(track.resetCalled)
+    }
+
+    @Test
+    fun testImmediateParentRunCascades() {
+        val child = ResetTracker()
+        val parent = ResetTracker()
+
+        val run = StructuralEvaluator.ImmediateParentRun(child)
+        run.add(parent)
+
+        val doc: Document = Ksoup.parse("<div><p><span>Test</span></p></div>")
+        val span = doc.expectFirst("span")
+        assertTrue(run.matches(doc, span))
+
+        run.reset()
+        assertTrue(child.resetCalled)
+        assertTrue(parent.resetCalled)
+    }
+
+    @Test
+    fun testAncestorChain() {
+        val grandParent = ResetTracker()
+        val parent = ResetTracker()
+        val child = ResetTracker()
+
+        val b_needs_a = StructuralEvaluator.Ancestor(grandParent)
+        val c_needs_b = StructuralEvaluator.Ancestor(parent)
+        val chain = CombiningEvaluator.And(child, c_needs_b, b_needs_a)
+
+        val doc: Document = Ksoup.parse("<div class='A'><p class='B'><span class='C'>Test</span></p></div>")
+        val span = doc.expectFirst("span")
+        assertTrue(chain.matches(doc, span), "Should match span in correct ancestor chain")
+
+        chain.reset()
+        assertTrue(grandParent.resetCalled)
+        assertTrue(parent.resetCalled)
+        assertTrue(child.resetCalled)
+        assertTrue(b_needs_a.threadMemo.get().isEmpty())
+        assertTrue(c_needs_b.threadMemo.get().isEmpty())
+    }
+
+    @Test
+    fun hexDigitUnescape() {
+        // tests the select component of https://github.com/jhy/Ksoup/pull/2297, with per-spec escapes
+        // literal is: #\30 \%\ Platform\ Image
+        val html = "<img id='0% Platform Image'>"
+        val q = "#\\30 \\%\\ Platform\\ Image"
+
+        val doc: Document = Ksoup.parse(html)
+        val img = doc.expectFirst(q)
+        assertEquals("img", img.tagName())
+    }
+
+    @Test
+    fun escapeCssIdentifier() {
+        // thorough tests are in TokenQueue
+        assertEquals("-\\30 a", escapeCssIdentifier("-0a"))
+        assertEquals("a0b", escapeCssIdentifier("a0b"))
+    }
+
+    @Test
+    fun unescapeCssIdentifier() {
+        // thorough tests are in TokenQueue
+        assertEquals("-0a", unescapeCssIdentifier("-\\30 a"))
+        assertEquals("a0b", unescapeCssIdentifier("a0b"))
+    }
+
     companion object {
         /** Test that the selected elements match exactly the specified IDs.  */
-        fun assertSelectedIds(
-            els: Elements,
-            vararg ids: String?,
-        ) {
+        fun assertSelectedIds(els: Elements, vararg ids: String?) {
             assertNotNull(els)
             assertEquals(ids.size, els.size, "Incorrect number of selected elements")
             for (i in ids.indices) {
@@ -1286,14 +1405,24 @@ class SelectorTest {
             }
         }
 
-        fun assertSelectedOwnText(
-            els: Elements,
-            vararg ownTexts: String?,
-        ) {
+        fun assertSelectedOwnText(els: Elements, vararg ownTexts: String?) {
             assertNotNull(els)
             assertEquals(ownTexts.size, els.size, "Incorrect number of selected elements")
             for (i in ownTexts.indices) {
                 assertEquals(ownTexts[i], els[i].ownText(), "Incorrect content at index")
+            }
+        }
+
+        // Tests that nested structural and combining evaluators get reset
+        private class ResetTracker : Evaluator() {
+            var resetCalled: Boolean = false
+            override fun matches(root: Element, element: Element): Boolean {
+                return true
+            }
+
+            override fun reset() {
+                resetCalled = true
+                super.reset()
             }
         }
     }
