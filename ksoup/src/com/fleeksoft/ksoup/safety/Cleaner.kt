@@ -8,11 +8,13 @@
 
 package com.fleeksoft.ksoup.safety
 
+import com.fleeksoft.ksoup.internal.SharedConstants
 import com.fleeksoft.ksoup.nodes.*
 import com.fleeksoft.ksoup.parser.ParseErrorList
 import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.select.NodeTraversor
 import com.fleeksoft.ksoup.select.NodeVisitor
+
 
 /**
  * The safelist based HTML cleaner. Use to ensure that end-user provided HTML contains only the elements and attributes
@@ -103,10 +105,12 @@ public class Cleaner(private val safelist: Safelist) {
      * @return true if no tags or attributes need to be removed; false if they do
      */
     public fun isValidBodyHtml(bodyHtml: String): Boolean {
-        val clean: Document = Document.createShell("")
-        val dirty: Document = Document.createShell("")
-        val errorList: ParseErrorList = ParseErrorList.tracking(1)
-        val nodes: List<Node> = Parser.parseFragment(bodyHtml, dirty.body(), "", errorList)
+        val baseUri: String? =
+            if (safelist.preserveRelativeLinks()) SharedConstants.DummyUri else "" // fake base URI to allow relative URLs to remain valid
+        val clean = Document.createShell(baseUri!!)
+        val dirty = Document.createShell(baseUri)
+        val errorList = ParseErrorList.tracking(1)
+        val nodes: List<Node> = Parser.parseFragment(bodyHtml, dirty.body(), baseUri, errorList)
         dirty.body().insertChildren(0, nodes)
         val numDiscarded = copySafeNodes(dirty.body(), clean.body())
         return numDiscarded == 0 && errorList.isEmpty()
@@ -159,10 +163,7 @@ public class Cleaner(private val safelist: Safelist) {
         }
     }
 
-    private fun copySafeNodes(
-        source: Element,
-        dest: Element,
-    ): Int {
+    private fun copySafeNodes(source: Element, dest: Element): Int {
         val cleaningVisitor = CleaningVisitor(source, dest)
         NodeTraversor.traverse(cleaningVisitor, source)
         return cleaningVisitor.numDiscarded
@@ -183,7 +184,18 @@ public class Cleaner(private val safelist: Safelist) {
                 numDiscarded++
             }
         }
+
+
         val enforcedAttrs = safelist.getEnforcedAttributes(sourceTag)
+
+        // special case for <a href rel=nofollow>, only apply to external links:
+        if (sourceEl.nameIs("a") && enforcedAttrs["rel"] == "nofollow") {
+            val href = sourceEl.absUrl("href")
+            val sourceBase = sourceEl.baseUri()
+            if (!href.isEmpty() && !sourceBase.isEmpty() && href.startsWith(sourceBase)) { // same site, so don't set the nofollow
+                enforcedAttrs.remove("rel")
+            }
+        }
         destAttrs.addAll(enforcedAttrs)
         dest.attributes().addAll(destAttrs) // re-attach, if removed in clear
         return ElementMeta(dest, numDiscarded)

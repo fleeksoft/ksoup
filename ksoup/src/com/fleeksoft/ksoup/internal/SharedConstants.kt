@@ -9,8 +9,13 @@ public object SharedConstants {
     public const val AttrRangeKey: String = "ksoup.attrs"
     public const val RangeKey: String = "ksoup.start"
     public const val EndRangeKey: String = "ksoup.end"
+    const val XmlnsAttr: String = "ksoup.xmlns-"
+
     const val DEFAULT_CHAR_BUFFER_SIZE: Int = 8192
     const val DEFAULT_BYTE_BUFFER_SIZE: Int = 8192
 
     public val FormSubmitTags: Array<String> = arrayOf("input", "keygen", "object", "select", "textarea")
+
+    const val DummyUri: String =
+        "https://dummy.example/" // used as a base URI if none provided, to allow abs url resolution to preserve relative links
 }
