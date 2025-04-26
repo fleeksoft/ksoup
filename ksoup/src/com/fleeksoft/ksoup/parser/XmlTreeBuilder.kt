@@ -177,7 +177,7 @@ public open class XmlTreeBuilder : TreeBuilder() {
     }
 
     override fun pop(): Element {
-        namespacesStack.removeFirst()
+        namespacesStack.removeAt(0)
         return super.pop()
     }
 
