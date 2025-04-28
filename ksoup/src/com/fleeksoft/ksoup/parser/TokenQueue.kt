@@ -15,7 +15,7 @@ import com.fleeksoft.ksoup.ported.appendCodePoint
 import kotlin.jvm.JvmStatic
 
 /**
- * A character reader with helpers focusing on parsing CSS selectors. Used internally by jsoup.
+ * A character reader with helpers focusing on parsing CSS selectors. Used internally by ksoup.
  * API subject to changes.
  */
 class TokenQueue(data: String) {
