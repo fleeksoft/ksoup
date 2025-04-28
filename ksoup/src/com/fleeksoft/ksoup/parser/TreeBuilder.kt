@@ -166,11 +166,11 @@ public abstract class TreeBuilder {
      * Removes the last Element from the stack, hits onNodeClosed, and then returns it.
      * @return
      */
-    public open fun pop(): Element {
+    public open fun pop(): Element? {
         val size = _stack?.size
         val removed = if (size != null) _stack?.removeAt(size - 1) else null
         removed?.let { onNodeClosed(it) }
-        return removed!!
+        return removed
     }
 
     /**

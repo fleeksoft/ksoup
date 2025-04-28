@@ -425,8 +425,8 @@ public open class HtmlTreeBuilder : TreeBuilder() {
 
     public fun popStackToClose(elName: String): Element? {
         for (pos in getStack().size - 1 downTo 0) {
-            val el: Element = pop()
-            if (el.elementIs(elName, NamespaceHtml)) {
+            val el: Element? = pop()
+            if (el?.elementIs(elName, NamespaceHtml) == true) {
                 return el
             }
         }
@@ -437,8 +437,8 @@ public open class HtmlTreeBuilder : TreeBuilder() {
 
     public fun popStackToCloseAnyNamespace(elName: String): Element? {
         for (pos in getStack().size - 1 downTo 0) {
-            val el: Element = pop()
-            if (el.nameIs(elName)) {
+            val el: Element? = pop()
+            if (el?.nameIs(elName) == true) {
                 return el
             }
         }
@@ -449,7 +449,7 @@ public open class HtmlTreeBuilder : TreeBuilder() {
     public fun popStackToClose(vararg elNames: String) { // elnames is sorted, comes from Constants
         // elnames is sorted, comes from Constants
         for (pos in getStack().size - 1 downTo 0) {
-            val el: Element = pop()
+            val el: Element = pop()!!
             if (StringUtil.inSorted(el.normalName(), elNames) && NamespaceHtml == el.tag().namespace()) {
                 break
             }
