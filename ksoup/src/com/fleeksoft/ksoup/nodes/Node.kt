@@ -794,19 +794,23 @@ public abstract class Node protected constructor() : KCloneable<Node> {
         return if (o == null || this::class != o::class) false else this.outerHtml() == (o as Node).outerHtml()
     }
 
-//    Mimics Java’s clone, copying only primitive values and object references.
+    //    Mimics Java’s clone, copying only primitive values and object references.
     internal abstract fun createClone(): Node
 
     /**
-     * Create a stand-alone, deep copy of this node, and all of its children. The cloned node will have no siblings or
-     * parent node. As a stand-alone object, any changes made to the clone or any of its children will not impact the
-     * original node.
+     * Create a stand-alone, deep copy of this node, and all of its children. The cloned node will have no siblings.
+     * <p><ul>
+     * <li>If this node is a {@link LeafNode}, the clone will have no parent.</li>
+     * <li>If this node is an {@link Element}, the clone will have a simple owning {@link Document} to retain the
+     * configured output settings and parser.</li>
+     * </ul></p>
+     * <p>The cloned node may be adopted into another Document or node structure using
+     * {@link Element#appendChild(Node)}.</p>
      *
-     *
-     * The cloned node may be adopted into another Document or node structure using [Element.appendChild].
      * @return a stand-alone cloned node, including clones of any children
-     * @see .shallowClone
+     * @see #shallowClone()
      */
+    // MethodDoesntCallSuperMethod: because it does call super.clone in doClone - analysis just isn't following
     override fun clone(): Node {
         val thisClone = doClone(null) // splits for orphan
 

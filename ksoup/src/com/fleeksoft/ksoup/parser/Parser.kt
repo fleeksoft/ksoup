@@ -8,6 +8,8 @@
 
 package com.fleeksoft.ksoup.parser
 
+import co.touchlab.stately.concurrency.Synchronizable
+import co.touchlab.stately.concurrency.synchronize
 import com.fleeksoft.io.Reader
 import com.fleeksoft.io.StringReader
 import com.fleeksoft.ksoup.nodes.Document
@@ -18,19 +20,20 @@ import com.fleeksoft.ksoup.ported.KCloneable
 import kotlin.js.JsName
 
 /**
- * Parses HTML or XML into a [com.fleeksoft.ksoup.nodes.Document]. Generally, it is simpler to use one of the parse methods in
- * [com.fleeksoft.ksoup.Ksoup].
- *
- * Note that a Parser instance object is not threadsafe. To reuse a Parser configuration in a multi-threaded
- * environment, use [.newInstance] to make copies.  */
+ * Parses HTML or XML into a {@link org.jsoup.nodes.Document}. Generally, it is simpler to use one of the parse methods in
+ * {@link org.jsoup.Jsoup}.
+ * <p>Note that a given Parser instance object is threadsafe, but not concurrent. (Concurrent parse calls will
+ * synchronize.) To reuse a Parser configuration in a multithreaded environment, use {@link #newInstance()} to make
+ * copies.</p>
+ */
 public class Parser : KCloneable<Parser> {
     private var treeBuilder: TreeBuilder
     private var errors: ParseErrorList
     private var settings: ParseSettings
 
     @JsName("_tagSet")
-    var tagSet: TagSet? = null
-        private set
+    private var tagSet: TagSet? = null
+    private val lock = Synchronizable()
 
     /**
      * Test if position tracking is enabled. If it is, Nodes will have a Position to track where in the original input
@@ -74,7 +77,7 @@ public class Parser : KCloneable<Parser> {
     }
 
     public fun parseInput(reader: Reader, baseUri: String): Document {
-        return treeBuilder.parse(reader, baseUri, this)
+        return lock.synchronize { treeBuilder.parse(reader, baseUri, this) }
     }
 
     public fun parseFragmentInput(fragment: String, context: Element?, baseUri: String): List<Node> {
@@ -83,7 +86,7 @@ public class Parser : KCloneable<Parser> {
 
 
     fun parseFragmentInput(fragment: Reader, context: Element?, baseUri: String): List<Node> {
-        return treeBuilder.parseFragment(fragment, context, baseUri, this)
+        return lock.synchronize { treeBuilder.parseFragment(fragment, context, baseUri, this) }
     }
 
     /**
@@ -92,17 +95,6 @@ public class Parser : KCloneable<Parser> {
      */
     public fun getTreeBuilder(): TreeBuilder {
         return treeBuilder
-    }
-
-    /**
-     * Update the TreeBuilder used when parsing content.
-     * @param treeBuilder new TreeBuilder
-     * @return this, for chaining
-     */
-    internal fun setTreeBuilder(treeBuilder: TreeBuilder): Parser {
-        this.treeBuilder = treeBuilder
-        treeBuilder.parser = this
-        return this
     }
 
     public fun isTrackErrors(): Boolean = errors.maxSize > 0

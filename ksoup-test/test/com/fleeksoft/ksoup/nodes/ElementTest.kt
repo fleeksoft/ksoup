@@ -1041,6 +1041,30 @@ class ElementTest {
     }
 
     @Test
+    fun cloneRetainsParser() {
+        val htmlDoc: Document = Ksoup.parse("<div><script></script></div>", parser = Parser.htmlParser())
+        val xmlDoc: Document = Ksoup.parse("<div><script></script></div>", parser = Parser.xmlParser())
+
+        val hEl = htmlDoc.expectFirst("script")
+        val hEl2 = hEl.clone()
+        assertNotSame(hEl, hEl2)
+        assertNotSame(hEl.ownerDocument(), hEl2.ownerDocument())
+        assertSame(hEl.ownerDocument()!!.parser(), hEl2.ownerDocument()!!.parser())
+
+        val doc2 = htmlDoc.clone()
+        assertNotSame(htmlDoc, doc2)
+        assertSame(htmlDoc.parser(), doc2.parser())
+
+        hEl2.append("<foo></foo>") // we are inside a script, should be parsed as data
+        assertEquals("<foo></foo>", hEl2.data())
+
+        val xEl = xmlDoc.expectFirst("script")
+        val xEl2 = xEl.clone()
+        xEl2.append("<foo></foo>") // in XML, script doesn't mean anything, and so will be parsed as xml
+        assertEquals("<script><foo></foo></script>", xEl2.outerHtml())
+    }
+
+    @Test
     fun testTagNameSet() {
         val doc = Ksoup.parse("<div><i>Hello</i>")
         doc.select("i").first()!!.tagName("em")

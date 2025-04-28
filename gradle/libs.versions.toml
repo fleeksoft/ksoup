@@ -47,6 +47,7 @@ kotlinx-io = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version.ref = "
 korlibs-io = { module = "com.soywiz:korlibs-io", version.ref = "korlibs" }
 korlibs-io-network-core = { module = "com.soywiz:korlibs-io-network-core", version.ref = "korlibs" }
 stately-concurrency = { module = "co.touchlab:stately-concurrency", version.ref = "stately" }
+stately-concurrent-collections = { module = "co.touchlab:stately-concurrent-collections", version.ref = "stately" }
 jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 okio-nodefilesystem = { module = "com.squareup.okio:okio-nodefilesystem", version.ref = "okio" }

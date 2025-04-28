@@ -26,10 +26,12 @@ import com.fleeksoft.ksoup.select.Selector
  * @param location base URI of document
  * @see .createShell
  */
-public class Document(private val namespace: String, private val location: String?) :
-    Element(Tag("#root", namespace), location) {
-    private var outputSettings = OutputSettings()
+public class Document(
+    private val namespace: String,
+    private val location: String?,
     private var parser: Parser = Parser.htmlParser() // default, but overridable
+) : Element(Tag("#root", namespace), location) {
+    private var outputSettings = OutputSettings()
     private var quirksMode = QuirksMode.noQuirks
 
     /**
@@ -281,7 +283,8 @@ public class Document(private val namespace: String, private val location: Strin
     override fun clone(): Document {
         val clone = super.clone() as Document
         clone.outputSettings = this.outputSettings.clone()
-        clone.parser = this.parser.clone()
+        clone.attributes = attributes?.clone()
+        // parser is pointer copy
         return clone
     }
 
@@ -297,8 +300,8 @@ public class Document(private val namespace: String, private val location: Strin
     }
 
     public override fun shallowClone(): Document {
-        val clone = Document(this.tag().namespace(), baseUri())
-        if (attributes != null) clone.attributes = attributes!!.clone()
+        val clone = Document(this.tag().namespace(), baseUri(), parser)
+        clone.attributes = attributes?.clone()
         clone.outputSettings = outputSettings.clone()
         return clone
     }

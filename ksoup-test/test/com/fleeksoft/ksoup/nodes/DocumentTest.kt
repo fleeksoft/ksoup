@@ -121,7 +121,7 @@ class DocumentTest {
 
         assertNotSame(doc, clone)
         assertTrue(doc.hasSameValue(clone))
-        assertNotSame(doc.parser(), clone.parser())
+        assertSame(doc.parser(), clone.parser())
         assertNotSame(doc.outputSettings(), clone.outputSettings())
 
         assertEquals(

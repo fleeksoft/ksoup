@@ -123,7 +123,7 @@ public object StringUtil {
         if (string.isNullOrEmpty()) return false
         val l = string.length
         for (i in 0 until l) {
-            if (!string[i].isDigit()) return false
+            if (!isDigit(string[i])) return false
         }
         return true
     }
