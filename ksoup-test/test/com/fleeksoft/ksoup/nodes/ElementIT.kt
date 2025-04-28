@@ -93,7 +93,7 @@ class ElementIT {
         val doc = Document("https://example.com/")
         var el = doc.body()
         for (i in 0..50000) {
-            el = el.appendElement("p")
+            el = el.appendChild(doc.createElement("p")).firstElementChild()!!
         }
         assertFalse(doc.hasText())
         el.text("Hello")
@@ -110,9 +110,9 @@ class ElementIT {
 
         // data() was recursive, so could overflow
         val doc = Document("https://example.com/")
-        var el = doc.body()
+        var el: Element = doc.body()
         for (i in 0..50000) {
-            el = el.appendElement("p")
+            el = el.appendChild(doc.createElement("p")).firstElementChild()!!
         }
         val script = el.appendElement("script")
         script.text("script") // holds data nodes, so inserts as data, not text
@@ -133,7 +133,7 @@ class ElementIT {
         var el = doc.body()
         val num = 50000
         for (i in 0..num) {
-            el = el.appendElement("p")
+            el = el.appendChild(doc.createElement("p")).firstElementChild()!!
         }
         val parents = el.parents()
         assertEquals(num + 2, parents.size) // +2 for html and body
