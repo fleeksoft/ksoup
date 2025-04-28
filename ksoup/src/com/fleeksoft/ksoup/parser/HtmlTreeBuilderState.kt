@@ -34,7 +34,7 @@ public enum class HtmlTreeBuilderState {
                 val d: Token.Doctype = t.asDoctype()
                 val doctype =
                     DocumentType(
-                        tb.settings!!.normalizeTag(d.getName()),
+                        tb.settings.normalizeTag(d.getName()),
                         d.getPublicIdentifier(),
                         d.getSystemIdentifier(),
                     )
@@ -162,7 +162,7 @@ public enum class HtmlTreeBuilderState {
                         tb.insertEmptyElementFor(start)
                         // todo: charset switches
                     } else if (name == "title") {
-                        handleTextState(start, tb, TokeniserState.Rcdata);
+                        handleTextState(start, tb, TokeniserState.Rcdata)
                     } else if (StringUtil.inSorted(name, Constants.InHeadRaw)) {
                         handleTextState(start, tb, TokeniserState.Rawtext)
                     } else if (name == "noscript") {
@@ -370,7 +370,7 @@ public enum class HtmlTreeBuilderState {
                 }
 
                 else -> {
-                    Validate.wtf("Unexpected state: ${t.type}"); // XmlDecl only in XmlTreeBuilder
+                    Validate.wtf("Unexpected state: ${t.type}") // XmlDecl only in XmlTreeBuilder
                 }
             }
             return true
@@ -410,8 +410,8 @@ public enum class HtmlTreeBuilderState {
                     stack = tb.getStack()
                     var i: Int = stack.size - 1
                     while (i > 0) {
-                        el = stack[i]!!
-                        if (el.nameIs("li")) {
+                        el = stack[i]
+                        if (el!!.nameIs("li")) {
                             tb.processEndTag("li")
                             break
                         }
@@ -432,7 +432,7 @@ public enum class HtmlTreeBuilderState {
                     // otherwise, merge attributes onto real html (if present)
                     stack = tb.getStack()
                     if (stack.isNotEmpty()) {
-                        val html: Element = tb.getStack()[0]!!
+                        val html = tb.getStack()[0]
                         mergeAttributes(startTag, html)
                     }
                 }
@@ -686,14 +686,14 @@ public enum class HtmlTreeBuilderState {
                     val tag = tb.tagFor(startTag)
                     val textState = tag.textState()
                     // custom rcdata or rawtext (if we were in head, will have auto-transitioned here)
-                    if (textState != null) handleTextState(startTag, tb, textState);
+                    if (textState != null) handleTextState(startTag, tb, textState)
                     else if (!tag.isKnownTag()) { // no other special rules for custom tags
-                        tb.insertElementFor(startTag);
+                        tb.insertElementFor(startTag)
                     } else if (StringUtil.inSorted(name, Constants.InBodyStartPClosers)) {
-                        if (tb.inButtonScope("p")) tb.processEndTag("p");
-                        tb.insertElementFor(startTag);
+                        if (tb.inButtonScope("p")) tb.processEndTag("p")
+                        tb.insertElementFor(startTag)
                     } else if (StringUtil.inSorted(name, Constants.InBodyStartToHead)) {
-                        return tb.process(t, InHead);
+                        return tb.process(t, InHead)
                     } else if (StringUtil.inSorted(name, Constants.InBodyStartApplets)) {
                         tb.reconstructFormattingElements()
                         tb.insertElementFor(startTag)
@@ -1523,13 +1523,16 @@ public enum class HtmlTreeBuilderState {
                         tb.insertCharacterNode(c)
                     }
                 }
+
                 Token.TokenType.Comment -> {
                     tb.insertCommentNode(t.asComment())
                 }
+
                 Token.TokenType.Doctype -> {
                     tb.error(this)
                     return false
                 }
+
                 Token.TokenType.StartTag -> {
                     val start = t.asStartTag()
                     name = start.normalName!!
@@ -1540,6 +1543,7 @@ public enum class HtmlTreeBuilderState {
                                 tb.processEndTag("option")
                             tb.insertElementFor(start)
                         }
+
                         name == "optgroup" -> {
                             if (tb.currentElementIs("option"))
                                 tb.processEndTag("option")
@@ -1547,10 +1551,12 @@ public enum class HtmlTreeBuilderState {
                                 tb.processEndTag("optgroup")
                             tb.insertElementFor(start)
                         }
+
                         name == "select" -> {
                             tb.error(this)
                             return tb.processEndTag("select")
                         }
+
                         StringUtil.inSorted(name, InSelectEnd) -> {
                             tb.error(this)
                             if (!tb.inSelectScope("select"))
@@ -1558,14 +1564,17 @@ public enum class HtmlTreeBuilderState {
                             tb.processEndTag("select")
                             return tb.process(start)
                         }
+
                         name == "script" || name == "template" -> {
                             return tb.process(t, InHead)
                         }
+
                         else -> {
                             return anythingElse(t, tb)
                         }
                     }
                 }
+
                 Token.TokenType.EndTag -> {
                     val end = t.asEndTag()
                     name = end.normalName!!
@@ -1578,12 +1587,14 @@ public enum class HtmlTreeBuilderState {
                             else
                                 tb.error(this)
                         }
+
                         "option" -> {
                             if (tb.currentElementIs("option"))
                                 tb.pop()
                             else
                                 tb.error(this)
                         }
+
                         "select" -> {
                             if (!tb.inSelectScope(name)) {
                                 tb.error(this)
@@ -1593,18 +1604,22 @@ public enum class HtmlTreeBuilderState {
                                 tb.resetInsertionMode()
                             }
                         }
+
                         "template" -> {
                             return tb.process(t, InHead)
                         }
+
                         else -> {
                             return anythingElse(t, tb)
                         }
                     }
                 }
+
                 Token.TokenType.EOF -> {
                     if (!tb.currentElementIs("html"))
                         tb.error(this)
                 }
+
                 else -> {
                     return anythingElse(t, tb)
                 }
@@ -2212,11 +2227,11 @@ public enum class HtmlTreeBuilderState {
             tb.insertElementFor(startTag)
         }
 
-        fun mergeAttributes(source: Token.StartTag, dest: Element) {
+        fun mergeAttributes(source: Token.StartTag, dest: Element?) {
             if (!source.hasAttributes()) return
 
             for (attr in source.attributes!!) { // only iterates public attributes
-                val destAttrs = dest.attributes()
+                val destAttrs = dest!!.attributes()
                 if (!destAttrs.hasKey(attr.key)) {
                     val range = attr.sourceRange() // need to grab range before its parent changes
                     destAttrs.put(attr)

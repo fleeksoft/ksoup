@@ -112,15 +112,15 @@ public open class XmlTreeBuilder : TreeBuilder() {
 
         val attributes = startTag.attributes
         if (attributes != null) {
-            attributes.deduplicate(settings!!)
+            attributes.deduplicate(settings)
             processNamespaces(attributes, namespaces)
             applyNamespacesToAttributes(attributes, namespaces)
         }
 
         val tagName = startTag.tagName.value()
         val ns = resolveNamespace(tagName, namespaces)
-        val tag = tagFor(tagName, startTag.normalName!!, ns!!, settings!!)
-        val el = Element(tag, null, settings!!.normalizeAttributes(attributes))
+        val tag = tagFor(tagName, startTag.normalName!!, ns!!, settings)
+        val el = Element(tag, null, settings.normalizeAttributes(attributes))
         currentElement().appendChild(el)
         push(el)
 
@@ -136,7 +136,7 @@ public open class XmlTreeBuilder : TreeBuilder() {
 
             else -> {
                 val textState = tag.textState()
-                if (textState != null) tokeniser!!.transition(textState)
+                if (textState != null) tokeniser?.transition(textState)
             }
         }
     }
@@ -162,7 +162,7 @@ public open class XmlTreeBuilder : TreeBuilder() {
     public fun insertDoctypeFor(token: Token.Doctype) {
         val doctypeNode =
             DocumentType(
-                settings!!.normalizeTag(token.getName()),
+                settings.normalizeTag(token.getName()),
                 token.getPublicIdentifier(),
                 token.getSystemIdentifier(),
             )
@@ -189,7 +189,7 @@ public open class XmlTreeBuilder : TreeBuilder() {
      */
     private fun popStackToClose(endTag: Token.EndTag) {
         // like in HtmlTreeBuilder - don't scan up forever for very (artificially) deeply nested stacks
-        val elName = settings!!.normalizeTag(endTag.name())
+        val elName = settings.normalizeTag(endTag.name())
         var firstFound: Element? = null
 
         val bottom: Int = getStack().size - 1
@@ -197,8 +197,8 @@ public open class XmlTreeBuilder : TreeBuilder() {
             if (bottom >= maxQueueDepth) bottom - maxQueueDepth else 0
 
         for (pos in getStack().size - 1 downTo upper) {
-            val next = _stack!![pos]!!
-            if (next.nodeName() == elName) {
+            val next = getStack()[pos]
+            if (next!!.nodeName() == elName) {
                 firstFound = next
                 break
             }

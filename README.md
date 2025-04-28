@@ -2,7 +2,7 @@
 
 **Ksoup** is a Kotlin Multiplatform library for working with real-world HTML and XML. It's a port of the renowned Java library, **jsoup**, and offers an easy-to-use API for URL fetching, data parsing, extraction, and manipulation using DOM and CSS selectors.
 
-[![Kotlin](https://img.shields.io/badge/Kotlin-2.1.0-blue.svg?style=flat&logo=kotlin)](https://kotlinlang.org)
+[![Kotlin](https://img.shields.io/badge/Kotlin-2.1.20-blue.svg?style=flat&logo=kotlin)](https://kotlinlang.org)
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.md)
 [![Maven Central](https://img.shields.io/maven-central/v/com.fleeksoft.ksoup/ksoup.svg)](https://central.sonatype.com/artifact/com.fleeksoft.ksoup/ksoup)
 
@@ -46,17 +46,7 @@ Ksoup published in four variants. Pick the one that suits your needs and start b
    implementation("com.fleeksoft.ksoup:ksoup-network:<version>")
     ```
 
-3. **This variant use [korlibs-io](https://github.com/korlibs/korlibs-io) for I/O and networking**
-   ```kotlin
-   // Ksoup.parseFile, Ksoup.parseStream
-   implementation("com.fleeksoft.ksoup:ksoup-korlibs:<version>")
-
-    // Optional: Include only if you need to use network request functions such as
-    // Ksoup.parseGetRequest, Ksoup.parseSubmitRequest, and Ksoup.parsePostRequest
-   implementation("com.fleeksoft.ksoup:ksoup-network-korlibs:<version>")
-    ```
-
-4. **This variant use [kotlinx-io](https://github.com/Kotlin/kotlinx-io) for I/O and [Ktor 2](https://github.com/ktorio/ktor) for networking**
+3. **This variant use [kotlinx-io](https://github.com/Kotlin/kotlinx-io) for I/O and [Ktor 2](https://github.com/ktorio/ktor) for networking**
    ```kotlin
    // Ksoup.parseFile, Ksoup.parseSource
    implementation("com.fleeksoft.ksoup:ksoup-kotlinx:<version>")
@@ -65,7 +55,7 @@ Ksoup published in four variants. Pick the one that suits your needs and start b
     // Ksoup.parseGetRequest, Ksoup.parseSubmitRequest, and Ksoup.parsePostRequest
    implementation("com.fleeksoft.ksoup:ksoup-network-ktor2:<version>")
     ```
-5. **This variant use [okio](https://github.com/square/okio) for I/O and [Ktor 2](https://github.com/ktorio/ktor) for networking**
+4. **This variant use [okio](https://github.com/square/okio) for I/O and [Ktor 2](https://github.com/ktorio/ktor) for networking**
    ```kotlin
    implementation("com.fleeksoft.ksoup:ksoup-okio:<version>")
 
@@ -74,6 +64,16 @@ Ksoup published in four variants. Pick the one that suits your needs and start b
    implementation("com.fleeksoft.ksoup:ksoup-network-ktor2:<version>")
     ```
 
+5. **This variant use [korlibs-io](https://github.com/korlibs/korlibs-io) for I/O and networking**
+   ```kotlin
+   // Ksoup.parseFile, Ksoup.parseStream
+   implementation("com.fleeksoft.ksoup:ksoup-korlibs:<version>")
+
+    // Optional: Include only if you need to use network request functions such as
+    // Ksoup.parseGetRequest, Ksoup.parseSubmitRequest, and Ksoup.parsePostRequest
+   implementation("com.fleeksoft.ksoup:ksoup-network-korlibs:<version>")
+    ```
+   
 #### Ksoup supports [Charsets](https://github.com/fleeksoft/fleeksoft-io/blob/main/CharsetsReadme.md)
 - Standard charsets are already supported by **Ksoup IO**, but for extended charsets, plesae add `com.fleeksoft.charset:charset-ext`, For more details, visit the [Charsets Documentation](https://github.com/fleeksoft/fleeksoft-io/blob/main/CharsetsReadme.md)
 

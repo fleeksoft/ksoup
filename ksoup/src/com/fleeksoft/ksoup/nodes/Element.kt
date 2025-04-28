@@ -197,7 +197,7 @@ public open class Element : Node, Iterable<Element> {
         Validate.notEmptyParam(tagName, "tagName")
         Validate.notEmptyParam(namespace, "namespace")
         val parser = NodeUtils.parser(this)
-        tag = parser.tagSet().valueOf(tagName, namespace, parser.settings()!!) // maintains the case option of the original parse
+        tag = parser.tagSet().valueOf(tagName, namespace, parser.settings()) // maintains the case option of the original parse
         return this
     }
 
@@ -710,7 +710,7 @@ public open class Element : Node, Iterable<Element> {
      */
     public fun appendElement(tagName: String, namespace: String = tag.namespace()): Element {
         val parser: Parser = NodeUtils.parser(this)
-        val child = Element(parser.tagSet().valueOf(tagName, namespace, parser.settings()!!), baseUri())
+        val child = Element(parser.tagSet().valueOf(tagName, namespace, parser.settings()), baseUri())
         appendChild(child)
         return child
     }
@@ -725,7 +725,7 @@ public open class Element : Node, Iterable<Element> {
     @JvmOverloads
     public fun prependElement(tagName: String, namespace: String = tag.namespace()): Element {
         val parser = parser(this)
-        val child = Element(parser.tagSet().valueOf(tagName, namespace, parser.settings()!!), baseUri())
+        val child = Element(parser.tagSet().valueOf(tagName, namespace, parser.settings()), baseUri())
         prependChild(child)
         return child
     }

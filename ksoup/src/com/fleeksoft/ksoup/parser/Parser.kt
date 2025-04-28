@@ -23,10 +23,11 @@ import kotlin.js.JsName
  *
  * Note that a Parser instance object is not threadsafe. To reuse a Parser configuration in a multi-threaded
  * environment, use [.newInstance] to make copies.  */
-public class Parser: KCloneable<Parser> {
+public class Parser : KCloneable<Parser> {
     private var treeBuilder: TreeBuilder
     private var errors: ParseErrorList
-    private var settings: ParseSettings?
+    private var settings: ParseSettings
+
     @JsName("_tagSet")
     var tagSet: TagSet? = null
         private set
@@ -142,7 +143,7 @@ public class Parser: KCloneable<Parser> {
      * @param settings the new settings
      * @return this Parser
      */
-    public fun settings(settings: ParseSettings?): Parser {
+    public fun settings(settings: ParseSettings): Parser {
         this.settings = settings
         return this
     }
@@ -151,7 +152,7 @@ public class Parser: KCloneable<Parser> {
      * Gets the current ParseSettings for this Parser
      * @return current ParseSettings
      */
-    public fun settings(): ParseSettings? {
+    public fun settings(): ParseSettings {
         return settings
     }
 

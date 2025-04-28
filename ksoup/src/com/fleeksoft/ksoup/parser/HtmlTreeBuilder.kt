@@ -46,7 +46,7 @@ public open class HtmlTreeBuilder : TreeBuilder() {
     public var isFragmentParsing: Boolean = false // if parsing a fragment of html
         private set
 
-    override fun defaultSettings(): ParseSettings? {
+    override fun defaultSettings(): ParseSettings {
         return ParseSettings.htmlDefault
     }
 
@@ -509,10 +509,7 @@ public open class HtmlTreeBuilder : TreeBuilder() {
         getStack().add(i + 1, inEl)
     }
 
-    public fun replaceOnStack(
-        out: Element,
-        `in`: Element,
-    ) {
+    public fun replaceOnStack(out: Element, `in`: Element) {
         replaceInQueue(getStack(), out, `in`)
     }
 
@@ -925,10 +922,7 @@ public open class HtmlTreeBuilder : TreeBuilder() {
         return null
     }
 
-    public fun replaceActiveFormattingElement(
-        out: Element,
-        `in`: Element,
-    ) {
+    public fun replaceActiveFormattingElement(out: Element, `in`: Element) {
         replaceInQueue(formattingElements, out, `in`)
     }
 

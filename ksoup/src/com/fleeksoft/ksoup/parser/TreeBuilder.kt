@@ -27,17 +27,20 @@ public abstract class TreeBuilder {
 
     public var _stack: ArrayList<Element?>? = null // the stack of open elements
         private set
-    public open var baseUri: String? = null // current base uri, for creating new elements
-    public var currentToken: Token? = null // currentToken is used only for error tracking.
-    public var settings: ParseSettings? = null
-    var tagSet: TagSet? = null // the tags we're using in this parse
+    public open lateinit var baseUri: String // current base uri, for creating new elements
+        protected set
+    public lateinit var currentToken: Token // currentToken is used only for error tracking.
+    public lateinit var settings: ParseSettings
+        private set
+    lateinit var tagSet: TagSet // the tags we're using in this parse
+        private set
 
     var nodeListener: NodeVisitor? = null // optional listener for node add / removes
 
     private lateinit var start: Token.StartTag // start tag to process
     private lateinit var end: Token.EndTag
 
-    public abstract fun defaultSettings(): ParseSettings?
+    public abstract fun defaultSettings(): ParseSettings
 
     public var trackSourceRange: Boolean = false // optionally tracks the source range of nodes
 
@@ -110,7 +113,7 @@ public abstract class TreeBuilder {
 
     fun stepParser(): Boolean {
         // if we have reached the end already, step by popping off the stack, to hit nodeRemoved callbacks:
-        if (currentToken?.type == Token.TokenType.EOF) {
+        if (currentToken.type == Token.TokenType.EOF) {
             if (_stack == null) {
                 return false
             } else if (_stack?.isEmpty() == true) {
@@ -265,7 +268,7 @@ public abstract class TreeBuilder {
     public fun onNodeClosed(node: Node) {
         trackNodePosition(node, false)
 
-        nodeListener?.tail(node, getStack().size)
+        nodeListener?.tail(node, _stack!!.size)
     }
 
     fun trackNodePosition(node: Node, isStart: Boolean) {
