@@ -22,6 +22,7 @@
 >
 > **Recommendation:** Use the `ksoup-kotlinx` variant for I/O support and Ktor 3 for networking.
 
+---
 Ksoup implements the [WHATWG HTML5](https://html.spec.whatwg.org/multipage/) specification, parsing HTML to the same DOM as modern browsers do, but with support for Android, JVM, and native platforms.
 
 ## Features
