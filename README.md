@@ -16,6 +16,12 @@
 ![badge-js](https://img.shields.io/badge/platform-js-F8DB5D.svg?style=flat)
 ![badge-wasm](https://img.shields.io/badge/platform-wasm-F8DB5D.svg?style=flat)
 
+## 🚨 Deprecation Notice
+
+> The `ksoup-korlibs` and `ksoup-network-korlibs` variant is **deprecated** and will be removed in a future release.
+>
+> **Recommendation:** Use the `ksoup-kotlinx` variant for I/O support and Ktor 3 for networking.
+
 Ksoup implements the [WHATWG HTML5](https://html.spec.whatwg.org/multipage/) specification, parsing HTML to the same DOM as modern browsers do, but with support for Android, JVM, and native platforms.
 
 ## Features
@@ -64,7 +70,7 @@ Ksoup published in four variants. Pick the one that suits your needs and start b
    implementation("com.fleeksoft.ksoup:ksoup-network-ktor2:<version>")
     ```
 
-5. **This variant use [korlibs-io](https://github.com/korlibs/korlibs-io) for I/O and networking**
+5. ~~**This variant use [korlibs-io](https://github.com/korlibs/korlibs-io) for I/O and networking**~~
    ```kotlin
    // Ksoup.parseFile, Ksoup.parseStream
    implementation("com.fleeksoft.ksoup:ksoup-korlibs:<version>")
