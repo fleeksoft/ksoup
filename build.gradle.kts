@@ -77,7 +77,6 @@ subprojects {
         compilerOptions.suppressWarnings.set(true)
         // @TODO: We should actually, convert warnings to errors and start removing warnings
         compilerOptions.freeCompilerArgs.add("-nowarn")
-        compilerOptions.freeCompilerArgs.add("-Xklib-duplicated-unique-name-strategy=allow-all-with-warning")
     }
 
     tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinNativeLink::class) {
@@ -390,8 +389,8 @@ class MicroAmper(val project: Project) {
             for (dep in deps) {
                 add(
                     dep.configuration, when {
-                        dep.path.contains('/') -> {
-                            val realPath = dep.path.replace("/", ":")
+                        dep.path.contains('/') || dep.path.contains('\\') -> {
+                            val realPath = dep.path.replace(Regex("[/\\\\]"), ":")
                             project(":$realPath")
                         }
 

@@ -1,3 +1,11 @@
+/*
+ * Kotlin port of jsoup's Safelist.java
+ * Copyright © 2009–2025 Jonathan Hedley
+ * Copyright © 2023–2025 FLEEK SOFT
+ * Licensed under the MIT License
+ * https://jsoup.org
+ */
+
 package com.fleeksoft.ksoup.safety
 /*
     Thank you to Ryan Grove (wonko.com) for the Ruby HTML cleaner http://github.com/rgrove/sanitize/, which inspired
@@ -275,23 +283,24 @@ public open class Safelist() {
 
     /**
      * Configure this Safelist to preserve relative links in an element's URL attribute, or convert them to absolute
-     * links. By default, this is **false**: URLs will be  made absolute (e.g. start with an allowed protocol, like
-     * e.g. `http://`.
+     * links. By default, this is <b>false</b>: URLs will be  made absolute (e.g. start with an allowed protocol, like
+     * e.g. {@code http://}.
      *
-     *
-     * Note that when handling relative links, the input document must have an appropriate `base URI` set when
-     * parsing, so that the link's protocol can be confirmed. Regardless of the setting of the `preserve relative
-     * links` option, the link must be resolvable against the base URI to an allowed protocol; otherwise the attribute
-     * will be removed.
-     *
-     *
-     * @param preserve `true` to allow relative links, `false` (default) to deny
+     * @param preserve {@code true} to allow relative links, {@code false} (default) to deny
      * @return this Safelist, for chaining.
-     * @see .addProtocols
+     * @see #addProtocols
      */
     public fun preserveRelativeLinks(preserve: Boolean): Safelist {
         preserveRelativeLinks = preserve
         return this
+    }
+
+    /**
+     * Get the current setting for preserving relative links.
+     * @return `true` if relative links are preserved, `false` if they are converted to absolute.
+     */
+    fun preserveRelativeLinks(): Boolean {
+        return preserveRelativeLinks
     }
 
     /**
@@ -450,10 +459,6 @@ public open class Safelist() {
         return false
     }
 
-    private fun isValidAnchor(value: String): Boolean {
-        return value.startsWith("#") && !value.matches(".*\\s.*".toRegex())
-    }
-
     /**
      * Gets the Attributes that should be enforced for a given tag
      * @param tagName the tag
@@ -563,20 +568,17 @@ public open class Safelist() {
         }
 
         /**
-         *
-         *
-         * This safelist allows a fuller range of text nodes: `a, b, blockquote, br, cite, code, dd, dl, dt, em, i, li,
-         * ol, p, pre, q, small, span, strike, strong, sub, sup, u, ul`, and appropriate attributes.
-         *
-         *
-         *
-         * Links (`a` elements) can point to `http, https, ftp, mailto`, and have an enforced
-         * `rel=nofollow` attribute.
-         *
-         *
-         *
+         * <p>
+         * This safelist allows a fuller range of text nodes: <code>a, b, blockquote, br, cite, code, dd, dl, dt, em, i, li,
+         * ol, p, pre, q, small, span, strike, strong, sub, sup, u, ul</code>, and appropriate attributes.
+         * </p>
+         * <p>
+         * Links (<code>a</code> elements) can point to <code>http, https, ftp, mailto</code>, and have an enforced
+         * <code>rel=nofollow</code> attribute if they link offsite (as indicated by the specified base URI).
+         * </p>
+         * <p>
          * Does not allow images.
-         *
+         * </p>
          *
          * @return safelist
          */
@@ -593,7 +595,7 @@ public open class Safelist() {
                 .addProtocols("a", "href", "ftp", "http", "https", "mailto")
                 .addProtocols("blockquote", "cite", "http", "https")
                 .addProtocols("cite", "cite", "http", "https")
-                .addEnforcedAttribute("a", "rel", "nofollow")
+                .addEnforcedAttribute("a", "rel", "nofollow") // has special handling for external links, in Cleaner
         }
 
         /**
@@ -653,6 +655,10 @@ public open class Safelist() {
                 .addProtocols("cite", "cite", "http", "https")
                 .addProtocols("img", "src", "http", "https")
                 .addProtocols("q", "cite", "http", "https")
+        }
+
+        private fun isValidAnchor(value: String): Boolean {
+            return value.startsWith("#") && !value.matches(".*\\s.*".toRegex())
         }
     }
 }

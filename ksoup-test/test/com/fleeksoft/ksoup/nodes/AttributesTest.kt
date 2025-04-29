@@ -6,7 +6,6 @@ import kotlin.test.*
 /**
  * Tests for Attributes.
  *
- * @author Sabeeh
  */
 class AttributesTest {
 
@@ -281,7 +280,7 @@ class AttributesTest {
         val el = Ksoup.parse(html).selectFirst("a")
         assertEquals(
             " foo bar=\"\" async qux=\"qux\" defer=\"deferring\" ismap inert",
-            el!!.attributes().html(),
+            el?.attributes()?.html(),
         )
     }
 

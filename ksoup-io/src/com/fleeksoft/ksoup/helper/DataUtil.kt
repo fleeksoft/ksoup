@@ -3,18 +3,19 @@ package com.fleeksoft.ksoup.helper
 import com.fleeksoft.charset.Charset
 import com.fleeksoft.charset.Charsets
 import com.fleeksoft.io.*
+import com.fleeksoft.io.exception.IOException
 import com.fleeksoft.ksoup.exception.IllegalCharsetNameException
 import com.fleeksoft.ksoup.exception.UncheckedIOException
 import com.fleeksoft.ksoup.exception.ValidationException
-import com.fleeksoft.ksoup.io.internal.ControllableInputStream
 import com.fleeksoft.ksoup.internal.StringUtil
+import com.fleeksoft.ksoup.io.internal.ControllableInputStream
+import com.fleeksoft.ksoup.io.isCharsetSupported
 import com.fleeksoft.ksoup.nodes.Comment
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.nodes.Node
 import com.fleeksoft.ksoup.nodes.XmlDeclaration
 import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.parser.StreamParser
-import com.fleeksoft.ksoup.io.isCharsetSupported
 import com.fleeksoft.ksoup.select.Elements
 import kotlin.random.Random
 
@@ -55,7 +56,7 @@ public object DataUtil {
      * @param charset (optional) character set of input; specify `null` to attempt to autodetect from metadata.
      * A BOM in the file will always override this setting.
      * @param baseUri base URI of document, to resolve relative links against
-     * @param parser alternate [parser][Parser.xmlParser] to use.
+     * @param parser underlying HTML or XML parser to use.
      *
      * @return Document
      * @throws com.fleeksoft.io.exception.IOException on IO error
@@ -63,13 +64,20 @@ public object DataUtil {
     fun streamParser(input: InputStream, baseUri: String, charset: Charset?, parser: Parser): StreamParser {
         val streamer = StreamParser(parser)
         val charsetName: String? = charset?.name()
-        val charsetDoc: CharsetDoc =
-            detectCharset(ControllableInputStream.wrap(input = input, maxSize = 0), baseUri, charsetName, parser, fromStreamer = true)
-
-        val reader = charsetDoc.input.reader(charsetDoc.charset).buffered()
-        streamer.parse(reader, baseUri) // initializes the parse and the document, but does not step() it
+        val charsetDoc: CharsetDoc = detectCharset(openStream(input), baseUri, charsetName, parser, fromStreamer = true)
+        try {
+            val reader = charsetDoc.input.reader(charsetDoc.charset).buffered()
+            streamer.parse(reader, baseUri) // initializes the parse and the document, but does not step() it
+        } catch (e: IOException) {
+            streamer.close()
+            throw e
+        }
 
         return streamer
+    }
+
+    private fun openStream(stream: InputStream): ControllableInputStream {
+        return ControllableInputStream.wrap(stream, 0)
     }
 
     fun parseInputStream(input: ControllableInputStream, baseUri: String, charsetName: String?, parser: Parser): Document {

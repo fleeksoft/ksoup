@@ -11,7 +11,6 @@ import kotlin.test.*
 /**
  * Test suite for character reader.
  *
- * @author Sabeeh, fleeksoft@gmail.com
  */
 class CharacterReaderTest {
 

@@ -1,15 +1,19 @@
+/*
+ * Kotlin port of jsoup's Elements.java
+ * Copyright © 2009–2025 Jonathan Hedley
+ * Copyright © 2023–2025 FLEEK SOFT
+ * Licensed under the MIT License
+ * https://jsoup.org
+ */
+
 package com.fleeksoft.ksoup.select
 
 import com.fleeksoft.ksoup.helper.Validate
-import com.fleeksoft.ksoup.nodes.Comment
-import com.fleeksoft.ksoup.nodes.DataNode
-import com.fleeksoft.ksoup.nodes.Element
-import com.fleeksoft.ksoup.nodes.FormElement
-import com.fleeksoft.ksoup.nodes.Node
-import com.fleeksoft.ksoup.nodes.TextNode
+import com.fleeksoft.ksoup.nodes.*
 import com.fleeksoft.ksoup.ported.ElementIterator
 import kotlin.reflect.KClass
 import kotlin.reflect.cast
+
 
 /**
  * A list of [Element]s, with methods that act on every element in the list.
@@ -18,10 +22,10 @@ import kotlin.reflect.cast
  *
  * Methods that [set][.set], [remove][.remove], or [replace][.replaceAll] Elements in the list will also act on the underlying [DOM][com.fleeksoft.ksoup.nodes.Document].
  *
- * @author Sabeeh, fleeksoft@gmail.com
  */
-public class Elements(private val delegateList: MutableList<Element> = mutableListOf()) :
+public class Elements(private val delegateList: ArrayList<Element> = arrayListOf()) :
     MutableList<Element> by delegateList {
+
     public constructor(element: Element) : this() {
         add(element)
     }
@@ -35,11 +39,21 @@ public class Elements(private val delegateList: MutableList<Element> = mutableLi
      * @return a deep copy
      */
     public fun clone(): Elements {
-        val clone = Elements()
-        this.forEach { element: Element ->
-            clone.add(element.clone())
-        }
-        return clone
+        return Elements(this.map { it.clone() })
+    }
+
+    /**
+     * Convenience method to get the Elements as a plain ArrayList. This allows modification to the list of elements
+     * without modifying the source Document. I.e. whereas calling `elements.remove(0)` will remove the element from
+     * both the Elements and the DOM, `elements.asList().remove(0)` will remove the element from the list only.
+     *
+     * Each Element is still the same DOM connected Element.
+     *
+     * @return a new ArrayList containing the elements in this list
+     * @see .Elements
+     */
+    fun asList(): ArrayList<Element> {
+        return ArrayList(this)
     }
 
     override fun iterator(): MutableIterator<Element> {
@@ -95,10 +109,7 @@ public class Elements(private val delegateList: MutableList<Element> = mutableLi
      * @param attributeValue attribute value
      * @return this
      */
-    public fun attr(
-        attributeKey: String,
-        attributeValue: String?,
-    ): Elements {
+    public fun attr(attributeKey: String, attributeValue: String?): Elements {
         for (element in this) {
             element.attr(attributeKey, attributeValue)
         }
@@ -430,6 +441,34 @@ public class Elements(private val delegateList: MutableList<Element> = mutableLi
     }
 
     /**
+     * Find the first Element that matches the [Selector] CSS query within this element list.
+     *
+     * This is effectively the same as calling `elements.select(query).first()`, but is more efficient as query
+     * execution stops on the first hit.
+     *
+     * @param cssQuery a [Selector] query
+     * @return the first matching element, or **`null`** if there is no match.
+     * @see .expectFirst
+     */
+    fun selectFirst(cssQuery: String): Element? {
+        return Selector.selectFirst(cssQuery, this)
+    }
+
+    /**
+     * Just like [.selectFirst], but if there is no match, throws an [IllegalArgumentException].
+     *
+     * @param cssQuery a [Selector] query
+     * @return the first matching element
+     * @throws IllegalArgumentException if no match is found
+     */
+    fun expectFirst(cssQuery: String): Element {
+        return Validate.ensureNotNull(
+            Selector.selectFirst(cssQuery, this),
+            "No elements matched the query '$cssQuery' in the elements."
+        ) as Element
+    }
+
+    /**
      * Remove elements from this list that match the [Selector] query.
      *
      *
@@ -539,21 +578,15 @@ public class Elements(private val delegateList: MutableList<Element> = mutableLi
         return siblings(query, next = false, all = true)
     }
 
-    // TODO: test it
-    private fun siblings(
-        query: String? = null,
-        next: Boolean,
-        all: Boolean,
-    ): Elements {
+    private fun siblings(query: String? = null, next: Boolean, all: Boolean): Elements {
         val els = Elements()
         val eval = query?.let { QueryParser.parse(it) }
 
         for (e in this) {
             var current = e
             do {
-                val sib =
-                    (if (next) current.nextElementSibling() else current.previousElementSibling())
-                        ?: break
+                val sib = (if (next) current.nextElementSibling() else current.previousElementSibling())
+                    ?: break
 
                 if (eval == null || sib.`is`(eval)) {
                     els.add(sib)
@@ -564,21 +597,6 @@ public class Elements(private val delegateList: MutableList<Element> = mutableLi
 
         return els
     }
-
-    // private fun siblings(
-    /* query: String?, next: Boolean, all: Boolean): Elements {
-        val els = Elements()
-        val eval: Evaluator? = if (query != null) QueryParser.parse(query) else null
-        for (e in this) {
-            do {
-                val sib: Element =
-                    (if (next) e.nextElementSibling() else e.previousElementSibling()) ?: break
-                if (eval == null) els.add(sib) else if (sib.`is`(eval)) els.add(sib)
-                e = sib
-            } while (all)
-        }
-        return els
-    }*/
 
     /**
      * Get all of the parents and ancestor elements of the matched elements.
@@ -703,7 +721,7 @@ public class Elements(private val delegateList: MutableList<Element> = mutableLi
     }
 
     /**
-     * Remove the specified Element from this list, and from th DOM
+     * Remove the specified Element from this list, and from the DOM
      * @param element element to be removed from this list, if present
      * @return if this list contained the Element
      */
@@ -718,11 +736,39 @@ public class Elements(private val delegateList: MutableList<Element> = mutableLi
     }
 
     /**
+     * Remove the Element at the specified index in this list, but not from the DOM.
+     * @param index the index of the element to be removed
+     * @return the old element at this index
+     * @see .remove
+     */
+    fun deselect(index: Int): Element {
+        return delegateList.removeAt(index)
+    }
+
+    /**
+     * Remove the specified Element from this list, but not from the DOM.
+     * @param o element to be removed from this list, if present
+     * @return if this list contained the Element
+     * @see .remove
+     */
+    fun deselect(o: Any?): Boolean {
+        return delegateList.remove(o)
+    }
+
+    /**
      * Removes all the elements from this list, and each of them from the DOM.
      * @see .remove
      */
     override fun clear() {
         remove()
+        delegateList.clear()
+    }
+
+    /**
+     * Like [.clear], removes all the elements from this list, but not from the DOM.
+     * @see .clear
+     */
+    fun deselectAll() {
         delegateList.clear()
     }
 

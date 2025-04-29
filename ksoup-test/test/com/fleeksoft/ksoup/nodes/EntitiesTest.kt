@@ -153,10 +153,10 @@ class EntitiesTest {
         val doc = Ksoup.parse(html)
         doc.outputSettings().charset("ascii")
         val p = doc.select("p").first()
-        assertEquals("&sup1;&sup2;&sup3;&frac14;&frac12;&frac34;", p!!.html())
-        assertEquals("¹²³¼½¾", p.text())
+        assertEquals("&sup1;&sup2;&sup3;&frac14;&frac12;&frac34;", p?.html())
+        assertEquals("¹²³¼½¾", p?.text())
         doc.outputSettings().charset("UTF-8")
-        assertEquals("¹²³¼½¾", p.html())
+        assertEquals("¹²³¼½¾", p?.html())
     }
 
     @Test
@@ -172,20 +172,20 @@ class EntitiesTest {
         val doc = Ksoup.parse(docHtml)
         val element = doc.select("a").first()
         doc.outputSettings().escapeMode(Entities.EscapeMode.base)
-        assertEquals("<a title=\"<p>One</p>\">One</a>", element!!.outerHtml())
+        assertEquals("<a title=\"<p>One</p>\">One</a>", element?.outerHtml())
         doc.outputSettings().escapeMode(Entities.EscapeMode.xhtml)
-        assertEquals("<a title=\"&lt;p>One&lt;/p>\">One</a>", element.outerHtml())
+        assertEquals("<a title=\"&lt;p>One&lt;/p>\">One</a>", element?.outerHtml())
     }
 
     @Test
     fun controlCharactersAreEscaped() {
-        // we escape ascii control characters in both HTML and XML for compatibility. Required in XML and probably
-        // easier to read in HTML
+        // https://github.com/jhy/jsoup/issues/1556
+        // escape in HTML for legibility; remove from xml
         val input = "<a foo=\"&#x1b;esc&#x7;bell\">Text &#x1b; &#x7;</a>"
         val doc = Ksoup.parse(input)
         assertEquals(input, doc.body().html())
         val xml = Ksoup.parse(html = input, baseUri = "", parser = Parser.xmlParser())
-        assertEquals(input, xml.html())
+        assertEquals("<a foo=\"escbell\">Text  </a>", xml.html())
     }
 
     @Test

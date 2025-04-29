@@ -1,20 +1,28 @@
+/*
+ * Kotlin port of jsoup's Token.java
+ * Copyright © 2009–2025 Jonathan Hedley
+ * Copyright © 2023–2025 FLEEK SOFT
+ * Licensed under the MIT License
+ * https://jsoup.org
+ */
+
 package com.fleeksoft.ksoup.parser
 
 import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.internal.Normalizer
-import com.fleeksoft.ksoup.internal.SharedConstants
 import com.fleeksoft.ksoup.nodes.Attributes
 import com.fleeksoft.ksoup.nodes.Range
-import com.fleeksoft.ksoup.ported.KCloneable
-import com.fleeksoft.ksoup.ported.appendCodePoint
 import com.fleeksoft.ksoup.ported.assert
+import kotlin.js.JsName
 
 /**
  * Parse tokens for the Tokeniser.
  */
 public abstract class Token private constructor(public var type: TokenType) {
-    private var _startPos = 0
-    private var _endPos = Unset // position in CharacterReader this token was read from
+    @JsName("_startPos")
+    protected var startPos = 0
+    @JsName("_endPos")
+    protected var endPos = UnsetPos // position in CharacterReader this token was read from
 
     public fun tokenType(): String {
         return this::class.simpleName ?: "Token"
@@ -24,55 +32,55 @@ public abstract class Token private constructor(public var type: TokenType) {
      * Reset the data represent by this token, for reuse. Prevents the need to create transfer objects for every
      * piece of data, which immediately get GCed.
      */
-    public open fun reset(): Token {
-        _startPos = Unset
-        _endPos = Unset
+    open fun reset(): Token {
+        startPos = UnsetPos
+        endPos = UnsetPos
         return this
     }
 
     public fun startPos(): Int {
-        return _startPos
+        return startPos
     }
 
     public fun startPos(pos: Int) {
-        _startPos = pos
+        startPos = pos
     }
 
     public fun endPos(): Int {
-        return _endPos
+        return endPos
     }
 
     public fun endPos(pos: Int) {
-        _endPos = pos
+        endPos = pos
     }
 
     public class Doctype : Token(TokenType.Doctype) {
-        public val name: StringBuilder = StringBuilder()
+        public val name: TokenData = TokenData()
         public var pubSysKey: String? = null
-        public val publicIdentifier: StringBuilder = StringBuilder()
-        public val systemIdentifier: StringBuilder = StringBuilder()
-        public var isForceQuirks: Boolean = false
+        public val publicIdentifier: TokenData = TokenData()
+        public val systemIdentifier: TokenData = TokenData()
+        public var forceQuirks: Boolean = false
 
         override fun reset(): Token {
             super.reset()
-            reset(name)
+            name.reset()
             pubSysKey = null
-            reset(publicIdentifier)
-            reset(systemIdentifier)
-            isForceQuirks = false
+            publicIdentifier.reset()
+            systemIdentifier.reset()
+            forceQuirks = false
             return this
         }
 
         public fun getName(): String {
-            return name.toString()
+            return name.value()
         }
 
         public fun getPublicIdentifier(): String {
-            return publicIdentifier.toString()
+            return publicIdentifier.value()
         }
 
         public fun getSystemIdentifier(): String {
-            return systemIdentifier.toString()
+            return systemIdentifier.value()
         }
 
         override fun toString(): String {
@@ -81,19 +89,15 @@ public abstract class Token private constructor(public var type: TokenType) {
     }
 
     public abstract class Tag(type: TokenType, public val treeBuilder: TreeBuilder) : Token(type) {
-        internal var tagName: String? = null
+        internal var tagName: TokenData = TokenData()
         internal var normalName: String? = null // lc version of tag name, for case-insensitive tree build
-        public var isSelfClosing: Boolean = false
+        public var selfClosing: Boolean = false
 
         // start tags get attributes on construction. End tags get attributes on first new attribute (but only for parser convenience, not used).
         public var attributes: Attributes? = null
-        private var attrName: String? = null // try to get attr names and vals in one shot, vs Builder
-        private val attrNameSb: StringBuilder = StringBuilder()
-        private var hasAttrName = false
 
-        private var attrValue: String? = null
-        private val attrValueSb: StringBuilder = StringBuilder()
-        private var hasAttrValue = false
+        private val attrName = TokenData()
+        private val attrValue = TokenData()
         private var hasEmptyAttrValue = false // distinguish boolean attribute from empty string value
 
         internal val trackSource: Boolean = treeBuilder.trackSourceRange
@@ -104,26 +108,21 @@ public abstract class Token private constructor(public var type: TokenType) {
 
         override fun reset(): Tag {
             super.reset()
-            tagName = null
+            tagName.reset()
             normalName = null
-            isSelfClosing = false
+            selfClosing = false
             attributes = null
             resetPendingAttr()
             return this
         }
 
         private fun resetPendingAttr() {
-            reset(attrNameSb)
-            attrName = null
-            hasAttrName = false
-
-            reset(attrValueSb)
-            attrValue = null
+            attrName.reset()
+            attrValue.reset()
             hasEmptyAttrValue = false
-            hasAttrValue = false
 
             if (trackSource) {
-                attrValEnd = Unset
+                attrValEnd = UnsetPos
                 attrValStart = attrValEnd
                 attrNameEnd = attrValStart
                 attrNameStart = attrNameEnd
@@ -133,19 +132,15 @@ public abstract class Token private constructor(public var type: TokenType) {
         public fun newAttribute() {
             if (attributes == null) attributes = Attributes()
 
-            if (hasAttrName && attributes!!.size() < MaxAttributes) {
+            if (attrName.hasData() && attributes!!.size() < MaxAttributes) {
                 // the tokeniser has skipped whitespace control chars, but trimming could collapse to empty for other control codes, so verify here
-                var name = if (attrNameSb.isNotEmpty()) attrNameSb.toString() else attrName!!
+                var name = attrName.value()
                 name = name.trim { it <= ' ' }
-                if (name.isNotEmpty()) {
-                    val value =
-                        if (hasAttrValue) {
-                            if (attrValueSb.isNotEmpty()) attrValueSb.toString() else attrValue
-                        } else if (hasEmptyAttrValue) {
-                            ""
-                        } else {
-                            null
-                        }
+                if (!name.isEmpty()) {
+                    val value: String?
+                    if (attrValue.hasData()) value = attrValue.value()
+                    else if (hasEmptyAttrValue) value = ""
+                    else value = null
                     // note that we add, not put. So that the first is kept, and rest are deduped, once in a context where case sensitivity is known, and we can warn for duplicates.
                     attributes!!.add(name, value)
 
@@ -170,7 +165,7 @@ public abstract class Token private constructor(public var type: TokenType) {
                 }
 
                 // if there's no value (e.g. boolean), make it an implicit range at current
-                if (!hasAttrValue) {
+                if (!attrValue.hasData()) {
                     attrValEnd = attrNameEnd
                     attrValStart = attrValEnd
                 }
@@ -193,145 +188,96 @@ public abstract class Token private constructor(public var type: TokenType) {
             return attributes != null
         }
 
-        /** Case-sensitive check  */
-        public fun hasAttribute(key: String?): Boolean {
-            return attributes != null && attributes!!.hasKey(key!!)
-        }
-
         public fun hasAttributeIgnoreCase(key: String?): Boolean {
             return attributes != null && attributes!!.hasKeyIgnoreCase(key!!)
         }
 
         public fun finaliseTag() {
             // finalises for emit
-            if (hasAttrName) {
+            if (attrName.hasData()) {
                 newAttribute()
             }
         }
 
         /** Preserves case  */
         public fun name(): String { // preserves case, for input into Tag.valueOf (which may drop case)
-            Validate.isFalse(tagName == null || tagName!!.isEmpty())
-            return tagName ?: ""
+            return tagName.value()
         }
 
         /** Lower case  */
         public fun retrieveNormalName(): String { // lower case, used in tree building for working out where in tree it should go
+            Validate.isFalse(normalName == null || normalName!!.isEmpty());
             return normalName ?: ""
         }
 
         public fun toStringName(): String {
-            return if (tagName != null) tagName!! else "[unset]"
+            val name = tagName.value()
+            return name.ifEmpty { "[unset]" }
         }
 
         public fun name(name: String): Tag {
-            tagName = name
-            normalName = ParseSettings.normalName(tagName)
+            tagName.set(name)
+            normalName = ParseSettings.normalName(tagName.value())
             return this
         }
 
         // these appenders are rarely hit in not null state-- caused by null chars.
         public fun appendTagName(append: String) {
             // might have null chars - need to replace with null replacement character
-            val replacedAppend = append.replace(TokeniserState.nullChar, Tokeniser.ReplacementChar)
-            tagName = if (tagName == null) replacedAppend else tagName + replacedAppend
-            normalName = ParseSettings.normalName(tagName)
+
+            // might have null chars - need to replace with null replacement character
+            val append = append.replace(TokeniserState.nullChar, Tokeniser.ReplacementChar)
+            tagName.append(append)
+            normalName = ParseSettings.normalName(tagName.value())
         }
 
         public fun appendTagName(append: Char) {
-            appendTagName(append.toString())
+            appendTagName(append.toString()) // so that normalname gets updated too
         }
 
-        public fun appendAttributeName(
-            append: String,
-            startPos: Int,
-            endPos: Int,
-        ) {
+        public fun appendAttributeName(append: String, startPos: Int, endPos: Int) {
             // might have null chars because we eat in one pass - need to replace with null replacement character
-            val resultAppend = append.replace(TokeniserState.nullChar, Tokeniser.ReplacementChar)
-
-            ensureAttrName(startPos, endPos)
-            if (attrNameSb.isEmpty()) {
-                attrName = resultAppend
-            } else {
-                attrNameSb.append(resultAppend)
-            }
+            val append = append.replace(TokeniserState.nullChar, Tokeniser.ReplacementChar)
+            attrName.append(append)
+            attrNamePos(startPos, endPos)
         }
 
-        public fun appendAttributeName(
-            append: Char,
-            startPos: Int,
-            endPos: Int,
-        ) {
-            ensureAttrName(startPos, endPos)
-            attrNameSb.append(append)
+        public fun appendAttributeName(append: Char, startPos: Int, endPos: Int) {
+            attrName.append(append)
+            attrNamePos(startPos, endPos)
         }
 
-        public fun appendAttributeValue(
-            append: String?,
-            startPos: Int,
-            endPos: Int,
-        ) {
-            ensureAttrValue(startPos, endPos)
-            if (attrValueSb.isEmpty()) {
-                attrValue = append
-            } else {
-                attrValueSb.append(append)
-            }
+        public fun appendAttributeValue(append: String, startPos: Int, endPos: Int) {
+            attrValue.append(append)
+            attrValPos(startPos, endPos)
         }
 
-        public fun appendAttributeValue(
-            append: Char,
-            startPos: Int,
-            endPos: Int,
-        ) {
-            ensureAttrValue(startPos, endPos)
-            attrValueSb.append(append)
+        public fun appendAttributeValue(append: Char, startPos: Int, endPos: Int) {
+            attrValue.append(append)
+            attrValPos(startPos, endPos)
         }
 
-        public fun appendAttributeValue(
-            appendCodepoints: IntArray,
-            startPos: Int,
-            endPos: Int,
-        ) {
-            ensureAttrValue(startPos, endPos)
+        public fun appendAttributeValue(appendCodepoints: IntArray, startPos: Int, endPos: Int) {
             for (codepoint in appendCodepoints) {
-                attrValueSb.appendCodePoint(codepoint)
+                attrValue.appendCodePoint(codepoint)
             }
+            attrValPos(startPos, endPos)
         }
 
         public fun setEmptyAttributeValue() {
             hasEmptyAttrValue = true
         }
 
-        private fun ensureAttrName(
-            startPos: Int,
-            endPos: Int,
-        ) {
-            hasAttrName = true
-            // if on second hit, we'll need to move to the builder
-            if (attrName != null) {
-                attrNameSb.append(attrName)
-                attrName = null
-            }
+        private fun attrNamePos(startPos: Int, endPos: Int) {
             if (trackSource) {
-                attrNameStart = if (attrNameStart > Unset) attrNameStart else startPos // latches to first
+                attrNameStart = if (attrNameStart > UnsetPos) attrNameStart else startPos // latches to first
                 attrNameEnd = endPos
             }
         }
 
-        private fun ensureAttrValue(
-            startPos: Int,
-            endPos: Int,
-        ) {
-            hasAttrValue = true
-            // if on second hit, we'll need to move to the builder
-            if (attrValue != null) {
-                attrValueSb.append(attrValue)
-                attrValue = null
-            }
+        private fun attrValPos(startPos: Int, endPos: Int) {
             if (trackSource) {
-                attrValStart = if (attrValStart > Unset) attrValStart else startPos // latches to first
+                attrValStart = if (attrValStart > UnsetPos) attrValStart else startPos // latches to first
                 attrValEnd = endPos
             }
         }
@@ -354,18 +300,15 @@ public abstract class Token private constructor(public var type: TokenType) {
             return this
         }
 
-        public fun nameAttr(
-            name: String?,
-            attributes: Attributes?,
-        ): StartTag {
-            this.tagName = name
+        public fun nameAttr(name: String, attributes: Attributes?): StartTag {
+            this.tagName.set(name)
             this.attributes = attributes
-            normalName = ParseSettings.normalName(tagName)
+            normalName = ParseSettings.normalName(name)
             return this
         }
 
         override fun toString(): String {
-            val closer = if (isSelfClosing) "/>" else ">"
+            val closer = if (selfClosing) "/>" else ">"
             return if (hasAttributes() && attributes!!.size() > 0) {
                 "<${toStringName()} $attributes$closer"
             } else {
@@ -381,44 +324,28 @@ public abstract class Token private constructor(public var type: TokenType) {
     }
 
     public class Comment : Token(TokenType.Comment) {
-        private val data: StringBuilder = StringBuilder()
-        private var dataS: String? = null // try to get in one shot
+        private val data = TokenData()
         public var bogus: Boolean = false
 
         override fun reset(): Token {
             super.reset()
-            reset(data)
-            dataS = null
+            data.reset()
             bogus = false
             return this
         }
 
         public fun getData(): String {
-            return if (dataS != null) dataS!! else data.toString()
+            return data.value()
         }
 
-        public fun append(append: String?): Comment {
-            ensureData()
-            if (data.isEmpty()) {
-                dataS = append
-            } else {
-                data.append(append)
-            }
-            return this
-        }
-
-        public fun append(append: Char): Comment {
-            ensureData()
+        public fun append(append: String): Comment {
             data.append(append)
             return this
         }
 
-        private fun ensureData() {
-            // if on second hit, we'll need to move to the builder
-            if (dataS != null) {
-                data.append(dataS)
-                dataS = null
-            }
+        public fun append(append: Char): Comment {
+            data.append(append)
+            return this
         }
 
         override fun toString(): String {
@@ -426,39 +353,66 @@ public abstract class Token private constructor(public var type: TokenType) {
         }
     }
 
-    public open class Character : Token(TokenType.Character), KCloneable<Character> {
-        public var data: String? = null
-            private set
+    public open class Character() : Token(TokenType.Character) {
+        val data: TokenData = TokenData()
+
+        /** Deep copy */
+        constructor(source: Character) : this() {
+            this.startPos = source.startPos
+            this.endPos = source.endPos
+            this.data.set(source.data.value())
+        }
 
         override fun reset(): Token {
             super.reset()
-            data = null
+            data.reset()
             return this
         }
 
-        public fun data(data: String?): Character {
-            this.data = data
+        public fun data(str: String): Character {
+            this.data.set(str)
             return this
         }
 
-        override fun toString(): String {
-            return data.toString()
+        fun append(str: String): Character {
+            data.append(str)
+            return this
         }
 
-        override fun clone(): Character {
-            val character = Character()
-            character.data = this.data
-            return super.cloneCopy(character) as Character
-        }
+        fun getData(): String = data.value()
+
+        override fun toString(): String = getData()
     }
 
-    internal class CData(data: String?) : Character() {
+    internal class CData(data: String) : Character() {
         init {
             this.data(data)
         }
 
         override fun toString(): String {
             return "<![CDATA[$data]]>"
+        }
+    }
+
+    /**
+     * XmlDeclaration - extends Tag for pseudo attribute support
+     */
+    class XmlDecl(treeBuilder: TreeBuilder) : Tag(TokenType.XmlDecl, treeBuilder) {
+        var isDeclaration: Boolean = true // <!..>, or <?...?> if false (a processing instruction)
+
+        override fun reset(): XmlDecl {
+            super.reset()
+            isDeclaration = true
+            return this
+        }
+
+        override fun toString(): String {
+            val open = if (isDeclaration) "<!" else "<?"
+            val close = if (isDeclaration) ">" else "?>"
+            return if (hasAttributes() && attributes!!.size > 0)
+                "$open${toStringName()} ${attributes}$close"
+            else
+                "$open${toStringName()}$close"
         }
     }
 
@@ -517,6 +471,10 @@ public abstract class Token private constructor(public var type: TokenType) {
         return this as Character
     }
 
+    public fun asXmlDecl(): XmlDecl {
+        return this as XmlDecl
+    }
+
     public fun isEOF(): Boolean {
         return type == TokenType.EOF
     }
@@ -527,18 +485,12 @@ public abstract class Token private constructor(public var type: TokenType) {
         EndTag,
         Comment,
         Character, // note no CData - treated in builder as an extension of Character
+        XmlDecl,
         EOF,
     }
 
-    public fun cloneCopy(token: Token): Token {
-        token.type = this.type
-        token._startPos = this._startPos
-        token._endPos = this._endPos
-        return token
-    }
-
     public companion object {
-        public const val Unset: Int = -1
+        public const val UnsetPos: Int = -1
 
         public fun reset(sb: StringBuilder?) {
             sb?.clear()

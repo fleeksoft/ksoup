@@ -1,13 +1,21 @@
+/*
+ * Kotlin port of jsoup's StreamParser.java
+ * Copyright © 2009–2025 Jonathan Hedley
+ * Copyright © 2023–2025 FLEEK SOFT
+ * Licensed under the MIT License
+ * https://jsoup.org
+ */
+
 package com.fleeksoft.ksoup.parser
 
+import com.fleeksoft.io.Reader
+import com.fleeksoft.io.StringReader
+import com.fleeksoft.ksoup.exception.UncheckedIOException
 import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.nodes.Element
 import com.fleeksoft.ksoup.nodes.Node
 import com.fleeksoft.ksoup.ported.LinkedList
-import com.fleeksoft.ksoup.exception.UncheckedIOException
-import com.fleeksoft.io.Reader
-import com.fleeksoft.io.StringReader
 import com.fleeksoft.ksoup.select.Evaluator
 import com.fleeksoft.ksoup.select.NodeVisitor
 import com.fleeksoft.ksoup.select.QueryParser
@@ -16,29 +24,24 @@ import com.fleeksoft.ksoup.select.QueryParser
  * A StreamParser provides a progressive parse of its input. As each Element is completed, it is emitted via a Stream or
  * Iterator interface. Elements returned will be complete with all their children, and an (empty) next sibling, if
  * applicable.
- *
- * Elements (or their children) may be removed from the DOM during the parse, for e.g. to conserve memory, providing a
- * mechanism to parse an input document that would otherwise be too large to fit into memory, yet still providing a DOM
- * interface to the document and its elements.
- *
- *
- * Additionally, the parser provides a [.selectFirst] / [.selectNext], which will
+ * <p>To conserve memory, you can {@link Node#remove() remove()} Elements (or their children) from the DOM during the
+ * parse. This provides a mechanism to parse an input document that would otherwise be too large to fit into memory, yet
+ * still providing a DOM interface to the document and its elements.</p>
+ * <p>
+ * Additionally, the parser provides a {@link #selectFirst(String query)} / {@link #selectNext(String query)}, which will
  * run the parser until a hit is found, at which point the parse is suspended. It can be resumed via another
- * `select()` call, or via the [.stream] or [.iterator] methods.
- *
- *
- * Once the input has been fully read, the input Reader will be closed. Or, if the whole document does not need to be
- * read, call [.stop] and [.close].
- *
- * The [.document] method will return the Document being parsed into, which will be only partially complete
- * until the input is fully consumed.
- *
- * A StreamParser can be reused via a new [.parse], but is not thread-safe for concurrent inputs.
- * New parsers should be used in each thread.
- *
- *
- * The StreamParser interface is currently in **beta** and may change in subsequent releases. Feedback on the
- * feature and how you're using it is very welcome
+ * {@code select()} call, or via the {@link #stream()} or {@link #iterator()} methods.
+ * </p>
+ * <p>Once the input has been fully read, the input Reader will be closed. Or, if the whole document does not need to be
+ * read, call {@link #stop()} and {@link #close()}.</p>
+ * <p>The {@link #document()} method will return the Document being parsed into, which will be only partially complete
+ * until the input is fully consumed.</p>
+ * <p>A StreamParser can be reused via a new {@link #parse(Reader, String)}, but is not thread-safe for concurrent inputs.
+ * New parsers should be used in each thread.</p>
+ * <p>If created via {@link Connection.Response#streamParser()}, or another Reader that is I/O backed, the iterator and
+ * stream consumers will throw an {@link java.io.UncheckedIOException} if the underlying Reader errors during read.</p>
+ * <p>For examples, see the jsoup
+ * <a href="https://jsoup.org/cookbook/input/streamparser-dom-sax">StreamParser cookbook.</a></p>
  */
 class StreamParser(private val parser: Parser) {
     private val treeBuilder = parser.getTreeBuilder()
@@ -227,9 +230,12 @@ class StreamParser(private val parser: Parser) {
     /**
      * Finds the first Element that matches the provided query. If the parsed Document does not already have a match, the
      * input will be parsed until the first match is found, or the input is completely read.
-     * @param eval the [Selector] evaluator.
-     * @return the first matching [Element], or `null` if there's no match
-     * @throws com.fleeksoft.io.exception.IOException if an I/O error occurs
+     * <p>By providing a compiled evaluator vs a CSS selector, this method may be more efficient when executing the same
+     * query against multiple documents.</p>
+     * @param eval the {@link org.jsoup.select.Selector} evaluator.
+     * @return the first matching {@link Element}, or {@code null} if there's no match
+     * @throws IOException if an I/O error occurs
+     * @see QueryParser#parse(String)
      */
     fun selectFirst(eval: Evaluator): Element? {
         val doc: Document = document()
@@ -270,9 +276,12 @@ class StreamParser(private val parser: Parser) {
     /**
      * Finds the next Element that matches the provided query. The input will be parsed until the next match is found, or
      * the input is completely read.
-     * @param eval the [Selector] evaluator.
-     * @return the next matching [Element], or `null` if there's no match
+     * <p>By providing a compiled evaluator vs a CSS selector, this method may be more efficient when executing the same
+     * query against multiple documents.</p>
+     * @param eval the {@link org.jsoup.select.Selector} evaluator.
+     * @return the next matching {@link Element}, or {@code null} if there's no match
      * @throws com.fleeksoft.io.exception.IOException if an I/O error occurs
+     * @see QueryParser#parse(String)
      */
     fun selectNext(eval: Evaluator): Element? {
         val doc: Document = document() // validates the parse was initialized, keeps stack trace out of stream

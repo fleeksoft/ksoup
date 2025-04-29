@@ -10,10 +10,10 @@ import com.fleeksoft.ksoup.parameterizedTest
 import com.fleeksoft.ksoup.parser.Parser
 import kotlin.test.*
 
+
 /**
  * Tests for the cleaner.
  *
- * @author Sabeeh, fleeksoft@gmail.com
  */
 class CleanerTest {
 
@@ -246,24 +246,29 @@ class CleanerTest {
     fun resolvesRelativeLinks() {
         val html = "<a href='/foo'>Link</a><img src='/bar'>"
         val clean = Ksoup.clean(bodyHtml = html, safelist = Safelist.basicWithImages(), baseUri = "http://example.com/")
-        assertEquals(
-            "<a href=\"http://example.com/foo\" rel=\"nofollow\">Link</a><img src=\"http://example.com/bar\">",
-            clean,
-        )
+        assertEquals("<a href=\"http://example.com/foo\">Link</a><img src=\"http://example.com/bar\">", clean)
     }
 
     @Test
     fun preservesRelativeLinksIfConfigured() {
         val html = "<a href='/foo'>Link</a><img src='/bar'> <img src='javascript:alert()'>"
         val clean = Ksoup.clean(bodyHtml = html, safelist = Safelist.basicWithImages().preserveRelativeLinks(true), baseUri = "http://example.com/")
-        assertEquals("<a href=\"/foo\" rel=\"nofollow\">Link</a><img src=\"/bar\"> <img>", clean)
+        assertEquals("<a href=\"/foo\">Link</a><img src=\"/bar\"> <img>", clean)
     }
 
     @Test
-    fun dropsUnresolvableRelativeLinks() {
+    fun dropsUnresolvableRelativeLinks() { // when not preserving
         val html = "<a href='/foo'>Link</a>"
         val clean = Ksoup.clean(html, Safelist.basic())
         assertEquals("<a rel=\"nofollow\">Link</a>", clean)
+    }
+
+    @Test
+    fun dropsJavascriptWhenRelativeLinks() {
+        val html = "<a href='javascript:alert()'>One</a>"
+        val safelist: Safelist = Safelist.basic().preserveRelativeLinks(true)
+        assertEquals("<a rel=\"nofollow\">One</a>", Ksoup.clean(html, safelist))
+        assertFalse(Ksoup.isValid(html, safelist))
     }
 
     @Test
@@ -272,9 +277,12 @@ class CleanerTest {
         val html = "<a href=\"&#0013;ja&Tab;va&Tab;script&#0010;:alert(1)\">Link</a>"
         val clean = Ksoup.clean(bodyHtml = html, safelist = safelist, baseUri = "https://")
         assertEquals("<a rel=\"nofollow\">Link</a>", clean)
+        assertFalse(Ksoup.isValid(html, safelist))
+
         val colon = "<a href=\"ja&Tab;va&Tab;script&colon;alert(1)\">Link</a>"
         val cleanColon = Ksoup.clean(bodyHtml = colon, safelist = safelist, baseUri = "https://")
         assertEquals("<a rel=\"nofollow\">Link</a>", cleanColon)
+        assertFalse(Ksoup.isValid(colon, safelist))
     }
 
     @Test
@@ -283,6 +291,7 @@ class CleanerTest {
         val html = "<a href=\"ja&Tab;vas&#0013;cript:alert(1)\">Link</a>"
         val clean = Ksoup.clean(bodyHtml = html, safelist = safelist, baseUri = "https://")
         assertEquals("<a rel=\"nofollow\">Link</a>", clean)
+        assertFalse(Ksoup.isValid(html, safelist))
     }
 
     @Test
@@ -401,13 +410,23 @@ class CleanerTest {
     @Test
     fun handlesNestedQuotesInAttribute() {
         val orig = "<div style=\"font-family: 'Calibri'\">Will (not) fail</div>"
-        val allow =
-            Safelist.relaxed()
-                .addAttributes("div", "style")
+        val allow = Safelist.relaxed().addAttributes("div", "style")
         val clean = Ksoup.clean(orig, allow)
         val isValid = Ksoup.isValid(orig, allow)
         assertEquals(orig, TextUtil.stripNewlines(clean)) // only difference is pretty print wrap & indent
         assertTrue(isValid)
+    }
+
+    @Test
+    fun copiesOutputSettings() {
+        val orig: Document = Ksoup.parse("<p>test<br></p>")
+        orig.outputSettings().syntax(Document.OutputSettings.Syntax.xml)
+        orig.outputSettings().escapeMode(Entities.EscapeMode.xhtml)
+        val safelist = Safelist.none().addTags("p", "br")
+
+        val result = Cleaner(safelist).clean(orig)
+        assertEquals(Document.OutputSettings.Syntax.xml, result.outputSettings().syntax())
+        assertEquals("<p>test\n <br /></p>", result.body().html())
     }
 
     @Test
@@ -446,16 +465,57 @@ class CleanerTest {
 
             val safelist = Safelist.none().addTags(*tags).addAttributes(":all", *attrs)
             val clean: String = Ksoup.clean(html, safelist)
-            val expected = """<svg>
- <feMerge baseFrequency="2">
-  <feMergeNode kernelMatrix="1" />
-  <feMergeNode>
-   <clipPath />
-  </feMergeNode>
-  <feMergeNode />
- </feMerge>
-</svg>"""
+            val expected = "<svg>\n" +
+                    " <feMerge baseFrequency=\"2\">\n" +
+                    "  <feMergeNode kernelMatrix=\"1\" />\n" +
+                    "  <feMergeNode>\n" +
+                    "   <clipPath />\n" +
+                    "  </feMergeNode>\n" +
+                    "  <feMergeNode />\n" +
+                    " </feMerge>\n" +
+                    "</svg>"
             assertEquals(expected, clean)
         }
+    }
+
+    @Test
+    fun nofollowOnlyOnExternalLinks() {
+        // We want to add nofollow to external links, but not to for relative links or those on the same site
+        val html =
+            "<a href='http://external.com/'>One</a> <a href='/relative/'>Two</a> <a href='../other/'>Three</a> <a href='http://example.com/bar'>Four</a>"
+
+        val basic: Safelist = Safelist.basic().preserveRelativeLinks(true)
+        val clean: String? = Ksoup.clean(bodyHtml = html, baseUri = "http://example.com/", safelist = basic)
+        assertEquals(
+            "<a href=\"http://external.com/\" rel=\"nofollow\">One</a> <a href=\"/relative/\">Two</a> <a href=\"../other/\">Three</a> <a href=\"http://example.com/bar\">Four</a>",
+            clean
+        )
+
+        // If we don't pass in a base URI, still want to preserve the relative links.
+        val clean2: String = Ksoup.clean(html, basic)
+        assertEquals(
+            "<a href=\"http://external.com/\" rel=\"nofollow\">One</a> <a href=\"/relative/\">Two</a> <a href=\"../other/\">Three</a> <a href=\"http://example.com/bar\" rel=\"nofollow\">Four</a>",
+            clean2
+        )
+
+        // Four gets nofollowed because we didn't specify the base URI, so must assume it is external
+
+        // Want it to be valid with relative links (and no base uri required / provided):
+        assertTrue(Ksoup.isValid(html, basic))
+
+        // test that it works in safelist.relaxed as well, which doesn't by default have rel=nofollow
+        val relaxed: Safelist = Safelist.relaxed().preserveRelativeLinks(true).addEnforcedAttribute("a", "rel", "nofollow")
+        val clean3: String? = Ksoup.clean(bodyHtml = html, baseUri = "http://example.com/", safelist = relaxed)
+        assertEquals(
+            "<a href=\"http://external.com/\" rel=\"nofollow\">One</a> <a href=\"/relative/\">Two</a> <a href=\"../other/\">Three</a> <a href=\"http://example.com/bar\">Four</a>",
+            clean3
+        )
+        assertTrue(Ksoup.isValid(html, relaxed))
+
+        val clean4: String = Ksoup.clean(html, relaxed)
+        assertEquals(
+            "<a href=\"http://external.com/\" rel=\"nofollow\">One</a> <a href=\"/relative/\">Two</a> <a href=\"../other/\">Three</a> <a href=\"http://example.com/bar\" rel=\"nofollow\">Four</a>",
+            clean4
+        )
     }
 }

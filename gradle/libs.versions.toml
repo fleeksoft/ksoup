@@ -1,25 +1,25 @@
 [versions]
-agp = "8.7.2"
-kotlin = "2.1.10"
+libraryVersion = "0.2.3"
+agp = "8.7.3"
+kotlin = "2.1.20"
 compileSdk = "35"
 minSdk = "21"
-libraryVersion = "0.2.2"
-ktor = "3.0.3"
+ktor = "3.1.2"
 ktor2 = "2.3.13"
-coroutines = "1.9.0"
-kotlinxDatetime = "0.6.1"
-kotlinx-io = "0.6.0"
-okio = "3.9.1"
-dokka = "1.9.20"
-kotlinx-benchmark = "0.4.12"
+coroutines = "1.10.2"
+kotlinxDatetime = "0.6.2"
+kotlinx-io = "0.7.0"
+okio = "3.10.2"
+dokka = "2.0.0"
+kotlinx-benchmark = "0.4.13"
 
 #korlibs = "999.0.0.999" # 999.0.0.999 is local version
 korlibs = "6.0.1"
-mavenPublish = "0.30.0"
+mavenPublish = "0.31.0"
 
 stately = "2.1.0"
-jsoup = "1.18.3"
-fleeksoft-io = "0.0.3"
+jsoup = "1.19.1" # for testing only
+fleeksoft-io = "0.0.4"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -47,6 +47,7 @@ kotlinx-io = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version.ref = "
 korlibs-io = { module = "com.soywiz:korlibs-io", version.ref = "korlibs" }
 korlibs-io-network-core = { module = "com.soywiz:korlibs-io-network-core", version.ref = "korlibs" }
 stately-concurrency = { module = "co.touchlab:stately-concurrency", version.ref = "stately" }
+stately-concurrent-collections = { module = "co.touchlab:stately-concurrent-collections", version.ref = "stately" }
 jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 okio-nodefilesystem = { module = "com.squareup.okio:okio-nodefilesystem", version.ref = "okio" }

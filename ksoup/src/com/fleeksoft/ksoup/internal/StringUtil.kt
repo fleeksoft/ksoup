@@ -1,5 +1,14 @@
+/*
+ * Kotlin port of jsoup's StringUtil.java
+ * Copyright © 2009–2025 Jonathan Hedley
+ * Copyright © 2023–2025 FLEEK SOFT
+ * Licensed under the MIT License
+ * https://jsoup.org
+ */
+
 package com.fleeksoft.ksoup.internal
 
+import com.fleeksoft.ksoup.internal.StringUtil.releaseBuilder
 import com.fleeksoft.ksoup.ported.*
 import kotlin.math.min
 
@@ -106,7 +115,7 @@ public object StringUtil {
     }
 
     /**
-     * Tests if a string is numeric, i.e. contains only digit characters
+     * Tests if a string is numeric, i.e. contains only ASCII digit characters
      * @param string string to test
      * @return true if only digit chars, false if empty or null or contains non-digit chars
      */
@@ -114,7 +123,7 @@ public object StringUtil {
         if (string.isNullOrEmpty()) return false
         val l = string.length
         for (i in 0 until l) {
-            if (!Character.isDigit(string.codePointValueAt(i))) return false
+            if (!isDigit(string[i])) return false
         }
         return true
     }
@@ -238,7 +247,7 @@ public object StringUtil {
 
     private const val InitBuilderSize: Int = 1024
     private const val MaxBuilderSize: Int = 8 * 1024
-    private val StringBuilderPool: SoftPool<StringBuilder> = SoftPool { StringBuilder(InitBuilderSize) }
+    private val BuilderPool: SoftPool<StringBuilder> = SoftPool { StringBuilder(InitBuilderSize) }
 
     /**
      * Maintains cached StringBuilders in a flyweight pattern, to minimize new StringBuilder GCs. The StringBuilder is
@@ -249,7 +258,7 @@ public object StringUtil {
      * @return an empty StringBuilder
      */
     public fun borrowBuilder(): StringBuilder {
-        return StringBuilderPool.borrow()
+        return BuilderPool.borrow()
     }
 
     /**
@@ -260,14 +269,21 @@ public object StringUtil {
      */
     public fun releaseBuilder(sb: StringBuilder): String {
         val str = sb.toString()
+        releaseBuilderVoid(sb)
+        return str
+    }
 
+    /**
+     * Releases a borrowed builder, but does not call .toString() on it. Useful in case you already have that string.
+     * @param sb the StringBuilder to release.
+     * @see releaseBuilder
+     */
+    fun releaseBuilderVoid(sb: StringBuilder) {
         // if it hasn't grown too big, reset it and return it to the pool:
         if (sb.length <= MaxBuilderSize) {
-            sb.clear() // make sure it's emptied on release
-            StringBuilderPool.release(sb)
+            sb.deleteRange(0, sb.length) // make sure it's emptied on release
+            BuilderPool.release(sb)
         }
-
-        return str
     }
 
     /**
@@ -310,5 +326,17 @@ public object StringUtil {
             sb = null
             return string ?: ""
         }
+    }
+
+    fun isAsciiLetter(c: Char): Boolean {
+        return c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z'
+    }
+
+    fun isDigit(c: Char): Boolean {
+        return c >= '0' && c <= '9'
+    }
+
+    fun isHexDigit(c: Char): Boolean {
+        return isDigit(c) || c >= 'a' && c <= 'f' || c >= 'A' && c <= 'F'
     }
 }

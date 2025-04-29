@@ -1,6 +1,15 @@
+/*
+ * Kotlin port of jsoup's ParseSettings.java
+ * Copyright © 2009–2025 Jonathan Hedley
+ * Copyright © 2023–2025 FLEEK SOFT
+ * Licensed under the MIT License
+ * https://jsoup.org
+ */
+
 package com.fleeksoft.ksoup.parser
 
 import com.fleeksoft.ksoup.internal.Normalizer.lowerCase
+import com.fleeksoft.ksoup.internal.Normalizer.normalize
 import com.fleeksoft.ksoup.nodes.Attributes
 
 /**
@@ -70,7 +79,7 @@ public class ParseSettings
 
         /** Returns the normal name that a Tag will have (trimmed and lower-cased)  */
         public fun normalName(name: String?): String {
-            return lowerCase(name!!.trim { it <= ' ' })
+            return normalize(name!!.trim { it <= ' ' })
         }
     }
 }

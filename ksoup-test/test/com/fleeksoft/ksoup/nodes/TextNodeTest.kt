@@ -10,7 +10,6 @@ import kotlin.test.*
 /**
  * Test TextNodes
  *
- * @author Sabeeh, fleeksoft@gmail.com
  */
 class TextNodeTest {
 

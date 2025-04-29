@@ -1,6 +1,7 @@
 package com.fleeksoft.ksoup
 
 import com.fleeksoft.io.Reader
+import com.fleeksoft.ksoup.internal.SharedConstants
 import com.fleeksoft.ksoup.model.MetaData
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.nodes.Element
@@ -12,7 +13,6 @@ import com.fleeksoft.ksoup.safety.Safelist
 /**
  * The core public access point to the com.fleeksoft.ksoup functionality.
  *
- * @author Sabeeh
  */
 public object Ksoup {
 
@@ -101,7 +101,12 @@ public object Ksoup {
         baseUri: String = "",
         outputSettings: Document.OutputSettings? = null
     ): String {
-        val dirty: Document = parseBodyFragment(bodyHtml, baseUri)
+        var uri = baseUri
+        if (uri.isEmpty() && safelist.preserveRelativeLinks()) {
+            // set a placeholder URI to allow relative links to pass abs resolution for protocol tests; won't leak to output
+            uri = SharedConstants.DummyUri
+        }
+        val dirty: Document = parseBodyFragment(bodyHtml, uri)
         val cleaner = Cleaner(safelist)
         val clean: Document = cleaner.clean(dirty)
         if (outputSettings != null) {

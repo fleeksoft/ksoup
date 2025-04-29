@@ -1,7 +1,20 @@
+/*
+ * Kotlin port of jsoup's Entities.java
+ * Copyright © 2009–2025 Jonathan Hedley
+ * Copyright © 2023–2025 FLEEK SOFT
+ * Licensed under the MIT License
+ * https://jsoup.org
+ */
+
 @file:OptIn(ExperimentalStdlibApi::class)
 
 package com.fleeksoft.ksoup.nodes
 
+import com.fleeksoft.charset.Charset
+import com.fleeksoft.charset.CharsetEncoder
+import com.fleeksoft.charset.Charsets
+import com.fleeksoft.io.exception.IOException
+import com.fleeksoft.ksoup.exception.SerializationException
 import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.nodes.Document.OutputSettings
@@ -11,12 +24,6 @@ import com.fleeksoft.ksoup.nodes.Entities.EscapeMode.extended
 import com.fleeksoft.ksoup.parser.CharacterReader
 import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.ported.*
-import com.fleeksoft.ksoup.ported.Character
-import com.fleeksoft.io.exception.IOException
-import com.fleeksoft.ksoup.exception.SerializationException
-import com.fleeksoft.charset.Charset
-import com.fleeksoft.charset.CharsetEncoder
-import com.fleeksoft.charset.Charsets
 
 
 /**
@@ -91,10 +98,7 @@ public object Entities {
         }
     }
 
-    public fun codepointsForName(
-        name: String,
-        codepoints: IntArray,
-    ): Int {
+    public fun codepointsForName(name: String, codepoints: IntArray): Int {
         val value: String? = multipoints[name]
         if (value != null) {
             codepoints[0] = value.codePointValueAt(0)
@@ -226,6 +230,11 @@ public object Entities {
         coreCharset: CoreCharset,
         fallback: CharsetEncoder
     ) {
+        // specific character range for xml 1.0; drop (not encode) if so
+        if (EscapeMode.xhtml == escapeMode && !isValidXmlChar(codePoint.value)) {
+            return;
+        }
+
         // surrogate pairs, split implementation for efficiency on single char common case (saves creating strings, char[]):
         val c = codePoint.value.toChar()
         if (codePoint.value < Character.MIN_SUPPLEMENTARY_CODE_POINT) {
@@ -371,6 +380,19 @@ public object Entities {
             else -> fallback.canEncode(c)
         }
     }
+
+    /**
+     * https://www.w3.org/TR/2006/REC-xml-20060816/Overview.html#charsets
+     * Char ::= #x9 | #xA | #xD
+     *        | [#x20-#xD7FF]
+     *        | [#xE000-#xFFFD]
+     *        | [#x10000-#x10FFFF]
+     */
+    private fun isValidXmlChar(codePoint: Int): Boolean =
+        codePoint == 0x9 || codePoint == 0xA || codePoint == 0xD ||
+                codePoint in 0x20..0xD7FF ||
+                codePoint in 0xE000..0xFFFD ||
+                codePoint in 0x10000..0x10FFFF
 
     private fun load(e: EscapeMode, pointsData: String, size: Int) {
         e.nameKeys = arrayOfNulls(size)

@@ -1,6 +1,15 @@
+/*
+ * Kotlin port of jsoup's SoftPool.java
+ * Copyright © 2009–2025 Jonathan Hedley
+ * Copyright © 2023–2025 FLEEK SOFT
+ * Licensed under the MIT License
+ * https://jsoup.org
+ */
+
 package com.fleeksoft.ksoup.internal
 
 import com.fleeksoft.ksoup.ported.ThreadLocal
+
 
 /**
  * A SoftPool is a ThreadLocal that holds a SoftReference to a pool of initializable objects. This allows us to reuse

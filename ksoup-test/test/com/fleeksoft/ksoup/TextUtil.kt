@@ -1,10 +1,6 @@
 package com.fleeksoft.ksoup
 
-/**
- * Text utils to ease testing
- *
- * @author Sabeeh, fleeksoft@gmail.com
- */
+
 object TextUtil {
     var stripper = Regex("\\r?\\n\\s*")
     var stripLines = Regex("\\r?\\n?")

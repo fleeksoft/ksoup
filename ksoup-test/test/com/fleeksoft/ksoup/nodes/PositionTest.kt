@@ -1,11 +1,15 @@
 package com.fleeksoft.ksoup.nodes
 
 import com.fleeksoft.ksoup.Ksoup
+import com.fleeksoft.ksoup.Ksoup.parse
 import com.fleeksoft.ksoup.TextUtil
 import com.fleeksoft.ksoup.parser.ParseSettings
 import com.fleeksoft.ksoup.parser.Parser
+import com.fleeksoft.ksoup.parser.Tag
+import com.fleeksoft.ksoup.ported.Consumer
 import com.fleeksoft.ksoup.select.Elements
 import kotlin.test.*
+
 
 /**
  * Functional tests for the Position tracking behavior (across nodes, treebuilder, etc.)
@@ -116,7 +120,7 @@ class PositionTest {
             track.toString(),
         )
 
-        val textTrack: StringBuilder = StringBuilder()
+        val textTrack = StringBuilder()
         doc.nodeStream(TextNode::class).forEach { text -> accumulatePositions(text, textTrack) }
         assertEquals("#text:39-42; #text:49-52; ", textTrack.toString())
     }
@@ -127,7 +131,7 @@ class PositionTest {
         val html = "<meta><img><p>One<p>Two<p>Three"
         val doc: Document = Ksoup.parse(html, TrackingHtmlParser)
 
-        val track: StringBuilder = StringBuilder()
+        val track = StringBuilder()
         doc.expectFirst("html").stream().forEach { el ->
             assertTrue(el.sourceRange().isTracked())
             assertTrue(el.endSourceRange().isTracked())
@@ -202,6 +206,24 @@ class PositionTest {
         val data = script.firstChild() as DataNode?
         assertNotNull(data)
         assertEquals("2,9:15-4,8:33", data.sourceRange().toString())
+    }
+
+    @Test
+    fun tracksExplicitAndImplicitBodyHtml() {
+        // Tests that </body></html> tokens are tracked when present
+        val htmlSans = "<body><a>Link</a>"
+        val htmlWith = "<html><head></head><body><a>Link</a></body></html>"
+
+        val docSans: Document = Ksoup.parse(htmlSans, TrackingHtmlParser)
+        val docWith: Document = Ksoup.parse(htmlWith, TrackingHtmlParser)
+
+        val trackSans = StringBuilder()
+        val trackWith = StringBuilder()
+        docSans.forEachNode(Consumer { node: Node -> accumulatePositions(node, trackSans) })
+        docWith.forEachNode(Consumer { node: Node -> accumulatePositions(node, trackWith) })
+
+        assertEquals("#document:0-0~17-17; html:0-0~17-17; head:0-0~0-0; body:0-6~17-17; a:6-9~13-17; #text:9-13; ", trackSans.toString())
+        assertEquals("#document:0-0~50-50; html:0-6~43-50; head:6-12~12-19; body:19-25~36-43; a:25-28~32-36; #text:28-32; ", trackWith.toString())
     }
 
     @Test
@@ -284,7 +306,7 @@ class PositionTest {
 
         val div = doc.expectFirst("div")
 
-        val track: StringBuilder = StringBuilder()
+        val track = StringBuilder()
         for (attr: Attribute in div.attributes()) {
             val attrRange: Range.AttributeRange = attr.sourceRange()
             assertTrue(attrRange.nameRange().isTracked())
@@ -314,7 +336,7 @@ class PositionTest {
 
         val div = doc.expectFirst("div")
 
-        val track: StringBuilder = StringBuilder()
+        val track = StringBuilder()
         for (attr: Attribute in div.attributes()) {
             val attrRange: Range.AttributeRange = attr.sourceRange()
             assertTrue(attrRange.nameRange().isTracked())
@@ -342,7 +364,7 @@ class PositionTest {
         val html = "<html lang=en class=dark><p hidden></p></html>"
 
         val htmlDoc: Document = Ksoup.parse(html, TrackingHtmlParser)
-        val htmlPos: StringBuilder = StringBuilder()
+        val htmlPos = StringBuilder()
         htmlDoc.expectFirst("html").nodeStream().forEach { node ->
             accumulatePositions(node, htmlPos)
             accumulateAttributePositions(node, htmlPos)
@@ -354,7 +376,7 @@ class PositionTest {
         )
 
         val xmlDoc: Document = Ksoup.parse(html, TrackingXmlParser)
-        val xmlPos: StringBuilder = StringBuilder()
+        val xmlPos = StringBuilder()
         xmlDoc.expectFirst("html").nodeStream().forEach { node ->
             accumulatePositions(node, xmlPos)
             accumulateAttributePositions(node, xmlPos)
@@ -373,7 +395,7 @@ class PositionTest {
                     "    <modelVersion>4.0.0</modelVersion>"
 
         val htmlDoc: Document = Ksoup.parse(pomXml, TrackingHtmlParser)
-        val htmlPos: StringBuilder = StringBuilder()
+        val htmlPos = StringBuilder()
         htmlDoc.expectFirst("html").nodeStream().forEach { node ->
             accumulatePositions(node, htmlPos)
             accumulateAttributePositions(node, htmlPos)
@@ -385,7 +407,7 @@ class PositionTest {
         )
 
         val xmlDoc: Document = Ksoup.parse(pomXml, TrackingXmlParser)
-        val xmlPos: StringBuilder = StringBuilder()
+        val xmlPos = StringBuilder()
         xmlDoc.expectFirst("project").nodeStream().forEach { node ->
             accumulatePositions(node, xmlPos)
             accumulateAttributePositions(node, xmlPos)
@@ -398,7 +420,7 @@ class PositionTest {
 
         val xmlDocLc: Document =
             Ksoup.parse(pomXml, Parser.xmlParser().setTrackPosition(true).settings(ParseSettings(false, false)))
-        val xmlPosLc: StringBuilder = StringBuilder()
+        val xmlPosLc = StringBuilder()
         xmlDocLc.expectFirst("project").nodeStream().forEach { node ->
             accumulatePositions(node, xmlPosLc)
             accumulateAttributePositions(node, xmlPosLc)
@@ -420,10 +442,10 @@ class PositionTest {
         val xmlDocLc: Document =
             Ksoup.parse(html, Parser.xmlParser().setTrackPosition(true).settings(ParseSettings(false, false)))
 
-        val htmlPos: StringBuilder = StringBuilder()
-        val htmlUcPos: StringBuilder = StringBuilder()
-        val xmlPos: StringBuilder = StringBuilder()
-        val xmlLcPos: StringBuilder = StringBuilder()
+        val htmlPos = StringBuilder()
+        val htmlUcPos = StringBuilder()
+        val xmlPos = StringBuilder()
+        val xmlLcPos = StringBuilder()
 
         accumulateAttributePositions(htmlDoc.expectFirst("p"), htmlPos)
         accumulateAttributePositions(htmlDocUc.expectFirst("p"), htmlUcPos)
@@ -446,10 +468,10 @@ class PositionTest {
         val xmlDocLc: Document =
             Ksoup.parse(html, Parser.xmlParser().setTrackPosition(true).settings(ParseSettings(false, false)))
 
-        val htmlPos: StringBuilder = StringBuilder()
-        val htmlUcPos: StringBuilder = StringBuilder()
-        val xmlPos: StringBuilder = StringBuilder()
-        val xmlLcPos: StringBuilder = StringBuilder()
+        val htmlPos = StringBuilder()
+        val htmlUcPos = StringBuilder()
+        val xmlPos = StringBuilder()
+        val xmlLcPos = StringBuilder()
 
         accumulateAttributePositions(htmlDoc.expectFirst("p"), htmlPos)
         accumulateAttributePositions(htmlDocUc.expectFirst("p"), htmlUcPos)
@@ -468,7 +490,7 @@ class PositionTest {
         val shellDoc = Document.createShell("")
 
         val nodes: List<Node> = TrackingHtmlParser.parseFragmentInput(html, shellDoc.body(), shellDoc.baseUri())
-        val track: StringBuilder = StringBuilder()
+        val track = StringBuilder()
 
         // nodes is the top level nodes - want to descend to check all tracked OK
         nodes.forEach { node ->
@@ -486,10 +508,17 @@ class PositionTest {
 
     @Test
     fun tracksAfterPSelfClose() {
+
+        // https://github.com/jhy/Ksoup/issues/2175
         val html = "foo<p/>bar &amp; 2"
-        val doc = Ksoup.parse(html, TrackingHtmlParser)
+
+
+        // force allow self-closing p
+        val parser = TrackingHtmlParser.clone()
+        parser.tagSet().valueOf("p", Parser.NamespaceHtml).set(Tag.SelfClose)
+        val doc = parse(html, parser)
         val track = StringBuilder()
-        doc.body().forEachNode { node -> accumulatePositions(node, track) }
+        doc.body().forEachNode(Consumer { node: Node? -> accumulatePositions(node!!, track) })
         assertEquals("body:0-0~18-18; #text:0-3; p:3-7~3-7; #text:7-18; ", track.toString())
     }
 
@@ -582,7 +611,7 @@ class PositionTest {
 
     @Test
     fun movedAttributesHaveRange() {
-        // https://github.com/jhy/jsoup/issues/2204
+        // https://github.com/jhy/Ksoup/issues/2204
         val html = "<span id=1>One</span><html attr=foo><body class=2>Two</body><head title=3><body class=ok data=bar>"
         // note that the attributes of the head el are not copied into the implicit head created by the span, per spec. html and body els are.
         val doc = Ksoup.parse(html, TrackingHtmlParser)

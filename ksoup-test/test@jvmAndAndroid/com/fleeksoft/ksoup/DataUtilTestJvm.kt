@@ -7,7 +7,7 @@ import com.fleeksoft.ksoup.parser.Parser
 import kotlinx.coroutines.test.runTest
 import java.io.*
 import java.nio.charset.StandardCharsets
-import java.nio.file.Path
+import java.nio.file.Files
 import java.util.zip.GZIPInputStream
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -137,6 +137,27 @@ class DataUtilTestJvm {
             baseUri = "https://example.com",
         )
         assertEquals(280745, doc.toString().length)
+    }
+
+    @Test
+    fun parseSequenceInputStream() {
+        // https://github.com/jhy/jsoup/pull/1671
+        val `in`: File = File(TestHelper.getResourceAbsolutePath("htmltests/medium.html"))
+        val fileContent = String(Files.readAllBytes(`in`.toPath()))
+        val halfLength = fileContent.length / 2
+        val firstPart = fileContent.substring(0, halfLength)
+        val secondPart = fileContent.substring(halfLength)
+        val sequenceStream = SequenceInputStream(
+            stream(firstPart),
+            stream(secondPart)
+        )
+        val stream = ControllableInputStream.wrap(sequenceStream, 0)
+        val doc = DataUtil.parseInputStream(stream, "", null, Parser.htmlParser())
+        assertEquals(fileContent, doc.outerHtml())
+    }
+
+    private fun stream(data: String): ControllableInputStream {
+        return ControllableInputStream.wrap(ByteArrayInputStream(data.toByteArray(StandardCharsets.UTF_8)), 0)
     }
 
     companion object {

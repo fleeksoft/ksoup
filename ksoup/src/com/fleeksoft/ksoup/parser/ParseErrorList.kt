@@ -1,10 +1,14 @@
+/*
+ * Kotlin port of jsoup's ParseErrorList.java
+ * Copyright © 2009–2025 Jonathan Hedley
+ * Copyright © 2023–2025 FLEEK SOFT
+ * Licensed under the MIT License
+ * https://jsoup.org
+ */
+
 package com.fleeksoft.ksoup.parser
 
-/**
- * A container for ParseErrors.
- *
- * @author Sabeeh
- */
+
 public class ParseErrorList private constructor(
     private val initialCapacity: Int,
     public val maxSize: Int,

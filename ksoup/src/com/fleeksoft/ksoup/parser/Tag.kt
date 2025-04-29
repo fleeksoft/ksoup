@@ -1,61 +1,115 @@
+/*
+ * Kotlin port of jsoup's Tag.java
+ * Copyright © 2009–2025 Jonathan Hedley
+ * Copyright © 2023–2025 FLEEK SOFT
+ * Licensed under the MIT License
+ * https://jsoup.org
+ */
+
 package com.fleeksoft.ksoup.parser
 
-import com.fleeksoft.ksoup.helper.Validate
-import com.fleeksoft.ksoup.internal.Normalizer
-import com.fleeksoft.ksoup.internal.SharedConstants
-import com.fleeksoft.ksoup.ported.Consumer
+import com.fleeksoft.ksoup.internal.StringUtil
+import com.fleeksoft.ksoup.nodes.TagSet
 import com.fleeksoft.ksoup.ported.KCloneable
 import kotlin.jvm.JvmOverloads
 
 /**
  * Tag capabilities.
  *
- * @author Sabeeh, fleeksoft@gmail.com
  */
-public data class Tag(
+public data class Tag(var tagName: String, private var normalName: String, private var namespace: String) : KCloneable<Tag> {
+    var options: Int = 0
+
+    constructor(tagName: String) : this(tagName, ParseSettings.normalName(tagName), Parser.NamespaceHtml)
+    constructor(tagName: String, namespace: String) : this(tagName, ParseSettings.normalName(tagName), namespace)
+
     /**
      * Get this tag's name.
-     *
      * @return the tag's name
      */
-    var name: String,
-    private var namespace: String,
-) : KCloneable<Tag> {
-    private val normalName: String = Normalizer.lowerCase(name)
+    fun name(): String {
+        return tagName
+    }
+
+    /**
+     * Change the tag's name. As Tags are reused throughout a Document, this will change the name for all uses of this tag.
+     * @param tagName the new name of the tag. Case-sensitive.
+     * @return this tag
+     */
+    fun name(tagName: String): Tag {
+        this.tagName = tagName
+        this.normalName = ParseSettings.normalName(tagName)
+        return this
+    }
+
+    /**
+     * Get this tag's prefix, if it has one; else the empty string.
+     *
+     * For example, `<book:title>` has prefix `book`, and tag name `book:title`.
+     * @return the tag's prefix
+     */
+    fun prefix(): String {
+        val pos = tagName.indexOf(':')
+        return if (pos == -1) "" else tagName.substring(0, pos)
+    }
+
+    /**
+     * Get this tag's local name. The local name is the name without the prefix (if any).
+     *
+     * For example, `<book:title>` has local name `title`, and tag name `book:title`.
+     * @return the tag's local name
+     * @since 1.20.1
+     */
+    fun localName(): String {
+        val pos = tagName.indexOf(':')
+        return if (pos == -1) tagName else tagName.substring(pos + 1)
+    }
 
     /**
      * Gets if this is a block tag.
      *
      * @return if block tag
      */
-    var isBlock: Boolean = true // block
-        private set
-    private var formatAsBlock = true // should be formatted as a block
+    fun isBlock(): Boolean = (options and Block) != 0
 
     /**
-     * Get if this is an empty tag
+     * Get if this is a void (aka empty) tag.
      *
-     * @return if this is an empty tag
+     * @return true if this is a void tag
      */
-    var isEmpty: Boolean = false // can hold nothing; e.g. img
-        private set
-    private var selfClosing =
-        false // can self close (<foo />). used for unknown tags that self close, without forcing them as empty.
-    private var preserveWhitespace = false // for pre, textarea, script etc
+    fun isEmpty(): Boolean = (options and Void) != 0
 
     /**
      * Get if this tag represents a control associated with a form. E.g. input, textarea, output
      * @return if associated with a form
      */
-    var isFormListed: Boolean = false // a control that appears in forms: input, textarea, output etc
-        private set
+    @Deprecated("this method is internal to HtmlTreeBuilder only, and will be removed")
+    fun isFormListed(): Boolean = namespace == Parser.NamespaceHtml && StringUtil.inSorted(
+        normalName,
+        HtmlTreeBuilder.TagFormListed
+    )
 
     /**
      * Get if this tag represents an element that should be submitted with a form. E.g. input, option
      * @return if submittable with a form
      */
-    var isFormSubmittable: Boolean = false // a control that can be submitted in a form: input etc
-        private set
+    fun isFormSubmittable(): Boolean {
+        options = options and FormSubmittable
+        return options != 0
+    }
+
+    fun setSeenSelfClose() {
+        options = options or SeenSelfClose // does not change known status
+    }
+
+    /**
+     * If this Tag uses a specific text TokeniserState for its content, returns that; otherwise null.
+     */
+    fun textState(): TokeniserState? {
+        return if (`is`(RcData)) TokeniserState.Rcdata
+        else if (`is`(Data)) TokeniserState.Rawtext
+        else null
+    }
 
     /**
      * Get this tag's normalized (lowercased) name.
@@ -65,20 +119,74 @@ public data class Tag(
         return normalName
     }
 
+    /**
+     * Get this tag's namespace.
+     * @return the tag's namespace
+     */
     public fun namespace(): String {
         return namespace
     }
 
     /**
-     * Gets if this tag should be formatted as a block (or as inline)
-     *
-     * @return if should be formatted as block or inline
+     * Set the tag's namespace. As Tags are reused throughout a Document, this will change the namespace for all uses of this tag.
+     * @param namespace the new namespace of the tag.
+     * @return this tag
      */
-    public fun formatAsBlock(): Boolean {
-        return formatAsBlock
+    fun namespace(namespace: String): Tag {
+        this.namespace = namespace
+        return this
     }
 
-    public fun isInline(): Boolean = !isBlock
+    /**
+     * Set an option on this tag.
+     *
+     * Once a tag has a setting applied, it will be considered a known tag.
+     * @param option the option to set
+     * @return this tag
+     */
+    fun set(option: Int): Tag {
+        options = options or option
+        options = options or Known // considered known if touched
+        return this
+    }
+
+    /**
+     * Test if an option is set on this tag.
+     *
+     * @param option the option to test
+     * @return true if the option is set
+     */
+    fun `is`(option: Int): Boolean {
+        return (options and option) != 0
+    }
+
+    /**
+     * Clear (unset) an option from this tag.
+     * @param option the option to clear
+     * @return this tag
+     */
+    fun clear(option: Int): Tag {
+        options = options and option.inv()
+        // considered known if touched, unless explicitly clearing known
+        if (option != Known) options = options or Known
+        return this
+    }
+
+    /**
+     * Get if this is an InlineContainer tag.
+     *
+     * @return true if an InlineContainer (which formats children as inline).
+     */
+    @Deprecated("setting is only used within the Printer. Will be removed")
+    public fun formatAsBlock(): Boolean {
+        return (options and InlineContainer) != 0
+    }
+
+    /*
+    * Gets if this tag is an inline tag. Just the opposite of isBlock.
+    * @return if this tag is an inline tag.
+    */
+    public fun isInline(): Boolean = (options and Block) == 0
 
     /**
      * Get if this tag is self-closing.
@@ -86,10 +194,16 @@ public data class Tag(
      * @return if this tag should be output as self-closing.
      */
     public fun isSelfClosing(): Boolean {
-        return isEmpty || selfClosing
+        return (options and SelfClose) != 0 || (options and Void) != 0
     }
 
-    public fun isKnownTag(): Boolean = Tags.containsKey(name)
+
+    /**
+     * Get if this is a pre-defined tag in the TagSet, or was auto created on parsing.
+     *
+     * @return true if the tag is a known tag, false otherwise
+     */
+    public fun isKnownTag(): Boolean = (options and Known) != 0
 
     /**
      * Get if this tag should preserve whitespace within child text nodes.
@@ -97,32 +211,50 @@ public data class Tag(
      * @return if preserve whitespace
      */
     public fun preserveWhitespace(): Boolean {
-        return preserveWhitespace
-    }
-
-    public fun setSelfClosing(): Tag {
-        selfClosing = true
-        return this
+        return (options and PreserveWhitespace) != 0
     }
 
     override fun toString(): String {
-        return name
+        return tagName
     }
 
     override fun clone(): Tag {
         val clone = this.copy()
-        clone.isBlock = this.isBlock
-        clone.formatAsBlock = this.formatAsBlock
-        clone.isEmpty = this.isEmpty
-        clone.isFormListed = this.isFormListed
-        clone.isFormSubmittable = this.isFormSubmittable
-        clone.selfClosing = this.selfClosing
-        clone.preserveWhitespace = this.preserveWhitespace
+        clone.options = this.options
         return clone
     }
 
     public companion object {
-        private val Tags: MutableMap<String, Tag> = HashMap() // map of known tags
+
+        /** Tag option: the tag is known (specifically defined). */
+        const val Known = 1
+
+        /** Tag option: the tag is a void tag (e.g. <img>). */
+        const val Void = 1 shl 1
+
+        /** Tag option: the tag is a block tag (e.g. <div>, <p>). */
+        const val Block = 1 shl 2
+
+        /** Tag option: block tag only holding inline tags (e.g. <p>); must also set Block. */
+        const val InlineContainer = 1 shl 3
+
+        /** Tag option: the tag can self-close (e.g. <foo />). */
+        const val SelfClose = 1 shl 4
+
+        /** Tag option: the tag has been seen self-closing in this parse. */
+        const val SeenSelfClose = 1 shl 5
+
+        /** Tag option: the tag preserves whitespace (e.g. <pre>). */
+        const val PreserveWhitespace = 1 shl 6
+
+        /** Tag option: the tag is an RCDATA element (e.g. <title>, <textarea>). */
+        const val RcData = 1 shl 7
+
+        /** Tag option: the tag is a Data element (e.g. <style>, <script>). */
+        const val Data = 1 shl 8
+
+        /** Tag option: submit value when form submitted (e.g. <input>). */
+        const val FormSubmittable = 1 shl 9
 
         /**
          * Get a Tag by name. If not previously defined (unknown), returns a new generic tag, that can do anything.
@@ -149,32 +281,8 @@ public data class Tag(
          * @see .valueOf
          */
         @JvmOverloads
-        public fun valueOf(
-            tagName: String,
-            namespace: String = Parser.NamespaceHtml,
-            settings: ParseSettings? = ParseSettings.preserveCase,
-        ): Tag {
-            Validate.notEmpty(tagName)
-            var tag = Tags[tagName]
-            if (tag != null && tag.namespace == namespace) return tag
-            val normalizedTagName = settings!!.normalizeTag(tagName) // the name we'll use
-            Validate.notEmpty(normalizedTagName)
-            val normalName: String =
-                Normalizer.lowerCase(normalizedTagName) // the lower-case name to get tag settings off
-            tag = Tags[normalName]
-            if (tag != null && tag.namespace == namespace) {
-                if (settings.preserveTagCase() && normalizedTagName != normalName) {
-                    tag =
-                        tag.clone() // get a new version vs the static one, so name update doesn't reset all
-                    tag.name = normalizedTagName
-                }
-                return tag
-            }
-
-            // not defined: create default; go anywhere, do anything! (incl be inside a <p>)
-            tag = Tag(normalizedTagName, namespace)
-            tag.isBlock = false
-            return tag
+        public fun valueOf(tagName: String, namespace: String = Parser.NamespaceHtml, settings: ParseSettings = ParseSettings.preserveCase): Tag {
+            return TagSet.Html().valueOf(tagName, ParseSettings.normalName(tagName), namespace, settings.preserveTagCase())
         }
 
         /**
@@ -189,10 +297,7 @@ public data class Tag(
          * @return The tag, either defined or new generic.
          * @see .valueOf
          */
-        public fun valueOf(
-            tagName: String,
-            settings: ParseSettings?,
-        ): Tag {
+        public fun valueOf(tagName: String, settings: ParseSettings): Tag {
             return valueOf(tagName, Parser.NamespaceHtml, settings)
         }
 
@@ -203,90 +308,7 @@ public data class Tag(
          * @return if known HTML tag
          */
         public fun isKnownTag(tagName: String): Boolean {
-            return Tags.containsKey(tagName)
-        }
-
-        // internal static initialisers:
-        // prepped from http://www.w3.org/TR/REC-html40/sgml/dtd.html and other sources
-        private val blockTags = arrayOf(
-            "html", "head", "body", "frameset", "script", "noscript", "style", "meta", "link", "title", "frame",
-            "noframes", "section", "nav", "aside", "hgroup", "header", "footer", "p", "h1", "h2", "h3", "h4", "h5", "h6",
-            "ul", "ol", "pre", "div", "blockquote", "hr", "address", "figure", "figcaption", "form", "fieldset", "ins",
-            "del", "dl", "dt", "dd", "li", "table", "caption", "thead", "tfoot", "tbody", "colgroup", "col", "tr", "th",
-            "td", "video", "audio", "canvas", "details", "menu", "plaintext", "template", "article", "main",
-            "svg", "math", "center", "template",
-            "dir", "applet", "marquee", "listing" // deprecated but still known / special handling
-        )
-        private val inlineTags = arrayOf(
-            "object", "base", "font", "tt", "i", "b", "u", "big", "small", "em", "strong", "dfn", "code", "samp", "kbd",
-            "var", "cite", "abbr", "time", "acronym", "mark", "ruby", "rt", "rp", "rtc", "a", "img", "br", "wbr", "map", "q",
-            "sub", "sup", "bdo", "iframe", "embed", "span", "input", "select", "textarea", "label", "optgroup",
-            "option", "legend", "datalist", "keygen", "output", "progress", "meter", "area", "param", "source", "track",
-            "summary", "command", "device", "area", "basefont", "bgsound", "menuitem", "param", "source", "track",
-            "data", "bdi", "s", "strike", "nobr",
-            "rb", // deprecated but still known / special handling
-            "text", // in SVG NS
-            "mi", "mo", "msup", "mn", "mtext" // in MathML NS, to ensure inline
-        )
-        private val emptyTags = arrayOf(
-            "meta", "link", "base", "frame", "img", "br", "wbr", "embed", "hr", "input", "keygen", "col", "command",
-            "device", "area", "basefont", "bgsound", "menuitem", "param", "source", "track"
-        )
-
-        // todo - rework this to format contents as inline; and update html emitter in Element. Same output, just neater.
-        private val formatAsInlineTags = arrayOf(
-            "title", "a", "p", "h1", "h2", "h3", "h4", "h5", "h6", "pre", "address", "li", "th", "td", "script", "style",
-            "ins", "del", "s", "button"
-        )
-        private val preserveWhitespaceTags = arrayOf(
-            "pre", "plaintext", "title", "textarea"
-            // script is not here as it is a data node, which always preserve whitespace
-        )
-
-        // todo: I think we just need submit tags, and can scrub listed
-        private val formListedTags = arrayOf(
-            "button", "fieldset", "input", "keygen", "object", "output", "select", "textarea"
-        )
-        private val formSubmitTags = SharedConstants.FormSubmitTags
-        private val namespaces: MutableMap<String, Array<String>> = HashMap<String, Array<String>>()
-
-        init {
-            namespaces[Parser.NamespaceMathml] = arrayOf<String>("math", "mi", "mo", "msup", "mn", "mtext")
-            namespaces[Parser.NamespaceSvg] = arrayOf<String>("svg", "text")
-            // We don't need absolute coverage here as other cases will be inferred by the HtmlTreeBuilder
-        }
-
-        private fun setupTags(
-            tagNames: Array<String>,
-            tagModifier: Consumer<Tag>,
-        ) {
-            for (tagName in tagNames) {
-                var tag = Tags[tagName]
-                if (tag == null) {
-                    tag = Tag(tagName, Parser.NamespaceHtml)
-                    Tags[tag.name] = tag
-                }
-                tagModifier.accept(tag)
-            }
-        }
-
-        init {
-            setupTags(blockTags) { tag: Tag ->
-                tag.isBlock = true
-                tag.formatAsBlock = true
-            }
-            setupTags(inlineTags) { tag: Tag ->
-                tag.isBlock = false
-                tag.formatAsBlock = false
-            }
-            setupTags(emptyTags) { tag: Tag -> tag.isEmpty = true }
-            setupTags(formatAsInlineTags) { tag: Tag -> tag.formatAsBlock = false }
-            setupTags(preserveWhitespaceTags) { tag: Tag -> tag.preserveWhitespace = true }
-            setupTags(formListedTags) { tag: Tag -> tag.isFormListed = true }
-            setupTags(formSubmitTags) { tag: Tag -> tag.isFormSubmittable = true }
-            for ((key, value) in namespaces) {
-                setupTags(value) { tag: Tag -> tag.namespace = key }
-            }
+            return TagSet.HtmlTagSet.get(tagName, Parser.NamespaceHtml) != null
         }
     }
 }

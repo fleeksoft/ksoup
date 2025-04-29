@@ -1,7 +1,16 @@
+/*
+ * Kotlin port of jsoup's Tokeniser.java
+ * Copyright © 2009–2025 Jonathan Hedley
+ * Copyright © 2023–2025 FLEEK SOFT
+ * Licensed under the MIT License
+ * https://jsoup.org
+ */
+
 package com.fleeksoft.ksoup.parser
 
 import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.internal.StringUtil
+import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.nodes.Entities
 import com.fleeksoft.ksoup.ported.appendCodePoint
 import com.fleeksoft.ksoup.ported.codePointsToString
@@ -12,19 +21,20 @@ import com.fleeksoft.ksoup.ported.codePointsToString
 public class Tokeniser(treeBuilder: TreeBuilder) {
     private val reader: CharacterReader = treeBuilder.reader
     private val errors: ParseErrorList = treeBuilder.parser.getErrors()
-    private var _state = TokeniserState.Data
+    private var state = TokeniserState.Data
     private var emitPending: Token? = null
     private var isEmitPending = false
-    private var charsString: String? = null
-    private val charsBuilder = StringBuilder(1024)
-    public val dataBuffer: StringBuilder = StringBuilder(1024)
+    val dataBuffer: TokenData = TokenData() // buffers data looking for </script>
 
+    val syntax: Document.OutputSettings.Syntax =
+        if (treeBuilder is XmlTreeBuilder) Document.OutputSettings.Syntax.xml else Document.OutputSettings.Syntax.html; // html or xml syntax; affects processing of xml declarations vs as bogus comments
     private val startPending = Token.StartTag(treeBuilder)
     private val endPending = Token.EndTag(treeBuilder)
     public var tagPending: Token.Tag = startPending
     private val charPending = Token.Character()
     public val doctypePending: Token.Doctype = Token.Doctype()
     public val commentPending: Token.Comment = Token.Comment()
+    val xmlDeclPending: Token.XmlDecl = Token.XmlDecl(treeBuilder) // xml decl building up
     private var lastStartTag: String? = null
     private var lastStartCloseSeq: String? = null
     private var markupStartPos = 0
@@ -35,24 +45,15 @@ public class Tokeniser(treeBuilder: TreeBuilder) {
 
     public fun read(): Token {
         while (!isEmitPending) {
-            _state.read(this, reader)
+            state.read(this, reader)
         }
 
-        return when {
-            charsBuilder.isNotEmpty() -> {
-                val str = charsBuilder.toString()
-                charsBuilder.clear()
-                charPending.data(str).also { charsString = null }
-            }
-
-            charsString != null -> {
-                charPending.data(charsString!!).also { charsString = null }
-            }
-
-            else -> {
-                isEmitPending = false
-                emitPending!!
-            }
+// If emit is pending, a non-character token was found: return any chars in buffer, and leave token for next read
+        return if (charPending.data.hasData()) {
+            charPending
+        } else {
+            isEmitPending = false
+            checkNotNull(emitPending) // replaces assert emitPending != null
         }
     }
 
@@ -68,7 +69,7 @@ public class Tokeniser(treeBuilder: TreeBuilder) {
         when (token.type) {
             Token.TokenType.StartTag -> {
                 val startTag = token as Token.StartTag
-                lastStartTag = startTag.tagName
+                lastStartTag = startTag.name()
                 lastStartCloseSeq = null // only lazy inits
             }
 
@@ -84,62 +85,30 @@ public class Tokeniser(treeBuilder: TreeBuilder) {
     }
 
     public fun emit(str: String) {
-        if (charsString == null) {
-            charsString = str
-        } else {
-            if (charsBuilder.isEmpty()) {
-                charsBuilder.append(charsString)
-            }
-            charsBuilder.append(str)
-        }
-        charPending.startPos(charStartPos)
-        charPending.endPos(reader.pos())
-    }
-
-    public fun emit(strBuilder: StringBuilder) {
-        if (charsString == null) {
-            charsString = strBuilder.toString()
-        } else {
-            if (charsBuilder.isEmpty()) {
-                charsBuilder.append(charsString)
-            }
-            charsBuilder.append(strBuilder)
-        }
+        // buffer strings up until last string token found, to emit only one token for a run of character refs etc.
+        // does not set isEmitPending; read checks that
+        // todo move "<" to '<'...
+        charPending.append(str)
         charPending.startPos(charStartPos)
         charPending.endPos(reader.pos())
     }
 
     public fun emit(c: Char) {
-        if (charsString == null) {
-            charsString = c.toString()
-        } else {
-            if (charsBuilder.isEmpty()) {
-                charsBuilder.append(charsString)
-            }
-            charsBuilder.append(c)
-        }
+        charPending.data.append(c)
         charPending.startPos(charStartPos)
         charPending.endPos(reader.pos())
     }
 
-    public fun emit(chars: CharArray) {
-        emit(chars.concatToString())
-    }
-
     public fun emit(codepoints: IntArray) {
+        // todo review
         emit(codepoints.codePointsToString())
-//        emit(String(codepoints, 0, codepoints.size))
-    }
-
-    public fun getState(): TokeniserState {
-        return _state
     }
 
     public fun transition(newState: TokeniserState) {
         // track markup position on state transitions
         if (newState === TokeniserState.TagOpen) markupStartPos = reader.pos()
 
-        this._state = newState
+        this.state = newState
     }
 
     public fun advanceTransition(newState: TokeniserState) {
@@ -147,6 +116,7 @@ public class Tokeniser(treeBuilder: TreeBuilder) {
         reader.advance()
     }
 
+    /** Tries to consume a character reference, and returns: null if nothing, int[1], or int[2]. */
     public fun consumeCharacterReference(additionalAllowedCharacter: Char?, inAttribute: Boolean): IntArray? {
         if (reader.isEmpty()) return null
         if (additionalAllowedCharacter != null && additionalAllowedCharacter == reader.current()) return null
@@ -169,12 +139,11 @@ public class Tokeniser(treeBuilder: TreeBuilder) {
                 characterReferenceError("missing semicolon on [&#$numRef]")
             }
 
-            var charval =
-                try {
-                    numRef.toInt(if (isHexMode) 16 else 10)
-                } catch (e: NumberFormatException) {
-                    -1
-                }
+            var charval = try {
+                numRef.toInt(if (isHexMode) 16 else 10)
+            } catch (e: NumberFormatException) {
+                -1
+            }
 
             if (charval == -1 || charval > 0x10FFFF) {
                 characterReferenceError("character [$charval] outside of valid range")
@@ -204,7 +173,7 @@ public class Tokeniser(treeBuilder: TreeBuilder) {
                 nameRef = prefix;
             }
 
-            if (inAttribute && reader.matchesAny('=', '-', '_')) {
+            if (inAttribute && (reader.matchesAsciiAlpha() || reader.matchesDigit() || reader.matchesAny('=', '-', '_'))) {
                 reader.rewindToMark() // don't want that to match
                 return null
             }
@@ -231,6 +200,13 @@ public class Tokeniser(treeBuilder: TreeBuilder) {
     public fun createTagPending(start: Boolean): Token.Tag {
         tagPending = if (start) startPending.reset() else endPending.reset()
         return tagPending
+    }
+
+    fun createXmlDeclPending(isDeclaration: Boolean): Token.XmlDecl {
+        val decl: Token.XmlDecl = xmlDeclPending.reset()
+        decl.isDeclaration = isDeclaration
+        tagPending = decl
+        return decl
     }
 
     public fun emitTagPending() {
@@ -260,7 +236,7 @@ public class Tokeniser(treeBuilder: TreeBuilder) {
     }
 
     public fun createTempBuffer() {
-        Token.reset(dataBuffer)
+        dataBuffer.reset()
     }
 
     public fun isAppropriateEndTagToken(): Boolean =

@@ -9,6 +9,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
+
 class TokeniserStateTest {
 
     private val whiteSpace = charArrayOf('\t', '\n', '\r', '\u000c', ' ')
@@ -245,8 +246,8 @@ class TokeniserStateTest {
 
     @Test
     fun nullInTag() {
-        val doc = Ksoup.parse("<di\u0000v>One</di\u0000v>Two")
-        assertEquals("<di�v>\n One\n</di�v>Two", doc.body().html())
+        val doc: Document = Ksoup.parse("<di\u0000v>One</di\u0000v>Two")
+        assertEquals("<di�v>One</di�v>Two", doc.body().html())
     }
 
     @Test

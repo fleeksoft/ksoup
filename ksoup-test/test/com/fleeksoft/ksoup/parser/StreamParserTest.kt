@@ -7,9 +7,12 @@ import com.fleeksoft.ksoup.helper.DataUtil
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.nodes.Element
 import com.fleeksoft.ksoup.nodes.Node
+import com.fleeksoft.ksoup.nodes.TextNode
+import com.fleeksoft.ksoup.parameterizedTest
 import com.fleeksoft.ksoup.select.Elements
 import kotlinx.coroutines.test.runTest
 import kotlin.test.*
+
 
 /**
  * Tests for the StreamParser.
@@ -71,18 +74,18 @@ class StreamParserTest {
         parser.parse(html1, "")
 
         val seen = StringBuilder()
-        parser.stream().forEach({ el -> trackSeen(el, seen) })
+        parser.stream().forEach { el -> trackSeen(el, seen) }
         assertEquals("head+;p[One]+;p[Two];body;html;#root;", seen.toString())
 
         val html2 = "<div>Three<div>Four</div></div>"
         val seen2 = StringBuilder()
         parser.parse(html2, "")
-        parser.stream().forEach({ el -> trackSeen(el, seen2) })
+        parser.stream().forEach { el -> trackSeen(el, seen2) }
         assertEquals("head+;div[Four];div[Three];body;html;#root;", seen2.toString())
 
         // re-run without a new parse should be empty
         val seen3 = StringBuilder()
-        parser.stream().forEach({ el -> trackSeen(el, seen3) })
+        parser.stream().forEach { el -> trackSeen(el, seen3) }
         assertEquals("", seen3.toString())
     }
 
@@ -150,10 +153,9 @@ class StreamParserTest {
         val parser: StreamParser = StreamParser(Parser.htmlParser()).parse(html, "")
         parser.parse(html, "")
 
-        parser.stream().forEach(
-            { el ->
-                if (el.ownText() == "DESTROY") el.remove()
-            })
+        parser.stream().forEach { el ->
+            if (el.ownText() == "DESTROY") el.remove()
+        }
 
         val doc: Document = parser.document()
         val divs: Elements = doc.select("div")
@@ -262,7 +264,7 @@ class StreamParserTest {
     @Test
     fun closedOnComplete() {
         val streamer: StreamParser = basic()
-        val doc: Document = streamer.complete()
+        streamer.complete()
         assertTrue(isClosed(streamer))
     }
 
@@ -271,7 +273,7 @@ class StreamParserTest {
         var copy: StreamParser? = null
         basic().use { streamer ->
             copy = streamer
-            assertFalse(isClosed(copy!!))
+            assertFalse(isClosed(copy))
         }
         assertTrue(isClosed(copy!!))
     }
@@ -305,7 +307,7 @@ class StreamParserTest {
         }
         assertTrue(last!!.text().startsWith("VESTIBULUM"))
 
-        // the reader should be closed as streamer is closed on completion of read
+        // the reader should be closed as the streamer is closed on completion of read
         assertTrue(isClosed(streamer))
     }
 
@@ -416,7 +418,28 @@ class StreamParserTest {
         }
     }
 
+    @Test
+    fun emitsOnlyOnce() = parameterizedTest(
+        listOf(
+            "<html><body><a>Link</a></body></html>",
+            "<html><body><a>Link</a>",
+            "<a>Link</a></body></html>",
+            "<a>Link</a>",
+            "<a>Link",
+            "<a>Link</body>"
+        )
+    ) { html ->
+        StreamParser(Parser.htmlParser()).parse(html, "").use { parser ->
+            // https://github.com/jhy/jsoup/issues/2295
+            // When there was a /body or /html, those were being emitted twice, due to firing a fake onNodeClosed to track their source positions
+            val seen = StringBuilder()
+            parser.stream().forEach { el -> trackSeen(el, seen) }
+            assertEquals("head+;a[Link];body;html;#root;", seen.toString())
+        }
+    }
+
     companion object {
+
         fun trackSeen(el: Element, actual: StringBuilder) {
             actual.append(el.tagName())
             if (el.hasAttr("id")) actual.append("#").append(el.id())

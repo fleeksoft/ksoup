@@ -1,9 +1,22 @@
+/*
+ * Kotlin port of jsoup's Element.java
+ * Copyright © 2009–2025 Jonathan Hedley
+ * Copyright © 2023–2025 FLEEK SOFT
+ * Licensed under the MIT License
+ * https://jsoup.org
+ */
+
 package com.fleeksoft.ksoup.nodes
 
-import com.fleeksoft.ksoup.helper.ChangeNotifyingArrayList
+import com.fleeksoft.ksoup.exception.PatternSyntaxException
 import com.fleeksoft.ksoup.helper.Validate
+import com.fleeksoft.ksoup.internal.Normalizer
 import com.fleeksoft.ksoup.internal.Normalizer.normalize
 import com.fleeksoft.ksoup.internal.StringUtil
+import com.fleeksoft.ksoup.internal.StringUtil.borrowBuilder
+import com.fleeksoft.ksoup.internal.StringUtil.releaseBuilder
+import com.fleeksoft.ksoup.internal.WeakReference
+import com.fleeksoft.ksoup.nodes.NodeUtils.parser
 import com.fleeksoft.ksoup.nodes.TextNode.Companion.lastCharIsWhitespace
 import com.fleeksoft.ksoup.parser.ParseSettings
 import com.fleeksoft.ksoup.parser.Parser
@@ -11,12 +24,13 @@ import com.fleeksoft.ksoup.parser.Tag
 import com.fleeksoft.ksoup.parser.TokenQueue.Companion.escapeCssIdentifier
 import com.fleeksoft.ksoup.ported.AtomicBoolean
 import com.fleeksoft.ksoup.ported.Consumer
-import com.fleeksoft.ksoup.exception.PatternSyntaxException
 import com.fleeksoft.ksoup.ported.jsSupportedRegex
 import com.fleeksoft.ksoup.select.*
+import com.fleeksoft.ksoup.select.Collector.findFirst
 import kotlin.js.JsName
 import kotlin.jvm.JvmOverloads
 import kotlin.reflect.KClass
+
 
 /**
  * An HTML Element consists of a tag name, attributes, and child nodes (including text nodes and other elements).
@@ -25,13 +39,15 @@ import kotlin.reflect.KClass
  * From an Element, you can extract data, traverse the node graph, and manipulate the HTML.
  */
 
-public open class Element : Node {
-    private var tag: Tag
+public open class Element : Node, Iterable<Element> {
+    @JsName("_tag")
+    var tag: Tag
+        protected set
     private var _baseUri: String? = null // just for clone
 
-    // points to child elements shadowed from node children
-    private var shadowChildrenRef: List<Element>? = null
-    public var _childNodes: MutableList<Node> = EmptyNodes
+    @JsName("_childNodes")
+    public var childNodes: NodeList = EmptyNodeList
+        protected set
 
     // field is nullable but all methods for attributes are non-null
     internal var attributes: Attributes? = null
@@ -55,15 +71,7 @@ public open class Element : Node {
      * @param tag tag name
      * @see .Element
      */
-    public constructor(tag: String) : this(
-        Tag.valueOf(
-            tag,
-            Parser.NamespaceHtml,
-            ParseSettings.preserveCase,
-        ),
-        "",
-        null,
-    )
+    public constructor(tag: String) : this(tag, Parser.NamespaceHtml)
 
     /**
      * Create a new, standalone Element. (Standalone in that it has no parent.)
@@ -75,7 +83,7 @@ public open class Element : Node {
      * @see #appendElement(String)
      */
     public constructor(tag: Tag, baseUri: String?, attributes: Attributes?) {
-        _childNodes = EmptyNodes.toMutableList()
+        childNodes = EmptyNodeList
         this.attributes = attributes
         this.tag = tag
         _baseUri = baseUri
@@ -95,14 +103,14 @@ public open class Element : Node {
      * Internal test to check if a nodelist object has been created.
      */
     public fun hasChildNodes(): Boolean {
-        return _childNodes != EmptyNodes
+        return childNodes != EmptyNodeList
     }
 
     public override fun ensureChildNodes(): MutableList<Node> {
-        if (_childNodes == EmptyNodes) {
-            _childNodes = NodeList(owner = this, initialCapacity = 4) as MutableList<Node>
+        if (childNodes == EmptyNodeList) {
+            childNodes = NodeList(4)
         }
-        return _childNodes
+        return childNodes
     }
 
     public override fun hasAttributes(): Boolean {
@@ -126,11 +134,11 @@ public open class Element : Node {
     }
 
     override fun childNodeSize(): Int {
-        return _childNodes.size
+        return childNodes.size
     }
 
     override fun nodeName(): String {
-        return tag.name
+        return tag.tagName
     }
 
     /**
@@ -139,7 +147,7 @@ public open class Element : Node {
      * @return the tag name
      */
     public fun tagName(): String {
-        return tag.name
+        return tag.tagName
     }
 
     /**
@@ -157,7 +165,6 @@ public open class Element : Node {
      * @param normalName a normalized element name (e.g. `div`).
      * @param namespace the namespace
      * @return true if the element's normal name matches exactly, and is in the specified namespace
-     * @since 1.17.2
      */
     @JsName("elementIs")
     public fun elementIs(
@@ -186,18 +193,11 @@ public open class Element : Node {
      * @see Elements.tagName
      */
     @JvmOverloads
-    public fun tagName(
-        tagName: String,
-        namespace: String = tag.namespace(),
-    ): Element {
+    public fun tagName(tagName: String, namespace: String = tag.namespace()): Element {
         Validate.notEmptyParam(tagName, "tagName")
         Validate.notEmptyParam(namespace, "namespace")
-        tag =
-            Tag.valueOf(
-                tagName,
-                namespace,
-                NodeUtils.parser(this).settings(),
-            ) // maintains the case option of the original parse
+        val parser = NodeUtils.parser(this)
+        tag = parser.tagSet().valueOf(tagName, namespace, parser.settings()) // maintains the case option of the original parse
         return this
     }
 
@@ -210,7 +210,17 @@ public open class Element : Node {
         return tag
     }
 
-    public fun isBlock(): Boolean = tag.isBlock
+    /**
+     * Change the Tag of this element.
+     * @param tag the new tag
+     * @return this element, for chaining
+     */
+    fun tag(tag: Tag): Element {
+        this.tag = tag
+        return this
+    }
+
+    public fun isBlock(): Boolean = tag.isBlock()
 
     /**
      * Get the `id` attribute of this element.
@@ -237,10 +247,7 @@ public open class Element : Node {
      *
      * @return this element
      */
-    override fun attr(
-        attributeKey: String,
-        attributeValue: String?,
-    ): Element {
+    override fun attr(attributeKey: String, attributeValue: String?): Element {
         super.attr(attributeKey, attributeValue)
         return this
     }
@@ -255,10 +262,7 @@ public open class Element : Node {
      *
      * @return this element
      */
-    public fun attr(
-        attributeKey: String,
-        attributeValue: Boolean,
-    ): Element {
+    public fun attr(attributeKey: String, attributeValue: Boolean): Element {
         attributes().put(attributeKey, attributeValue)
         return this
     }
@@ -361,29 +365,36 @@ public open class Element : Node {
      * @return a list of child elements
      */
     public fun childElementsList(): List<Element> {
-        if (childNodeSize() == 0) return EmptyChildren // short circuit creating empty
-        var children: MutableList<Element>? = null
-        if (shadowChildrenRef != null) {
-            children = shadowChildrenRef!!.toMutableList()
-        }
-        if (shadowChildrenRef == null || children == null) {
-            val size = _childNodes.size
-            children = ArrayList(size)
-            for (i in 0 until size) {
-                val node: Node = _childNodes[i]
-                if (node is Element) children.add(node)
-            }
-            shadowChildrenRef = children
+        if (childNodeSize() == 0) return Element.EmptyChildren // short circuit creating empty
+        var children: List<Element>? = cachedChildren()
+        if (children == null) {
+            children = filterNodes<Element>(Element::class)
+            stashChildren(children)
         }
         return children
     }
 
-    /**
-     * Clears the cached shadow child elements.
-     */
-    override fun nodelistChanged() {
-        super.nodelistChanged()
-        shadowChildrenRef = null
+    // Returns the cached child elements if they exist, and if the modCount matches
+    private fun cachedChildren(): List<Element>? {
+        val userData = attributes().userData()
+
+        @Suppress("UNCHECKED_CAST")
+        val ref = userData[childElsKey] as? WeakReference<List<Element>>
+        val els = ref?.get()
+        if (els != null) {
+            val modCount = userData[childElsMod] as? Int
+            if (modCount != null && modCount == childNodes.modCount())
+                return els
+        }
+        return null
+    }
+
+    // Caches the child elements into the attribute user data.
+    private fun stashChildren(els: List<Element>) {
+        val userData = attributes().userData()
+        val ref = WeakReference(els)
+        userData[childElsKey] = ref
+        userData[childElsMod] = childNodes.modCount()
     }
 
     /**
@@ -396,7 +407,7 @@ public open class Element : Node {
     }
 
     private inline fun <reified T : Any> filterNodes(clazz: KClass<T>): List<T> {
-        return _childNodes.filterIsInstance<T>()
+        return childNodes.filterIsInstance<T>()
     }
 
     /**
@@ -453,7 +464,7 @@ public open class Element : Node {
      * @return an [Elements] list containing elements that match the query (empty if none match)
      * @see Selector selector query syntax
      *
-     * @see QueryParser.parse
+     * @see #select(Evaluator)
      * @throws Selector.SelectorParseException (unchecked) on an invalid CSS query.
      */
     public fun select(cssQuery: String): Elements {
@@ -466,9 +477,32 @@ public open class Element : Node {
      * repeatedly parsing the CSS query.
      * @param evaluator an element evaluator
      * @return an [Elements] list containing elements that match the query (empty if none match)
+     * @see QueryParser#parse(String)
      */
     public fun select(evaluator: Evaluator): Elements {
         return Selector.select(evaluator, this)
+    }
+
+    /**
+     * Selects elements from the given root that match the specified [Selector] CSS query, with this element as the
+     * starting context, and returns them as a lazy Stream. Matched elements may include this element, or any of its
+     * children.
+     *
+     *
+     * Unlike [.select], which returns a complete list of all matching elements, this method returns a
+     * [Stream] that processes elements lazily as they are needed. The stream operates in a "pull" model — elements
+     * are fetched from the root as the stream is traversed. You can use standard `Stream` operations such as
+     * `filter`, `map`, or `findFirst` to process elements on demand.
+     *
+     *
+     * @param cssQuery a [Selector] CSS-like query
+     * @return a [Stream] containing elements that match the query (empty if none match)
+     * @throws Selector.SelectorParseException (unchecked) on an invalid CSS query.
+     * @see Selector selector query syntax
+     * @see QueryParser.parse
+     */
+    fun selectStream(cssQuery: String): Sequence<Element> {
+        return Selector.selectStream(cssQuery, this)
     }
 
     /**
@@ -573,8 +607,8 @@ public open class Element : Node {
         // was - Node#addChildren(child). short-circuits an array create and a loop.
         reparentChild(child)
         ensureChildNodes()
-        _childNodes.add(child)
-        child._siblingIndex = _childNodes.size - 1
+        childNodes.add(child)
+        child._siblingIndex = childNodes.size - 1
         return this
     }
 
@@ -674,15 +708,9 @@ public open class Element : Node {
      * @param namespace the namespace of the tag (e.g. [Parser.NamespaceHtml])
      * @return the new element, in the specified namespace
      */
-    public fun appendElement(
-        tagName: String,
-        namespace: String = tag.namespace(),
-    ): Element {
-        val child =
-            Element(
-                Tag.valueOf(tagName, namespace, NodeUtils.parser(this).settings()),
-                baseUri(),
-            )
+    public fun appendElement(tagName: String, namespace: String = tag.namespace()): Element {
+        val parser: Parser = NodeUtils.parser(this)
+        val child = Element(parser.tagSet().valueOf(tagName, namespace, parser.settings()), baseUri())
         appendChild(child)
         return child
     }
@@ -695,15 +723,9 @@ public open class Element : Node {
      * @return the new element, in the specified namespace
      */
     @JvmOverloads
-    public fun prependElement(
-        tagName: String,
-        namespace: String = tag.namespace(),
-    ): Element {
-        val child =
-            Element(
-                Tag.valueOf(tagName, namespace, NodeUtils.parser(this).settings()),
-                baseUri(),
-            )
+    public fun prependElement(tagName: String, namespace: String = tag.namespace()): Element {
+        val parser = parser(this)
+        val child = Element(parser.tagSet().valueOf(tagName, namespace, parser.settings()), baseUri())
         prependChild(child)
         return child
     }
@@ -805,10 +827,10 @@ public open class Element : Node {
      */
     override fun empty(): Element {
         // Detach each of the children -> parent links:
-        for (child in _childNodes) {
+        for (child in childNodes) {
             child._parentNode = null
         }
-        _childNodes.clear()
+        childNodes.clear()
         return this
     }
 
@@ -823,38 +845,50 @@ public open class Element : Node {
     }
 
     /**
+     * Gets an #id selector for this element, if it has a unique ID. Otherwise, returns an empty string.
+     *
+     * @param ownerDoc the document that owns this element, if there is one
+     */
+    private fun uniqueIdSelector(ownerDoc: Document?): String {
+        val id = id()
+        if (!id.isEmpty()) { // check if the ID is unique and matches this
+            val idSel = "#" + escapeCssIdentifier(id)
+            if (ownerDoc != null) {
+                val els = ownerDoc.select(idSel)
+                if (els.size == 1 && els[0] === this) return idSel
+            } else {
+                return idSel
+            }
+        }
+        return EmptyString
+    }
+
+    /**
      * Get a CSS selector that will uniquely select this element.
      *
-     *
-     * If the element has an ID, returns #id;
-     * otherwise returns the parent (if any) CSS selector, followed by &#39;&gt;&#39;,
-     * followed by a unique selector for the element (tag.class.class:nth-child(n)).
-     *
+     * If the element has an ID, returns #id; otherwise returns the parent (if any) CSS selector, followed by
+     * {@literal '>'}, followed by a unique selector for the element (tag.class.class:nth-child(n)).
      *
      * @return the CSS Path that can be used to retrieve the element in a selector.
      */
-    public fun cssSelector(): String {
-        if (id().isNotEmpty()) {
-            // prefer to return the ID - but check that it's actually unique first!
-            val idSel = "#" + escapeCssIdentifier(id())
-            val doc: Document? = ownerDocument()
-            if (doc != null) {
-                val els: Elements = doc.select(idSel)
-                if (els.size == 1 && els[0] === this) {
-                    // otherwise, continue to the nth-child impl
-                    return idSel
-                }
-            } else {
-                return idSel // no ownerdoc, return the ID selector
-            }
-        }
-        val selector: StringBuilder = StringUtil.borrowBuilder()
+    fun cssSelector(): String {
+        val ownerDoc = ownerDocument()
+        var idSel = uniqueIdSelector(ownerDoc)
+        if (!idSel.isEmpty()) return idSel
+
+        // No unique ID, work up the parent stack and find either a unique ID to hang from, or just a GP > Parent > Child chain
+        val selector: StringBuilder = borrowBuilder()
         var el: Element? = this
         while (el != null && el !is Document) {
+            idSel = el.uniqueIdSelector(ownerDoc)
+            if (!idSel.isEmpty()) {
+                selector.insert(0, idSel)
+                break // found a unique ID to use as ancestor; stop
+            }
             selector.insert(0, el.cssSelectorComponent())
             el = el.parent()
         }
-        return StringUtil.releaseBuilder(selector)
+        return releaseBuilder(selector)
     }
 
     private fun cssSelectorComponent(): String {
@@ -1047,8 +1081,7 @@ public open class Element : Node {
 //    @Nullable
     public fun getElementById(id: String): Element? {
         Validate.notEmpty(id)
-        val elements: Elements = Collector.collect(Evaluator.Id(id), this)
-        return if (elements.size > 0) elements[0] else null
+        return findFirst(Evaluator.Id(id), this)
     }
 
     /**
@@ -1099,10 +1132,7 @@ public open class Element : Node {
      * @param value value of the attribute
      * @return elements that have this attribute with this value, empty if none
      */
-    public fun getElementsByAttributeValue(
-        key: String,
-        value: String,
-    ): Elements {
+    public fun getElementsByAttributeValue(key: String, value: String): Elements {
         return Collector.collect(Evaluator.AttributeWithValue(key, value), this)
     }
 
@@ -1113,10 +1143,7 @@ public open class Element : Node {
      * @param value value of the attribute
      * @return elements that do not have a matching attribute
      */
-    public fun getElementsByAttributeValueNot(
-        key: String,
-        value: String,
-    ): Elements {
+    public fun getElementsByAttributeValueNot(key: String, value: String): Elements {
         return Collector.collect(Evaluator.AttributeWithValueNot(key, value), this)
     }
 
@@ -1127,10 +1154,7 @@ public open class Element : Node {
      * @param valuePrefix start of attribute value
      * @return elements that have attributes that start with the value prefix
      */
-    public fun getElementsByAttributeValueStarting(
-        key: String,
-        valuePrefix: String,
-    ): Elements {
+    public fun getElementsByAttributeValueStarting(key: String, valuePrefix: String): Elements {
         return Collector.collect(Evaluator.AttributeWithValueStarting(key, valuePrefix), this)
     }
 
@@ -1141,10 +1165,7 @@ public open class Element : Node {
      * @param valueSuffix end of the attribute value
      * @return elements that have attributes that end with the value suffix
      */
-    public fun getElementsByAttributeValueEnding(
-        key: String,
-        valueSuffix: String,
-    ): Elements {
+    public fun getElementsByAttributeValueEnding(key: String, valueSuffix: String): Elements {
         return Collector.collect(Evaluator.AttributeWithValueEnding(key, valueSuffix), this)
     }
 
@@ -1155,10 +1176,7 @@ public open class Element : Node {
      * @param match substring of value to search for
      * @return elements that have attributes containing this text
      */
-    public fun getElementsByAttributeValueContaining(
-        key: String,
-        match: String,
-    ): Elements {
+    public fun getElementsByAttributeValueContaining(key: String, match: String): Elements {
         return Collector.collect(Evaluator.AttributeWithValueContaining(key, match), this)
     }
 
@@ -1332,18 +1350,11 @@ public open class Element : Node {
             }
         }
 
-        override fun tail(
-            node: Node,
-            depth: Int,
-        ) {
+        override fun tail(node: Node, depth: Int) {
             // make sure there is a space between block tags and immediately following text nodes or inline elements <div>One</div>Two should be "One Two".
             if (node is Element) {
                 val next: Node? = node.nextSibling()
-                if (node.isBlock() && (next is TextNode || next is Element && !next.tag.formatAsBlock()) &&
-                    !lastCharIsWhitespace(
-                        accum,
-                    )
-                ) {
+                if (!node.tag.isInline() && (next is TextNode || next is Element && next.tag.isInline()) && !lastCharIsWhitespace(accum)) {
                     accum.append(' ')
                 }
             }
@@ -1394,7 +1405,7 @@ public open class Element : Node {
 
     private fun ownText(accum: StringBuilder) {
         for (i in 0 until childNodeSize()) {
-            val child: Node = _childNodes[i]
+            val child: Node = childNodes[i]
             if (child is TextNode) {
                 appendNormalisedText(accum, child)
             } else if (child.nameIs("br") && !lastCharIsWhitespace(accum)) {
@@ -1413,17 +1424,13 @@ public open class Element : Node {
      */
     public open fun text(text: String): Element {
         empty()
-        // special case for script/style in HTML: should be data node
-        val owner: Document? = ownerDocument()
-        // an alternate impl would be to run through the parser
-        if (owner != null && owner.parser()!!.isContentForTagData(normalName())) {
-            appendChild(
-                DataNode(text),
-            )
-        } else {
-            appendChild(TextNode(text))
-        }
-        return this
+        // special case for script/style in HTML (or customs): should be data node
+        if (tag().`is`(Tag.Data))
+            appendChild(DataNode(text));
+        else
+            appendChild(TextNode(text));
+
+        return this;
     }
 
     /**
@@ -1642,55 +1649,34 @@ public open class Element : Node {
         return Range.of(this, false)
     }
 
-    public fun shouldIndent(out: Document.OutputSettings): Boolean {
-        return out.prettyPrint() && isFormatAsBlock(out) && !isInlineable(out) &&
-                !preserveWhitespace(_parentNode)
-    }
+    override fun outerHtmlHead(accum: Appendable, out: Document.OutputSettings) {
+        val tagName = safeTagName(out.syntax())
+        accum.append('<').append(tagName)
+        attributes?.html(accum, out)
 
-    override fun outerHtmlHead(
-        accum: Appendable,
-        depth: Int,
-        out: Document.OutputSettings,
-    ) {
-        if (shouldIndent(out)) {
-            if (accum is StringBuilder) {
-                if (accum.isNotEmpty()) indent(accum, depth, out)
+        if (childNodes.isEmpty()) {
+            val xmlMode = out.syntax() == Document.OutputSettings.Syntax.xml || tag.namespace() != Parser.NamespaceHtml
+            if (xmlMode && (tag.`is`(Tag.SeenSelfClose) || (tag.isKnownTag() && (tag.isEmpty() || tag.isSelfClosing())))) {
+                accum.append(" />")
+            } else if (!xmlMode && tag.isEmpty()) {
+                accum.append('>')
             } else {
-                indent(accum, depth, out)
-            }
-        }
-        accum.append('<').append(tagName())
-        if (attributes != null) attributes!!.html(accum, out)
-
-        // selfclosing includes unknown tags, isEmpty defines tags that are always empty
-        if (_childNodes.isEmpty() && tag.isSelfClosing()) {
-            if (out.syntax() == Document.OutputSettings.Syntax.html && tag.isEmpty) {
-                accum.append(
-                    '>',
-                )
-            } else {
-                accum.append(" />") // <img> in html, <img /> in xml
+                accum.append("></").append(tagName).append('>')
             }
         } else {
             accum.append('>')
         }
     }
 
-    override fun outerHtmlTail(
-        accum: Appendable,
-        depth: Int,
-        out: Document.OutputSettings,
-    ) {
-        if (!(_childNodes.isEmpty() && tag.isSelfClosing())) {
-            if (out.prettyPrint() && _childNodes.isNotEmpty() && (
-                        tag.formatAsBlock() && !preserveWhitespace(_parentNode) || out.outline() &&
-                                (_childNodes.size > 1 || _childNodes.size == 1 && _childNodes[0] is Element)
-                        )
-            ) {
-                indent(accum, depth, out)
-            }
-            accum.append("</").append(tagName()).append('>')
-        }
+    override fun outerHtmlTail(accum: Appendable, out: Document.OutputSettings) {
+        if (!childNodes.isEmpty())
+            accum.append("</").append(safeTagName(out.syntax())).append('>')
+        // if empty, we have already closed in htmlHead
+    }
+
+    /* If XML syntax, normalizes < to _ in tag name. */
+    private fun safeTagName(syntax: Document.OutputSettings.Syntax): String? {
+        return if (syntax == Document.OutputSettings.Syntax.xml) Normalizer.xmlSafeTagName(tagName()) else tagName()
     }
 
     /**
@@ -1708,28 +1694,15 @@ public open class Element : Node {
     }
 
     override fun <T : Appendable> html(appendable: T): T {
-        val size = _childNodes.size
-        for (i in 0 until size) _childNodes[i].outerHtml(appendable)
+        var child = firstChild()
+        if (child != null) {
+            val printer = Printer.printerFor(child, appendable)
+            while (child != null) {
+                NodeTraversor.traverse(printer, child)
+                child = child.nextSibling()
+            }
+        }
         return appendable
-    }
-
-    public fun copyToThis(element: Element): Element {
-        element.tag = this.tag.clone()
-        element._baseUri = this._baseUri
-        element.shadowChildrenRef = this.shadowChildrenRef
-        element._childNodes = this._childNodes.toMutableList()
-        element.attributes = this.attributes?.clone()
-        element._parentNode = this._parentNode?.clone()
-
-        return element
-    }
-
-    override fun createClone(): Node {
-        val element = Element(this.tag.clone(), _baseUri)
-        element.shadowChildrenRef = this.shadowChildrenRef
-        element._childNodes = this._childNodes
-        element.attributes = this.attributes
-        return element
     }
 
     /**
@@ -1744,22 +1717,30 @@ public open class Element : Node {
         return this
     }
 
+    //    Mimics Java’s clone, copying only primitive values and object references.
+    override fun createClone(): Node {
+        val clone = Element(this.tag, _baseUri)
+        clone.attributes = attributes
+        clone.childNodes = childNodes
+        return clone
+    }
+
     override fun clone(): Element {
         return super.clone() as Element
     }
 
-    public override fun shallowClone(): Element {
-        // simpler than implementing a clone version with no child copy
-        val baseUri = baseUri()
-        return Element(tag, if (baseUri.isEmpty()) null else baseUri, attributes?.clone())
-    }
-
     protected override fun doClone(parent: Node?): Element {
         val clone = super.doClone(parent) as Element
-        clone.attributes = if (attributes != null) attributes!!.clone() else null
-        clone._childNodes = NodeList(clone, _childNodes.size) as MutableList<Node>
-        clone._childNodes.addAll(_childNodes) // the children then get iterated and cloned in Node.clone
+        clone.attributes = attributes?.clone()
+        clone.childNodes = NodeList(childNodes.size)
+        clone.childNodes.addAll(childNodes) // the children then get iterated and cloned in Node.clone
         return clone
+    }
+
+    public override fun shallowClone(): Element {
+        // simpler than implementing a clone version with no child copy
+        val baseUri = baseUri().ifEmpty { null }
+        return Element(tag, baseUri, attributes?.clone())
     }
 
     // overrides of Node for call chaining
@@ -1789,55 +1770,132 @@ public open class Element : Node {
     }
 
     /**
-     * Perform the supplied action on this Element and each of its descendant Elements, during a depth-first traversal.
-     * Elements may be inspected, changed, added, replaced, or removed.
-     * @param action the function to perform on the element
-     * @return this Element, for chaining
-     * @see Node.forEachNode
+    Perform the supplied action on this Element and each of its descendant Elements, during a depth-first traversal.
+    Elements may be inspected, changed, added, replaced, or removed.
+    @param action the function to perform on the element
+    @see Node#forEachNode(Consumer)
      */
-    public fun forEach(action: Consumer<in Element>): Element {
-        stream().forEach { node -> action.accept(node) }
-        return this
+    fun forEach(action: (Element) -> Unit) {
+        stream().forEach(action)
+    }
+
+    override fun iterator(): Iterator<Element> {
+        return NodeIterator<Element>(this, Element::class)
     }
 
     override fun filter(nodeFilter: NodeFilter): Element {
         return super.filter(nodeFilter) as Element
     }
 
-    private class NodeList(private val owner: Element, initialCapacity: Int) :
-        ChangeNotifyingArrayList<Node?>(initialCapacity) {
-        override fun onContentsChanged() {
-            owner.nodelistChanged()
-        }
-    }
-
-    private fun isFormatAsBlock(out: Document.OutputSettings): Boolean {
-        return tag.isBlock || parent() != null &&
-                parent()!!.tag().formatAsBlock() || out.outline()
-    }
-
-    private fun isInlineable(out: Document.OutputSettings): Boolean {
-        return if (!tag.isInline()) {
-            false
-        } else {
-            (
-                    (parent() == null || parent()!!.isBlock()) &&
-                            !isEffectivelyFirst() &&
-                            !out.outline() &&
-                            !nameIs("br")
-                    )
-        }
-    }
-
-    internal companion object {
+    companion object {
+        private const val childElsKey: String = "ksoup.childEls"
+        private const val childElsMod: String = "ksoup.childElsMod"
         private val EmptyChildren: List<Element> = emptyList()
+        private val EmptyNodeList: NodeList = NodeList(0)
         private val ClassSplit: Regex = Regex("\\s+")
         private val BaseUriKey: String = Attributes.internalKey("baseUri")
 
-        private fun searchUpForAttribute(
-            start: Element,
-            key: String,
-        ): String {
+
+        class NodeList(initialCapacity: Int) : MutableList<Node> {
+            private val list = ArrayList<Node>(initialCapacity)
+            private var modCount = 0
+            override fun iterator(): MutableIterator<Node> = list.toMutableList().iterator()
+
+            override fun add(node: Node): Boolean {
+                modCount++
+                return list.add(node)
+            }
+
+            override fun remove(element: Node): Boolean {
+                val result = list.remove(element)
+                if (result) {
+                    modCount++
+                }
+
+                return result
+            }
+
+            override fun addAll(elements: Collection<Node>): Boolean {
+                val result = list.addAll(elements)
+                if (result) {
+                    modCount++
+                }
+
+                return result
+            }
+
+            override fun addAll(index: Int, elements: Collection<Node>): Boolean {
+                val result = list.addAll(index, elements)
+                if (result) {
+                    modCount++
+                }
+
+                return result
+            }
+
+            override fun removeAll(elements: Collection<Node>): Boolean {
+                val result = list.removeAll(elements)
+                if (result) {
+                    modCount++
+                }
+
+                return result
+            }
+
+            override fun retainAll(elements: Collection<Node>): Boolean {
+                val result = list.retainAll(elements)
+                if (result) {
+                    modCount++
+                }
+
+                return result
+            }
+
+            override val size: Int
+                get() = list.size
+
+            override fun isEmpty(): Boolean = list.isEmpty()
+
+            override fun contains(element: Node): Boolean = list.contains(element)
+
+            override fun containsAll(elements: Collection<Node>): Boolean = list.containsAll(elements)
+
+            override fun get(index: Int): Node = list[index]
+
+            override fun indexOf(element: Node): Int = list.indexOf(element)
+
+            override fun lastIndexOf(element: Node): Int = list.lastIndexOf(element)
+
+            fun modCount(): Int = modCount
+
+            override fun clear() {
+                modCount++
+                list.clear()
+            }
+
+            override fun set(index: Int, element: Node): Node {
+                modCount++
+                return list.set(index, element)
+            }
+
+            override fun add(index: Int, element: Node) {
+                modCount++
+                list.add(index, element)
+            }
+
+            override fun removeAt(index: Int): Node {
+                modCount++
+                return list.removeAt(index)
+            }
+
+            override fun listIterator(): MutableListIterator<Node> = list.listIterator()
+
+            override fun listIterator(index: Int): MutableListIterator<Node> = list.listIterator(index)
+
+            override fun subList(fromIndex: Int, toIndex: Int): MutableList<Node> = list.subList(fromIndex, toIndex)
+        }
+
+        private fun searchUpForAttribute(start: Element, key: String): String {
             var el: Element? = start
             while (el != null) {
                 if (el.attributes?.hasKey(key) == true) return el.attributes!![key]

@@ -1,6 +1,5 @@
 package com.fleeksoft.ksoup.nodes
 
-import com.fleeksoft.ksoup.BuildConfig
 import com.fleeksoft.ksoup.Ksoup
 import com.fleeksoft.ksoup.TextUtil
 import com.fleeksoft.ksoup.parser.Parser
@@ -11,7 +10,6 @@ import kotlin.test.*
 /**
  * Tests Nodes
  *
- * @author Sabeeh, fleeksoft@gmail.com
  */
 class NodeTest {
 
@@ -111,8 +109,8 @@ class NodeTest {
         val doc2 = Ksoup.parse("<a href='//example.net/foo'>One</a>", "https://example.com/")
         val one = doc1.select("a").first()
         val two = doc2.select("a").first()
-        assertEquals("http://example.net/foo", one!!.absUrl("href"))
-        assertEquals("https://example.net/foo", two!!.absUrl("href"))
+        assertEquals("http://example.net/foo", one?.absUrl("href"))
+        assertEquals("https://example.net/foo", two?.absUrl("href"))
         val doc3 = Ksoup.parse("<img src=//www.google.com/images/errors/logo_sm.gif alt=Google>", "https://google.com")
         assertEquals("https://www.google.com/images/errors/logo_sm.gif", doc3.select("img").attr("abs:src"))
     }
@@ -156,7 +154,7 @@ class NodeTest {
         val p = doc.select("p").first()
         p!!.childNode(0).remove()
         assertEquals("two three", p.text())
-        assertEquals("<span>two</span> three", com.fleeksoft.ksoup.TextUtil.stripNewlines(p.html()))
+        assertEquals("<span>two</span> three", TextUtil.stripNewlines(p.html()))
     }
 
     @Test
@@ -280,7 +278,7 @@ class NodeTest {
         val node = span.unwrap()
         assertEquals(
             "<div>One Two <b>Three</b> Four</div>",
-            com.fleeksoft.ksoup.TextUtil.stripNewlines(doc.body().html()),
+            TextUtil.stripNewlines(doc.body().html()),
         )
         assertTrue(node is TextNode)
         assertEquals("Two ", (node as TextNode?)!!.text())
@@ -293,7 +291,7 @@ class NodeTest {
         val doc = Ksoup.parse("<div>One <span></span> Two</div>")
         val span = doc.select("span").first()
         val node = span!!.unwrap()
-        assertEquals("<div>One  Two</div>", com.fleeksoft.ksoup.TextUtil.stripNewlines(doc.body().html()))
+        assertEquals("<div>One  Two</div>", TextUtil.stripNewlines(doc.body().html()))
         assertNull(node)
     }
 
@@ -337,7 +335,7 @@ class NodeTest {
         }
         assertEquals(
             "<div><p>Hello</p></div><div>There Now<p>Another</p></div>",
-            com.fleeksoft.ksoup.TextUtil.stripNewlines(doc.body().html()),
+            TextUtil.stripNewlines(doc.body().html()),
         )
     }
 
@@ -378,9 +376,8 @@ class NodeTest {
         assertEquals("Text 1 ", tn1.text())
         div2!!.insertChildren(-1, divChildren)
         assertEquals(
-            "<div id=\"1\">Text 1 <p>One</p> Text 2 <p>Two</p><p>Three</p></div><div id=\"2\">Text 1 updated" +
-                    "<p>One</p> Text 2 <p>Two</p><p>Three</p></div>",
-            com.fleeksoft.ksoup.TextUtil.stripNewlines(doc.body().html()),
+            "<div id=\"1\">Text 1<p>One</p>Text 2<p>Two</p><p>Three</p></div><div id=\"2\">Text 1 updated<p>One</p>Text 2<p>Two</p><p>Three</p></div>",
+            TextUtil.stripNewlines(doc.body().html())
         )
     }
 

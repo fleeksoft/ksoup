@@ -13,7 +13,6 @@ import kotlin.test.assertTrue
 /**
  * Tests for Document.
  *
- * @author Sabeeh, fleeksoft@gmail.com
  */
 
 class DocumentTestJvm {

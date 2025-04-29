@@ -87,8 +87,8 @@ class AttributeTest {
         assertFalse(Attribute.isBooleanAttribute("random string"))
         val html = "<a href=autofocus REQUIRED>One</a>"
         val doc = Ksoup.parse(html)
-        assertEquals("<a href=\"autofocus\" required>One</a>", doc.selectFirst("a")!!.outerHtml())
+        assertEquals("<a href=\"autofocus\" required>One</a>", doc.selectFirst("a")?.outerHtml())
         val doc2 = Ksoup.parse(html, Parser.htmlParser().settings(ParseSettings.preserveCase))
-        assertEquals("<a href=\"autofocus\" REQUIRED>One</a>", doc2.selectFirst("a")!!.outerHtml())
+        assertEquals("<a href=\"autofocus\" REQUIRED>One</a>", doc2.selectFirst("a")?.outerHtml())
     }
 }

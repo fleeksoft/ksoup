@@ -1,5 +1,15 @@
+/*
+ * Kotlin port of jsoup's Document.java
+ * Copyright © 2009–2025 Jonathan Hedley
+ * Copyright © 2023–2025 FLEEK SOFT
+ * Licensed under the MIT License
+ * https://jsoup.org
+ */
+
 package com.fleeksoft.ksoup.nodes
 
+import com.fleeksoft.charset.Charset
+import com.fleeksoft.charset.Charsets
 import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.parser.ParseSettings
@@ -9,14 +19,6 @@ import com.fleeksoft.ksoup.ported.KCloneable
 import com.fleeksoft.ksoup.select.Elements
 import com.fleeksoft.ksoup.select.Evaluator
 import com.fleeksoft.ksoup.select.Selector
-import com.fleeksoft.charset.Charset
-import com.fleeksoft.charset.Charsets
-
-/**
- * A HTML Document.
- *
- * @author Sabeeh, fleeksoft@gmail.com
- */
 
 /**
  * Create a new, empty Document, in the specified namespace.
@@ -24,12 +26,13 @@ import com.fleeksoft.charset.Charsets
  * @param location base URI of document
  * @see .createShell
  */
-public class Document(private val namespace: String, private val location: String?) :
-    Element(Tag.valueOf("#root", namespace, ParseSettings.htmlDefault), location) {
-    private var outputSettings = OutputSettings()
+public class Document(
+    private val namespace: String,
+    private val location: String?,
     private var parser: Parser = Parser.htmlParser() // default, but overridable
+) : Element(Tag("#root", namespace), location) {
+    private var outputSettings = OutputSettings()
     private var quirksMode = QuirksMode.noQuirks
-    private var updateMetaCharset = false
 
     /**
      * Create a new, empty Document, in the HTML namespace.
@@ -55,7 +58,7 @@ public class Document(private val namespace: String, private val location: Strin
      * @return document type, or null if not set
      */
     public fun documentType(): DocumentType? {
-        for (node in _childNodes) {
+        for (node in childNodes) {
             if (node is DocumentType) {
                 return node
             } else if (node !is LeafNode) {
@@ -191,14 +194,7 @@ public class Document(private val namespace: String, private val location: Strin
      * @return new element
      */
     public fun createElement(tagName: String): Element {
-        return Element(
-            Tag.valueOf(
-                tagName,
-                parser!!.defaultNamespace(),
-                ParseSettings.preserveCase,
-            ),
-            this.baseUri(),
-        )
+        return Element(parser.tagSet().valueOf(tagName, parser.defaultNamespace(), ParseSettings.preserveCase), this.baseUri())
     }
 
     override fun outerHtml(): String {
@@ -220,44 +216,33 @@ public class Document(private val namespace: String, private val location: Strin
     }
 
     /**
-     * Sets the charset used in this document. This method is equivalent
-     * to [ OutputSettings.charset(Charset)][OutputSettings.charset] but in addition it updates the
-     * charset / encoding element within the document.
+     * Set the output character set of this Document. This method is equivalent to
+     * {@link OutputSettings#charset(java.nio.charset.Charset) OutputSettings.charset(Charset)}, but additionally adds or
+     * updates the charset / encoding element within the Document.
      *
+     * <p>If there's no existing element with charset / encoding information yet, one will
+     * be created. Obsolete charset / encoding definitions are removed.</p>
      *
-     * This enables
-     * [meta charset update][.updateMetaCharsetElement].
+     * <p><b>Elements used:</b></p>
      *
-     *
-     * If there's no element with charset / encoding information yet it will
-     * be created. Obsolete charset / encoding definitions are removed!
-     *
-     *
-     * **Elements used:**
-     *
-     *
-     *  * **Html:** *&lt;meta charset="CHARSET"&gt;*
-     *  * **Xml:** *&lt;?xml version="1.0" encoding="CHARSET"&gt;*
-     *
+     * <ul>
+     * <li><b>HTML:</b> <i>&lt;meta charset="CHARSET"&gt;</i></li>
+     * <li><b>XML:</b> <i>&lt;?xml version="1.0" encoding="CHARSET"&gt;</i></li>
+     * </ul>
      *
      * @param charset Charset
-     *
-     * @see .updateMetaCharsetElement
-     * @see OutputSettings.charset
+     * @see OutputSettings#charset(java.nio.charset.Charset)
      */
     public fun charset(charset: Charset) {
-        updateMetaCharsetElement(true)
         outputSettings.charset(charset)
         ensureMetaCharsetElement()
     }
 
     /**
-     * Returns the charset used in this document. This method is equivalent
-     * to [OutputSettings.charset].
+     * Get the output character set of this Document. This method is equivalent to {@link OutputSettings#charset()}.
      *
-     * @return Current Charset
-     *
-     * @see OutputSettings.charset
+     * @return the current Charset
+     * @see OutputSettings#charset()
      */
     public fun charset(): Charset {
         return outputSettings.charset()
@@ -276,8 +261,11 @@ public class Document(private val namespace: String, private val location: Strin
      *
      * @see .charset
      */
+    @Deprecated(
+        "this setting has no effect; the meta charset element is always updated when {@link Document#charset(Charset)} is called.",
+        replaceWith = ReplaceWith("charset(charset)")
+    )
     public fun updateMetaCharsetElement(update: Boolean) {
-        updateMetaCharset = update
     }
 
     /**
@@ -287,79 +275,67 @@ public class Document(private val namespace: String, private val location: Strin
      * @return Returns <tt>true</tt> if the element is updated on charset
      * changes, <tt>false</tt> if not
      */
+    @Deprecated("this setting has no effect; the meta charset element is always updated when {@link Document#charset(Charset)} is called.")
     public fun updateMetaCharsetElement(): Boolean {
-        return updateMetaCharset
+        return true
     }
 
     override fun clone(): Document {
-        return super.clone() as Document
+        val clone = super.clone() as Document
+        clone.outputSettings = this.outputSettings.clone()
+        clone.attributes = attributes?.clone()
+        // parser is pointer copy
+        return clone
     }
 
     override fun createClone(): Node {
-        val document = Document(namespace, location)
-        document.outputSettings = this.outputSettings.clone()
-        return document
+        val clone = Document(namespace, location)
+        clone.outputSettings = outputSettings
+        clone.parser = parser
+        clone.attributes = attributes
+        clone.childNodes = childNodes
+        clone.tag = tag
+        clone.setBaseUri(this.baseUri())
+        return clone
     }
 
     public override fun shallowClone(): Document {
-        val clone = Document(this.tag().namespace(), baseUri())
-        if (attributes != null) clone.attributes = attributes!!.clone()
+        val clone = Document(this.tag().namespace(), baseUri(), parser)
+        clone.attributes = attributes?.clone()
         clone.outputSettings = outputSettings.clone()
         return clone
     }
 
-    /**
-     * Ensures a meta charset (html) or xml declaration (xml) with the current
-     * encoding used. This only applies with
-     * [updateMetaCharset][.updateMetaCharsetElement] set to
-     * <tt>true</tt>, otherwise this method does nothing.
-     *
-     *
-     *  * An existing element gets updated with the current charset
-     *  * If there's no element yet it will be inserted
-     *  * Obsolete elements are removed
-     *
-     *
-     *
-     * **Elements used:**
-     *
-     *
-     *  * **Html:** *&lt;meta charset="CHARSET"&gt;*
-     *  * **Xml:** *&lt;?xml version="1.0" encoding="CHARSET"&gt;*
-     *
-     */
     private fun ensureMetaCharsetElement() {
-        if (updateMetaCharset) {
-            val syntax = outputSettings().syntax()
-            if (syntax == OutputSettings.Syntax.html) {
-                val metaCharset: Element? = selectFirst("meta[charset]")
+        when (outputSettings().syntax()) {
+            OutputSettings.Syntax.html -> {
+                val metaCharset = selectFirst("meta[charset]")
                 if (metaCharset != null) {
                     metaCharset.attr("charset", charset().name())
                 } else {
-                    head().appendElement("meta").attr("charset", charset().name())
+                    head().appendElement("meta")
+                        .attr("charset", charset().name())
                 }
                 select("meta[name=charset]").remove() // Remove obsolete elements
-            } else if (syntax == OutputSettings.Syntax.xml) {
-                val node: Node = ensureChildNodes()[0]
-                if (node is XmlDeclaration) {
-                    var decl: XmlDeclaration = node
-                    if (decl.name() == "xml") {
-                        decl.attr("encoding", charset().name())
-                        if (decl.hasAttr("version")) decl.attr("version", "1.0")
-                    } else {
-                        decl = XmlDeclaration("xml", false)
-                        decl.attr("version", "1.0")
-                        decl.attr("encoding", charset().name())
-                        prependChild(decl)
-                    }
-                } else {
-                    val decl = XmlDeclaration("xml", false)
-                    decl.attr("version", "1.0")
-                    decl.attr("encoding", charset().name())
-                    prependChild(decl)
+            }
+
+            OutputSettings.Syntax.xml -> {
+                ensureXmlDecl().apply {
+                    attr("version", "1.0")
+                    attr("encoding", charset().name())
                 }
             }
         }
+    }
+
+    private fun ensureXmlDecl(): XmlDeclaration {
+        val node = firstChild()
+        if (node is XmlDeclaration && node.name() == "xml") {
+            return node
+        }
+        val decl = XmlDeclaration("xml", false)
+        prependChild(decl)
+        return decl
     }
 
     /**
@@ -599,7 +575,7 @@ public class Document(private val namespace: String, private val location: Strin
 
     public companion object {
         /**
-         * Create a valid, empty shell of a document, suitable for adding more elements to.
+         * Create a valid, empty shell of an HTML document, suitable for adding more elements to.
          * @param baseUri baseUri of document
          * @return document with html, head, and body elements.
          */

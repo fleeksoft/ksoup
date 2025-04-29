@@ -1,12 +1,21 @@
+/*
+ * Kotlin port of jsoup's QueryParser.java
+ * Copyright © 2009–2025 Jonathan Hedley
+ * Copyright © 2023–2025 FLEEK SOFT
+ * Licensed under the MIT License
+ * https://jsoup.org
+ */
+
 package com.fleeksoft.ksoup.select
 
 import com.fleeksoft.ksoup.helper.Validate
+import com.fleeksoft.ksoup.helper.Validate.isTrue
 import com.fleeksoft.ksoup.internal.Normalizer.normalize
 import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.parser.TokenQueue
-import com.fleeksoft.ksoup.ported.assert
 import com.fleeksoft.ksoup.ported.jsSupportedRegex
 import com.fleeksoft.ksoup.select.StructuralEvaluator.ImmediateParentRun
+
 
 /**
  * Parses a CSS selector into an Evaluator tree.
@@ -14,160 +23,97 @@ import com.fleeksoft.ksoup.select.StructuralEvaluator.ImmediateParentRun
 public class QueryParser private constructor(query: String) {
     private val tq: TokenQueue
     private val query: String
-    private val evals: MutableList<Evaluator> = ArrayList()
 
     /**
-     * Parse the query
-     * @return Evaluator
+     * Parse the query. We use this simplified expression of the grammar:
+     * <pre>
+     * SelectorGroup   ::= Selector (',' Selector)*
+     * Selector        ::= [ Combinator ] SimpleSequence ( Combinator SimpleSequence )*
+     * SimpleSequence  ::= [ TypeSelector ] ( ID | Class | Attribute | Pseudo )*
+     * Pseudo           ::= ':' Name [ '(' SelectorGroup ')' ]
+     * Combinator      ::= S+         // descendant (whitespace)
+     * | '>'       // child
+     * | '+'       // adjacent sibling
+     * | '~'       // general sibling
+     * </pre>
+     *
+     * See <a href="https://www.w3.org/TR/selectors-4/#grammar">selectors-4</a> for the real thing
      */
-    public fun parse(): Evaluator {
+    fun parse(): Evaluator {
+        val eval = parseSelectorGroup()
         tq.consumeWhitespace()
-        if (tq.matchesAny(*Combinators)) { // if starts with a combinator, use root as elements
-            evals.add(StructuralEvaluator.Root())
-            combinator(tq.consume())
-        } else {
-            evals.add(consumeEvaluator())
-        }
-        while (!tq.isEmpty()) {
-            // hierarchy and extras
-            val seenWhite: Boolean = tq.consumeWhitespace()
-            if (tq.matchesAny(*Combinators)) {
-                combinator(tq.consume())
-            } else if (seenWhite) {
-                combinator(' ')
-            } else { // E.class, E#id, E[attr] etc. AND
-                evals.add(consumeEvaluator()) // take next el, #. etc off queue
-            }
-        }
-        return if (evals.size == 1) evals[0] else CombiningEvaluator.And(evals)
+        if (!tq.isEmpty()) throw Selector.SelectorParseException("Could not parse query '$query': unexpected token at '${tq.remainder()}'")
+        return eval
     }
 
-    private fun combinator(combinator: Char) {
-        tq.consumeWhitespace()
-        val subQuery = consumeSubQuery() // support multi > childs
-        var rootEval: Evaluator? // the new topmost evaluator
-        var currentEval: Evaluator? // the evaluator the new eval will be combined to. could be root, or rightmost or.
-        val newEval: Evaluator = parse(subQuery) // the evaluator to add into target evaluator
-        var replaceRightMost = false
-        if (evals.size == 1) {
-            currentEval = evals[0]
-            rootEval = currentEval
-            // make sure OR (,) has precedence:
-            if (rootEval is CombiningEvaluator.Or && combinator != ',') {
-                currentEval = (currentEval as CombiningEvaluator.Or).rightMostEvaluator()
-                assert(
-                    currentEval != null,
-                    "currentEval is null", // rightMost signature can return null (if none set), but always will have one by this point
-                )
-                replaceRightMost = true
-            }
-        } else {
-            currentEval = CombiningEvaluator.And(evals)
-            rootEval = currentEval
+    fun parseSelectorGroup(): Evaluator {
+        // SelectorGroup. Into an Or if > 1 Selector
+        var left = parseSelector()
+        while (tq.matchChomp(',')) {
+            val right = parseSelector()
+            left = or(left, right)
         }
-        evals.clear()
-        when (combinator) {
-            '>' -> {
-                val run: ImmediateParentRun =
-                    if (currentEval is ImmediateParentRun) {
-                        currentEval
-                    } else {
-                        ImmediateParentRun(
-                            currentEval!!,
-                        )
-                    }
-                run.add(newEval)
-                currentEval = run
-            }
-
-            ' ' ->
-                currentEval = CombiningEvaluator.And(StructuralEvaluator.Parent(currentEval!!), newEval)
-
-            '+' ->
-                currentEval = CombiningEvaluator.And(
-                    StructuralEvaluator.ImmediatePreviousSibling(currentEval!!),
-                    newEval,
-                )
-
-            '~' ->
-                currentEval = CombiningEvaluator.And(
-                    StructuralEvaluator.PreviousSibling(currentEval!!),
-                    newEval,
-                )
-
-            ',' -> {
-                val or: CombiningEvaluator.Or
-                if (currentEval is CombiningEvaluator.Or) {
-                    or = currentEval
-                } else {
-                    or = CombiningEvaluator.Or()
-                    or.add(currentEval!!)
-                }
-                or.add(newEval)
-                currentEval = or
-            }
-
-            else -> throw Selector.SelectorParseException("Unknown combinator '$combinator'")
-        }
-        if (replaceRightMost) {
-            (rootEval as CombiningEvaluator.Or).replaceRightMostEvaluator(
-                currentEval,
-            )
-        } else {
-            rootEval = currentEval
-        }
-        evals.add(rootEval)
+        return left
     }
 
-    private fun consumeSubQuery(): String {
-        val sq: StringBuilder = StringUtil.borrowBuilder()
-        var seenClause = false // eat until we hit a combinator after eating something else
-        while (!tq.isEmpty()) {
-            if (tq.matchesAny(*Combinators)) {
-                if (seenClause) break
-                sq.append(tq.consume())
-                continue
-            }
-            seenClause = true
-            if (tq.matches("(")) {
-                sq.append("(").append(tq.chompBalanced('(', ')')).append(")")
-            } else if (tq.matches("[")) {
-                sq.append("[").append(tq.chompBalanced('[', ']')).append("]")
-            } else if (tq.matches("\\")) { // bounce over escapes
-                sq.append(tq.consume())
-                if (!tq.isEmpty()) sq.append(tq.consume())
+    fun parseSelector(): Evaluator {
+        // Selector ::= [ Combinator ] SimpleSequence ( Combinator SimpleSequence )*
+        tq.consumeWhitespace()
+
+        var left: Evaluator
+        left = if (tq.matchesAny(*Combinators)) {
+            // e.g. query is "> div"; left side is root element
+            StructuralEvaluator.Root()
+        } else {
+            parseSimpleSequence()
+        }
+
+        while (true) {
+            var combinator = 0.toChar()
+            if (tq.consumeWhitespace()) combinator = ' ' // maybe descendant?
+
+            if (tq.matchesAny(*Combinators))  // no, explicit
+                combinator = tq.consume()
+            else if (tq.matchesAny(*SequenceEnders))  // , - space after simple like "foo , bar"; ) - close of :has()
+                break
+
+            if (combinator.code != 0) {
+                val right = parseSimpleSequence()
+                left = combinator(left, combinator, right)
             } else {
-                sq.append(tq.consume())
+                break
             }
         }
-        return StringUtil.releaseBuilder(sq)
+        return left
     }
 
-    private fun consumeEvaluator(): Evaluator {
-        return if (tq.matchChomp("#")) {
-            byId()
-        } else if (tq.matchChomp(".")) {
-            byClass()
-        } else if (tq.matchesWord() ||
-            tq.matches(
-                "*|",
-            )
-        ) {
-            byTag()
-        } else if (tq.matches("[")) {
-            byAttribute()
-        } else if (tq.matchChomp("*")) {
-            Evaluator.AllElements()
-        } else if (tq.matchChomp(
-                ":",
-            )
-        ) {
-            parsePseudoSelector()
-        } else {
-            throw Selector.SelectorParseException(
-                "Could not parse query '$query': unexpected token at '${tq.remainder()}'",
-            )
+    fun parseSimpleSequence(): Evaluator {
+        // SimpleSequence ::= TypeSelector? ( Hash | Class | Pseudo )*
+        var left: Evaluator? = null
+        tq.consumeWhitespace()
+
+        // one optional type selector
+        if (tq.matchesWord() || tq.matches("*|")) left = byTag()
+        else if (tq.matchChomp('*')) left = Evaluator.AllElements()
+
+        // zero or more subclasses (#, ., [)
+        while (true) {
+            val right: Evaluator? = parseSubclass()
+            if (right != null) left = and(left, right)
+            else break // no more simple tokens
         }
+
+        if (left == null) throw Selector.SelectorParseException("Could not parse query '$query': unexpected token at '${tq.remainder()}'")
+        return left
+    }
+
+    fun parseSubclass(): Evaluator? {
+        //  Subclass: ID | Class | Attribute | Pseudo
+        return if (tq.matchChomp('#')) byId()
+        else if (tq.matchChomp('.')) byClass()
+        else if (tq.matches('[')) byAttribute()
+        else if (tq.matchChomp(':')) parsePseudoSelector()
+        else null
     }
 
     private fun parsePseudoSelector(): Evaluator {
@@ -188,10 +134,10 @@ public class QueryParser private constructor(query: String) {
             "matchesWholeText" -> matchesWholeText(false)
             "matchesWholeOwnText" -> matchesWholeText(true)
             "not" -> not()
-            "nth-child" -> cssNthChild(backwards = false, ofType = false)
-            "nth-last-child" -> cssNthChild(backwards = true, ofType = false)
-            "nth-of-type" -> cssNthChild(backwards = false, ofType = true)
-            "nth-last-of-type" -> cssNthChild(backwards = true, ofType = true)
+            "nth-child" -> cssNthChild(last = false, ofType = false)
+            "nth-last-child" -> cssNthChild(last = true, ofType = false)
+            "nth-of-type" -> cssNthChild(last = false, ofType = true)
+            "nth-last-of-type" -> cssNthChild(last = true, ofType = true)
             "first-child" -> Evaluator.IsFirstChild()
             "last-child" -> Evaluator.IsLastChild()
             "first-of-type" -> Evaluator.IsFirstOfType()
@@ -258,7 +204,7 @@ public class QueryParser private constructor(query: String) {
                     Evaluator.Attribute(key)
                 }
         } else {
-            if (cq.matchChomp("=")) {
+            if (cq.matchChomp('=')) {
                 eval = Evaluator.AttributeWithValue(key, cq.remainder())
             } else if (cq.matchChomp("!=")) {
                 eval = Evaluator.AttributeWithValueNot(key, cq.remainder())
@@ -290,98 +236,49 @@ public class QueryParser private constructor(query: String) {
         tq = TokenQueue(trimmedQuery)
     }
 
-    private fun cssNthChild(
-        backwards: Boolean,
-        ofType: Boolean,
-    ): Evaluator {
+    private fun cssNthChild(last: Boolean, ofType: Boolean): Evaluator {
+        // normalize & consumeParens() are assumed to be available in this context
         val arg = normalize(consumeParens())
-
-        val mAB = NTH_AB.matchEntire(arg)
-        val mB = NTH_B.matchEntire(arg)
-        val a: Int
-        val b: Int
-
-        when {
-            "odd" == arg -> {
-                a = 2
-                b = 1
-            }
-
-            "even" == arg -> {
-                a = 2
-                b = 0
-            }
-
-            mAB != null -> {
-                a = if (mAB.groups[3] != null) mAB.groups[1]!!.value.replaceFirst("^\\+", "").toInt() else 1
-                b = if (mAB.groups[4] != null) mAB.groups[4]!!.value.replaceFirst("^\\+", "").toInt() else 0
-            }
-
-            mB != null -> {
-                a = 0
-                b = mB.groups[0]!!.value.replaceFirst("^\\+", "").toInt()
-            }
-
+        val (step, offset) = when {
+            arg.equals("odd", ignoreCase = true) -> 2 to 1
+            arg.equals("even", ignoreCase = true) -> 2 to 0
             else -> {
-                throw Selector.SelectorParseException(
-                    "Could not parse nth-index '$arg': unexpected format",
-                )
+                // try the “an+b” syntax
+                NthStepOffset.matchEntire(arg)?.let { m ->
+                    val signGroup = m.groupValues[2]    // “+” or “-” or ""
+                    val digitsGroup = m.groupValues[3]    // e.g. “3” or ""
+                    val offsetGroup = m.groupValues[4]    // e.g. “+2” or “-1” or ""
+                    val step = if (digitsGroup.isNotEmpty()) {
+                        // has an explicit coefficient
+                        m.groupValues[1].replaceFirst("^\\+".toRegex(), "").toInt()
+                    } else {
+                        // just “n” or “-n”
+                        if (signGroup == "-") -1 else 1
+                    }
+                    val offset = if (offsetGroup.isNotEmpty()) {
+                        offsetGroup.replaceFirst("^\\+".toRegex(), "").toInt()
+                    } else 0
+                    step to offset
+                }
+                // or a simple integer
+                    ?: NthOffset.matchEntire(arg)?.let { m ->
+                        val off = m.value.replaceFirst("^\\+".toRegex(), "").toInt()
+                        0 to off
+                    }
+                    // or fail
+                    ?: throw Selector.SelectorParseException(
+                        "Could not parse nth-index '$arg': unexpected format"
+                    )
             }
         }
 
         return when {
-            ofType ->
-                if (backwards) {
-                    Evaluator.IsNthLastOfType(a, b)
-                } else {
-                    Evaluator.IsNthOfType(
-                        a,
-                        b,
-                    )
-                }
-
-            else -> if (backwards) Evaluator.IsNthLastChild(a, b) else Evaluator.IsNthChild(a, b)
+            ofType && last -> Evaluator.IsNthLastOfType(step, offset)
+            ofType -> Evaluator.IsNthOfType(step, offset)
+            last -> Evaluator.IsNthLastChild(step, offset)
+            else -> Evaluator.IsNthChild(step, offset)
         }
     }
-
-    /*private fun cssNthChild(backwards: Boolean, ofType: Boolean): Evaluator {
-        val arg: String = normalize(consumeParens())
-
-        val mAB: java.util.regex.Matcher = NTH_AB.matches(arg)
-        val mB: java.util.regex.Matcher = NTH_B.matches(arg)
-        val a: Int
-        val b: Int
-        if ("odd" == arg) {
-            a = 2
-            b = 1
-        } else if ("even" == arg) {
-            a = 2
-            b = 0
-        } else if (mAB.matches()) {
-            a = if (mAB.group(3) != null) {
-                mAB.group(1).replaceFirst("^\\+".toRegex(), "")
-                    .toInt()
-            } else {
-                1
-            }
-            b = if (mAB.group(4) != null) {
-                mAB.group(4).replaceFirst("^\\+".toRegex(), "")
-                    .toInt()
-            } else {
-                0
-            }
-        } else if (mB.matches()) {
-            a = 0
-            b = mB.group().replaceFirst("^\\+".toRegex(), "").toInt()
-        } else {
-            throw SelectorParseException("Could not parse nth-index '%s': unexpected format", arg)
-        }
-        val eval: Evaluator
-        if (ofType) if (backwards) eval = IsNthLastOfType(a, b) else eval = IsNthOfType(a, b) else {
-            if (backwards) eval = IsNthLastChild(a, b) else eval = IsNthChild(a, b)
-        }
-        return eval
-    }*/
 
     private fun consumeParens(): String {
         return tq.chompBalanced('(', ')')
@@ -389,22 +286,25 @@ public class QueryParser private constructor(query: String) {
 
     private fun consumeIndex(): Int {
         val index = consumeParens().trim { it <= ' ' }
-        Validate.isTrue(StringUtil.isNumeric(index), "Index must be numeric")
+        isTrue(StringUtil.isNumeric(index), "Index must be numeric")
         return index.toInt()
     }
 
     // pseudo selector :has(el)
     private fun has(): Evaluator {
-        val subQuery = consumeParens()
-        Validate.notEmpty(subQuery, ":has(selector) sub-select must not be empty")
-        return StructuralEvaluator.Has(parse(subQuery))
+        return parseNested({ StructuralEvaluator.Has(it) }, ":has() must have a selector")
     }
 
-    // psuedo selector :is()
+    // pseudo selector :is()
     private fun `is`(): Evaluator {
-        val subQuery = consumeParens()
-        Validate.notEmpty(subQuery, ":is(selector) sub-select must not be empty")
-        return StructuralEvaluator.Is(parse(subQuery))
+        return parseNested({ StructuralEvaluator.Is(it) }, ":is() must have a selector")
+    }
+
+    private fun parseNested(func: (Evaluator) -> StructuralEvaluator, err: String?): Evaluator {
+        isTrue(tq.matchChomp('('), err)
+        val eval: Evaluator = parseSelectorGroup()
+        isTrue(tq.matchChomp(')'), err)
+        return func(eval)
     }
 
     // pseudo selector :contains(text), containsOwn(text)
@@ -465,11 +365,14 @@ public class QueryParser private constructor(query: String) {
     }
 
     public companion object {
-        private val Combinators: CharArray = charArrayOf(',', '>', '+', '~', ' ')
+        private val Combinators: CharArray = charArrayOf('>', '+', '~') // ' ' is also a combinator, but found implicitly
+        private val SequenceEnders: CharArray = charArrayOf(',', ')')
         private val AttributeEvals = arrayOf("=", "!=", "^=", "$=", "*=", "~=")
 
         /**
-         * Parse a CSS query into an Evaluator.
+         * Parse a CSS query into an Evaluator. If you are evaluating the same query repeatedly, it may be more efficient to
+         * parse it once and reuse the Evaluator.
+         *
          * @param query CSS query
          * @return Evaluator
          * @see Selector selector query syntax
@@ -483,13 +386,42 @@ public class QueryParser private constructor(query: String) {
             }
         }
 
+        fun combinator(left: Evaluator, combinator: Char, right: Evaluator): Evaluator {
+            when (combinator) {
+                '>' -> {
+                    val run = left as? ImmediateParentRun ?: ImmediateParentRun(left)
+                    run.add(right)
+                    return run
+                }
+
+                ' ' -> return and(StructuralEvaluator.Ancestor(left), right)
+                '+' -> return and(StructuralEvaluator.ImmediatePreviousSibling(left), right)
+                '~' -> return and(StructuralEvaluator.PreviousSibling(left), right)
+                else -> throw Selector.SelectorParseException("Unknown combinator '$combinator'")
+            }
+        }
+
+        /** Merge two evals into an Or.  */
+        fun or(left: Evaluator, right: Evaluator): Evaluator {
+            if (left is CombiningEvaluator.Or) {
+                left.add(right)
+                return left
+            }
+            return CombiningEvaluator.Or(left, right)
+        }
+
+        /** Merge two evals into an And.  */
+        fun and(left: Evaluator?, right: Evaluator): Evaluator {
+            if (left == null) return right
+            if (left is CombiningEvaluator.And) {
+                left.add(right)
+                return left
+            }
+            return CombiningEvaluator.And(left, right)
+        }
+
         // pseudo selectors :first-child, :last-child, :nth-child, ...
-        private val NTH_AB: Regex =
-            Regex(
-                "(([+-])?(\\d+)?)n(\\s*([+-])?\\s*\\d+)?",
-                RegexOption.IGNORE_CASE,
-            )
-        private val NTH_B: Regex =
-            Regex("([+-])?(\\d+)")
+        private val NthStepOffset: Regex = Regex("(([+-])?(\\d+)?)n(\\s*([+-])?\\s*\\d+)?", RegexOption.IGNORE_CASE)
+        private val NthOffset: Regex = Regex("([+-])?(\\d+)")
     }
 }

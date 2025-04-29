@@ -2,8 +2,8 @@
 
 **Ksoup** is a Kotlin Multiplatform library for working with real-world HTML and XML. It's a port of the renowned Java library, **jsoup**, and offers an easy-to-use API for URL fetching, data parsing, extraction, and manipulation using DOM and CSS selectors.
 
-[![Kotlin](https://img.shields.io/badge/Kotlin-2.1.0-blue.svg?style=flat&logo=kotlin)](https://kotlinlang.org)
-[![Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-green.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Kotlin](https://img.shields.io/badge/Kotlin-2.1.20-blue.svg?style=flat&logo=kotlin)](https://kotlinlang.org)
+[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.md)
 [![Maven Central](https://img.shields.io/maven-central/v/com.fleeksoft.ksoup/ksoup.svg)](https://central.sonatype.com/artifact/com.fleeksoft.ksoup/ksoup)
 
 ![badge-android](http://img.shields.io/badge/platform-android-6EDB8D.svg?style=flat)
@@ -46,17 +46,7 @@ Ksoup published in four variants. Pick the one that suits your needs and start b
    implementation("com.fleeksoft.ksoup:ksoup-network:<version>")
     ```
 
-3. **This variant use [korlibs-io](https://github.com/korlibs/korlibs-io) for I/O and networking**
-   ```kotlin
-   // Ksoup.parseFile, Ksoup.parseStream
-   implementation("com.fleeksoft.ksoup:ksoup-korlibs:<version>")
-
-    // Optional: Include only if you need to use network request functions such as
-    // Ksoup.parseGetRequest, Ksoup.parseSubmitRequest, and Ksoup.parsePostRequest
-   implementation("com.fleeksoft.ksoup:ksoup-network-korlibs:<version>")
-    ```
-
-4. **This variant use [kotlinx-io](https://github.com/Kotlin/kotlinx-io) for I/O and [Ktor 2](https://github.com/ktorio/ktor) for networking**
+3. **This variant use [kotlinx-io](https://github.com/Kotlin/kotlinx-io) for I/O and [Ktor 2](https://github.com/ktorio/ktor) for networking**
    ```kotlin
    // Ksoup.parseFile, Ksoup.parseSource
    implementation("com.fleeksoft.ksoup:ksoup-kotlinx:<version>")
@@ -65,7 +55,7 @@ Ksoup published in four variants. Pick the one that suits your needs and start b
     // Ksoup.parseGetRequest, Ksoup.parseSubmitRequest, and Ksoup.parsePostRequest
    implementation("com.fleeksoft.ksoup:ksoup-network-ktor2:<version>")
     ```
-5. **This variant use [okio](https://github.com/square/okio) for I/O and [Ktor 2](https://github.com/ktorio/ktor) for networking**
+4. **This variant use [okio](https://github.com/square/okio) for I/O and [Ktor 2](https://github.com/ktorio/ktor) for networking**
    ```kotlin
    implementation("com.fleeksoft.ksoup:ksoup-okio:<version>")
 
@@ -74,6 +64,16 @@ Ksoup published in four variants. Pick the one that suits your needs and start b
    implementation("com.fleeksoft.ksoup:ksoup-network-ktor2:<version>")
     ```
 
+5. **This variant use [korlibs-io](https://github.com/korlibs/korlibs-io) for I/O and networking**
+   ```kotlin
+   // Ksoup.parseFile, Ksoup.parseStream
+   implementation("com.fleeksoft.ksoup:ksoup-korlibs:<version>")
+
+    // Optional: Include only if you need to use network request functions such as
+    // Ksoup.parseGetRequest, Ksoup.parseSubmitRequest, and Ksoup.parsePostRequest
+   implementation("com.fleeksoft.ksoup:ksoup-network-korlibs:<version>")
+    ```
+   
 #### Ksoup supports [Charsets](https://github.com/fleeksoft/fleeksoft-io/blob/main/CharsetsReadme.md)
 - Standard charsets are already supported by **Ksoup IO**, but for extended charsets, plesae add `com.fleeksoft.charset:charset-ext`, For more details, visit the [Charsets Documentation](https://github.com/fleeksoft/fleeksoft-io/blob/main/CharsetsReadme.md)
 
@@ -157,7 +157,7 @@ In this example, `Ksoup.parseGetRequest` fetches and parses HTML content from Wi
 ![Ksoup vs Jsoup](benchmark1.png)
 
 ## Open source
-Ksoup is an open source project, a Kotlin Multiplatform port of jsoup, distributed under the Apache License, Version 2.0. The source code of Ksoup is available on [GitHub](https://github.com/fleeksoft/ksoup).
+Ksoup is an open source project, a Kotlin Multiplatform port of jsoup, distributed under the MIT License, Version 2.0. The source code of Ksoup is available on [GitHub](https://github.com/fleeksoft/ksoup).
 
 
 ## Development and Support
@@ -168,19 +168,10 @@ If you wish to contribute, please read the [Contributing Guidelines](CONTRIBUTIN
 To report any issues, visit our [GitHub issues](https://github.com/fleeksoft/ksoup/issues), Please ensure to check for duplicates before submitting a new issue.
 
 
-
 ## License
 
-    Copyright 2024 FLEEK SOFT
+Ksoup is open source software licensed under the [MIT License](LICENSE.md).
 
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
-
-       http://www.apache.org/licenses/LICENSE-2.0
-
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
+This project is a Kotlin Multiplatform port of [Jsoup](https://jsoup.org), created by Jonathan Hedley.  
+Portions of this library are derived from jsoup and retain their original [MIT License](https://jsoup.org/license),  
+© 2009–2025 Jonathan Hedley.  

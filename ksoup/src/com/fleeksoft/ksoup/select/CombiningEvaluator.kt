@@ -1,3 +1,11 @@
+/*
+ * Kotlin port of jsoup's CombiningEvaluator.java
+ * Copyright © 2009–2025 Jonathan Hedley
+ * Copyright © 2023–2025 FLEEK SOFT
+ * Licensed under the MIT License
+ * https://jsoup.org
+ */
+
 package com.fleeksoft.ksoup.select
 
 import com.fleeksoft.ksoup.internal.StringUtil
@@ -18,6 +26,11 @@ public abstract class CombiningEvaluator internal constructor() : Evaluator() {
         updateEvaluators()
     }
 
+    open fun add(e: Evaluator) {
+        evaluators.add(e)
+        updateEvaluators()
+    }
+
     override fun reset() {
         for (evaluator in evaluators) {
             evaluator.reset()
@@ -27,15 +40,6 @@ public abstract class CombiningEvaluator internal constructor() : Evaluator() {
 
     override fun cost(): Int {
         return _cost
-    }
-
-    public fun rightMostEvaluator(): Evaluator? {
-        return if (num > 0) evaluators[num - 1] else null
-    }
-
-    public fun replaceRightMostEvaluator(replacement: Evaluator) {
-        evaluators[num - 1] = replacement
-        updateEvaluators()
     }
 
     public fun updateEvaluators() {
@@ -55,23 +59,23 @@ public abstract class CombiningEvaluator internal constructor() : Evaluator() {
     // ^ comparingInt, sortedEvaluators.sort not available in targeted version
     public class And constructor(evaluators: Collection<Evaluator>) :
         CombiningEvaluator(evaluators) {
-            internal constructor(vararg evaluators: Evaluator) : this(evaluators.toList())
+        constructor(vararg evaluators: Evaluator) : this(evaluators.toList())
 
-            override fun matches(
-                root: Element,
-                element: Element,
-            ): Boolean {
-                for (i in 0 until num) {
-                    val s: Evaluator = sortedEvaluators[i]
-                    if (!s.matches(root, element)) return false
-                }
-                return true
+        override fun matches(
+            root: Element,
+            element: Element,
+        ): Boolean {
+            for (i in 0 until num) {
+                val s: Evaluator = sortedEvaluators[i]
+                if (!s.matches(root, element)) return false
             }
-
-            override fun toString(): String {
-                return StringUtil.join(evaluators, "")
-            }
+            return true
         }
+
+        override fun toString(): String {
+            return StringUtil.join(evaluators, "")
+        }
+    }
 
     public class Or : CombiningEvaluator {
         /**
@@ -91,15 +95,7 @@ public abstract class CombiningEvaluator internal constructor() : Evaluator() {
         internal constructor(vararg evaluators: Evaluator) : this(evaluators.toList())
         internal constructor() : super()
 
-        public fun add(e: Evaluator) {
-            evaluators.add(e)
-            updateEvaluators()
-        }
-
-        override fun matches(
-            root: Element,
-            element: Element,
-        ): Boolean {
+        override fun matches(root: Element, element: Element): Boolean {
             for (i in 0 until num) {
                 val s: Evaluator = sortedEvaluators[i]
                 if (s.matches(root, element)) return true

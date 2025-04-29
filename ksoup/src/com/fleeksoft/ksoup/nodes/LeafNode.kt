@@ -1,3 +1,11 @@
+/*
+ * Kotlin port of jsoup's LeafNode.java
+ * Copyright © 2009–2025 Jonathan Hedley
+ * Copyright © 2023–2025 FLEEK SOFT
+ * Licensed under the MIT License
+ * https://jsoup.org
+ */
+
 package com.fleeksoft.ksoup.nodes
 
 /**
@@ -96,6 +104,8 @@ public abstract class LeafNode : Node {
     public override fun ensureChildNodes(): MutableList<Node> {
         return EmptyNodes
     }
+
+    override fun outerHtmlTail(accum: Appendable, out: Document.OutputSettings) {}
 
     protected override fun doClone(parent: Node?): LeafNode {
         val clone = super.doClone(parent) as LeafNode

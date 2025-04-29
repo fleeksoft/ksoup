@@ -7,16 +7,18 @@ import com.fleeksoft.io.byteInputStream
 import com.fleeksoft.ksoup.Ksoup
 import com.fleeksoft.ksoup.TestHelper
 import com.fleeksoft.ksoup.TextUtil
+import com.fleeksoft.ksoup.nodes.Document.OutputSettings.Syntax
 import com.fleeksoft.ksoup.parseInput
 import com.fleeksoft.ksoup.parser.ParseSettings
 import com.fleeksoft.ksoup.parser.Parser
+import com.fleeksoft.ksoup.parser.Tag
 import kotlinx.coroutines.test.runTest
 import kotlin.test.*
+
 
 /**
  * Tests for Document.
  *
- * @author Sabeeh, fleeksoft@gmail.com
  */
 class DocumentTest {
 
@@ -116,11 +118,18 @@ class DocumentTest {
     fun testClone() {
         val doc = Ksoup.parse("<title>Hello</title> <p>One<p>Two")
         val clone = doc.clone()
+
+        assertNotSame(doc, clone)
+        assertTrue(doc.hasSameValue(clone))
+        assertSame(doc.parser(), clone.parser())
+        assertNotSame(doc.outputSettings(), clone.outputSettings())
+
         assertEquals(
             "<html><head><title>Hello</title></head><body><p>One</p><p>Two</p></body></html>",
             TextUtil.stripNewlines(clone.html()),
         )
         clone.title("Hello there")
+        assertFalse(doc.hasSameValue(clone))
         clone.expectFirst("p").text("One more").attr("id", "1")
         assertEquals(
             "<html><head><title>Hello there</title></head><body><p id=\"1\">One more</p><p>Two</p></body></html>",
@@ -134,10 +143,10 @@ class DocumentTest {
 
     @Test
     fun testBasicIndent() {
-        val doc = Ksoup.parse("<title>Hello</title> <p>One<p>Two")
-        val expect =
-            "<html>\n <head>\n  <title>Hello</title>\n </head>\n <body>\n  <p>One</p>\n  <p>Two</p>\n </body>\n</html>"
-        assertEquals(expect, doc.html())
+        val doc: Document = Ksoup.parse("<title>Hello</title> <p>One\n<p>Two\n")
+        val expect = "<html>\n <head>\n  <title>Hello</title>\n </head>\n <body>\n  <p>One</p>\n  <p>Two</p>\n </body>\n</html>"
+        val html = doc.html()
+        assertEquals(expect, html)
     }
 
     @Test
@@ -180,35 +189,37 @@ class DocumentTest {
     @Test
     fun testHtmlAndXmlSyntax() {
         val h = "<!DOCTYPE html><body><img async checked='checked' src='&<>\"'>&lt;&gt;&amp;&quot;<foo />bar"
-        val doc = Ksoup.parse(h)
-        doc.outputSettings().syntax(Document.OutputSettings.Syntax.html)
+        val parser = Parser.htmlParser()
+        parser.tagSet().valueOf("foo", Parser.NamespaceHtml).set(Tag.SelfClose) // customize foo to allow self close
+        val doc: Document = Ksoup.parse(h, parser)
+
+        doc.outputSettings().syntax(Syntax.html)
         assertEquals(
-            """<!doctype html>
-<html>
- <head></head>
- <body>
-  <img async checked src="&amp;<>&quot;">&lt;&gt;&amp;"<foo />bar
- </body>
-</html>""",
-            doc.html(),
+            "<!doctype html>\n" +
+                    "<html>\n" +
+                    " <head></head>\n" +
+                    " <body>\n" +
+                    "  <img async checked src=\"&amp;<>&quot;\">&lt;&gt;&amp;\"<foo></foo>bar\n" +  // html won't include self-closing
+                    " </body>\n" +
+                    "</html>", doc.html()
         )
-        doc.outputSettings().syntax(Document.OutputSettings.Syntax.xml)
+
+        doc.outputSettings().syntax(Syntax.xml)
         assertEquals(
-            """<!DOCTYPE html>
-<html>
- <head></head>
- <body>
-  <img async="" checked="checked" src="&amp;&lt;>&quot;" />&lt;&gt;&amp;"<foo />bar
- </body>
-</html>""",
-            doc.html(),
+            "<!DOCTYPE html>\n" +
+                    "<html>\n" +
+                    " <head></head>\n" +
+                    " <body>\n" +
+                    "  <img async=\"\" checked=\"checked\" src=\"&amp;&lt;>&quot;\" />&lt;&gt;&amp;\"<foo />bar\n" +  // xml will
+                    " </body>\n" +
+                    "</html>", doc.html()
         )
     }
 
     @Test
     fun htmlParseDefaultsToHtmlOutputSyntax() {
         val doc = Ksoup.parse("x")
-        assertEquals(Document.OutputSettings.Syntax.html, doc.outputSettings().syntax())
+        assertEquals(Syntax.html, doc.outputSettings().syntax())
     }
 
     @Test
@@ -262,7 +273,6 @@ class DocumentTest {
     @Test
     fun testMetaCharsetUpdateUtf8() {
         val doc = createHtmlDocument("changeThis")
-        doc.updateMetaCharsetElement(true)
         doc.charset(Charsets.forName(charsetUtf8))
         val htmlCharsetUTF8 = """<html>
  <head>
@@ -280,7 +290,6 @@ class DocumentTest {
     @Test
     fun testMetaCharsetUpdateIso8859() {
         val doc = createHtmlDocument("changeThis")
-        doc.updateMetaCharsetElement(true)
         doc.charset(Charsets.forName(charsetIso8859))
         val htmlCharsetISO = """<html>
  <head>
@@ -298,7 +307,6 @@ class DocumentTest {
     @Test
     fun testMetaCharsetUpdateNoCharset() {
         val docNoCharset = Document.createShell("")
-        docNoCharset.updateMetaCharsetElement(true)
         docNoCharset.charset(Charsets.forName(charsetUtf8))
         assertEquals(
             charsetUtf8,
@@ -356,7 +364,6 @@ class DocumentTest {
     @Test
     fun testMetaCharsetUpdateCleanup() {
         val doc = createHtmlDocument("dontTouch")
-        doc.updateMetaCharsetElement(true)
         doc.charset(Charsets.forName(charsetUtf8))
         val htmlCharsetUTF8 = """<html>
  <head>
@@ -370,12 +377,8 @@ class DocumentTest {
     @Test
     fun testMetaCharsetUpdateXmlUtf8() {
         val doc = createXmlDocument("1.0", "changeThis", true)
-        doc.updateMetaCharsetElement(true)
         doc.charset(Charsets.forName(charsetUtf8))
-        val xmlCharsetUTF8 = """<?xml version="1.0" encoding="$charsetUtf8"?>
-<root>
- node
-</root>"""
+        val xmlCharsetUTF8 = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<root>node</root>"
         assertEquals(xmlCharsetUTF8, doc.toString())
         val selectedNode = doc.childNode(0) as XmlDeclaration
         assertEquals(charsetUtf8, doc.charset().name().uppercase())
@@ -386,12 +389,9 @@ class DocumentTest {
     @Test
     fun testMetaCharsetUpdateXmlIso8859() {
         val doc = createXmlDocument("1.0", "changeThis", true)
-        doc.updateMetaCharsetElement(true)
         doc.charset(Charsets.forName(charsetIso8859))
-        val xmlCharsetISO = """<?xml version="1.0" encoding="$charsetIso8859"?>
-<root>
- node
-</root>"""
+        val xmlCharsetISO = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n" +
+                "<root>node</root>"
         assertEquals(xmlCharsetISO, doc.toString())
         val selectedNode = doc.childNode(0) as XmlDeclaration
         assertEquals(charsetIso8859, doc.charset().name().uppercase())
@@ -402,12 +402,9 @@ class DocumentTest {
     @Test
     fun testMetaCharsetUpdateXmlNoCharset() {
         val doc = createXmlDocument("1.0", "none", false)
-        doc.updateMetaCharsetElement(true)
         doc.charset(Charsets.forName(charsetUtf8))
-        val xmlCharsetUTF8 = """<?xml version="1.0" encoding="$charsetUtf8"?>
-<root>
- node
-</root>"""
+        val xmlCharsetUTF8 = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                "<root>node</root>"
         assertEquals(xmlCharsetUTF8, doc.toString())
         val selectedNode = doc.childNode(0) as XmlDeclaration
         assertEquals(charsetUtf8, selectedNode.attr("encoding"))
@@ -416,29 +413,19 @@ class DocumentTest {
     @Test
     fun testMetaCharsetUpdateXmlDisabled() {
         val doc = createXmlDocument("none", "none", false)
-        val xmlNoCharset = """<root>
- node
-</root>"""
+        val xmlNoCharset = "<root>node</root>"
         assertEquals(xmlNoCharset, doc.toString())
     }
 
     @Test
     fun testMetaCharsetUpdateXmlDisabledNoChanges() {
         val doc = createXmlDocument("dontTouch", "dontTouch", true)
-        val xmlCharset = """<?xml version="dontTouch" encoding="dontTouch"?>
-<root>
- node
-</root>"""
+        val xmlCharset = "<?xml version=\"dontTouch\" encoding=\"dontTouch\"?>\n" +
+                "<root>node</root>"
         assertEquals(xmlCharset, doc.toString())
         val selectedNode = doc.childNode(0) as XmlDeclaration
         assertEquals("dontTouch", selectedNode.attr("encoding"))
         assertEquals("dontTouch", selectedNode.attr("version"))
-    }
-
-    @Test
-    fun testMetaCharsetUpdatedDisabledPerDefault() {
-        val doc = createHtmlDocument("none")
-        assertFalse(doc.updateMetaCharsetElement())
     }
 
     private fun createHtmlDocument(charset: String): Document {
@@ -455,7 +442,7 @@ class DocumentTest {
     ): Document {
         val doc = Document("")
         doc.appendElement("root").text("node")
-        doc.outputSettings().syntax(Document.OutputSettings.Syntax.xml)
+        doc.outputSettings().syntax(Syntax.xml)
         if (addDecl) {
             val decl = XmlDeclaration("xml", false)
             decl.attr("version", version)
@@ -463,6 +450,18 @@ class DocumentTest {
             doc.prependChild(decl)
         }
         return doc
+    }
+
+    @Test
+    fun charsetOnEmptyDoc() {
+        val xml = Document(Parser.NamespaceXml, "https://example.com") // no nodes
+        xml.outputSettings().syntax(Syntax.xml)
+        xml.charset(Charsets.UTF8)
+        assertEquals("<?xml version=\"1.0\" encoding=\"UTF-8\"?>", xml.html())
+
+        val html = Document("https://example.com")
+        html.charset(Charsets.UTF8)
+        assertEquals("<html><head><meta charset=\"UTF-8\"></head></html>", TextUtil.stripNewlines(html.html()))
     }
 
     @Test
@@ -564,7 +563,7 @@ class DocumentTest {
         assertEquals("2", formEl3!!.id())
         var threw = false
         try {
-            val nix = doc.expectForm("div")
+            doc.expectForm("div")
         } catch (e: IllegalArgumentException) {
             threw = true
         }

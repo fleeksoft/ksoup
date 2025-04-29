@@ -1,8 +1,19 @@
+/*
+ * Kotlin port of jsoup's Selector.java
+ * Copyright © 2009–2025 Jonathan Hedley
+ * Copyright © 2023–2025 FLEEK SOFT
+ * Licensed under the MIT License
+ * https://jsoup.org
+ */
+
 package com.fleeksoft.ksoup.select
 
 import com.fleeksoft.ksoup.helper.Validate
+import com.fleeksoft.ksoup.helper.Validate.notEmpty
 import com.fleeksoft.ksoup.nodes.Element
-import com.fleeksoft.ksoup.ported.IdentityHashMap
+import com.fleeksoft.ksoup.parser.TokenQueue
+import com.fleeksoft.ksoup.select.Collector.findFirst
+
 
 /**
  * CSS-like element selector, that finds elements matching a query.
@@ -84,67 +95,79 @@ import com.fleeksoft.ksoup.ported.IdentityHashMap
  */
 public object Selector {
     /**
-     * Find elements matching selector.
+     * Find Elements matching the CSS query.
      *
      * @param query CSS selector
      * @param root  root element to descend into
      * @return matching elements, empty if none
      * @throws Selector.SelectorParseException (unchecked) on an invalid CSS query.
      */
-    public fun select(
-        query: String,
-        root: Element,
-    ): Elements {
+    public fun select(query: String, root: Element): Elements {
         Validate.notEmpty(query)
         return select(QueryParser.parse(query), root)
     }
 
     /**
-     * Find elements matching selector.
+     * Find Elements matching the Evaluator.
      *
-     * @param evaluator CSS selector
-     * @param root root element to descend into
+     * @param evaluator CSS Evaluator
+     * @param root root (context) element to start from
      * @return matching elements, empty if none
      */
-    public fun select(
-        evaluator: Evaluator,
-        root: Element,
-    ): Elements {
+    public fun select(evaluator: Evaluator, root: Element): Elements {
         return Collector.collect(evaluator, root)
     }
 
     /**
-     * Find elements matching selector.
+     * Finds a Stream of elements matching the CSS query.
+     *
+     * @param query CSS selector
+     * @param root root element to descend into
+     * @return a Stream of matching elements, empty if none
+     * @throws Selector.SelectorParseException (unchecked) on an invalid CSS query.
+     */
+    fun selectStream(query: String, root: Element): Sequence<Element> {
+        notEmpty(query)
+        return selectStream(QueryParser.parse(query), root)
+    }
+
+    /**
+     * Finds a Stream of elements matching the evaluator.
+     *
+     * @param evaluator CSS selector
+     * @param root root element to descend into
+     * @return matching elements, empty if none
+     * @since 1.19.1
+     */
+    fun selectStream(evaluator: Evaluator, root: Element): Sequence<Element> {
+        return Collector.stream(evaluator, root)
+    }
+
+    /**
+     * Find elements matching the query, across multiple roots. Elements will be deduplicated (in the case of
+     * overlapping hierarchies).
      *
      * @param query CSS selector
      * @param roots root elements to descend into
      * @return matching elements, empty if none
      */
-    public fun select(
-        query: String,
-        roots: Iterable<Element>,
-    ): Elements {
-        Validate.notEmpty(query)
-        val evaluator: Evaluator = QueryParser.parse(query)
+    fun select(query: String, roots: Iterable<Element>): Elements {
+        notEmpty(query)
+        val evaluator = QueryParser.parse(query)
         val elements = Elements()
-        val seenElements: IdentityHashMap<Element, Boolean> = IdentityHashMap<Element, Boolean>()
-        // dedupe elements by identity, not equality
+        val seenElements: HashSet<Element?> = HashSet() // dedupe elements by identity, as .equals is ==
+
         for (root in roots) {
-            val found: Elements = select(evaluator, root)
-            for (el in found) {
-                if (seenElements.put(el, true) == null) {
-                    elements.add(el)
-                }
-            }
+            selectStream(evaluator, root)
+                .filter(seenElements::add)
+                .forEach(elements::add)
         }
+
         return elements
     }
 
     // exclude set. package open so that Elements can implement .not() selector.
-    public fun filterOut(
-        elements: Collection<Element>,
-        outs: Collection<Element?>,
-    ): Elements {
+    public fun filterOut(elements: Collection<Element>, outs: Collection<Element?>): Elements {
         val output = Elements()
         for (el in elements) {
             var found = false
@@ -160,25 +183,58 @@ public object Selector {
     }
 
     /**
-     * Find the first element that matches the query.
+     * Find the first Element that matches the query.
+     *
      * @param cssQuery CSS selector
      * @param root root element to descend into
+     * @return the matching element, or <b>null</b> if none.
      * @return the matching element, or **null** if none.
      */
-
-    public fun selectFirst(
-        cssQuery: String,
-        root: Element,
-    ): Element? {
+    public fun selectFirst(cssQuery: String, root: Element): Element? {
         Validate.notEmpty(cssQuery)
         return Collector.findFirst(QueryParser.parse(cssQuery), root)
     }
 
+    /**
+     * Find the first element matching the query, across multiple roots.
+     *
+     * @param cssQuery CSS selector
+     * @param roots root elements to descend into
+     * @return the first matching element, or `null` if none
+     */
+    fun selectFirst(cssQuery: String, roots: Iterable<Element>): Element? {
+        notEmpty(cssQuery)
+        val evaluator = QueryParser.parse(cssQuery!!)
+
+        for (root in roots) {
+            val first = findFirst(evaluator, root)
+            if (first != null) return first
+        }
+
+        return null
+    }
+
+    /**
+     * Given a CSS identifier (such as a tag, ID, or class), escape any CSS special characters
+     * that would otherwise not be valid in a selector.
+     *
+     * @see https://www.w3.org/TR/cssom-1/#serialize-an-identifier
+     */
+    fun escapeCssIdentifier(input: String): String = TokenQueue.escapeCssIdentifier(input)
+
+    /**
+     * Consume a CSS identifier (ID or class) off the queue.
+     * Supports improperly formatted identifiers for backwards compatibility.
+     *
+     * @return The unescaped identifier.
+     * @throws IllegalArgumentException if an invalid escape sequence is found.
+     * @see https://www.w3.org/TR/css-syntax-3/#consume-name
+     * @see https://www.w3.org/TR/css-syntax-3/#typedef-ident-token
+     */
+    fun unescapeCssIdentifier(input: String): String = TokenQueue(input).consumeCssIdentifier()
+
     public class SelectorParseException : IllegalStateException {
         public constructor(msg: String?) : super(msg)
-        public constructor(
-            cause: Throwable?,
-            msg: String?,
-        ) : super(msg, cause)
+        public constructor(cause: Throwable?, msg: String?) : super(msg, cause)
     }
 }

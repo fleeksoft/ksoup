@@ -7,8 +7,6 @@ import kotlin.test.assertEquals
 
 /**
  * Tests for the DocumentType node
- *
- * @author Sabeeh, http://jonathanhedley.com/
  */
 class DocumentTypeTest {
 

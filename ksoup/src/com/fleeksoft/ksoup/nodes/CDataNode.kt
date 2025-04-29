@@ -1,3 +1,11 @@
+/*
+ * Kotlin port of jsoup's CDataNode.java
+ * Copyright © 2009–2025 Jonathan Hedley
+ * Copyright © 2023–2025 FLEEK SOFT
+ * Licensed under the MIT License
+ * https://jsoup.org
+ */
+
 package com.fleeksoft.ksoup.nodes
 
 /**
@@ -16,22 +24,11 @@ public class CDataNode(text: String?) : TextNode(text!!) {
         return getWholeText()
     }
 
-    override fun outerHtmlHead(
-        accum: Appendable,
-        depth: Int,
-        out: Document.OutputSettings,
-    ) {
+    override fun outerHtmlHead(accum: Appendable, out: Document.OutputSettings) {
         accum
             .append("<![CDATA[")
             .append(getWholeText())
-    }
-
-    override fun outerHtmlTail(
-        accum: Appendable,
-        depth: Int,
-        out: Document.OutputSettings,
-    ) {
-        accum.append("]]>")
+            .append("]]>")
     }
 
     override fun clone(): CDataNode {
