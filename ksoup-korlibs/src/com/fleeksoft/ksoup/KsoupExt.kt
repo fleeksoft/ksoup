@@ -19,6 +19,7 @@ import korlibs.io.stream.SyncStream
  * @param parser alternate [parser][Parser.xmlParser] to use.
  * @return sane HTML
  */
+@Deprecated("Korlibs support is deprecated; use the ksoup-kotlinx variant instead.")
 public suspend fun Ksoup.parseFile(
     filePath: String,
     baseUri: String = filePath,
@@ -33,6 +34,7 @@ public suspend fun Ksoup.parseFile(
     )
 }
 
+@Deprecated("Korlibs support is deprecated; use the ksoup-kotlinx variant instead.")
 public suspend fun Ksoup.parseFile(
     file: VfsFile,
     baseUri: String = file.absolutePath,
@@ -47,6 +49,7 @@ public suspend fun Ksoup.parseFile(
     )
 }
 
+@Deprecated("Korlibs support is deprecated; use the ksoup-kotlinx variant instead.")
 public fun Ksoup.parseStream(
     stream: SyncStream,
     baseUri: String = "",

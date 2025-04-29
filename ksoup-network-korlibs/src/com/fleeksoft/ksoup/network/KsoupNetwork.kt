@@ -21,6 +21,7 @@ import kotlinx.coroutines.withContext
  * @return sane HTML
  *
  */
+@Deprecated("Korlibs support is deprecated; use the ktor3 variant `ksoup-network` instead.")
 public suspend fun Ksoup.parseGetRequest(
     url: String,
     headers: Map<String, String> = emptyMap(),
@@ -48,6 +49,7 @@ public suspend fun Ksoup.parseGetRequest(
  * @return sane HTML
  *
  */
+@Deprecated("Korlibs support is deprecated; use the ktor3 variant `ksoup-network` instead.")
 public suspend fun Ksoup.parseSubmitRequest(
     url: String,
     params: Map<String, String> = emptyMap(),
@@ -77,6 +79,7 @@ public suspend fun Ksoup.parseSubmitRequest(
  * @return sane HTML
  *
  */
+@Deprecated("Korlibs support is deprecated; use the ktor3 variant `ksoup-network` instead.")
 public suspend fun Ksoup.parsePostRequest(
     url: String,
     body: HttpBodyContent = HttpBodyContent("", ""),
