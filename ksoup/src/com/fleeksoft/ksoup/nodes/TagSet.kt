@@ -202,6 +202,7 @@ class TagSet {
             val inlineMathTags = arrayOf<String>("mi", "mo", "msup", "mn", "mtext")
             val blockSvgTags = arrayOf<String>("svg", "femerge", "femergenode") // note these are LC versions, but actually preserve case
             val inlineSvgTags = arrayOf<String>("text")
+            val dataSvgTags = arrayOf<String>("script")
 
             return TagSet()
                 .setupTags(Parser.NamespaceHtml, blockTags) { it.set(Tag.Block) }
@@ -216,6 +217,7 @@ class TagSet {
                 .setupTags(Parser.NamespaceMathml, inlineMathTags) { it.set(0) }
                 .setupTags(Parser.NamespaceSvg, blockSvgTags) { it.set(Tag.Block) }
                 .setupTags(Parser.NamespaceSvg, inlineSvgTags) { it.set(0) }
+                .setupTags(Parser.NamespaceSvg, dataSvgTags, { it.set(Tag.Data) })
 
         }
     }

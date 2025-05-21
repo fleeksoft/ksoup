@@ -161,9 +161,9 @@ public enum class HtmlTreeBuilderState {
                     } else if (name == "meta") {
                         tb.insertEmptyElementFor(start)
                     } else if (name == "title") {
-                        handleTextState(start, tb, TokeniserState.Rcdata)
+                        handleTextState(start, tb, tb.tagFor(start).textState())
                     } else if (StringUtil.inSorted(name, Constants.InHeadRaw)) {
-                        handleTextState(start, tb, TokeniserState.Rawtext)
+                        handleTextState(start, tb, tb.tagFor(start).textState())
                     } else if (name == "noscript") {
                         // else if noscript && scripting flag = true: rawtext (com.fleeksoft.ksoup doesn't run script, to handle as noscript)
                         tb.insertElementFor(start)
@@ -338,8 +338,7 @@ public enum class HtmlTreeBuilderState {
             when (t.type) {
                 Token.TokenType.Character -> {
                     val c: Token.Character = t.asCharacter()
-                    if (c.getData().equals(nullString)) {
-                        // todo confirm that check
+                    if (c.getData() == nullString) {
                         tb.error(this)
                         return false
                     } else if (tb.framesetOk() && isWhitespace(c)) { // don't check if whitespace if frames already closed
@@ -548,7 +547,7 @@ public enum class HtmlTreeBuilderState {
 
                 "textarea" -> {
                     tb.framesetOk(false)
-                    handleTextState(startTag, tb, TokeniserState.Rcdata)
+                    handleTextState(startTag, tb, tb.tagFor(startTag).textState())
                 }
 
                 "xmp" -> {
@@ -557,16 +556,16 @@ public enum class HtmlTreeBuilderState {
                     }
                     tb.reconstructFormattingElements()
                     tb.framesetOk(false)
-                    handleTextState(startTag, tb, TokeniserState.Rawtext)
+                    handleTextState(startTag, tb, tb.tagFor(startTag).textState())
                 }
 
                 "iframe" -> {
                     tb.framesetOk(false)
-                    handleTextState(startTag, tb, TokeniserState.Rawtext)
+                    handleTextState(startTag, tb, tb.tagFor(startTag).textState())
                 }
 
                 "noembed" -> // also handle noscript if script enabled
-                    handleTextState(startTag, tb, TokeniserState.Rawtext)
+                    handleTextState(startTag, tb, tb.tagFor(startTag).textState())
 
                 "select" -> {
                     tb.reconstructFormattingElements()
@@ -1165,7 +1164,7 @@ public enum class HtmlTreeBuilderState {
         ): Boolean {
             if (t.type === Token.TokenType.Character) {
                 val c: Token.Character = t.asCharacter()
-                if (c.getData().equals(nullString)) {
+                if (c.getData() == nullString) {
                     tb.error(this)
                     return false
                 } else {
@@ -1911,7 +1910,7 @@ public enum class HtmlTreeBuilderState {
             when (t.type) {
                 Token.TokenType.Character -> {
                     val c: Token.Character = t.asCharacter()
-                    if (c.getData().equals(nullString)) {
+                    if (c.getData() == nullString) {
                         tb.error(this)
                     } else if (isWhitespace(c)) {
                         tb.insertCharacterNode(c)
@@ -1937,9 +1936,24 @@ public enum class HtmlTreeBuilderState {
                         return processAsHtml(t, tb)
                     }
 
+
                     // Any other start:
                     // (whatwg says to fix up tag name and attribute case per a table - we will preserve original case instead)
-                    tb.insertForeignElementFor(start, tb.currentElement().tag().namespace())
+                    val namespace: String = tb.currentElement().tag().namespace()
+                    tb.insertForeignElementFor(start, namespace)
+
+
+                    // (self-closing handled in insert)
+                    // if self-closing svg script -- level and execution elided
+
+                    // seemingly not in spec, but as browser behavior, get into ScriptData state for svg script; and allow custom data tags
+                    val textState = tb.tagFor(start.tagName.value(), start.normalName!!, namespace, tb.settings).textState()
+                    if (textState != null) {
+                        if (start.normalName == "script") tb.tokeniser!!.transition(TokeniserState.ScriptData)
+                        else tb.tokeniser!!.transition(textState)
+                        tb.markInsertionMode()
+                        tb.transition(Text)
+                    }
                 }
 
                 Token.TokenType.EndTag -> {
@@ -2219,8 +2233,10 @@ public enum class HtmlTreeBuilderState {
             return false
         }
 
-        private fun handleTextState(startTag: Token.StartTag, tb: HtmlTreeBuilder, state: TokeniserState) {
-            tb.tokeniser?.transition(state)
+        private fun handleTextState(startTag: Token.StartTag, tb: HtmlTreeBuilder, state: TokeniserState?) {
+            if (state != null) {
+                tb.tokeniser?.transition(state)
+            }
             tb.markInsertionMode()
             tb.transition(HtmlTreeBuilderState.Text)
             tb.insertElementFor(startTag)

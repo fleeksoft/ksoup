@@ -11,6 +11,7 @@ import com.fleeksoft.ksoup.parser.Tag
 import com.fleeksoft.ksoup.select.Elements
 import com.fleeksoft.ksoup.select.NodeFilter
 import com.fleeksoft.ksoup.select.QueryParser
+import com.fleeksoft.ksoup.select.SelectorTest.Companion.assertSelectedIds
 import com.fleeksoft.ksoup.select.SelectorTest.Companion.assertSelectedOwnText
 import kotlin.test.*
 
@@ -2634,7 +2635,7 @@ Three
 
     @Test
     fun cssSelectorParentWithId() {
-        // https://github.com/jhy/jsoup/issues/2282
+        // https://github.com/jhy/Ksoup/issues/2282
         val doc = Ksoup.parse("<div><div id=id1><p>A</p></div><div><p>B</p></div><div class='c1 c2'><p>C</p></div></div>")
         val els = doc.select("p")
         val pA = els[0]
@@ -2733,7 +2734,7 @@ Three
 
     @Test
     fun cssSelectorCombined() {
-        // https://github.com/jhy/jsoup/issues/1984
+        // https://github.com/jhy/Ksoup/issues/1984
         val doc =
             Ksoup.parse("<img class='e\u0301'><p class=👨‍👨‍👧‍👧></p><a class='\uD83D\uDC68\u200D\uD83D\uDC68\u200D\uD83D\uDC67\u200D\uD83D\uDC67'></a>")
         val img = doc.expectFirst("img")
@@ -3226,6 +3227,34 @@ Three
         els.deselectAll()
         assertEquals(0, els.size)
         assertEquals(3, parent.childrenSize())
+    }
+
+
+    @Test
+    fun selectDescendents() {
+        val html = "<div id=out><div id=1><div id=2></div></div><div id=3></div>"
+        val doc: Document = Ksoup.parse(html)
+        val div = doc.expectFirst("#out")
+
+        val childs = div.select("> div")
+        assertSelectedIds(childs, "1", "3")
+
+        val descendents = div.select("* div")
+        assertSelectedIds(descendents, "1", "2", "3")
+
+        val all = div.select("div")
+        assertSelectedIds(all, "out", "1", "2", "3")
+    }
+
+    @Test
+    fun setTextOnSvgScriptSetsDataNode() {
+        // calling .text() on svg script will create a datanode, as defined in TagSet
+        val html = "<svg><script></script></svg>"
+        val doc: Document = Ksoup.parse(html)
+        val script = doc.expectFirst("script")
+        script.text("a < b")
+        assertEquals("<script>a < b</script>", script.outerHtml()) // not encoded
+        assertEquals("a < b", script.data())
     }
 
     companion object {
