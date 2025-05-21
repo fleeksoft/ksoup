@@ -9,10 +9,8 @@
 package com.fleeksoft.ksoup.select
 
 import com.fleeksoft.ksoup.helper.Validate
-import com.fleeksoft.ksoup.helper.Validate.notEmpty
 import com.fleeksoft.ksoup.nodes.Element
 import com.fleeksoft.ksoup.parser.TokenQueue
-import com.fleeksoft.ksoup.select.Collector.findFirst
 
 
 /**
@@ -104,7 +102,7 @@ public object Selector {
      */
     public fun select(query: String, root: Element): Elements {
         Validate.notEmpty(query)
-        return select(QueryParser.parse(query), root)
+        return select(evaluatorOf(query), root)
     }
 
     /**
@@ -127,8 +125,8 @@ public object Selector {
      * @throws Selector.SelectorParseException (unchecked) on an invalid CSS query.
      */
     fun selectStream(query: String, root: Element): Sequence<Element> {
-        notEmpty(query)
-        return selectStream(QueryParser.parse(query), root)
+        Validate.notEmpty(query)
+        return selectStream(evaluatorOf(query), root)
     }
 
     /**
@@ -152,8 +150,8 @@ public object Selector {
      * @return matching elements, empty if none
      */
     fun select(query: String, roots: Iterable<Element>): Elements {
-        notEmpty(query)
-        val evaluator = QueryParser.parse(query)
+        Validate.notEmpty(query)
+        val evaluator = evaluatorOf(query)
         val elements = Elements()
         val seenElements: HashSet<Element?> = HashSet() // dedupe elements by identity, as .equals is ==
 
@@ -192,7 +190,7 @@ public object Selector {
      */
     public fun selectFirst(cssQuery: String, root: Element): Element? {
         Validate.notEmpty(cssQuery)
-        return Collector.findFirst(QueryParser.parse(cssQuery), root)
+        return Collector.findFirst(evaluatorOf(cssQuery), root)
     }
 
     /**
@@ -203,11 +201,11 @@ public object Selector {
      * @return the first matching element, or `null` if none
      */
     fun selectFirst(cssQuery: String, roots: Iterable<Element>): Element? {
-        notEmpty(cssQuery)
-        val evaluator = QueryParser.parse(cssQuery!!)
+        Validate.notEmpty(cssQuery)
+        val evaluator = evaluatorOf(cssQuery!!)
 
         for (root in roots) {
-            val first = findFirst(evaluator, root)
+            val first = Collector.findFirst(evaluator, root)
             if (first != null) return first
         }
 
@@ -231,7 +229,24 @@ public object Selector {
      * @see https://www.w3.org/TR/css-syntax-3/#consume-name
      * @see https://www.w3.org/TR/css-syntax-3/#typedef-ident-token
      */
-    fun unescapeCssIdentifier(input: String): String = TokenQueue(input).consumeCssIdentifier()
+    fun unescapeCssIdentifier(input: String): String {
+        return TokenQueue(input).use { tq ->
+            tq.consumeCssIdentifier()
+        }
+    }
+
+    /**
+     * Parse a CSS query into an Evaluator. If you are evaluating the same query repeatedly, it may be more efficient to
+     * parse it once and reuse the Evaluator.
+     *
+     * @param css CSS query
+     * @return Evaluator
+     * @see Selector selector query syntax
+     * @throws Selector.SelectorParseException if the CSS query is invalid
+     */
+    fun evaluatorOf(css: String): Evaluator {
+        return QueryParser.parse(css)
+    }
 
     public class SelectorParseException : IllegalStateException {
         public constructor(msg: String?) : super(msg)

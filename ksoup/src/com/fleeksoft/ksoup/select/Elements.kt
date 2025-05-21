@@ -210,7 +210,7 @@ public class Elements(private val delegateList: ArrayList<Element> = arrayListOf
      * @see .eachText
      */
     public fun text(): String {
-        return this.map(Element::text).joinToString(" ")
+        return this.joinToString(" ", transform = Element::text)
     }
 
     /**
@@ -503,7 +503,7 @@ public class Elements(private val delegateList: ArrayList<Element> = arrayListOf
      * @return true if at least one element in the list matches the query.
      */
     public fun `is`(query: String): Boolean {
-        val eval: Evaluator = QueryParser.parse(query)
+        val eval: Evaluator = Selector.evaluatorOf(query)
         for (e in this) {
             if (e.`is`(eval)) return true
         }
@@ -580,7 +580,7 @@ public class Elements(private val delegateList: ArrayList<Element> = arrayListOf
 
     private fun siblings(query: String? = null, next: Boolean, all: Boolean): Elements {
         val els = Elements()
-        val eval = query?.let { QueryParser.parse(it) }
+        val eval = query?.let { Selector.evaluatorOf(it) }
 
         for (e in this) {
             var current = e

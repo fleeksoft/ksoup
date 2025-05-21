@@ -7,6 +7,7 @@ import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.ported.IdentityHashMap
 import com.fleeksoft.ksoup.ported.toCodePoint
 import com.fleeksoft.ksoup.select.Selector.escapeCssIdentifier
+import com.fleeksoft.ksoup.select.Selector.evaluatorOf
 import com.fleeksoft.ksoup.select.Selector.unescapeCssIdentifier
 import kotlin.test.*
 
@@ -1393,6 +1394,12 @@ class SelectorTest {
         // thorough tests are in TokenQueue
         assertEquals("-0a", unescapeCssIdentifier("-\\30 a"))
         assertEquals("a0b", unescapeCssIdentifier("a0b"))
+    }
+
+    @Test
+    fun evaluatorOf() {
+        val eval = evaluatorOf("div > p")
+        assertEquals("div > p", eval.toString())
     }
 
     companion object {

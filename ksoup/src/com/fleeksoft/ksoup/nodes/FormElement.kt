@@ -13,6 +13,7 @@ import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.parser.Tag
 import com.fleeksoft.ksoup.select.Elements
 import com.fleeksoft.ksoup.select.QueryParser
+import com.fleeksoft.ksoup.select.Selector
 
 /**
  * An HTML Form Element provides ready access to the form fields/controls that are associated with it. It also allows a
@@ -27,7 +28,7 @@ public class FormElement(tag: Tag, baseUri: String?, attributes: Attributes?) : 
     private val linkedEls: Elements = Elements()
 
     // contains form submittable elements that were linked during the parse (and due to parse rules, may no longer be a child of this form)
-    private val submittable = QueryParser.parse(SharedConstants.FormSubmitTags.joinToString(", "))
+    private val submittable = Selector.evaluatorOf(SharedConstants.FormSubmitTags.joinToString(", "))
 
     /**
      * Get the list of form control elements associated with this form.

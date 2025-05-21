@@ -12,10 +12,10 @@ import com.fleeksoft.ksoup.exception.PatternSyntaxException
 import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.internal.Normalizer
 import com.fleeksoft.ksoup.internal.Normalizer.normalize
+import com.fleeksoft.ksoup.internal.QuietAppendable
 import com.fleeksoft.ksoup.internal.StringUtil
-import com.fleeksoft.ksoup.internal.StringUtil.borrowBuilder
-import com.fleeksoft.ksoup.internal.StringUtil.releaseBuilder
 import com.fleeksoft.ksoup.internal.WeakReference
+import com.fleeksoft.ksoup.nodes.NodeUtils.outputSettings
 import com.fleeksoft.ksoup.nodes.NodeUtils.parser
 import com.fleeksoft.ksoup.nodes.TextNode.Companion.lastCharIsWhitespace
 import com.fleeksoft.ksoup.parser.ParseSettings
@@ -361,7 +361,6 @@ public open class Element : Node, Iterable<Element> {
 
     /**
      * Maintains a shadow copy of this element's child elements. If the nodelist is changed, this cache is invalidated.
-     * TODO - think about pulling this out as a helper as there are other shadow lists (like in Attributes) kept around.
      * @return a list of child elements
      */
     public fun childElementsList(): List<Element> {
@@ -446,24 +445,23 @@ public open class Element : Node, Iterable<Element> {
     }
 
     /**
-     * Find elements that match the [Selector] CSS query, with this element as the starting context. Matched elements
-     * may include this element, or any of its children.
+     * Find elements that match the {@link Selector} CSS query, with this element as the starting context. Matched elements
+     * may include this element, or any of its descendents.
+     * <p>If the query starts with a combinator (e.g. {@code *} or {@code >}), that will combine to this element.</p>
+     * <p>This method is generally more powerful to use than the DOM-type {@code getElementBy*} methods, because
+     * multiple filters can be combined, e.g.:</p>
+     * <ul>
+     * <li>{@code el.select("a[href]")} - finds links ({@code a} tags with {@code href} attributes)</li>
+     * <li>{@code el.select("a[href*=example.com]")} - finds links pointing to example.com (loosely)</li>
+     * <li>{@code el.select("* div")} - finds all divs that descend from this element (and excludes this element)</li>
+     * <li>{@code el.select("> div")} - finds all divs that are direct children of this element (and excludes this element)</li>
+     * </ul>
+     * <p>See the query syntax documentation in {@link org.jsoup.select.Selector}.</p>
+     * <p>Also known as {@code querySelectorAll()} in the Web DOM.</p>
      *
-     * This method is generally more powerful to use than the DOM-type `getElementBy*` methods, because
-     * multiple filters can be combined, e.g.:
-     *
-     *  * `el.select("a[href]")` - finds links (`a` tags with `href` attributes)
-     *  * `el.select("a[href*=example.com]")` - finds links pointing to example.com (loosely)
-     *
-     *
-     * See the query syntax documentation in [com.fleeksoft.ksoup.select.Selector].
-     *
-     * Also known as `querySelectorAll()` in the Web DOM.
-     *
-     * @param cssQuery a [Selector] CSS-like query
-     * @return an [Elements] list containing elements that match the query (empty if none match)
+     * @param cssQuery a {@link Selector} CSS-like query
+     * @return an {@link Elements} list containing elements that match the query (empty if none match)
      * @see Selector selector query syntax
-     *
      * @see #select(Evaluator)
      * @throws Selector.SelectorParseException (unchecked) on an invalid CSS query.
      */
@@ -477,7 +475,7 @@ public open class Element : Node, Iterable<Element> {
      * repeatedly parsing the CSS query.
      * @param evaluator an element evaluator
      * @return an [Elements] list containing elements that match the query (empty if none match)
-     * @see QueryParser#parse(String)
+     * @see Selector#evaluatorOf(String css)
      */
     public fun select(evaluator: Evaluator): Elements {
         return Selector.select(evaluator, this)
@@ -499,7 +497,7 @@ public open class Element : Node, Iterable<Element> {
      * @return a [Stream] containing elements that match the query (empty if none match)
      * @throws Selector.SelectorParseException (unchecked) on an invalid CSS query.
      * @see Selector selector query syntax
-     * @see QueryParser.parse
+     * @see #selectStream(Evaluator eval)
      */
     fun selectStream(cssQuery: String): Sequence<Element> {
         return Selector.selectStream(cssQuery, this)
@@ -554,7 +552,7 @@ public open class Element : Node, Iterable<Element> {
      * @return if this element matches the query
      */
     public fun `is`(cssQuery: String): Boolean {
-        return `is`(QueryParser.parse(cssQuery))
+        return `is`(Selector.evaluatorOf(cssQuery))
     }
 
     /**
@@ -574,7 +572,7 @@ public open class Element : Node, Iterable<Element> {
      * found.
      */
     public fun closest(cssQuery: String): Element? {
-        return closest(QueryParser.parse(cssQuery))
+        return closest(Selector.evaluatorOf(cssQuery))
     }
 
     /**
@@ -877,7 +875,7 @@ public open class Element : Node, Iterable<Element> {
         if (!idSel.isEmpty()) return idSel
 
         // No unique ID, work up the parent stack and find either a unique ID to hang from, or just a GP > Parent > Child chain
-        val selector: StringBuilder = borrowBuilder()
+        val selector: StringBuilder = StringUtil.borrowBuilder()
         var el: Element? = this
         while (el != null && el !is Document) {
             idSel = el.uniqueIdSelector(ownerDoc)
@@ -888,7 +886,7 @@ public open class Element : Node, Iterable<Element> {
             selector.insert(0, el.cssSelectorComponent())
             el = el.parent()
         }
-        return releaseBuilder(selector)
+        return StringUtil.releaseBuilder(selector)
     }
 
     private fun cssSelectorComponent(): String {
@@ -1329,7 +1327,7 @@ public open class Element : Node, Iterable<Element> {
      */
     public fun text(): String {
         val accum: StringBuilder = StringUtil.borrowBuilder()
-        NodeTraversor.traverse(TextAccumulator(accum), this)
+        TextAccumulator(accum).traverse(this)
         return StringUtil.releaseBuilder(accum).trim()
     }
 
@@ -1649,7 +1647,7 @@ public open class Element : Node, Iterable<Element> {
         return Range.of(this, false)
     }
 
-    override fun outerHtmlHead(accum: Appendable, out: Document.OutputSettings) {
+    override fun outerHtmlHead(accum: QuietAppendable, out: Document.OutputSettings) {
         val tagName = safeTagName(out.syntax())
         accum.append('<').append(tagName)
         attributes?.html(accum, out)
@@ -1668,7 +1666,7 @@ public open class Element : Node, Iterable<Element> {
         }
     }
 
-    override fun outerHtmlTail(accum: Appendable, out: Document.OutputSettings) {
+    override fun outerHtmlTail(accum: QuietAppendable, out: Document.OutputSettings) {
         if (!childNodes.isEmpty())
             accum.append("</").append(safeTagName(out.syntax())).append('>')
         // if empty, we have already closed in htmlHead
@@ -1687,18 +1685,18 @@ public open class Element : Node, Iterable<Element> {
      * @see .outerHtml
      */
     public fun html(): String {
-        val accum: StringBuilder = StringUtil.borrowBuilder()
-        html(accum)
-        val html: String = StringUtil.releaseBuilder(accum)
-        return if (NodeUtils.outputSettings(this).prettyPrint()) html.trim { it <= ' ' } else html
+        val sb = StringUtil.borrowBuilder()
+        html(sb)
+        val html = StringUtil.releaseBuilder(sb)
+        return if (outputSettings(this).prettyPrint()) html.trim { it <= ' ' } else html
     }
 
     override fun <T : Appendable> html(appendable: T): T {
         var child = firstChild()
         if (child != null) {
-            val printer = Printer.printerFor(child, appendable)
+            val printer = Printer.printerFor(child, QuietAppendable.wrap(appendable))
             while (child != null) {
-                NodeTraversor.traverse(printer, child)
+                printer.traverse(child)
                 child = child.nextSibling()
             }
         }
