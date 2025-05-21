@@ -4,7 +4,7 @@ import com.fleeksoft.io.*
 import kotlin.math.min
 
 /**
- * A jsoup internal class (so don't use it as there is no contract API) that enables controls on a buffered input stream,
+ * A Ksoup internal class (so don't use it as there is no contract API) that enables controls on a buffered input stream,
  * namely a maximum read size, and the ability to Thread.interrupt() the read.
  */
 
