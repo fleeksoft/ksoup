@@ -174,15 +174,6 @@ public class Parser : KCloneable<Parser> {
         return tagSet!!
     }
 
-    /**
-     * (An internal method, visible for Element. For HTML parse, signals that script and style text should be treated as
-     * Data Nodes).
-     */
-    @Deprecated("internal method, no longer used, and will be removed")
-    public fun isContentForTagData(normalName: String): Boolean {
-        return tagSet().valueOf(normalName, defaultNamespace()).`is`(Tag.Data)
-    }
-
     public fun defaultNamespace(): String {
         return getTreeBuilder().defaultNamespace()
     }

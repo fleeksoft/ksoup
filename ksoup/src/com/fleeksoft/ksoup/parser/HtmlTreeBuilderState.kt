@@ -160,7 +160,6 @@ public enum class HtmlTreeBuilderState {
                         if (name == "base" && el.hasAttr("href")) tb.maybeSetBaseUri(el)
                     } else if (name == "meta") {
                         tb.insertEmptyElementFor(start)
-                        // todo: charset switches
                     } else if (name == "title") {
                         handleTextState(start, tb, TokeniserState.Rcdata)
                     } else if (StringUtil.inSorted(name, Constants.InHeadRaw)) {
