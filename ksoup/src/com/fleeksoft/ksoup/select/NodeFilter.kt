@@ -9,7 +9,8 @@
 package com.fleeksoft.ksoup.select
 
 import com.fleeksoft.ksoup.nodes.Node
-import com.fleeksoft.ksoup.select.NodeFilter.FilterResult
+import com.fleeksoft.ksoup.select.NodeTraversor.filter
+
 
 /**
  * Node filter interface. Provide an implementing class to [NodeTraversor] to iterate through nodes.
@@ -59,12 +60,9 @@ public interface NodeFilter {
      * Callback for when a node is first visited.
      * @param node the node being visited.
      * @param depth the depth of the node, relative to the root node. E.g., the root node has depth 0, and a child node of that will have depth 1.
-     * @return Filter decision
+     * @return Traversal action
      */
-    public fun head(
-        node: Node,
-        depth: Int,
-    ): FilterResult
+    public fun head(node: Node, depth: Int): FilterResult
 
     /**
      * Callback for when a node is last visited, after all of its descendants have been visited.
@@ -72,12 +70,17 @@ public interface NodeFilter {
      * This method has a default implementation to return [FilterResult.CONTINUE].
      * @param node the node being visited.
      * @param depth the depth of the node, relative to the root node. E.g., the root node has depth 0, and a child node of that will have depth 1.
-     * @return Filter decision
+     * @return Traversal action
      */
-    public fun tail(
-        node: Node?,
-        depth: Int,
-    ): FilterResult {
+    public fun tail(node: Node?, depth: Int): FilterResult {
         return FilterResult.CONTINUE
+    }
+
+    /**
+     * Run a depth-first controlled traverse of the root and all of its descendants.
+     * @param root the initial node point to traverse.
+     */
+    fun traverse(root: Node) {
+        filter(this, root)
     }
 }

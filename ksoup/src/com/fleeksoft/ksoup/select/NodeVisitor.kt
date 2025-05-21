@@ -9,6 +9,8 @@
 package com.fleeksoft.ksoup.select
 
 import com.fleeksoft.ksoup.nodes.Node
+import com.fleeksoft.ksoup.select.NodeTraversor.traverse
+
 
 /**
 Node visitor interface. Provide an implementing class to {@link NodeTraversor} or to {@link Node#traverse(NodeVisitor)}
@@ -41,10 +43,7 @@ public fun interface NodeVisitor {
     @param depth the depth of the node, relative to the root node. E.g., the root node has depth 0, and a child node
     of that will have depth 1.
      */
-    public fun head(
-        node: Node,
-        depth: Int,
-    )
+    public fun head(node: Node, depth: Int)
 
     /**
      * Callback for when a node is last visited, after all of its descendants have been visited.
@@ -58,10 +57,15 @@ public fun interface NodeVisitor {
      * @param depth the depth of the node, relative to the root node. E.g., the root node has depth 0, and a child node
      * of that will have depth 1.
      */
-    public fun tail(
-        node: Node,
-        depth: Int,
-    ) {
+    public fun tail(node: Node, depth: Int) {
         // no-op by default, to allow just specifying the head() method
+    }
+
+    /**
+     * Run a depth-first traverse of the root and all of its descendants.
+     * @param root the initial node point to traverse.
+     */
+    fun traverse(root: Node) {
+        traverse(this, root)
     }
 }

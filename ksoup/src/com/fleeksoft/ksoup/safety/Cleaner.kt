@@ -165,7 +165,7 @@ public class Cleaner(private val safelist: Safelist) {
 
     private fun copySafeNodes(source: Element, dest: Element): Int {
         val cleaningVisitor = CleaningVisitor(source, dest)
-        NodeTraversor.traverse(cleaningVisitor, source)
+        cleaningVisitor.traverse(source)
         return cleaningVisitor.numDiscarded
     }
 
