@@ -4,6 +4,7 @@ import com.fleeksoft.io.InputStream
 import com.fleeksoft.io.inputStream
 import com.fleeksoft.io.kotlinx.asInputStream
 import com.fleeksoft.ksoup.nodes.Document
+import com.fleeksoft.ksoup.parser.Parser
 import korlibs.io.compression.deflate.GZIP
 import korlibs.io.compression.uncompress
 import korlibs.io.file.std.uniVfs
@@ -70,16 +71,20 @@ object TestHelper {
         return bytes.uncompress(GZIP).inputStream()
     }
 
-    suspend fun parseResource(resourceName: String, baseUri: String = "", charsetName: String? = null): Document {
-        return if (!canReadResourceFile() || (!isGzipSupported() && (resourceName.endsWith(".gz") || resourceName.endsWith(
-                ".z"
-            )))
+    suspend fun parseResource(
+        resourceName: String,
+        baseUri: String = "",
+        charsetName: String? = null,
+        parser: Parser = Parser.htmlParser()
+    ): Document {
+        return if (!canReadResourceFile() || (!isGzipSupported() &&
+                    (resourceName.endsWith(".gz") || resourceName.endsWith(".z")))
         ) {
             val input = readResource(resourceName)
-            Ksoup.parseInput(input = input, baseUri = baseUri, charsetName = charsetName)
+            Ksoup.parseInput(input = input, baseUri = baseUri, charsetName = charsetName, parser = parser)
         } else {
             val input: String = getResourceAbsolutePath(resourceName)
-            Ksoup.parseFile(filePath = input, charsetName = charsetName, baseUri = baseUri)
+            Ksoup.parseFile(filePath = input, charsetName = charsetName, baseUri = baseUri, parser = parser)
         }
     }
 
