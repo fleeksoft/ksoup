@@ -538,10 +538,10 @@ class XmlTreeBuilderTest {
         assertEquals(
             "<package>\n" +
                     " <metadata xmlns:dc=\"http://purl.org/dc/elements/1.1/\">\n" +
-                    "  <dc:identifier id=\"pub-id\">id</dc:identifier><dc:title>title</dc:title> <dc:language>ja</dc:language> <dc:description>desc</dc:description>\n" +
+                    "  <dc:identifier id=\"pub-id\">id</dc:identifier> <dc:title>title</dc:title> <dc:language>ja</dc:language> <dc:description>desc</dc:description>\n" +
                     " </metadata>\n" +
                     "</package>", doc.html()
-        )
+        );
 
         // can customize
         val meta = doc.expectFirst("metadata")
@@ -673,7 +673,7 @@ class XmlTreeBuilderTest {
 
         // insert some parsed xml, inherit bk and edi, and with an inner node override bk
         val book = doc.expectFirst("bk|book")
-            book.append("<bk:content edi:foo=qux>Content</bk:content>")
+        book.append("<bk:content edi:foo=qux>Content</bk:content>")
 
         val out = doc.expectFirst("out")
         assertEquals("/out", out.tag().namespace())
