@@ -18,7 +18,7 @@ import kotlin.jvm.JvmStatic
  * A character reader with helpers focusing on parsing CSS selectors. Used internally by ksoup.
  * API subject to changes.
  */
-class TokenQueue(data: String) {
+class TokenQueue(data: String) : AutoCloseable {
     private val reader = CharacterReader(data)
 
     fun isEmpty(): Boolean = reader.isEmpty()
@@ -31,20 +31,12 @@ class TokenQueue(data: String) {
 
     fun current(): Char = reader.current()
 
-    @Deprecated("will be removed in 1.21.1")
-    fun addFirst(seq: String) {
-        throw UnsupportedOperationException("addFirst() not supported")
-    }
-
     fun matches(seq: String): Boolean = reader.matchesIgnoreCase(seq)
 
     /** Tests if the next character on the queue matches the character, case-sensitively.  */
     fun matches(c: Char): Boolean {
         return reader.matches(c)
     }
-
-    @Deprecated("will be removed in 1.21.1")
-    fun matchesAny(vararg seq: String): Boolean = seq.any { matches(it) }
 
     fun matchesAny(vararg seq: Char): Boolean = reader.matchesAny(*seq)
 
@@ -71,15 +63,6 @@ class TokenQueue(data: String) {
 
     fun consumeTo(seq: String): String = reader.consumeTo(seq)
 
-    @Deprecated("will be removed in 1.21.1")
-    fun consumeToIgnoreCase(seq: String): String {
-        val sb = StringUtil.borrowBuilder()
-        while (!isEmpty() && !reader.matchesIgnoreCase(seq)) {
-            sb.append(consume())
-        }
-        return StringUtil.releaseBuilder(sb)
-    }
-
     fun consumeToAny(vararg seq: String): String {
         val sb = StringUtil.borrowBuilder()
         loop@ while (!isEmpty()) {
@@ -89,63 +72,39 @@ class TokenQueue(data: String) {
         return StringUtil.releaseBuilder(sb)
     }
 
-    @Deprecated("will be removed in 1.21.1")
-    fun chompTo(seq: String): String {
-        val data = reader.consumeTo(seq)
-        matchChomp(seq)
-        return data
-    }
-
-    @Deprecated("will be removed in 1.21.1")
-    fun chompToIgnoreCase(seq: String): String {
-        val data = consumeToIgnoreCase(seq)
-        matchChomp(seq)
-        return data
-    }
-
     fun chompBalanced(open: Char, close: Char): String {
         val accum = StringUtil.borrowBuilder()
         var depth = 0
-        var last: Char = 0.toChar()
-        var inSingleQuote = false
-        var inDoubleQuote = false
+        var prev: Char = 0.toChar()
+        var inSingle = false
+        var inDouble = false
         var inRegexQE = false
         reader.mark()
 
         do {
             if (isEmpty()) break
             val c = consume()
-            if (last != ESC) {
-                if (c == '\'' && c != open && !inDoubleQuote) inSingleQuote = !inSingleQuote
-                else if (c == '"' && c != open && !inSingleQuote) inDoubleQuote = !inDoubleQuote
-                if (inSingleQuote || inDoubleQuote || inRegexQE) {
-                    accum.append(c)
-                    last = c
-                    continue
-                }
-                when (c) {
-                    open -> {
-                        depth++
-                        if (depth > 1) accum.append(c)
-                    }
-
-                    close -> {
-                        depth--
-                        if (depth > 0) accum.append(c)
-                    }
-
-                    else -> accum.append(c)
-                }
-            } else if (c == 'Q') {
-                inRegexQE = true
-                accum.append(c)
-            } else if (c == 'E') {
-                inRegexQE = false
+            if (prev == ESC) {
+                if (c == 'Q') inRegexQE = true
+                else if (c == 'E') inRegexQE = false
                 accum.append(c)
             } else {
-                accum.append(c)
+                if (c == '\'' && c != open && !inDouble) inSingle = !inSingle
+                else if (c == '"' && c != open && !inSingle) inDouble = !inDouble
+
+                if (inSingle || inDouble || inRegexQE) {
+                    accum.append(c)
+                } else if (c == open) {
+                    depth++
+                    if (depth > 1) accum.append(c) // don't include the outer match pair in the return
+                } else if (c == close) {
+                    depth--
+                    if (depth > 0) accum.append(c)
+                } else {
+                    accum.append(c)
+                }
             }
-            last = c
+            prev = c
         } while (depth > 0)
 
         val out = StringUtil.releaseBuilder(accum)
@@ -164,9 +123,6 @@ class TokenQueue(data: String) {
         }
         return seen
     }
-
-    @Deprecated("will be removed in 1.21.1")
-    fun consumeWord(): String = reader.consumeMatching { it.isLetterOrDigit() }
 
     fun consumeElementSelector(): String = consumeEscapedCssIdentifier(*ELEMENT_SELECTOR_CHARS)
 
@@ -249,6 +205,10 @@ class TokenQueue(data: String) {
 
     override fun toString(): String = reader.toString()
 
+    override fun close() {
+        reader.close()
+    }
+
     companion object {
         private const val ESC: Char = '\\'
         private const val HYPHEN_MINUS: Char = '-'
@@ -302,6 +262,7 @@ class TokenQueue(data: String) {
                     else -> appendEscaped(out, c)
                 }
             }
+            q.close()
             return StringUtil.releaseBuilder(out)
         }
 
