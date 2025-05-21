@@ -8,6 +8,7 @@
 
 package com.fleeksoft.ksoup.nodes
 
+import com.fleeksoft.ksoup.internal.QuietAppendable
 import com.fleeksoft.ksoup.parser.Tag
 
 /**
@@ -16,9 +17,9 @@ import com.fleeksoft.ksoup.parser.Tag
  */
 internal class PseudoTextElement(tag: Tag, baseUri: String?, attributes: Attributes?) :
     Element(tag, baseUri, attributes) {
-    override fun outerHtmlHead(accum: Appendable, out: Document.OutputSettings) {
+    override fun outerHtmlHead(accum: QuietAppendable, out: Document.OutputSettings) {
     }
 
-    override fun outerHtmlTail(accum: Appendable, out: Document.OutputSettings) {
+    override fun outerHtmlTail(accum: QuietAppendable, out: Document.OutputSettings) {
     }
 }

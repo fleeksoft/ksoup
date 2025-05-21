@@ -8,6 +8,7 @@
 
 package com.fleeksoft.ksoup.nodes
 
+import com.fleeksoft.ksoup.internal.QuietAppendable
 import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.nodes.Document.OutputSettings.Syntax
 
@@ -67,7 +68,7 @@ public class DocumentType(private val name: String, private val publicId: String
         return "#doctype"
     }
 
-    override fun outerHtmlHead(accum: Appendable, out: Document.OutputSettings) {
+    override fun outerHtmlHead(accum: QuietAppendable, out: Document.OutputSettings) {
         if (out.syntax() == Syntax.html && !has(PublicId) && !has(SystemId)) {
             // looks like a html5 doctype, go lowercase for aesthetics
             accum.append("<!doctype")
@@ -101,6 +102,5 @@ public class DocumentType(private val name: String, private val publicId: String
         private const val PubSysKey: String = "pubSysKey" // PUBLIC or SYSTEM
         private const val PublicId: String = "publicId"
         private const val SystemId: String = "systemId"
-        // todo: quirk mode from publicId and systemId
     }
 }

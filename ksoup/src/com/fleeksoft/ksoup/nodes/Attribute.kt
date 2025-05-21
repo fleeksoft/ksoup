@@ -8,14 +8,15 @@
 
 package com.fleeksoft.ksoup.nodes
 
-import com.fleeksoft.io.exception.IOException
-import com.fleeksoft.ksoup.exception.SerializationException
 import com.fleeksoft.ksoup.helper.Validate
+import com.fleeksoft.ksoup.internal.QuietAppendable
 import com.fleeksoft.ksoup.internal.SharedConstants
-import com.fleeksoft.ksoup.internal.StringUtil
+import com.fleeksoft.ksoup.internal.StringUtil.borrowBuilder
+import com.fleeksoft.ksoup.internal.StringUtil.releaseBuilder
 import com.fleeksoft.ksoup.nodes.Document.OutputSettings.Syntax
 import com.fleeksoft.ksoup.ported.KCloneable
 import com.fleeksoft.ksoup.ported.binarySearchBy
+
 
 /**
  * A single key + value attribute. (Only used for presentation.)
@@ -156,13 +157,21 @@ public open class Attribute : Map.Entry<String, String?>, KCloneable<Attribute> 
      * @return HTML
      */
     public fun html(): String {
-        val sb: StringBuilder = StringUtil.borrowBuilder()
-        try {
-            html(sb, Document("").outputSettings())
-        } catch (exception: IOException) {
-            throw SerializationException(exception)
-        }
-        return StringUtil.releaseBuilder(sb)
+        val sb: StringBuilder = borrowBuilder()
+        html(QuietAppendable.wrap(sb), Document.OutputSettings())
+        return releaseBuilder(sb)
+    }
+
+    // todo @Deprecate
+    @Deprecated("internal method and will be removed ")
+    protected fun html(accum: Appendable, out: Document.OutputSettings) {
+        html(key, value, accum, out)
+    }
+
+    // todo @Deprecate
+    @Deprecated("internal method and will be removed ")
+    protected fun html(key: String, value: String, accum: Appendable, out: Document.OutputSettings) {
+        html(key, value, QuietAppendable.wrap(accum), out)
     }
 
     /**
@@ -182,10 +191,7 @@ public open class Attribute : Map.Entry<String, String?>, KCloneable<Attribute> 
         return parent!!.sourceRange(key)
     }
 
-    protected fun html(
-        accum: Appendable,
-        out: Document.OutputSettings,
-    ) {
+    protected fun html(accum: QuietAppendable, out: Document.OutputSettings) {
         html(attributeKey, attributeValue, accum, out)
     }
 
@@ -272,17 +278,12 @@ public open class Attribute : Map.Entry<String, String?>, KCloneable<Attribute> 
                 "typemustmatch",
             )
 
-        protected fun html(
-            key: String,
-            value: String?,
-            accum: Appendable,
-            out: Document.OutputSettings,
-        ) {
+        protected fun html(key: String, value: String?, accum: QuietAppendable, out: Document.OutputSettings) {
             val resultKey: String = getValidKey(key, out.syntax()) ?: return // can't write it :(
             htmlNoValidate(resultKey, value, accum, out)
         }
 
-        public fun htmlNoValidate(key: String, value: String?, accum: Appendable, out: Document.OutputSettings) {
+        public fun htmlNoValidate(key: String, value: String?, accum: QuietAppendable, out: Document.OutputSettings) {
             // structured like this so that Attributes can check we can write first, so it can add whitespace correctly
             accum.append(key)
             if (!shouldCollapseAttribute(key, value, out)) {

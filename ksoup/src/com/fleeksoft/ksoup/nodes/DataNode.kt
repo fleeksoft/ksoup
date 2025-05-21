@@ -1,5 +1,6 @@
 package com.fleeksoft.ksoup.nodes
 
+import com.fleeksoft.ksoup.internal.QuietAppendable
 import com.fleeksoft.ksoup.internal.Unbaser
 
 /**
@@ -57,7 +58,7 @@ public class DataNode(data: String) : LeafNode(data) {
         }
     }
 
-    public override fun outerHtmlHead(accum: Appendable, out: Document.OutputSettings) {
+    public override fun outerHtmlHead(accum: QuietAppendable, out: Document.OutputSettings) {
         /* For XML output, escape the DataNode in a CData section. The data may contain pseudo-CData content if it was
         parsed as HTML, so don't double up Cdata. Output in polyglot HTML / XHTML / XML format. */
         val data = getWholeData()
