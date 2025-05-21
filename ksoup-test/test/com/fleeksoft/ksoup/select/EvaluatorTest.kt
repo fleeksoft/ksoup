@@ -1,7 +1,11 @@
 package com.fleeksoft.ksoup.select
 
+import com.fleeksoft.ksoup.Ksoup
+import com.fleeksoft.ksoup.nodes.Document
+import com.fleeksoft.ksoup.nodes.Element
 import kotlin.test.Test
 import kotlin.test.assertEquals
+
 
 class EvaluatorTest {
     @Test
@@ -254,5 +258,30 @@ class EvaluatorTest {
     fun testMatchTextToString() {
         val evaluator = Evaluator.MatchText()
         assertEquals(":matchText", evaluator.toString())
+    }
+
+    @Test
+    fun nthPosition() {
+        val orphan = Element("div")
+        val doc: Document = Ksoup.parse("<div><p>One<p>Two<p>Three<p>Four</p><h1>Five</h1></div>")
+        val div = doc.expectFirst("div")
+        val ps = doc.select("p")
+        val h1 = doc.expectFirst("h1")
+
+        val lastchild: Evaluator.CssNthEvaluator = Evaluator.IsNthLastChild(1, 0)
+        assertEquals(0, lastchild.calculatePosition(orphan, orphan))
+        assertEquals(2, lastchild.calculatePosition(div, ps[3]))
+
+        val nthType = Evaluator.IsNthOfType(1, 0)
+        assertEquals(0, nthType.calculatePosition(orphan, orphan))
+        assertEquals(1, nthType.calculatePosition(div, ps[0]))
+        assertEquals(2, nthType.calculatePosition(div, ps[1]))
+        assertEquals(1, nthType.calculatePosition(div, h1))
+
+        val nthLastType = Evaluator.IsNthLastOfType(1, 0)
+        assertEquals(0, nthLastType.calculatePosition(orphan, orphan))
+        assertEquals(4, nthLastType.calculatePosition(div, ps[0]))
+        assertEquals(3, nthLastType.calculatePosition(div, ps[1]))
+        assertEquals(1, nthLastType.calculatePosition(div, h1))
     }
 }
