@@ -1,10 +1,10 @@
 [versions]
 libraryVersion = "0.2.3"
 agp = "8.7.3"
-kotlin = "2.1.20"
+kotlin = "2.1.21"
 compileSdk = "35"
 minSdk = "21"
-ktor = "3.1.2"
+ktor = "3.1.3"
 ktor2 = "2.3.13"
 coroutines = "1.10.2"
 kotlinxDatetime = "0.6.2"
