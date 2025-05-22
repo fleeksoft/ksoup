@@ -5,11 +5,12 @@ import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.utils.io.core.use
 
 /**
  * Helper class for making HTTP requests using Ktor client.
  */
-object NetworkHelperKtor {
+object NetworkHelperKtor2 {
 
     /**
      * Performs an HTTP GET request

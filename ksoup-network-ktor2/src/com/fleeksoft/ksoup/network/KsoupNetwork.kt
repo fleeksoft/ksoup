@@ -23,7 +23,7 @@ public suspend fun Ksoup.parseGetRequest(
     httpRequestBuilder: HttpRequestBuilder.() -> Unit = {},
     parser: Parser = Parser.htmlParser(),
 ): Document {
-    val httpResponse = NetworkHelperKtor.instance.get(url, httpRequestBuilder = httpRequestBuilder)
+    val httpResponse = NetworkHelperKtor2.get(url, httpRequestBuilder = httpRequestBuilder)
 //        url can be changed after redirection
     val finalUrl = httpResponse.request.url.toString()
     return Ksoup.parseInput(input = httpResponse.asInputStream(), parser = parser, baseUri = finalUrl)
@@ -46,7 +46,7 @@ public suspend fun Ksoup.parseSubmitRequest(
     httpRequestBuilder: HttpRequestBuilder.() -> Unit = {},
     parser: Parser = Parser.htmlParser(),
 ): Document {
-    val httpResponse = NetworkHelperKtor.instance.submitForm(
+    val httpResponse = NetworkHelperKtor2.submitForm(
         url = url,
         params = params,
         httpRequestBuilder = httpRequestBuilder,
@@ -72,7 +72,7 @@ public suspend fun Ksoup.parsePostRequest(
     httpRequestBuilder: HttpRequestBuilder.() -> Unit = {},
     parser: Parser = Parser.htmlParser(),
 ): Document {
-    val httpResponse = NetworkHelperKtor.instance.post(
+    val httpResponse = NetworkHelperKtor2.post(
         url = url,
         httpRequestBuilder = httpRequestBuilder,
     )
