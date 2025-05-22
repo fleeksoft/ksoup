@@ -1,5 +1,5 @@
 [versions]
-libraryVersion = "0.2.3"
+libraryVersion = "0.2.4"
 agp = "8.7.3"
 kotlin = "2.1.21"
 compileSdk = "35"
