@@ -7,6 +7,7 @@ import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.parser.Tag
 import kotlin.jvm.JvmOverloads
 
+
 /**
  * A TagSet controls the [Tag] configuration for a Document's parse, and its serialization. It contains the initial
  * defaults, and after the parse, any additionally discovered tags.
@@ -16,6 +17,7 @@ class TagSet {
     val tags: MutableMap<String, MutableMap<String, Tag>> = HashMap() // namespace -> tag name -> Tag
 
     val source: TagSet? // source to pull tags from on demand
+    private var customizers: ArrayList<((Tag) -> Unit)>? = null // optional onNewTag tag customizer
 
     constructor() {
         source = null
@@ -41,6 +43,12 @@ class TagSet {
     }
 
     private fun doAdd(tag: Tag) {
+
+        if (customizers != null) {
+            for (customizer in customizers) {
+                customizer(tag)
+            }
+        }
         tags.getOrPut(tag.namespace()) { HashMap() }.put(tag.tagName, tag)
     }
 
@@ -123,6 +131,34 @@ class TagSet {
         settings: ParseSettings = ParseSettings.preserveCase
     ): Tag {
         return valueOf(tagName, ParseSettings.normalName(tagName), namespace, settings.preserveTagCase())
+    }
+
+    /**
+     * Register a callback to customize each [Tag] as it's added to this TagSet.
+     *
+     * Customizers are invoked once per Tag, when they are added (explicitly or via the valueOf methods).
+     *
+     * For example, to allow all unknown tags to be self-closing when parsing as HTML:
+     *
+     * ```
+     * val parser = Parser.htmlParser()
+     * parser.tagSet().onNewTag { tag ->
+     *     if (!tag.isKnownTag())
+     *         tag.set(Tag.SelfClose)
+     * }
+     *
+     * val doc = Jsoup.parse(html, parser)
+     * ```
+     *
+     * @param customizer a function that will be called for each newly added or cloned Tag; callers can
+     * inspect and modify the Tag's state (e.g. set options)
+     * @return this TagSet, to allow method chaining
+     */
+    fun onNewTag(customizer: (Tag) -> Unit): TagSet {
+        if (customizers == null)
+            customizers = ArrayList()
+        customizers?.add(customizer)
+        return this
     }
 
     override fun equals(o: Any?): Boolean {
