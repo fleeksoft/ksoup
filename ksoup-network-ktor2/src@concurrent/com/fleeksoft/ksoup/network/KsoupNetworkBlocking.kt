@@ -25,7 +25,8 @@ public fun Ksoup.parseGetRequestBlocking(
     httpClient: HttpClient? = null,
     httpRequestBuilder: HttpRequestBuilder.() -> Unit = {},
 ): Document = runBlocking {
-    val httpResponse = NetworkHelperKtor2.get(url, httpRequestBuilder = httpRequestBuilder, client = httpClient)
+    val client = httpClient ?: HttpClient(provideHttpClientEngine())
+    val httpResponse = NetworkHelperKtor2.get(url, httpRequestBuilder = httpRequestBuilder, client = client)
 //        url can be changed after redirection
     val finalUrl = httpResponse.request.url.toString()
     val response = httpResponse.bodyAsText()
@@ -50,13 +51,13 @@ public fun Ksoup.parseSubmitRequestBlocking(
     httpClient: HttpClient? = null,
     httpRequestBuilder: HttpRequestBuilder.() -> Unit = {},
 ): Document = runBlocking {
-    val httpResponse =
-        NetworkHelperKtor2.submitForm(
-            url = url,
-            params = params,
-            httpRequestBuilder = httpRequestBuilder,
-            client = httpClient
-        )
+    val client = httpClient ?: HttpClient(provideHttpClientEngine())
+    val httpResponse = NetworkHelperKtor2.submitForm(
+        url = url,
+        params = params,
+        httpRequestBuilder = httpRequestBuilder,
+        client = client
+    )
 //            url can be changed after redirection
     val finalUrl = httpResponse.request.url.toString()
     val result: String = httpResponse.bodyAsText()
@@ -80,12 +81,13 @@ public fun Ksoup.parsePostRequestBlocking(
     httpRequestBuilder: HttpRequestBuilder.() -> Unit = {},
     httpClient: HttpClient? = null,
 ): Document = runBlocking {
-    val httpResponse =
-        NetworkHelperKtor2.post(
-            url = url,
-            httpRequestBuilder = httpRequestBuilder,
-            client = httpClient
-        )
+    val client = httpClient ?: HttpClient(provideHttpClientEngine())
+    val httpResponse = NetworkHelperKtor2.post(
+        url = url,
+        httpRequestBuilder = httpRequestBuilder,
+        client = client
+
+    )
 //            url can be changed after redirection
     val finalUrl = httpResponse.request.url.toString()
     val result: String = httpResponse.bodyAsText()

@@ -5,7 +5,6 @@ import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.utils.io.core.use
 
 /**
  * Helper class for making HTTP requests using Ktor client.
@@ -22,13 +21,11 @@ object NetworkHelperKtor2 {
      */
     public suspend fun get(
         url: String,
-        client: HttpClient? = null,
+        client: HttpClient,
         httpRequestBuilder: HttpRequestBuilder.() -> Unit = {},
     ): HttpResponse {
-        return executeRequest(client) { httpClient ->
-            httpClient.get(url) {
-                httpRequestBuilder()
-            }
+        return client.get(url) {
+            httpRequestBuilder()
         }
     }
 
@@ -44,20 +41,18 @@ object NetworkHelperKtor2 {
     public suspend fun submitForm(
         url: String,
         params: Map<String, String>,
-        client: HttpClient? = null,
+        client: HttpClient,
         httpRequestBuilder: HttpRequestBuilder.() -> Unit = {},
     ): HttpResponse {
-        return executeRequest(client) { httpClient ->
-            httpClient.submitForm(
-                url = url,
-                formParameters = parameters {
-                    params.forEach { (key, value) ->
-                        append(key, value)
-                    }
-                },
-            ) {
-                httpRequestBuilder()
-            }
+        return client.submitForm(
+            url = url,
+            formParameters = parameters {
+                params.forEach { (key, value) ->
+                    append(key, value)
+                }
+            },
+        ) {
+            httpRequestBuilder()
         }
     }
 
@@ -71,37 +66,11 @@ object NetworkHelperKtor2 {
      */
     public suspend fun post(
         url: String,
-        client: HttpClient? = null,
+        client: HttpClient,
         httpRequestBuilder: HttpRequestBuilder.() -> Unit = {},
     ): HttpResponse {
-        return executeRequest(client) { httpClient ->
-            httpClient.post(url) {
-                httpRequestBuilder()
-            }
-        }
-    }
-
-    /**
-     * Helper method to execute a request with proper client handling
-     *
-     * @param providedClient Optional user-provided client
-     * @param requestBlock The actual request execution
-     * @return HTTP response
-     */
-    private suspend fun <T> executeRequest(
-        providedClient: HttpClient?,
-        requestBlock: suspend (HttpClient) -> T
-    ): T {
-        // Use provided client, or create a new one
-        val clientToUse = providedClient ?: HttpClient(provideHttpClientEngine())
-
-        // If we're using a client that was created just for this request (not provided by user,
-        // then close it after use
-        return if (providedClient == null) {
-            clientToUse.use { requestBlock(it) }
-        } else {
-            // Otherwise, just use the client without closing it
-            requestBlock(clientToUse)
+        return client.post(url) {
+            httpRequestBuilder()
         }
     }
 }

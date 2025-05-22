@@ -4,6 +4,7 @@ import com.fleeksoft.ksoup.Ksoup
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parseInput
 import com.fleeksoft.ksoup.parser.Parser
+import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 
@@ -20,10 +21,12 @@ import io.ktor.client.statement.*
  */
 public suspend fun Ksoup.parseGetRequest(
     url: String,
-    httpRequestBuilder: HttpRequestBuilder.() -> Unit = {},
     parser: Parser = Parser.htmlParser(),
+    httpClient: HttpClient? = null,
+    httpRequestBuilder: HttpRequestBuilder.() -> Unit = {},
 ): Document {
-    val httpResponse = NetworkHelperKtor2.get(url, httpRequestBuilder = httpRequestBuilder)
+    val client = httpClient ?: HttpClient(provideHttpClientEngine())
+    val httpResponse = NetworkHelperKtor2.get(url, httpRequestBuilder = httpRequestBuilder, client = client)
 //        url can be changed after redirection
     val finalUrl = httpResponse.request.url.toString()
     return Ksoup.parseInput(input = httpResponse.asInputStream(), parser = parser, baseUri = finalUrl)
@@ -43,13 +46,16 @@ public suspend fun Ksoup.parseGetRequest(
 public suspend fun Ksoup.parseSubmitRequest(
     url: String,
     params: Map<String, String> = emptyMap(),
-    httpRequestBuilder: HttpRequestBuilder.() -> Unit = {},
     parser: Parser = Parser.htmlParser(),
+    httpClient: HttpClient? = null,
+    httpRequestBuilder: HttpRequestBuilder.() -> Unit = {},
 ): Document {
+    val client = httpClient ?: HttpClient(provideHttpClientEngine())
     val httpResponse = NetworkHelperKtor2.submitForm(
         url = url,
         params = params,
         httpRequestBuilder = httpRequestBuilder,
+        client = client
     )
 //            url can be changed after redirection
     val finalUrl = httpResponse.request.url.toString()
@@ -69,12 +75,15 @@ public suspend fun Ksoup.parseSubmitRequest(
  */
 public suspend fun Ksoup.parsePostRequest(
     url: String,
-    httpRequestBuilder: HttpRequestBuilder.() -> Unit = {},
     parser: Parser = Parser.htmlParser(),
+    httpClient: HttpClient? = null,
+    httpRequestBuilder: HttpRequestBuilder.() -> Unit = {},
 ): Document {
+    val client = httpClient ?: HttpClient(provideHttpClientEngine())
     val httpResponse = NetworkHelperKtor2.post(
         url = url,
         httpRequestBuilder = httpRequestBuilder,
+        client = client
     )
 //            url can be changed after redirection
     val finalUrl = httpResponse.request.url.toString()
