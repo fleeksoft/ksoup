@@ -15,7 +15,7 @@ kotlinx-benchmark = "0.4.13"
 
 #korlibs = "999.0.0.999" # 999.0.0.999 is local version
 korlibs = "6.0.1"
-mavenPublish = "0.31.0"
+mavenPublish = "0.32.0"
 
 stately = "2.1.0"
 jsoup = "1.19.1" # for testing only
