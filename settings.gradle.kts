@@ -32,6 +32,7 @@ include("ksoup-okio")
 include("ksoup-korlibs")
 include("ksoup-network-korlibs")
 include("ksoup-test")
+include("ksoup-network-test")
 include("ksoup-benchmark")
 
 //include("sample:shared", "sample:desktop")

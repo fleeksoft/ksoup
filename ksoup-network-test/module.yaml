@@ -1,0 +1,20 @@
+product:
+  type: lib
+  platforms: [ jvm, js, android, linuxX64, linuxArm64, tvosArm64, tvosX64, tvosSimulatorArm64, macosX64, macosArm64, iosArm64, iosSimulatorArm64, iosX64, mingwX64 ]
+
+apply: [ ../common.module-template.yaml ]
+
+aliases:
+  - jvmAndAndroid: [ jvm, android ]
+
+repositories:
+  - mavenLocal
+
+test-dependencies:
+  - ../ksoup-network
+  - $libs.ktor.client.mock
+  - $libs.kotlinx.coroutines.test
+
+settings:
+  kotlin:
+    optIns: [ kotlinx.cinterop.BetaInteropApi, kotlinx.cinterop.UnsafeNumber, kotlinx.cinterop.ExperimentalForeignApi, kotlin.experimental.ExperimentalNativeApi ]
