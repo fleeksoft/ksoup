@@ -9,109 +9,92 @@ on:
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
-        config: [
-            { target: android, os: ubuntu-latest, tasks: testDebugUnitTest testReleaseUnitTest, continueOnError: false },
-            { target: apple, os: macos-latest, tasks: iosX64Test iosSimulatorArm64Test macosX64Test macosArm64Test tvosX64Test tvosSimulatorArm64Test, continueOnError: false },
-            { target: js, os: ubuntu-latest, tasks: jsTest, continueOnError: false },
-            { target: wasmJs, os: ubuntu-latest, tasks: wasmJsNodeTest, continueOnError: false, runOnlyFor: ["core", "kotlinx", "okio"] },
-            { target: desktop, os: ubuntu-latest, tasks: jvmTest, continueOnError: false },
-            { target: windows, os: windows-latest, tasks: mingwX64Test, continueOnError: false },
-            { target: linux, os: ubuntu-latest, tasks: linuxX64Test, continueOnError: false },
-          ]
-        libBuildType: [ "core", "korlibs", "kotlinx", "okio" ]
-    runs-on: ${{ matrix.config.os }}
-    name: Build ${{ matrix.config.target }} with libBuildType=${{ matrix.libBuildType }}
-    # Skip wasmJs tests if libBuildType is not in runOnlyFor
-    if: ${{ !matrix.config.runOnlyFor || contains(matrix.config.runOnlyFor, matrix.libBuildType) }}
+        # ── axis 1 ───────────────────────────────
+        libBuildType: [ core, korlibs, kotlinx, okio ]
+
+        # ── axis 2 plus per-target data ─────────
+        target: [ android, apple, js, desktop, windows, linux, wasmJs ]
+
+        include:
+          # android ----------------------------------------------------------
+          - target: android
+            os: ubuntu-latest
+            tasks: testDebugUnitTest testReleaseUnitTest
+            continueOnError: false
+
+          # apple ------------------------------------------------------------
+          - target: apple
+            os: macos-latest
+            tasks: iosX64Test iosSimulatorArm64Test macosX64Test macosArm64Test tvosX64Test tvosSimulatorArm64Test
+            continueOnError: false
+
+          # js ---------------------------------------------------------------
+          - target: js
+            os: ubuntu-latest
+            tasks: jsTest
+            continueOnError: false
+
+          # desktop ----------------------------------------------------------
+          - target: desktop
+            os: ubuntu-latest
+            tasks: jvmTest
+            continueOnError: false
+
+          # windows ----------------------------------------------------------
+          - target: windows
+            os: windows-latest
+            tasks: mingwX64Test
+            continueOnError: false
+
+          # linux ------------------------------------------------------------
+          - target: linux
+            os: ubuntu-latest
+            tasks: linuxX64Test
+            continueOnError: false
+
+          # wasmJs -----------------------------------------------------------
+          - target: wasmJs
+            os: ubuntu-latest
+            tasks: wasmJsNodeTest          # <- only Node test task
+            continueOnError: false
+
+        # ── forbid the single unwanted pair ─────
+        exclude:
+          - target: wasmJs
+            libBuildType: korlibs
+
+    runs-on: ${{ matrix.os }}
+    name: Build ${{ matrix.target }} – ${{ matrix.libBuildType }}
+
     steps:
       - uses: actions/checkout@v4
-      - name: Setup JDK 17
+
+      - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
-          java-version: '17'
-          distribution: 'temurin'
+          distribution: temurin
+          java-version: "17"
 
-      - name: Setup gradle
-        uses: gradle/gradle-build-action@v3
+      - uses: gradle/gradle-build-action@v3
+        name: Set up Gradle
 
-      - name: Run tests for ${{ matrix.libBuildType }} on ${{ matrix.config.target }}
-        continue-on-error: ${{ matrix.config.continueOnError }}
+      - name: Run tests for ${{ matrix.libBuildType }} on ${{ matrix.target }}
+        continue-on-error: ${{ matrix.continueOnError }}
         run: |
-          if [ "${{ runner.os }}" == "Windows" ]; then
+          if [ "${{ runner.os }}" = "Windows" ]; then
             ./gradlew mingwX64Test -PlibBuildType=${{ matrix.libBuildType }}
           else
             chmod +x ./runTests.sh
-            ./runTests.sh ${{ matrix.libBuildType }} ${{ matrix.config.tasks }}
+            ./runTests.sh "${{ matrix.libBuildType }}" "${{ matrix.tasks }}"
           fi
         shell: bash
         working-directory: ${{ github.workspace }}
 
-      - name: Upload test results from ksoup-test module if failure
+      - name: Upload test results (on failure)
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: test-results-${{ matrix.config.target }}-${{ matrix.libBuildType }}
+          name: test-results-${{ matrix.target }}-${{ matrix.libBuildType }}
           path: ksoup-test/build/reports/tests/**/*
-
-#  deploy:
-#    if: github.ref == 'refs/heads/release'
-#
-#    runs-on: macos-latest
-#    needs: [ build ]
-#
-#    steps:
-#      - uses: actions/checkout@v4
-#
-#      - name: Setup JDK
-#        uses: actions/setup-java@v4
-#        with:
-#          distribution: 'temurin'
-#          java-version: 17
-#
-#      - uses: gradle/gradle-build-action@v3
-#
-#      - name: Deploy to Sonatype
-#        run: ./gradlew :ksoup:publish :ksoup-network:publish --no-configuration-cache
-#        env:
-#          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
-#          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
-#          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.GPG_KEY }}
-#          ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ secrets.GPG_KEY_ID }}
-#          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.GPG_KEY_PASSWORD }}
-#
-#  deploy_docs:
-#    if: github.ref == 'refs/heads/release'
-#    runs-on: macos-latest
-#    needs:
-#      - build
-#    environment:
-#      name: github-pages
-#      url: ${{ steps.deployment.outputs.page_url }}
-#
-#    steps:
-#      - uses: actions/checkout@v3
-#
-#      - name: Setup JDK 17
-#        uses: actions/setup-java@v3
-#        with:
-#          java-version: '17'
-#          distribution: 'temurin'
-#
-#      - name: Setup gradle
-#        uses: gradle/gradle-build-action@v2
-#
-#      - name: Setup Pages
-#        uses: actions/configure-pages@v3
-#
-#      - name: Generate docs with dokka
-#        run: ./gradlew dokkaHtmlMultiModule
-#
-#      - name: Upload artifact
-#        uses: actions/upload-pages-artifact@v1
-#        with:
-#          path: ${{ github.workspace }}/build/dokka/htmlMultiModule
-#
-#      - name: Release to GitHub Pages
-#        id: deployment
-#        uses: actions/deploy-pages@v1
