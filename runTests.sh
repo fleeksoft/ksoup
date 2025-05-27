@@ -19,12 +19,38 @@ run_tests() {
 
     # Remove build directories if they exist
     echo "clean build"
-    ./gradlew :ksoup-test:clean -PlibBuildType="$libBuildType" --quiet --warning-mode=none
+
+    # Determine which projects to include in testing
+    local projects=("ksoup-test")
+
+    # Only include ksoup-network-test if libBuildType is kotlinx
+    if [ "$libBuildType" = "kotlinx" ]; then
+        projects+=("ksoup-network-test")
+        echo "Including ksoup-network-test module in tests"
+    else
+        echo "Skipping ksoup-network-test module (only runs with libBuildType=kotlinx)"
+    fi
+
+    # Clean all relevant projects
+    local clean_tasks=()
+    for project in "${projects[@]}"; do
+        clean_tasks+=("$project:clean")
+    done
+    ./gradlew "${clean_tasks[@]}" -PlibBuildType="$libBuildType" --quiet --warning-mode=none
 
     for task in "${tasks[@]}"; do
       start_time=$(date +%s)
       echo "Running $task... $libBuildType"
-      ./gradlew "$task" -PlibBuildType="$libBuildType" --quiet --warning-mode=none
+
+      # Build the project list for this task
+      local project_tasks=()
+      for project in "${projects[@]}"; do
+        project_tasks+=("$project:$task")
+      done
+
+      # Run the task on the selected projects
+      ./gradlew "${project_tasks[@]}" -PlibBuildType="$libBuildType" --quiet --warning-mode=none
+
       end_time=$(date +%s)
       duration=$((end_time - start_time))
       echo "Task $task completed in $duration seconds."
