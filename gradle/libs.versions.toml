@@ -18,7 +18,7 @@ korlibs = "6.0.1"
 mavenPublish = "0.32.0"
 
 stately = "2.1.0"
-jsoup = "1.19.1" # for testing only
+jsoup = "1.20.1" # for testing only
 fleeksoft-io = "0.0.4"
 
 [libraries]
