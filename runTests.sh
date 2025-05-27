@@ -77,7 +77,14 @@ if [ "$#" -ge 1 ]; then
     shift
 
     if is_supported_param "$libBuildType"; then
-        run_tests "$libBuildType" "$@"
+        # If there's only one argument left and it contains spaces, split it into an array
+        if [ "$#" -eq 1 ] && [[ "$1" == *" "* ]]; then
+            # Split the string into an array using space as delimiter
+            IFS=' ' read -r -a task_array <<< "$1"
+            run_tests "$libBuildType" "${task_array[@]}"
+        else
+            run_tests "$libBuildType" "$@"
+        fi
     else
         echo "Error: Unsupported parameter '$libBuildType'. Supported parameters are: ${SUPPORTED_PARAMS[*]}"
         exit 1
