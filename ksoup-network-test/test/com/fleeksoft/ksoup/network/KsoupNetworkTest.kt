@@ -89,17 +89,9 @@ class KsoupNetworkTest {
 
     @Test
     fun testParse() = runTest {
-        // Keep the original test for JVM platform
-        try {
-            // Try with real network request first
-            val doc = Ksoup.parseGetRequest("https://github.com/fleeksoft/ksoup")
-            val repoName = doc.selectFirst("strong[itemprop=name] a")?.text()
-            assertEquals("ksoup", repoName)
-        } catch (e: Exception) {
-            // If it fails (e.g., on iOS/tvOS simulators), use a mock client as fallback
-            val githubMockEngine = MockEngine { request ->
-                respond(
-                    content = """
+        val githubMockEngine = MockEngine { request ->
+            respond(
+                content = """
                         <!DOCTYPE html>
                         <html>
                         <head><title>GitHub</title></head>
@@ -108,21 +100,20 @@ class KsoupNetworkTest {
                         </body>
                         </html>
                     """.trimIndent(),
-                    status = HttpStatusCode.OK,
-                    headers = headersOf("Content-Type" to listOf("text/html"))
-                )
-            }
-
-            val githubMockClient = HttpClient(githubMockEngine)
-
-            val doc = Ksoup.parseGetRequest(
-                url = "https://github.com/fleeksoft/ksoup",
-                httpClient = githubMockClient
+                status = HttpStatusCode.OK,
+                headers = headersOf("Content-Type" to listOf("text/html"))
             )
-
-            val repoName = doc.selectFirst("strong[itemprop=name] a")?.text()
-            assertEquals("ksoup", repoName)
         }
+
+        val githubMockClient = HttpClient(githubMockEngine)
+
+        val doc = Ksoup.parseGetRequest(
+            url = "https://github.com/fleeksoft/ksoup",
+            httpClient = githubMockClient
+        )
+
+        val repoName = doc.selectFirst("strong[itemprop=name] a")?.text()
+        assertEquals("ksoup", repoName)
     }
 
     @Test
