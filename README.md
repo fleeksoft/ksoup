@@ -18,9 +18,14 @@
 
 ## 🚨 Deprecation Notice
 
-> The `ksoup-korlibs` and `ksoup-network-korlibs` variant is **deprecated** and will be removed in a future release.
+> The following extension libraries are **deprecated** and will be removed in a future release:
+> - `ksoup-korlibs` (I/O extension)
+> - `ksoup-network-korlibs` (Network extension)
+> - `ksoup-network-ktor2` (Network extension)
 >
-> **Recommendation:** Use the `ksoup-kotlinx` variant for I/O support and Ktor 3 for networking.
+> **Recommendation:** 
+> - For I/O capabilities: Use `ksoup-kotlinx` extension
+> - For network capabilities: Use `ksoup-network` extension (based on Ktor 3)
 
 Ksoup implements the [WHATWG HTML5](https://html.spec.whatwg.org/multipage/) specification, parsing HTML to the same DOM as modern browsers do, but with support for Android, JVM, and native platforms.
 
@@ -34,54 +39,76 @@ Ksoup implements the [WHATWG HTML5](https://html.spec.whatwg.org/multipage/) spe
 Ksoup is adept at handling all varieties of HTML found in the wild.
 
 ## Getting started
-### Ksoup is published on Maven Central
-Include the dependency in `commonMain`. Latest version [![Maven Central](https://img.shields.io/maven-central/v/com.fleeksoft.ksoup/ksoup.svg)](https://central.sonatype.com/artifact/com.fleeksoft.ksoup/ksoup)
+### Library Structure
+Ksoup follows a modular architecture:
+- **Core Library (`com.fleeksoft.ksoup:ksoup`)**: The main library that provides HTML/XML parsing from strings
+- **Optional I/O Extensions**: Add capabilities for parsing from files and other sources
+- **Optional Network Extensions**: Add capabilities for fetching and parsing from URLs
 
-Ksoup published in four variants. Pick the one that suits your needs and start building!
-1. **Lightweight variant: Use this if you only need to parse HTML from a string.**
+### Installation
+Include the dependencies in your `commonMain`. Latest version [![Maven Central](https://img.shields.io/maven-central/v/com.fleeksoft.ksoup/ksoup.svg)](https://central.sonatype.com/artifact/com.fleeksoft.ksoup/ksoup)
+
+### 1. Core Library
+**Start with the core library. This is all you need if you're only parsing HTML/XML from strings.**
+```kotlin
+// Required core library
+implementation("com.fleeksoft.ksoup:ksoup:<version>")
+```
+
+### 2. I/O Extensions (Optional)
+**Add one of these extensions only if you need to parse HTML/XML from files or other sources.**
+
+Choose one of the following I/O libraries:
+
+1. **[kotlinx-io](https://github.com/Kotlin/kotlinx-io) (Recommended)**
    ```kotlin
-   implementation("com.fleeksoft.ksoup:ksoup:<version>")
-    ```
-2. **This variant use [kotlinx-io](https://github.com/Kotlin/kotlinx-io) for I/O and [Ktor 3](https://github.com/ktorio/ktor) for networking**
-   ```kotlin
-   // Ksoup.parseFile, Ksoup.parseSource
+   // Optional: Add this if you need file parsing capabilities
+   // Provides Ksoup.parseFile, Ksoup.parseSource & Other InputStream APIs
    implementation("com.fleeksoft.ksoup:ksoup-kotlinx:<version>")
-   
-    // Optional: Include only if you need to use network request functions such as
-    // Ksoup.parseGetRequest, Ksoup.parseSubmitRequest, and Ksoup.parsePostRequest
-   implementation("com.fleeksoft.ksoup:ksoup-network:<version>")
-    ```
+   ```
 
-3. **This variant use [kotlinx-io](https://github.com/Kotlin/kotlinx-io) for I/O and [Ktor 2](https://github.com/ktorio/ktor) for networking**
+2. **[okio](https://github.com/square/okio)**
    ```kotlin
-   // Ksoup.parseFile, Ksoup.parseSource
-   implementation("com.fleeksoft.ksoup:ksoup-kotlinx:<version>")
-
-    // Optional: Include only if you need to use network request functions such as
-    // Ksoup.parseGetRequest, Ksoup.parseSubmitRequest, and Ksoup.parsePostRequest
-   implementation("com.fleeksoft.ksoup:ksoup-network-ktor2:<version>")
-    ```
-4. **This variant use [okio](https://github.com/square/okio) for I/O and [Ktor 2](https://github.com/ktorio/ktor) for networking**
-   ```kotlin
+   // Optional: Add this if you need file parsing capabilities
+   // Provides Ksoup.parseFile, Ksoup.parseSource & Other InputStream APIs
    implementation("com.fleeksoft.ksoup:ksoup-okio:<version>")
+   ```
 
-    // Optional: Include only if you need to use network request functions such as
-    // Ksoup.parseGetRequest, Ksoup.parseSubmitRequest, and Ksoup.parsePostRequest
-   implementation("com.fleeksoft.ksoup:ksoup-network-ktor2:<version>")
-    ```
-
-5. ~~**This variant use [korlibs-io](https://github.com/korlibs/korlibs-io) for I/O and networking**~~
+3. ~~**[korlibs-io](https://github.com/korlibs/korlibs-io)**~~ **(DEPRECATED: Use kotlinx-io instead)**
    ```kotlin
-   // Ksoup.parseFile, Ksoup.parseStream
+   // Deprecated: Not recommended for new projects
+   // Provides Ksoup.parseFile, Ksoup.parseStream & Other InputStream APIs
    implementation("com.fleeksoft.ksoup:ksoup-korlibs:<version>")
+   ```
 
-    // Optional: Include only if you need to use network request functions such as
-    // Ksoup.parseGetRequest, Ksoup.parseSubmitRequest, and Ksoup.parsePostRequest
+### 3. Network Extensions (Optional)
+**Add one of these extensions only if you need to fetch and parse HTML/XML directly from URLs.**
+
+Choose one of the following network libraries:
+
+1. **[Ktor 3](https://github.com/ktorio/ktor) (Recommended)**
+   ```kotlin
+   // Optional: Add this if you need to fetch HTML/XML from URLs
+   // Provides Ksoup.parseGetRequest, Ksoup.parseSubmitRequest, Ksoup.parsePostRequest
+   implementation("com.fleeksoft.ksoup:ksoup-network:<version>")
+   ```
+
+2. ~~**[Ktor 2](https://github.com/ktorio/ktor)**~~ **(DEPRECATED: Use Ktor 3 instead)**
+   ```kotlin
+   // Deprecated: Not recommended for new projects
+   // Provides Ksoup.parseGetRequest, Ksoup.parseSubmitRequest, Ksoup.parsePostRequest
+   implementation("com.fleeksoft.ksoup:ksoup-network-ktor2:<version>")
+   ```
+
+3. ~~**[korlibs-io](https://github.com/korlibs/korlibs-io) Network**~~ **(DEPRECATED: Use Ktor 3 instead)**
+   ```kotlin
+   // Deprecated: Not recommended for new projects
+   // Provides Ksoup.parseGetRequest, Ksoup.parseSubmitRequest, Ksoup.parsePostRequest
    implementation("com.fleeksoft.ksoup:ksoup-network-korlibs:<version>")
-    ```
-   
+   ```
+
 #### Ksoup supports [Charsets](https://github.com/fleeksoft/fleeksoft-io/blob/main/CharsetsReadme.md)
-- Standard charsets are already supported by **Ksoup IO**, but for extended charsets, plesae add `com.fleeksoft.charset:charset-ext`, For more details, visit the [Charsets Documentation](https://github.com/fleeksoft/fleeksoft-io/blob/main/CharsetsReadme.md)
+- Standard charsets are already supported by **Ksoup IO**, but for extended charsets, please add `com.fleeksoft.charset:charset-ext`, For more details, visit the [Charsets Documentation](https://github.com/fleeksoft/fleeksoft-io/blob/main/CharsetsReadme.md)
 
 ### Parsing HTML from a String with Ksoup
 For API documentation you can check [Jsoup](https://jsoup.org/). Most of the APIs work without any changes.
