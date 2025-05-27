@@ -19,6 +19,7 @@ import io.ktor.client.statement.*
  * @return sane HTML
  *
  */
+@Deprecated("Ktor2 support is deprecated; use the ktor3 variant `ksoup-network` instead.")
 public suspend fun Ksoup.parseGetRequest(
     url: String,
     parser: Parser = Parser.htmlParser(),
@@ -43,6 +44,7 @@ public suspend fun Ksoup.parseGetRequest(
  * @return sane HTML
  *
  */
+@Deprecated("Ktor2 support is deprecated; use the ktor3 variant `ksoup-network` instead.")
 public suspend fun Ksoup.parseSubmitRequest(
     url: String,
     params: Map<String, String> = emptyMap(),
@@ -73,6 +75,7 @@ public suspend fun Ksoup.parseSubmitRequest(
  * @return sane HTML
  *
  */
+@Deprecated("Ktor2 support is deprecated; use the ktor3 variant `ksoup-network` instead.")
 public suspend fun Ksoup.parsePostRequest(
     url: String,
     parser: Parser = Parser.htmlParser(),

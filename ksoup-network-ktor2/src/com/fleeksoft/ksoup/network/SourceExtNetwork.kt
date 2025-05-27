@@ -14,10 +14,12 @@ import io.ktor.utils.io.core.*
     level = DeprecationLevel.WARNING
 )
 suspend fun HttpResponse.asSourceReader() = SourceReader.from(this.bodyAsText().encodeToByteArray())
+
+@Deprecated("Ktor2 support is deprecated; use the ktor3 variant `ksoup-network` instead.")
 suspend fun HttpResponse.asInputStream() = this.body<ByteReadPacket>().asStream()
 
 
-@Suppress("DEPRECATION")
+@Deprecated("Ktor2 support is deprecated; use the ktor3 variant `ksoup-network` instead.")
 public fun Input.asStream(): InputStream = object : InputStream() {
 
     override fun read(): Int {
