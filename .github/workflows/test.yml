@@ -15,7 +15,7 @@ jobs:
         libBuildType: [ core, korlibs, kotlinx, okio ]
 
         # ── axis 2 plus per-target data ─────────
-        target: [ android, apple, js, desktop, windows, linux, wasmJs ]
+        target: [ android, apple, js, desktop-ubuntu, desktop-mac, windows, linux, wasmJs ]
 
         include:
           # android ----------------------------------------------------------
