@@ -36,9 +36,15 @@ jobs:
             tasks: jsTest
             continueOnError: false
 
-          # desktop ----------------------------------------------------------
-          - target: desktop
+          # desktop-ubuntu ----------------------------------------------------------
+          - target: desktop-ubuntu
             os: ubuntu-latest
+            tasks: jvmTest
+            continueOnError: false
+
+          # desktop-mac ----------------------------------------------------------
+          - target: desktop-mac
+            os: macos-latest
             tasks: jvmTest
             continueOnError: false
 
