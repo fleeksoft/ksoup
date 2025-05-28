@@ -8,8 +8,7 @@
 
 package com.fleeksoft.ksoup.nodes
 
-import com.fleeksoft.io.exception.IOException
-import com.fleeksoft.ksoup.exception.SerializationException
+import com.fleeksoft.ksoup.internal.QuietAppendable
 import com.fleeksoft.ksoup.internal.StringUtil
 
 /**
@@ -34,19 +33,12 @@ class XmlDeclaration(name: String, private val isDeclaration: Boolean) : LeafNod
 
     public fun getWholeDeclaration(): String {
         val sb: StringBuilder = StringUtil.borrowBuilder()
-        try {
-            getWholeDeclaration(sb, Document.OutputSettings())
-        } catch (e: IOException) {
-            throw SerializationException(e)
-        }
+        getWholeDeclaration(QuietAppendable.wrap(sb), Document.OutputSettings())
         return StringUtil.releaseBuilder(sb).trim()
     }
 
 
-    private fun getWholeDeclaration(
-        accum: Appendable,
-        out: Document.OutputSettings,
-    ) {
+    private fun getWholeDeclaration(accum: QuietAppendable, out: Document.OutputSettings) {
         for (attribute in attributes()) {
             val key: String = attribute.key
             val value: String = attribute.value
@@ -63,7 +55,7 @@ class XmlDeclaration(name: String, private val isDeclaration: Boolean) : LeafNod
         }
     }
 
-    override fun outerHtmlHead(accum: Appendable, out: Document.OutputSettings) {
+    override fun outerHtmlHead(accum: QuietAppendable, out: Document.OutputSettings) {
         accum
             .append("<")
             .append(if (isDeclaration) "!" else "?")
@@ -74,7 +66,7 @@ class XmlDeclaration(name: String, private val isDeclaration: Boolean) : LeafNod
             .append(">")
     }
 
-    override fun outerHtmlTail(accum: Appendable, out: Document.OutputSettings) {
+    override fun outerHtmlTail(accum: QuietAppendable, out: Document.OutputSettings) {
     }
 
     override fun toString(): String {

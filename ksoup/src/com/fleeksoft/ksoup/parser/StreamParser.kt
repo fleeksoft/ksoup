@@ -19,6 +19,7 @@ import com.fleeksoft.ksoup.ported.LinkedList
 import com.fleeksoft.ksoup.select.Evaluator
 import com.fleeksoft.ksoup.select.NodeVisitor
 import com.fleeksoft.ksoup.select.QueryParser
+import com.fleeksoft.ksoup.select.Selector
 
 /**
  * A StreamParser provides a progressive parse of its input. As each Element is completed, it is emitted via a Stream or
@@ -209,7 +210,7 @@ class StreamParser(private val parser: Parser) {
      * @throws com.fleeksoft.io.exception.IOException if an I/O error occurs
      */
     fun selectFirst(query: String): Element? {
-        return selectFirst(QueryParser.parse(query))
+        return selectFirst(Selector.evaluatorOf(query))
     }
 
     /**
@@ -235,7 +236,7 @@ class StreamParser(private val parser: Parser) {
      * @param eval the {@link org.jsoup.select.Selector} evaluator.
      * @return the first matching {@link Element}, or {@code null} if there's no match
      * @throws IOException if an I/O error occurs
-     * @see QueryParser#parse(String)
+     * @see Selector#evaluatorOf(String css)
      */
     fun selectFirst(eval: Evaluator): Element? {
         val doc: Document = document()
@@ -255,7 +256,7 @@ class StreamParser(private val parser: Parser) {
      * @throws com.fleeksoft.io.exception.IOException if an I/O error occurs
      */
     fun selectNext(query: String): Element? {
-        return selectNext(QueryParser.parse(query))
+        return selectNext(Selector.evaluatorOf(query))
     }
 
     /**
@@ -281,7 +282,7 @@ class StreamParser(private val parser: Parser) {
      * @param eval the {@link org.jsoup.select.Selector} evaluator.
      * @return the next matching {@link Element}, or {@code null} if there's no match
      * @throws com.fleeksoft.io.exception.IOException if an I/O error occurs
-     * @see QueryParser#parse(String)
+     * @see Selector#evaluatorOf(String css)
      */
     fun selectNext(eval: Evaluator): Element? {
         val doc: Document = document() // validates the parse was initialized, keeps stack trace out of stream

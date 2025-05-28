@@ -20,7 +20,7 @@ import com.fleeksoft.ksoup.select.StructuralEvaluator.ImmediateParentRun
 /**
  * Parses a CSS selector into an Evaluator tree.
  */
-public class QueryParser private constructor(query: String) {
+public class QueryParser private constructor(query: String) : AutoCloseable {
     private val tq: TokenQueue
     private val query: String
 
@@ -187,9 +187,13 @@ public class QueryParser private constructor(query: String) {
     }
 
     private fun byAttribute(): Evaluator {
-        val cq = TokenQueue(tq.chompBalanced('[', ']')) // content queue
-        val key: String =
-            cq.consumeToAny(*AttributeEvals) // eq, not, start, end, contain, match, (no val)
+        return TokenQueue(tq.chompBalanced('[', ']')).use { cq ->
+            evaluatorForAttribute(cq)
+        }
+    }
+
+    private fun evaluatorForAttribute(cq: TokenQueue): Evaluator {
+        val key: String = cq.consumeToAny(*AttributeEvals) // eq, not, start, end, contain, match, (no val)
         Validate.notEmpty(key)
         cq.consumeWhitespace()
         val eval: Evaluator
@@ -364,6 +368,10 @@ public class QueryParser private constructor(query: String) {
         return query
     }
 
+    override fun close() {
+        tq.close()
+    }
+
     public companion object {
         private val Combinators: CharArray = charArrayOf('>', '+', '~') // ' ' is also a combinator, but found implicitly
         private val SequenceEnders: CharArray = charArrayOf(',', ')')
@@ -379,8 +387,7 @@ public class QueryParser private constructor(query: String) {
          */
         public fun parse(query: String): Evaluator {
             return try {
-                val p = QueryParser(query)
-                p.parse()
+                QueryParser(query).use { it.parse() }
             } catch (e: IllegalArgumentException) {
                 throw Selector.SelectorParseException(e.message)
             }

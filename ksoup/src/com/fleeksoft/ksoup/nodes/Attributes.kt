@@ -16,6 +16,7 @@ import com.fleeksoft.ksoup.parser.ParseSettings
 import com.fleeksoft.ksoup.ported.KCloneable
 import com.fleeksoft.io.exception.IOException
 import com.fleeksoft.ksoup.exception.SerializationException
+import com.fleeksoft.ksoup.internal.QuietAppendable
 import kotlin.js.JsName
 
 /**
@@ -463,16 +464,11 @@ public class Attributes : Iterable<Attribute>, KCloneable<Attributes> {
      */
     public fun html(): String {
         val sb: StringBuilder = StringUtil.borrowBuilder()
-        try {
-            html(sb, Document("").outputSettings()) // output settings a bit funky, but this html() seldom used
-        } catch (e: IOException) {
-            // ought never happen
-            throw SerializationException(e)
-        }
+        html(QuietAppendable.wrap(sb), Document.OutputSettings()); // output settings a bit funky, but this html() seldom used
         return StringUtil.releaseBuilder(sb)
     }
 
-    public fun html(accum: Appendable, out: Document.OutputSettings) {
+    public fun html(accum: QuietAppendable, out: Document.OutputSettings) {
         val sz = size
         for (i in 0 until sz) {
             val key = keys[i]!!

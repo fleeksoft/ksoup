@@ -6,17 +6,22 @@ import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 
-public class NetworkHelperKtor(private val client: HttpClient) {
-    companion object {
-        val instance: NetworkHelperKtor = NetworkHelperKtor(
-            HttpClient(provideHttpClientEngine()) {
-                this.followRedirects = true
-            },
-        )
-    }
+/**
+ * Helper class for making HTTP requests using Ktor client.
+ */
+object NetworkHelperKtor {
 
-    suspend fun get(
+    /**
+     * Performs an HTTP GET request
+     *
+     * @param url The URL to request
+     * @param client Optional custom HTTP client (if null, uses the default client or creates a new one)
+     * @param httpRequestBuilder Optional request configuration
+     * @return HTTP response
+     */
+    public suspend fun get(
         url: String,
+        client: HttpClient,
         httpRequestBuilder: HttpRequestBuilder.() -> Unit = {},
     ): HttpResponse {
         return client.get(url) {
@@ -24,15 +29,24 @@ public class NetworkHelperKtor(private val client: HttpClient) {
         }
     }
 
-    suspend fun submitForm(
+    /**
+     * Submits a form via HTTP POST
+     *
+     * @param url The URL to submit to
+     * @param params Form parameters
+     * @param client Optional custom HTTP client (if null, uses the default client or creates a new one)
+     * @param httpRequestBuilder Optional request configuration
+     * @return HTTP response
+     */
+    public suspend fun submitForm(
         url: String,
         params: Map<String, String>,
+        client: HttpClient,
         httpRequestBuilder: HttpRequestBuilder.() -> Unit = {},
     ): HttpResponse {
         return client.submitForm(
             url = url,
-            formParameters =
-            parameters {
+            formParameters = parameters {
                 params.forEach { (key, value) ->
                     append(key, value)
                 }
@@ -42,8 +56,17 @@ public class NetworkHelperKtor(private val client: HttpClient) {
         }
     }
 
-    suspend fun post(
+    /**
+     * Performs an HTTP POST request
+     *
+     * @param url The URL to request
+     * @param client Optional custom HTTP client (if null, uses the default client or creates a new one)
+     * @param httpRequestBuilder Optional request configuration
+     * @return HTTP response
+     */
+    public suspend fun post(
         url: String,
+        client: HttpClient,
         httpRequestBuilder: HttpRequestBuilder.() -> Unit = {},
     ): HttpResponse {
         return client.post(url) {

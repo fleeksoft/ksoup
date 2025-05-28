@@ -67,7 +67,6 @@ public class Document(
             }
         }
         return null
-        // todo - add a set document type?
     }
 
     /**
@@ -246,38 +245,6 @@ public class Document(
      */
     public fun charset(): Charset {
         return outputSettings.charset()
-    }
-
-    /**
-     * Sets whether the element with charset information in this document is
-     * updated on changes through [ Document.charset(Charset)][.charset] or not.
-     *
-     *
-     * If set to <tt>false</tt> *(default)* there are no elements
-     * modified.
-     *
-     * @param update If <tt>true</tt> the element updated on charset
-     * changes, <tt>false</tt> if not
-     *
-     * @see .charset
-     */
-    @Deprecated(
-        "this setting has no effect; the meta charset element is always updated when {@link Document#charset(Charset)} is called.",
-        replaceWith = ReplaceWith("charset(charset)")
-    )
-    public fun updateMetaCharsetElement(update: Boolean) {
-    }
-
-    /**
-     * Returns whether the element with charset information in this document is
-     * updated on changes through [ Document.charset(Charset)][.charset] or not.
-     *
-     * @return Returns <tt>true</tt> if the element is updated on charset
-     * changes, <tt>false</tt> if not
-     */
-    @Deprecated("this setting has no effect; the meta charset element is always updated when {@link Document#charset(Charset)} is called.")
-    public fun updateMetaCharsetElement(): Boolean {
-        return true
     }
 
     override fun clone(): Document {

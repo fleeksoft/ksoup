@@ -23,7 +23,7 @@ import kotlin.math.min
 /**
  * CharacterReader consumes tokens off a string. Used internally by com.fleeksoft.ksoup. API subject to changes.
  */
-public class CharacterReader {
+public class CharacterReader : AutoCloseable {
     private var stringCache: Array<String?>? = null // holds reused strings in this doc, to lessen garbage
 
     private var reader: Reader? = null      // underlying Reader, will be backed by a buffered+controlled input source, or StringReader
@@ -49,7 +49,7 @@ public class CharacterReader {
 
     public fun isClosed(): Boolean = reader == null
 
-    public fun close() {
+    public override fun close() {
         try {
             reader?.close()
         } catch (ignored: IOException) {

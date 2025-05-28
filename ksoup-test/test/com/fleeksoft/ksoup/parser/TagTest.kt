@@ -160,4 +160,106 @@ class TagTest {
         foo.name("BAR")
         assertEquals("<BAR>One</BAR><BAR>Two</BAR>", doc.body().html()) // is case-sensitive
     }
+
+    @Test
+    fun formSubmittable() {
+        // https://github.com/jhy/jsoup/issues/2323
+        val img = Tag.valueOf("img")
+        val input = Tag.valueOf("input")
+        val imgOpts = img.options
+        val inputOpts = input.options
+        assertFalse(img.isFormSubmittable())
+        assertTrue(input.isFormSubmittable())
+        assertEquals(imgOpts, img.options)
+        assertEquals(inputOpts, input.options)
+    }
+
+    @Test
+    fun stableHashcode() {
+        // tests that the hashcode is stable and suitable as a key
+        val tags: HashSet<Tag?> = HashSet()
+        val img = Tag.valueOf("img")
+        val IMG = Tag.valueOf("IMG")
+        val imgS = Tag.valueOf("img", Parser.NamespaceSvg, ParseSettings.htmlDefault)
+
+        assertEquals(-2074969810, img.hashCode())
+        assertEquals(-2075954866, IMG.hashCode())
+        assertEquals(-292873947, imgS.hashCode())
+
+        tags.add(img)
+        tags.add(IMG)
+        tags.add(imgS)
+
+        imgS.set(Tag.Block)
+        assertEquals(-292873947, imgS.hashCode())
+
+        assertTrue(tags.contains(img))
+        assertTrue(tags.contains(IMG))
+        assertTrue(tags.contains(imgS))
+    }
+
+    @Test
+    fun prefix() {
+        val img = Tag.valueOf("img")
+        val book = Tag.valueOf("bk:book")
+
+        assertEquals("", img.prefix())
+        assertEquals("bk", book.prefix())
+    }
+
+    @Test
+    fun localname() {
+        val img = Tag.valueOf("img")
+        val book = Tag.valueOf("bk:book")
+
+        assertEquals("img", img.localName())
+        assertEquals("book", book.localName())
+    }
+
+    @Test
+    fun valueOfWithSettings() {
+        val img1 = Tag.valueOf("img", ParseSettings.htmlDefault)
+        val img2: Tag? = Tag.valueOf("IMG", ParseSettings.htmlDefault)
+        val img3 = Tag.valueOf("IMG", ParseSettings.preserveCase)
+
+        assertNotSame(img1, img2) // because we are creating new TagSets with html()
+        assertNotSame(img1, img3)
+        assertEquals("IMG", img3.toString())
+        assertEquals("img", img1.toString())
+
+        val tagSet = TagSet.Html()
+        assertSame(
+            tagSet.valueOf("img", Parser.NamespaceHtml, ParseSettings.htmlDefault),
+            tagSet.valueOf("IMG", Parser.NamespaceHtml, ParseSettings.htmlDefault)
+        )
+
+        assertNotSame(
+            tagSet.valueOf("img", Parser.NamespaceHtml),
+            tagSet.valueOf("IMG", Parser.NamespaceHtml)
+        )
+    }
+
+    @Test
+    fun equals() {
+        val tags: TagSet = TagSet.Html()
+        val p1: Tag = tags.get("p", Parser.NamespaceHtml)!!
+        val p2: Tag = p1.clone()
+        assertEquals(p1, p2)
+
+        p2.namespace = "Other"
+        assertNotEquals(p1, p2)
+        p2.namespace = p1.namespace
+
+        p2.tagName = "P"
+        assertNotEquals(p1, p2)
+        p2.tagName = p1.tagName
+
+        p2.normalName = "pp"
+        assertNotEquals(p1, p2)
+        p2.normalName = p1.normalName
+
+        p2.options = 0
+        assertNotEquals(p1, p2)
+        p2.options = p1.options
+    }
 }

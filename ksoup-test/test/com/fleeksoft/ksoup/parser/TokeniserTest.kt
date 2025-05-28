@@ -203,4 +203,14 @@ class TokeniserTest {
         assertTrue(cdataNode is CDataNode, "Expected CDATA node")
         assertEquals(cdataContents, cdataNode.text())
     }
+
+    @Test
+    fun tokenDataToString() {
+        val data = TokenData()
+        assertEquals("", data.toString())
+        data.set("abc")
+        assertEquals("abc", data.toString())
+        data.append("def")
+        assertEquals("abcdef", data.toString())
+    }
 }

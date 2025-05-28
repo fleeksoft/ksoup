@@ -12,19 +12,45 @@ run_tests() {
     if [ ${#tasks[@]} -eq 0 ]; then
       echo "No specific tasks provided, running all default tests..."
      # tasks=("jvmTest" "testDebugUnitTest" "testReleaseUnitTest" "jsTest" "wasmJsTest" "iosX64Test" "iosSimulatorArm64Test" "macosX64Test" "macosArm64Test" "tvosX64Test" "tvosSimulatorArm64Test")
-    tasks=("jvmTest" "jsTest" "wasmJsTest" "macosX64Test" "macosArm64Test")
+    tasks=("jvmTest" "testDebugUnitTest" "jsTest" "wasmJsNodeTest" "macosArm64Test")
    fi
 
      echo "Running tests with libBuildType=$libBuildType and tasks=${tasks[*]}..."
 
     # Remove build directories if they exist
     echo "clean build"
-    ./gradlew :ksoup-test:clean -PlibBuildType="$libBuildType" --quiet --warning-mode=none
+
+    # Determine which projects to include in testing
+    local projects=("ksoup-test")
+
+    # Only include ksoup-network-test if libBuildType is kotlinx
+    if [ "$libBuildType" = "kotlinx" ]; then
+        projects+=("ksoup-network-test")
+        echo "Including ksoup-network-test module in tests"
+    else
+        echo "Skipping ksoup-network-test module (only runs with libBuildType=kotlinx)"
+    fi
+
+    # Clean all relevant projects
+    local clean_tasks=()
+    for project in "${projects[@]}"; do
+        clean_tasks+=("$project:clean")
+    done
+    ./gradlew "${clean_tasks[@]}" -PlibBuildType="$libBuildType" --quiet --warning-mode=none
 
     for task in "${tasks[@]}"; do
       start_time=$(date +%s)
       echo "Running $task... $libBuildType"
-      ./gradlew "$task" -PlibBuildType="$libBuildType" --quiet --warning-mode=none
+
+      # Build the project list for this task
+      local project_tasks=()
+      for project in "${projects[@]}"; do
+        project_tasks+=("$project:$task")
+      done
+
+      # Run the task on the selected projects
+      ./gradlew "${project_tasks[@]}" -PlibBuildType="$libBuildType" --quiet --warning-mode=none
+
       end_time=$(date +%s)
       duration=$((end_time - start_time))
       echo "Task $task completed in $duration seconds."
@@ -51,7 +77,14 @@ if [ "$#" -ge 1 ]; then
     shift
 
     if is_supported_param "$libBuildType"; then
-        run_tests "$libBuildType" "$@"
+        # If there's only one argument left and it contains spaces, split it into an array
+        if [ "$#" -eq 1 ] && [[ "$1" == *" "* ]]; then
+            # Split the string into an array using space as delimiter
+            IFS=' ' read -r -a task_array <<< "$1"
+            run_tests "$libBuildType" "${task_array[@]}"
+        else
+            run_tests "$libBuildType" "$@"
+        fi
     else
         echo "Error: Unsupported parameter '$libBuildType'. Supported parameters are: ${SUPPORTED_PARAMS[*]}"
         exit 1

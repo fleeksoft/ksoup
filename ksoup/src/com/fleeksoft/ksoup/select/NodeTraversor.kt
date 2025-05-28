@@ -11,6 +11,7 @@ package com.fleeksoft.ksoup.select
 import com.fleeksoft.ksoup.nodes.Node
 import com.fleeksoft.ksoup.ported.assert
 import com.fleeksoft.ksoup.select.NodeFilter.FilterResult
+import com.fleeksoft.ksoup.select.NodeTraversor.filter
 
 /**
  * A depth-first node traversor. Use to walk through all nodes under and including the specified root node, in document
@@ -73,10 +74,7 @@ public object NodeTraversor {
      * @param visitor Node visitor.
      * @param elements Elements to filter.
      */
-    public fun traverse(
-        visitor: NodeVisitor,
-        elements: Elements,
-    ) {
+    public fun traverse(visitor: NodeVisitor, elements: Elements) {
         elements.forEach {
             traverse(visitor, it)
         }
@@ -88,10 +86,7 @@ public object NodeTraversor {
      * @param root the root node point to traverse.
      * @return The filter result of the root node, or [FilterResult.STOP].
      */
-    public fun filter(
-        filter: NodeFilter,
-        root: Node,
-    ): FilterResult {
+    public fun filter(filter: NodeFilter, root: Node): FilterResult {
         var node: Node? = root
         var depth = 0
         while (node != null) {

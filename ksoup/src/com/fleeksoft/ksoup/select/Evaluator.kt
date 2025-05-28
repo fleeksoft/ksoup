@@ -463,7 +463,7 @@ public abstract class Evaluator protected constructor() {
         protected abstract fun getPseudoClass(): String
 
         /** Computes the position of [element] under [root]. */
-        protected abstract fun calculatePosition(root: Element, element: Element): Int
+        abstract fun calculatePosition(root: Element, element: Element): Int
     }
 
     /**
@@ -484,8 +484,10 @@ public abstract class Evaluator protected constructor() {
      * @see IndexEquals
      */
     class IsNthLastChild(a: Int, b: Int) : CssNthEvaluator(a, b) {
-        override fun calculatePosition(root: Element, element: Element): Int =
-            element.parent()?.let { it.childrenSize() - element.elementSiblingIndex() } ?: 0
+        override fun calculatePosition(root: Element, element: Element): Int {
+            if (element.parent() == null) return 0
+            return element.parent()!!.childrenSize() - element.elementSiblingIndex()
+        }
 
         override fun getPseudoClass(): String = "nth-last-child"
     }

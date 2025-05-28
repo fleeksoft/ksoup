@@ -2461,6 +2461,33 @@ class HtmlParserTest {
         assertEquals("<div /><custom /><custom>Foo</custom>", TextUtil.stripNewlines(doc.body().html()))
     }
 
+    @Test
+    fun svgScriptParsedAsScriptData() {
+        // https://github.com/jhy/jsoup/issues/2320
+        val html = "<svg><script>a < b</script></svg>"
+        val doc: Document = Ksoup.parse(html)
+        val script = doc.expectFirst("script")
+        assertEquals(Parser.NamespaceSvg, script.tag().namespace())
+        assertTrue(script.tag().`is`(Tag.Data))
+
+        val data = script.childNode(0) as DataNode
+        assertEquals("a < b", data.getWholeData())
+    }
+
+    @Test
+    fun allowCustomDataInForeignElements() {
+        val dataTag = Tag("data", Parser.NamespaceSvg)
+        dataTag.set(Tag.Data)
+        val tagSet: TagSet? = TagSet.HtmlTagSet.add(dataTag)
+        val html = "<svg><data>a < b</data></svg>"
+        val doc: Document = Ksoup.parse(html, Parser.htmlParser().tagSet(tagSet!!))
+        val data = doc.expectFirst("data")
+        assertEquals(Parser.NamespaceSvg, data.tag().namespace())
+        assertEquals("", data.text())
+        assertEquals("a < b", data.data())
+        assertEquals("<data>a < b</data>", data.outerHtml())
+    }
+
     companion object {
         private fun dupeAttributeData(): List<Pair<String, String>> {
             return listOf(

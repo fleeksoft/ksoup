@@ -9,6 +9,7 @@
 package com.fleeksoft.ksoup.nodes
 
 import com.fleeksoft.ksoup.helper.Validate
+import com.fleeksoft.ksoup.internal.QuietAppendable
 import com.fleeksoft.ksoup.internal.StringUtil
 
 
@@ -62,7 +63,7 @@ public open class TextNode(text: String) : LeafNode(text) {
         return tailNode
     }
 
-    override fun outerHtmlHead(accum: Appendable, out: Document.OutputSettings) {
+    override fun outerHtmlHead(accum: QuietAppendable, out: Document.OutputSettings) {
         Entities.escape(accum, coreValue(), out, Entities.ForText)
     }
 

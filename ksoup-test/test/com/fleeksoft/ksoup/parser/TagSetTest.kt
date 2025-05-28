@@ -55,7 +55,7 @@ class TagSetTest {
         assertFalse(foo.isKnownTag())
 
         assertSame(foo, tags.get("foo", Parser.NamespaceHtml))
-        assertSame(foo, tags.valueOf("FOO", Parser.NamespaceHtml, doc.parser()!!.settings()!!))
+        assertSame(foo, tags.valueOf("FOO", Parser.NamespaceHtml, doc.parser()!!.settings()))
         assertNull(tags.get("foo", "SomeOtherNamespace"))
     }
 
@@ -111,5 +111,84 @@ class TagSetTest {
         assertTrue(c1.isKnownTag())
         c1.clear(Tag.Known)
         assertFalse(c1.isKnownTag())
+    }
+
+    @Test
+    fun canCustomizeAll() {
+        val tags = TagSet.Html()
+        tags.onNewTag { tag -> tag.set(Tag.SelfClose) }
+        assertTrue(tags.get("script", Parser.NamespaceHtml)!!.`is`(Tag.SelfClose))
+        assertTrue(tags.valueOf("SCRIPT", Parser.NamespaceHtml).`is`(Tag.SelfClose))
+        assertTrue(tags.valueOf("custom", Parser.NamespaceHtml).`is`(Tag.SelfClose))
+
+        val foo = Tag("foo", Parser.NamespaceHtml)
+        assertFalse(foo.`is`(Tag.SelfClose))
+        tags.add(foo)
+        assertTrue(foo.`is`(Tag.SelfClose))
+    }
+
+    @Test
+    fun canCustomizeSome() {
+        val tags = TagSet.Html()
+        tags.onNewTag { tag ->
+            if (!tag.isKnownTag()) {
+                tag.set(Tag.SelfClose)
+            }
+        }
+        assertFalse(tags.valueOf("script", Parser.NamespaceHtml).`is`(Tag.SelfClose))
+        assertFalse(tags.valueOf("SCRIPT", Parser.NamespaceHtml).`is`(Tag.SelfClose))
+        assertTrue(tags.valueOf("custom-tag", Parser.NamespaceHtml).`is`(Tag.SelfClose))
+    }
+
+    @Test
+    fun canParseWithCustomization() {
+        // really would use tag.valueOf("script"); just a test example here
+        val parser = Parser.htmlParser()
+        parser.tagSet().onNewTag { tag ->
+            if (tag.normalName() == "script") tag.set(Tag.SelfClose)
+        }
+
+        val doc: Document = Ksoup.parse("<script />Text", parser)
+        assertEquals("<html>\n <head>\n  <script></script>\n </head>\n <body>Text</body>\n</html>", doc.html())
+        // self closing bit still produces valid HTML
+    }
+
+    @Test
+    fun canParseWithGeneralCustomization() {
+        val parser = Parser.htmlParser()
+        parser.tagSet().onNewTag { tag ->
+            if (!tag.isKnownTag()) tag.set(Tag.SelfClose)
+        }
+
+        val doc: Document = Ksoup.parse("<custom-data />Bar <script />Text", parser)
+        assertEquals("<custom-data></custom-data>Bar\n<script>Text</script>", doc.body().html())
+    }
+
+    @Test
+    fun supportsMultipleCustomizers() {
+        val tags = TagSet.Html()
+        tags.onNewTag { tag ->
+            if (tag.normalName() == "script") tag.set(Tag.SelfClose)
+        }
+        tags.onNewTag { tag ->
+            if (!tag.isKnownTag()) tag.set(Tag.RcData)
+        }
+
+        assertTrue(tags.valueOf("script", Parser.NamespaceHtml).`is`(Tag.SelfClose))
+        assertFalse(tags.valueOf("script", Parser.NamespaceHtml).`is`(Tag.RcData))
+        assertTrue(tags.valueOf("custom-tag", Parser.NamespaceHtml).`is`(Tag.RcData))
+    }
+
+    @Test
+    fun customizersArePreservedInSource() {
+        val source = TagSet.Html()
+        source.onNewTag { tag -> tag.set(Tag.RcData) }
+        val copy = TagSet(source)
+        assertTrue(copy.valueOf("script", Parser.NamespaceHtml).`is`(Tag.RcData))
+        assertTrue(source.valueOf("script", Parser.NamespaceHtml).`is`(Tag.RcData))
+
+        copy.onNewTag { tag -> tag.set(Tag.Void) }
+        assertTrue(copy.valueOf("custom-tag", Parser.NamespaceHtml).`is`(Tag.Void))
+        assertFalse(source.valueOf("custom-tag", Parser.NamespaceHtml).`is`(Tag.Void))
     }
 }

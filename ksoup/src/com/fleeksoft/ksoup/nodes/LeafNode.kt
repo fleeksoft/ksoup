@@ -8,6 +8,8 @@
 
 package com.fleeksoft.ksoup.nodes
 
+import com.fleeksoft.ksoup.internal.QuietAppendable
+
 /**
 A node that does not hold any children. E.g.: {@link TextNode}, {@link DataNode}, {@link Comment}.
  */
@@ -105,7 +107,7 @@ public abstract class LeafNode : Node {
         return EmptyNodes
     }
 
-    override fun outerHtmlTail(accum: Appendable, out: Document.OutputSettings) {}
+    override fun outerHtmlTail(accum: QuietAppendable, out: Document.OutputSettings) {}
 
     protected override fun doClone(parent: Node?): LeafNode {
         val clone = super.doClone(parent) as LeafNode

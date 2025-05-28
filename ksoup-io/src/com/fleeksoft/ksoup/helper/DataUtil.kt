@@ -2,11 +2,13 @@ package com.fleeksoft.ksoup.helper
 
 import com.fleeksoft.charset.Charset
 import com.fleeksoft.charset.Charsets
-import com.fleeksoft.io.*
+import com.fleeksoft.io.ByteBuffer
+import com.fleeksoft.io.InputStream
 import com.fleeksoft.io.exception.IOException
 import com.fleeksoft.ksoup.exception.IllegalCharsetNameException
 import com.fleeksoft.ksoup.exception.UncheckedIOException
 import com.fleeksoft.ksoup.exception.ValidationException
+import com.fleeksoft.ksoup.internal.SimpleStreamReader
 import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.io.internal.ControllableInputStream
 import com.fleeksoft.ksoup.io.isCharsetSupported
@@ -17,6 +19,7 @@ import com.fleeksoft.ksoup.nodes.XmlDeclaration
 import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.parser.StreamParser
 import com.fleeksoft.ksoup.select.Elements
+import com.fleeksoft.ksoup.select.Selector
 import kotlin.random.Random
 
 /**
@@ -66,7 +69,7 @@ public object DataUtil {
         val charsetName: String? = charset?.name()
         val charsetDoc: CharsetDoc = detectCharset(openStream(input), baseUri, charsetName, parser, fromStreamer = true)
         try {
-            val reader = charsetDoc.input.reader(charsetDoc.charset).buffered()
+            val reader = SimpleStreamReader(charsetDoc.input, charsetDoc.charset)
             streamer.parse(reader, baseUri) // initializes the parse and the document, but does not step() it
         } catch (e: IOException) {
             streamer.close()
@@ -100,6 +103,7 @@ public object DataUtil {
     )
 
 
+    private val metaCharset = Selector.evaluatorOf("meta[http-equiv=content-type], meta[charset]")
     private fun detectCharset(
         input: ControllableInputStream,
         baseUri: String,
@@ -122,17 +126,18 @@ public object DataUtil {
             input.mark(firstReadBufferSize)
             input.allowClose(false) // ignores closes during parse, in case we need to rewind
             try {
-                val reader: Reader = input.reader(Charsets.UTF8)
-                doc = parser.parseInput(reader, baseUri)
-                input.reset()
-                input.max(origMax) // reset for a full read if required
+                SimpleStreamReader(input, Charsets.UTF8).use { reader ->
+                    doc = parser.parseInput(reader, baseUri)
+                    input.reset()
+                    input.max(origMax) // reset for a full read if required
+                }
             } catch (e: UncheckedIOException) {
                 throw e
             } finally {
                 input.allowClose(true)
             }
             // look for <meta http-equiv="Content-Type" content="text/html;charset=gb2312"> or HTML5 <meta charset="gb2312">
-            val metaElements: Elements = doc.select("meta[http-equiv=content-type], meta[charset]")
+            val metaElements: Elements = doc!!.select(metaCharset)
             var foundCharset: String? = null // if not found, will keep utf-8 as best attempt
             for (meta in metaElements) {
                 if (meta.hasAttr("http-equiv")) {
@@ -178,7 +183,7 @@ public object DataUtil {
         // finally: prepare the return struct
         if (effectiveCharsetName == null) effectiveCharsetName = defaultCharsetName
         val charset: Charset =
-            if (effectiveCharsetName == defaultCharsetName) Charsets.UTF8 else com.fleeksoft.charset.Charsets.forName(
+            if (effectiveCharsetName == defaultCharsetName) Charsets.UTF8 else Charsets.forName(
                 effectiveCharsetName
             )
         return CharsetDoc(charset = charset, doc = doc, input = input)
@@ -191,8 +196,7 @@ public object DataUtil {
         val input = charsetDoc.input
         val doc: Document
         val charset: Charset = charsetDoc.charset
-
-        input.reader(charset).use { reader ->
+        SimpleStreamReader(input, charset).use { reader ->
             try {
                 doc = parser.parseInput(reader, baseUri)
             } catch (e: UncheckedIOException) {

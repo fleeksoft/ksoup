@@ -8,6 +8,7 @@
 
 package com.fleeksoft.ksoup.nodes
 
+import com.fleeksoft.ksoup.internal.QuietAppendable
 import com.fleeksoft.ksoup.parser.Parser
 
 /**
@@ -26,7 +27,7 @@ public class Comment(data: String) : LeafNode(data) {
         return this
     }
 
-    override fun outerHtmlHead(accum: Appendable, out: Document.OutputSettings) {
+    override fun outerHtmlHead(accum: QuietAppendable, out: Document.OutputSettings) {
         accum
             .append("<!--")
             .append(getData())

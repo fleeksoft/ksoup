@@ -669,17 +669,12 @@ public open class HtmlTreeBuilder : TreeBuilder() {
     }
 
     @JvmOverloads
-    public fun inScope(
-        targetName: String,
-        extras: Array<String>? = null,
-    ): Boolean {
+    public fun inScope(targetName: String, extras: Array<String>? = null): Boolean {
         return inSpecificScope(
             targetName = targetName,
             baseTypes = TagsSearchInScope,
             extraTypes = extras,
         )
-        // todo: in mathml namespace: mi, mo, mn, ms, mtext annotation-xml
-        // todo: in svg namespace: forignOjbect, desc, title
     }
 
     public fun inListItemScope(targetName: String): Boolean {

@@ -60,6 +60,22 @@ class AttributeTest {
     }
 
     @Test
+    fun settersAfterParentRemoval() {
+        // tests key and value set on a retained attribute after disconnected from parent
+        val attrs = Attributes()
+        attrs.put("foo", "bar")
+        val attr = attrs.attribute("foo")
+        assertNotNull(attr)
+        attrs.remove("foo")
+        assertEquals("foo", attr.key)
+        assertEquals("bar", attr.value)
+        attr.setKey("new")
+        attr.setValue("newer")
+        assertEquals("new", attr.key)
+        assertEquals("newer", attr.value)
+    }
+
+    @Test
     fun hasValue() {
         val a1 = Attribute("one", "")
         val a2 = Attribute("two", null)
@@ -90,5 +106,12 @@ class AttributeTest {
         assertEquals("<a href=\"autofocus\" required>One</a>", doc.selectFirst("a")?.outerHtml())
         val doc2 = Ksoup.parse(html, Parser.htmlParser().settings(ParseSettings.preserveCase))
         assertEquals("<a href=\"autofocus\" REQUIRED>One</a>", doc2.selectFirst("a")?.outerHtml())
+    }
+
+
+    @Test
+    fun orphanNamespace() {
+        val attr = Attribute("one", "two")
+        assertEquals("", attr.namespace())
     }
 }

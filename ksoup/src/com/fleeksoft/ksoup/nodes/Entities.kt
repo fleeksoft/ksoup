@@ -13,10 +13,11 @@ package com.fleeksoft.ksoup.nodes
 import com.fleeksoft.charset.Charset
 import com.fleeksoft.charset.CharsetEncoder
 import com.fleeksoft.charset.Charsets
-import com.fleeksoft.io.exception.IOException
-import com.fleeksoft.ksoup.exception.SerializationException
 import com.fleeksoft.ksoup.helper.Validate
+import com.fleeksoft.ksoup.internal.QuietAppendable
 import com.fleeksoft.ksoup.internal.StringUtil
+import com.fleeksoft.ksoup.internal.StringUtil.borrowBuilder
+import com.fleeksoft.ksoup.internal.StringUtil.releaseBuilder
 import com.fleeksoft.ksoup.nodes.Document.OutputSettings
 import com.fleeksoft.ksoup.nodes.Document.OutputSettings.Syntax
 import com.fleeksoft.ksoup.nodes.Entities.EscapeMode.base
@@ -152,24 +153,19 @@ public object Entities {
 
     public fun escapeString(data: String?, escapeMode: EscapeMode, syntax: Syntax, charset: Charset): String {
         if (data == null) return ""
-        val accum = StringUtil.borrowBuilder()
-        try {
-            doEscape(data, accum, escapeMode, syntax, charset, ForText or ForAttribute)
-        } catch (e: IOException) {
-            throw SerializationException(e) // doesn't happen
-        }
-
-        return StringUtil.releaseBuilder(accum)
+        val sb = borrowBuilder()
+        doEscape(data, QuietAppendable.wrap(sb), escapeMode, syntax, charset, ForText or ForAttribute)
+        return releaseBuilder(sb)
     }
 
-    fun escape(accum: Appendable, data: String, out: OutputSettings, options: Int) {
+    fun escape(accum: QuietAppendable, data: String, out: OutputSettings, options: Int) {
         doEscape(data, accum, out.escapeMode(), out.syntax(), out.charset(), options)
     }
 
     // this method does a lot, but other breakups cause rescanning and stringbuilder generations
     private fun doEscape(
         data: String,
-        accum: Appendable,
+        accum: QuietAppendable,
         mode: EscapeMode,
         syntax: Syntax,
         charset: Charset,
@@ -223,7 +219,7 @@ public object Entities {
 
     private fun appendEscaped(
         codePoint: CodePoint,
-        accum: Appendable,
+        accum: QuietAppendable,
         options: Int,
         escapeMode: EscapeMode,
         syntax: Syntax,
@@ -285,11 +281,7 @@ public object Entities {
             if (canEncode(coreCharset, c, fallback)) {
                 val chars = charBuf.get()
                 val len = codePoint.toChars(chars, 0)
-                if (accum is StringBuilder) {
-                    accum.append(chars)
-                } else {
-                    accum.append(chars.concatToString(0, len))
-                }
+                accum.append(chars, 0, len)
             } else {
                 appendEncoded(accum, escapeMode, codePoint.value)
             }
@@ -298,12 +290,12 @@ public object Entities {
 
     private val charBuf: ThreadLocal<CharArray> = ThreadLocal { CharArray(2) }
 
-    private fun appendNbsp(accum: Appendable, escapeMode: EscapeMode) {
+    private fun appendNbsp(accum: QuietAppendable, escapeMode: EscapeMode) {
         if (escapeMode != EscapeMode.xhtml) accum.append("&nbsp;")
         else accum.append("&#xa0;")
     }
 
-    private fun appendLt(accum: Appendable, options: Int, escapeMode: EscapeMode, syntax: Syntax) {
+    private fun appendLt(accum: QuietAppendable, options: Int, escapeMode: EscapeMode, syntax: Syntax) {
         if ((options and ForText) != 0 || (escapeMode == EscapeMode.xhtml) || (syntax === Syntax.xml)) {
             accum.append("&lt;")
         } else {
@@ -311,7 +303,7 @@ public object Entities {
         }
     }
 
-    private fun appendApos(accum: Appendable, options: Int, escapeMode: EscapeMode) {
+    private fun appendApos(accum: QuietAppendable, options: Int, escapeMode: EscapeMode) {
         if ((options and ForAttribute) != 0 && (options and ForText) != 0) {
             if (escapeMode == EscapeMode.xhtml) accum.append("&#x27;")
             else accum.append("&apos;")
@@ -320,7 +312,7 @@ public object Entities {
         }
     }
 
-    private fun appendEncoded(accum: Appendable, escapeMode: EscapeMode, codePoint: Int) {
+    private fun appendEncoded(accum: QuietAppendable, escapeMode: EscapeMode, codePoint: Int) {
         val name = escapeMode.nameForCodepoint(codePoint)
         if (emptyName != name) {
             // ok for identity check
@@ -400,8 +392,7 @@ public object Entities {
         e.codeKeys = IntArray(size)
         e.nameVals = arrayOfNulls(size)
         var i = 0
-        val reader = CharacterReader(pointsData)
-        try {
+        CharacterReader(pointsData).use { reader->
             while (!reader.isEmpty()) {
                 // NotNestedLessLess=10913,824;1887&
                 val name: String = reader.consumeTo('=')
@@ -429,8 +420,6 @@ public object Entities {
                 i++
             }
             Validate.isTrue(i == size, "Unexpected count of entities loaded")
-        } finally {
-            reader.close()
         }
     }
 

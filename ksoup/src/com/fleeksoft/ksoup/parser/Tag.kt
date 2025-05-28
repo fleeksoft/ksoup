@@ -8,16 +8,16 @@
 
 package com.fleeksoft.ksoup.parser
 
-import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.nodes.TagSet
 import com.fleeksoft.ksoup.ported.KCloneable
+import kotlin.js.JsName
 import kotlin.jvm.JvmOverloads
 
 /**
  * Tag capabilities.
  *
  */
-public data class Tag(var tagName: String, private var normalName: String, private var namespace: String) : KCloneable<Tag> {
+public data class Tag(var tagName: String, var normalName: String, var namespace: String) : KCloneable<Tag> {
     var options: Int = 0
 
     constructor(tagName: String) : this(tagName, ParseSettings.normalName(tagName), Parser.NamespaceHtml)
@@ -29,6 +29,10 @@ public data class Tag(var tagName: String, private var normalName: String, priva
      */
     fun name(): String {
         return tagName
+    }
+
+    override fun hashCode(): Int {
+        return arrayOf(tagName, namespace).contentHashCode()
     }
 
     /**
@@ -80,22 +84,11 @@ public data class Tag(var tagName: String, private var normalName: String, priva
     fun isEmpty(): Boolean = (options and Void) != 0
 
     /**
-     * Get if this tag represents a control associated with a form. E.g. input, textarea, output
-     * @return if associated with a form
-     */
-    @Deprecated("this method is internal to HtmlTreeBuilder only, and will be removed")
-    fun isFormListed(): Boolean = namespace == Parser.NamespaceHtml && StringUtil.inSorted(
-        normalName,
-        HtmlTreeBuilder.TagFormListed
-    )
-
-    /**
      * Get if this tag represents an element that should be submitted with a form. E.g. input, option
      * @return if submittable with a form
      */
     fun isFormSubmittable(): Boolean {
-        options = options and FormSubmittable
-        return options != 0
+        return (options and FormSubmittable) != 0
     }
 
     fun setSeenSelfClose() {
@@ -115,6 +108,7 @@ public data class Tag(var tagName: String, private var normalName: String, priva
      * Get this tag's normalized (lowercased) name.
      * @return the tag's normal name.
      */
+    @JsName("getNormalName")
     public fun normalName(): String {
         return normalName
     }
@@ -123,6 +117,7 @@ public data class Tag(var tagName: String, private var normalName: String, priva
      * Get this tag's namespace.
      * @return the tag's namespace
      */
+    @JsName("getNamespace")
     public fun namespace(): String {
         return namespace
     }
@@ -310,5 +305,19 @@ public data class Tag(var tagName: String, private var normalName: String, priva
         public fun isKnownTag(tagName: String): Boolean {
             return TagSet.HtmlTagSet.get(tagName, Parser.NamespaceHtml) != null
         }
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+
+        other as Tag
+
+        if (options != other.options) return false
+        if (tagName != other.tagName) return false
+        if (normalName != other.normalName) return false
+        if (namespace != other.namespace) return false
+
+        return true
     }
 }

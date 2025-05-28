@@ -100,7 +100,6 @@ public class Tokeniser(treeBuilder: TreeBuilder) {
     }
 
     public fun emit(codepoints: IntArray) {
-        // todo review
         emit(codepoints.codePointsToString())
     }
 

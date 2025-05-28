@@ -2,12 +2,10 @@ package com.fleeksoft.ksoup.safety
 
 import com.fleeksoft.ksoup.Ksoup
 import com.fleeksoft.ksoup.TextUtil
-import com.fleeksoft.ksoup.nodes.Document
-import com.fleeksoft.ksoup.nodes.Element
-import com.fleeksoft.ksoup.nodes.Entities
-import com.fleeksoft.ksoup.nodes.Range
+import com.fleeksoft.ksoup.nodes.*
 import com.fleeksoft.ksoup.parameterizedTest
 import com.fleeksoft.ksoup.parser.Parser
+import com.fleeksoft.ksoup.parser.Tag
 import kotlin.test.*
 
 
@@ -517,5 +515,44 @@ class CleanerTest {
             "<a href=\"http://external.com/\" rel=\"nofollow\">One</a> <a href=\"/relative/\">Two</a> <a href=\"../other/\">Three</a> <a href=\"http://example.com/bar\" rel=\"nofollow\">Four</a>",
             clean4
         )
+    }
+
+    @Test
+    fun discardsSvgScriptData() {
+        // https://github.com/jhy/jsoup/issues/2320
+        val svgOk: Safelist = Safelist.none().addTags("svg")
+        val cleaned: String? = Ksoup.clean("<svg><script> a < b </script></svg>", svgOk)
+        assertEquals("<svg></svg>", cleaned)
+    }
+
+    @Test
+    fun canSupplyConfiguredTagset() {
+        // https://github.com/jhy/jsoup/issues/2326
+
+        // by default, iframe is data
+
+        val input = "<iframe>content is <data></iframe>"
+        val safelist: Safelist = Safelist.relaxed().addTags("iframe")
+        val clean: String? = Ksoup.clean(input, safelist)
+        assertEquals("<iframe>content is <data></iframe>", clean)
+
+        val doc: Document = Ksoup.parse(input)
+        assertEquals("", doc.text()) // data is not text
+
+        // can change to text
+        val tags = TagSet.Html()
+        val iframe: Tag = tags.valueOf("iframe", Parser.NamespaceHtml)
+        iframe.clear(Tag.Data).set(Tag.RcData)
+        val doc2: Document = Ksoup.parse(input, Parser.htmlParser().tagSet(tags))
+        assertEquals("content is <data>", doc2.text())
+        assertEquals("<iframe>content is &lt;data&gt;</iframe>", doc2.body().html())
+
+        // text nodes are escaped
+        assertEquals("<iframe>content is &lt;data&gt;</iframe>", doc2.body().html())
+
+        // can use cleaner with updated tagset
+        val cleaner = Cleaner(Safelist.relaxed())
+        val clean2 = cleaner.clean(doc2).body().html()
+        assertEquals("content is &lt;data&gt;", clean2)
     }
 }

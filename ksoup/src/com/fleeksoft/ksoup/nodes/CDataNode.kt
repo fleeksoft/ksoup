@@ -8,6 +8,8 @@
 
 package com.fleeksoft.ksoup.nodes
 
+import com.fleeksoft.ksoup.internal.QuietAppendable
+
 /**
  * A Character Data node, to support CDATA sections.
  */
@@ -24,7 +26,7 @@ public class CDataNode(text: String?) : TextNode(text!!) {
         return getWholeText()
     }
 
-    override fun outerHtmlHead(accum: Appendable, out: Document.OutputSettings) {
+    override fun outerHtmlHead(accum: QuietAppendable, out: Document.OutputSettings) {
         accum
             .append("<![CDATA[")
             .append(getWholeText())

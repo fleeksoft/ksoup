@@ -66,27 +66,6 @@ class TokenQueueTest {
     }
 
     @Test
-    fun chompToIgnoreCase() {
-        val t = "<textarea>one < two </TEXTarea>"
-        var tq = TokenQueue(t)
-        var data = tq.chompToIgnoreCase("</textarea")
-        assertEquals("<textarea>one < two ", data)
-        tq = TokenQueue("<textarea> one two < three </oops>")
-        data = tq.chompToIgnoreCase("</textarea")
-        assertEquals("<textarea> one two < three </oops>", data)
-    }
-
-    @Test
-    fun consumeToIgnoreSecondCallTest() {
-        val t = "<textarea>one < two </TEXTarea> third </TEXTarea>"
-        val tq = TokenQueue(t)
-        var data = tq.chompToIgnoreCase("</textarea>")
-        assertEquals("<textarea>one < two ", data)
-        data = tq.chompToIgnoreCase("</textarea>")
-        assertEquals(" third ", data)
-    }
-
-    @Test
     fun testNestedQuotes() {
         validateNestedQuotes(
             "<html><body><a id=\"identifier\" onclick=\"func('arg')\" /></body></html>",

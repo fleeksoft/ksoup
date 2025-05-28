@@ -9,16 +9,21 @@
 package com.fleeksoft.ksoup.nodes
 
 import com.fleeksoft.ksoup.helper.Validate
+import com.fleeksoft.ksoup.internal.QuietAppendable
 import com.fleeksoft.ksoup.internal.StringUtil
+import com.fleeksoft.ksoup.internal.StringUtil.borrowBuilder
+import com.fleeksoft.ksoup.internal.StringUtil.releaseBuilder
 import com.fleeksoft.ksoup.parser.ParseSettings
 import com.fleeksoft.ksoup.ported.Consumer
 import com.fleeksoft.ksoup.ported.KCloneable
 import com.fleeksoft.ksoup.ported.LinkedList
 import com.fleeksoft.ksoup.select.NodeFilter
 import com.fleeksoft.ksoup.select.NodeTraversor
+import com.fleeksoft.ksoup.select.NodeTraversor.traverse
 import com.fleeksoft.ksoup.select.NodeVisitor
 import kotlin.js.JsName
 import kotlin.reflect.KClass
+
 
 /**
 The base, abstract Node model. {@link Element}, {@link Document}, {@link Comment}, {@link TextNode}, et al.,
@@ -639,7 +644,7 @@ public abstract class Node protected constructor() : KCloneable<Node> {
      * @return this node, for chaining
      */
     public open fun traverse(nodeVisitor: NodeVisitor): Node {
-        NodeTraversor.traverse(nodeVisitor, this)
+        nodeVisitor.traverse(this)
         return this
     }
 
@@ -663,7 +668,7 @@ public abstract class Node protected constructor() : KCloneable<Node> {
      * @return this node, for chaining
      */
     public open fun filter(nodeFilter: NodeFilter): Node {
-        NodeTraversor.filter(nodeFilter, this)
+        nodeFilter.traverse(this)
         return this
     }
 
@@ -693,14 +698,19 @@ public abstract class Node protected constructor() : KCloneable<Node> {
      * @see Element.text
      */
     public open fun outerHtml(): String {
-        val accum: StringBuilder = StringUtil.borrowBuilder()
-        outerHtml(accum)
-        return StringUtil.releaseBuilder(accum)
+        val sb = borrowBuilder()
+        outerHtml(QuietAppendable.wrap(sb))
+        return releaseBuilder(sb)
     }
 
-    public fun outerHtml(accum: Appendable) {
+
+    fun outerHtml(accum: Appendable) {
+        outerHtml(QuietAppendable.wrap(accum))
+    }
+
+    fun outerHtml(accum: QuietAppendable) {
         val printer = Printer.printerFor(this, accum)
-        NodeTraversor.traverse(printer, this)
+        printer.traverse(this)
     }
 
     /**
@@ -708,9 +718,9 @@ public abstract class Node protected constructor() : KCloneable<Node> {
      * @param accum accumulator to place HTML into
      * @throws com.fleeksoft.io.exception.IOException if appending to the given accumulator fails.
      */
-    internal abstract fun outerHtmlHead(accum: Appendable, out: Document.OutputSettings)
+    internal abstract fun outerHtmlHead(accum: QuietAppendable, out: Document.OutputSettings)
 
-    internal abstract fun outerHtmlTail(accum: Appendable, out: Document.OutputSettings)
+    internal abstract fun outerHtmlTail(accum: QuietAppendable, out: Document.OutputSettings)
 
     /**
      * Write this node and its children to the given [Appendable].
@@ -734,15 +744,6 @@ public abstract class Node protected constructor() : KCloneable<Node> {
         return Range.of(this, true)
     }
 
-    public fun isEffectivelyFirst(): Boolean {
-        if (_siblingIndex == 0) return true
-        if (_siblingIndex == 1) {
-            val prev = previousSibling()
-            return prev is TextNode && prev.isBlank()
-        }
-        return false
-    }
-
     /**
      * Gets this node's outer HTML.
      * @return outer HTML.
@@ -750,14 +751,6 @@ public abstract class Node protected constructor() : KCloneable<Node> {
      */
     override fun toString(): String {
         return outerHtml()
-    }
-
-    protected fun indent(
-        accum: Appendable,
-        depth: Int,
-        out: Document.OutputSettings,
-    ) {
-        accum.append('\n').append(StringUtil.padding(depth * out.indentAmount(), out.maxPaddingWidth()))
     }
 
     /**

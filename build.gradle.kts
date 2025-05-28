@@ -301,14 +301,14 @@ class MicroAmper(val project: Project) {
                     browser {
                         testTask {
                             useMocha {
-                                timeout = "9s"
+                                timeout = "15s"
                             }
                         }
                     }
                     nodejs {
                         testTask {
                             useMocha {
-                                timeout = "9s"
+                                timeout = "15s"
                             }
                         }
                     }
@@ -319,14 +319,14 @@ class MicroAmper(val project: Project) {
                         browser {
                             testTask {
                                 useMocha {
-                                    timeout = "9s"
+                                    timeout = "15s"
                                 }
                             }
                         }
                         nodejs {
                             testTask {
                                 useMocha {
-                                    timeout = "9s"
+                                    timeout = "15s"
                                 }
                             }
                         }

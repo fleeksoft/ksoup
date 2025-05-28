@@ -1,13 +1,13 @@
 package com.fleeksoft.ksoup.nodes
 
-import com.fleeksoft.ksoup.exception.SerializationException
+import com.fleeksoft.ksoup.internal.QuietAppendable
 import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.parser.Tag
 import com.fleeksoft.ksoup.select.NodeVisitor
 
 open class Printer(
     val root: Node,
-    val accum: Appendable,
+    val accum: QuietAppendable,
     val settings: Document.OutputSettings
 ) : NodeVisitor {
     open fun addHead(el: Element, depth: Int) {
@@ -33,30 +33,20 @@ open class Printer(
     }
 
     override fun head(node: Node, depth: Int) {
-        try {
-            when {
-                node::class == TextNode::class -> addText(node as TextNode, 0, depth)
-                node is Element -> addHead(node, depth)
-                else -> addNode(node as LeafNode, depth)
-            }
-        } catch (exception: Exception) {
-            throw SerializationException(exception)
-        }
+        if (node::class == TextNode::class) addText(node as TextNode, 0, depth) // Excludes CData; falls to addNode
+        else if (node is Element) addHead(node, depth)
+        else addNode(node as LeafNode, depth)
     }
 
     override fun tail(node: Node, depth: Int) {
         if (node is Element) {
-            try {
-                addTail(node, depth)
-            } catch (exception: Exception) {
-                throw SerializationException(exception)
-            }
+            addTail(node, depth)
         }
     }
 
     /** Pretty Printer */
     open class Pretty(
-        root: Node, accum: Appendable, settings: Document.OutputSettings
+        root: Node, accum: QuietAppendable, settings: Document.OutputSettings
     ) : Printer(root, accum, settings) {
         var preserveWhitespace: Boolean = false
 
@@ -117,8 +107,14 @@ open class Printer(
             val prev = node.previousSibling()
             val next = node.nextSibling()
             var opts = options
-            if (prev == null || (prev !is TextNode && shouldIndent(prev)))
-                opts = opts or Entities.TrimLeading
+            // if previous is not an inline element
+            if (prev !is Element || isBlockEl(prev)) {
+                // if there is no previous sib; or not a text node and should be indented
+                if (prev == null || (prev !is TextNode && shouldIndent(prev))) {
+                    opts = opts or Entities.TrimLeading
+                }
+            }
+
             if (next == null || (next !is TextNode && shouldIndent(next)))
                 opts = opts or Entities.TrimTrailing
             return opts
@@ -196,14 +192,14 @@ open class Printer(
 
     /** Outline Printer */
     open class Outline(
-        root: Node, accum: Appendable, settings: Document.OutputSettings
+        root: Node, accum: QuietAppendable, settings: Document.OutputSettings
     ) : Pretty(root, accum, settings) {
         override fun isBlockEl(node: Node?): Boolean {
             return node != null
         }
 
         override fun shouldIndent(node: Node?): Boolean {
-            if (node == null || node == root || preserveWhitespace || Pretty.isBlankText(node))
+            if (node == null || node == root || preserveWhitespace || isBlankText(node))
                 return false
             if (node is TextNode) {
                 return node.previousSibling() != null || node.nextSibling() != null
@@ -213,7 +209,7 @@ open class Printer(
     }
 
     companion object {
-        fun printerFor(root: Node, accum: Appendable): Printer {
+        fun printerFor(root: Node, accum: QuietAppendable): Printer {
             val settings = NodeUtils.outputSettings(root)
             return when {
                 settings.outline() -> Outline(root, accum, settings)
