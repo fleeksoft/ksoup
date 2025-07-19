@@ -25,7 +25,7 @@ jobs:
         target: [ android, apple, js, desktop-ubuntu, desktop-mac, windows, linux, wasmJs ]
         
         # ── axis 3 - Java version ─────────────────
-        java-version: [ "11", "17" ]
+        java-version: [ "17", "21" ]
 
         include:
           # android ----------------------------------------------------------
