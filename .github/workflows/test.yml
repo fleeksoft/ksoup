@@ -1,6 +1,9 @@
 name: test
 
 on:
+  push:
+    branches: [ "release", "develop" ]
+    paths-ignore: [ "**.md" ]
   pull_request:
     branches: [ "release", "develop" ]
     paths-ignore: [ "**.md" ]
@@ -20,6 +23,9 @@ jobs:
 
         # ── axis 2 plus per-target data ─────────
         target: [ android, apple, js, desktop-ubuntu, desktop-mac, windows, linux, wasmJs ]
+        
+        # ── axis 3 - Java version ─────────────────
+        java-version: [ "11", "17" ]
 
         include:
           # android ----------------------------------------------------------
@@ -70,22 +76,22 @@ jobs:
             tasks: wasmJsNodeTest          # <- only Node test task
             continueOnError: false
 
-        # ── forbid the single unwanted pair ─────
+        # ── forbid the unwanted pairs ─────
         exclude:
           - target: wasmJs
             libBuildType: korlibs
 
     runs-on: ${{ matrix.os }}
-    name: Build ${{ matrix.target }} – ${{ matrix.libBuildType }}
+    name: Build ${{ matrix.target }} – ${{ matrix.libBuildType }} (Java ${{ matrix.java-version }})
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up JDK 17
+      - name: Set up JDK ${{ matrix.java-version }}
         uses: actions/setup-java@v3
         with:
           distribution: temurin
-          java-version: "17"
+          java-version: ${{ matrix.java-version }}
 
       - uses: gradle/gradle-build-action@v3
         name: Set up Gradle
@@ -106,5 +112,5 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: test-results-${{ matrix.target }}-${{ matrix.libBuildType }}
+          name: test-results-${{ matrix.target }}-${{ matrix.libBuildType }}-java${{ matrix.java-version }}
           path: ksoup-test/build/reports/tests/**/*
