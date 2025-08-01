@@ -12,7 +12,6 @@ import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.internal.Normalizer
 import com.fleeksoft.ksoup.nodes.Attributes
 import com.fleeksoft.ksoup.nodes.Range
-import com.fleeksoft.ksoup.ported.assert
 import kotlin.js.JsName
 
 /**
@@ -21,6 +20,7 @@ import kotlin.js.JsName
 public abstract class Token private constructor(public var type: TokenType) {
     @JsName("_startPos")
     protected var startPos = 0
+
     @JsName("_endPos")
     protected var endPos = UnsetPos // position in CharacterReader this token was read from
 
@@ -154,9 +154,7 @@ public abstract class Token private constructor(public var type: TokenType) {
             if (trackSource && isStartTag()) {
                 val start = asStartTag()
                 val r = start.treeBuilder.reader
-                val preserve = start.treeBuilder.settings!!.preserveAttributeCase()
-
-                assert(attributes != null)
+                val preserve = start.treeBuilder.settings.preserveAttributeCase()
 
                 var name = name
                 if (!preserve) name = Normalizer.lowerCase(name)
