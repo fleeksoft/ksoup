@@ -1,10 +1,8 @@
 package com.fleeksoft.ksoup.helper
 
 import com.fleeksoft.ksoup.exception.ValidationException
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
+import com.fleeksoft.ksoup.helper.Validate.expectNotNull
+import kotlin.test.*
 
 
 class ValidateTest {
@@ -16,6 +14,24 @@ class ValidateTest {
         } catch (e: IllegalStateException) {
             threw = true
             assertEquals("Unexpected state reached", e.message)
+        }
+        assertTrue(threw)
+    }
+
+    @Test
+    fun expectNotNull() {
+        val foo = "Foo"
+        val foo2 = expectNotNull<String?>(foo)
+        assertSame(foo, foo2)
+
+        // Test with a null object
+        val bar: String? = null
+        var threw = false
+        try {
+            expectNotNull<String?>(bar)
+        } catch (e: ValidationException) {
+            threw = true
+            assertEquals("Object must not be null", e.message)
         }
         assertTrue(threw)
     }
