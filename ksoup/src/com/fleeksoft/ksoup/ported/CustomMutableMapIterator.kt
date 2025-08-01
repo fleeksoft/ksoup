@@ -1,17 +1,19 @@
 package com.fleeksoft.ksoup.ported
 
-import com.fleeksoft.ksoup.nodes.Element
+import com.fleeksoft.ksoup.nodes.Node
 
-public class ElementIterator(private val iterator: MutableIterator<Element>) : MutableIterator<Element> by iterator {
-    private var currentEntry: Element? = null
+public class NodesIterator<T>(private val iterator: MutableIterator<T>) : MutableIterator<T> by iterator {
+    private var currentEntry: T? = null
 
-    override fun next(): Element {
+    override fun next(): T {
         currentEntry = iterator.next()
         return currentEntry!!
     }
 
     override fun remove() {
         iterator.remove()
-        currentEntry?.remove()
+        if (currentEntry is Node) {
+            (currentEntry as? Node)?.remove()
+        }
     }
 }
