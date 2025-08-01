@@ -6,8 +6,10 @@ import com.fleeksoft.io.InputStream
 import com.fleeksoft.io.byteInputStream
 import com.fleeksoft.io.inputStream
 import com.fleeksoft.ksoup.Ksoup
+import com.fleeksoft.ksoup.Platform
 import com.fleeksoft.ksoup.TestHelper
 import com.fleeksoft.ksoup.io.internal.ControllableInputStream
+import com.fleeksoft.ksoup.isJsOrWasm
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parseInput
 import com.fleeksoft.ksoup.parser.Parser
@@ -368,12 +370,37 @@ class DataUtilTest {
             return inputStream.read()
         }
 
-        override fun read(b: ByteArray): Int {
-            return inputStream.read(b, 0, minOf(b.size, ++stride))
+        override fun read(bytes: ByteArray): Int {
+            return inputStream.read(bytes, 0, minOf(bytes.size, ++stride))
         }
 
-        override fun read(b: ByteArray, off: Int, len: Int): Int {
-            return inputStream.read(b, off, minOf(len, ++stride))
+        override fun read(bytes: ByteArray, off: Int, len: Int): Int {
+            return inputStream.read(bytes, off, minOf(len, ++stride))
         }
+    }
+
+    @Test
+    fun streamParserSurrogateAcrossBuffer() = runTest {
+        // https://github.com/jhy/jsoup/issues/2353
+        // TODO: remove after release
+        if (Platform.isJsOrWasm()) {
+            return@runTest
+        }
+        val inputPath = TestHelper.readResourceAsString("fuzztests/2353.html.gz").byteInputStream()
+        DataUtil.streamParser(inputPath, "", Charsets.UTF8, Parser.htmlParser()).use { parser ->
+            val doc = parser.complete()
+            val html = doc.html()
+            assertTrue(html.contains("Read-Fully!"))
+        }
+    }
+
+    @Test
+    fun parseSurrogateAcrossBuffer() = runTest {
+        // TODO: remove after release
+        if (Platform.isJsOrWasm()) {
+            return@runTest
+        }
+        val doc: Document = TestHelper.parseResource("fuzztests/2353.html.gz")
+        assertTrue(doc.html().contains("Read-Fully!"))
     }
 }
