@@ -156,7 +156,6 @@ public class Parser : KCloneable<Parser> {
      *
      * @param tagSet the TagSet to use. This gets copied, so that changes that the parse makes (tags found in the document will be added) do not clobber the original TagSet.
      * @return this Parser
-     * @since 1.20.1
      */
     fun tagSet(tagSet: TagSet): Parser {
         this.tagSet = TagSet(tagSet) // copy it as we are going to mutate it
@@ -166,7 +165,6 @@ public class Parser : KCloneable<Parser> {
     /**
      * Get the current TagSet for this Parser, which will be either this parser's default, or one that you have set.
      * @return the current TagSet. After the parse, this will contain any new tags that were found in the document.
-     * @since 1.20.1
      */
     fun tagSet(): TagSet {
         if (tagSet == null)
@@ -243,20 +241,11 @@ public class Parser : KCloneable<Parser> {
          *
          * @return Document, with empty head, and HTML parsed into body
          */
-        public fun parseBodyFragment(
-            bodyHtml: String,
-            baseUri: String,
-        ): Document {
+        public fun parseBodyFragment(bodyHtml: String, baseUri: String): Document {
             val doc: Document = Document.createShell(baseUri)
             val body: Element = doc.body()
             val nodeList: List<Node> = parseFragment(bodyHtml, body, baseUri)
-            val nodes: Array<Node> = nodeList.toTypedArray() // the node list gets modified when re-parented
-            for (i in nodes.size - 1 downTo 1) {
-                nodes[i].remove()
-            }
-            for (node in nodes) {
-                body.appendChild(node)
-            }
+            body.appendChildren(nodeList)
             return doc
         }
 
@@ -266,10 +255,8 @@ public class Parser : KCloneable<Parser> {
          * @param inAttribute if the string is to be escaped in strict mode (as attributes are)
          * @return an unescaped string
          */
-        public fun unescapeEntities(
-            html: String,
-            inAttribute: Boolean,
-        ): String {
+        public fun unescapeEntities(html: String, inAttribute: Boolean): String {
+            if (html.indexOf('&') < 0) return html // nothing to unescape
             val parser: Parser = htmlParser()
             parser.treeBuilder.initialiseParse(StringReader(html), "", parser)
             val tokeniser = Tokeniser(parser.treeBuilder)

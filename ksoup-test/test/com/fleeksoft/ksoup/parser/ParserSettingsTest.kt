@@ -40,7 +40,8 @@ class ParserSettingsTest {
         val parseSettings = ParseSettings(preserveTagCase = false, preserveAttributeCase = false)
         val attributes = Attributes()
         attributes.put("ITEM", "1")
-        val normalizedAttributes = parseSettings.normalizeAttributes(attributes)
-        assertEquals("item", normalizedAttributes!!.asList()[0].key)
+
+        parseSettings.normalizeAttributes(attributes);
+        assertEquals("item", attributes.asList()[0].key);
     }
 }

@@ -1,8 +1,10 @@
 package com.fleeksoft.ksoup.parser
 
 import com.fleeksoft.ksoup.Ksoup
+import com.fleeksoft.ksoup.TextUtil.normalizeSpaces
 import com.fleeksoft.ksoup.nodes.Comment
 import com.fleeksoft.ksoup.nodes.Document
+import com.fleeksoft.ksoup.nodes.TagSet
 import com.fleeksoft.ksoup.nodes.TextNode
 import com.fleeksoft.ksoup.select.Elements
 import kotlin.test.Test
@@ -49,7 +51,7 @@ class TokeniserStateTest {
 
     @Test
     fun testEndTagOpen() {
-        var body: String = "<div>hello world</"
+        var body = "<div>hello world</"
         var doc: Document = Ksoup.parse(body)
         var els: Elements = doc.select("div")
         assertEquals("hello world</", els.text())
@@ -69,7 +71,7 @@ class TokeniserStateTest {
 
     @Test
     fun testRcdataLessthanSign() {
-        var body: String = "<textarea><fake></textarea>"
+        var body = "<textarea><fake></textarea>"
         var doc: Document = Ksoup.parse(body)
         var els: Elements = doc.select("textarea")
         assertEquals("<fake>", els.text())
@@ -257,5 +259,36 @@ class TokeniserStateTest {
         assertEquals("foo<bar", p!!.attr("name"))
         doc = Ksoup.parse("<p foo=")
         assertEquals("<p foo></p>", doc.body().html())
+    }
+
+    @Test
+    fun customDataTagWithHyphen() {
+        // https://github.com/jhy/jsoup/issues/2332
+
+        val tagSet = TagSet.Html()
+        tagSet.valueOf("custom-data", Parser.NamespaceHtml).set(Tag.Data)
+        tagSet.valueOf("custom-rcdata", Parser.NamespaceHtml).set(Tag.RcData)
+
+        val html = "<body><custom-data>a < > b</custom-data><p>One</p><custom-rcdata>a < > b</custom-rcdata><p>Two</p>"
+        val doc: Document = Ksoup.parse(html, Parser.htmlParser().tagSet(tagSet))
+        assertEquals(
+            "<custom-data>a < > b</custom-data><p>One</p><custom-rcdata>a &lt; &gt; b</custom-rcdata><p>Two</p>",
+            normalizeSpaces(doc.body().html())
+        )
+    }
+
+    @Test
+    fun customDataTagWithHyphenXml() {
+        val xml = "<custom-data>a < > b</custom-data><p>One</p><custom-rcdata>a < > b</custom-rcdata><p>Two</p>"
+        val parser = Parser.xmlParser()
+        val tagSet = parser.tagSet()
+        tagSet.valueOf("custom-data", Parser.NamespaceXml).set(Tag.Data)
+        tagSet.valueOf("custom-rcdata", Parser.NamespaceXml).set(Tag.RcData)
+
+        val doc: Document = Ksoup.parse(xml, parser)
+        assertEquals(
+            "<custom-data><![CDATA[a < > b]]></custom-data><p>One</p><custom-rcdata>a &lt; &gt; b</custom-rcdata><p>Two</p>",
+            normalizeSpaces(doc.html())
+        )
     }
 }

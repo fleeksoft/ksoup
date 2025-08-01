@@ -59,11 +59,10 @@ public class ParseSettings
     }
 
     
-    public fun normalizeAttributes(attributes: Attributes?): Attributes? {
-        if (attributes != null && !preserveAttributeCase) {
-            attributes.normalize()
+    public fun normalizeAttributes(attributes: Attributes?) {
+        if (!preserveAttributeCase) {
+            attributes?.normalize()
         }
-        return attributes
     }
 
     public companion object {

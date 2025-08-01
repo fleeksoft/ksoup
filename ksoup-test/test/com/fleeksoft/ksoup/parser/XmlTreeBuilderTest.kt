@@ -288,20 +288,18 @@ class XmlTreeBuilderTest {
     @Test
     fun xmlParserEnablesXmlOutputAndEscapes() {
         // Test that when using the XML parser, the output mode and escape mode default to XHTML entities
-        val doc = Ksoup.parse(html = "<p one='&lt;two&gt;&copy'>Three</p>", baseUri = "", parser = Parser.xmlParser())
+        val doc: Document = Ksoup.parse("<root/>", baseUri = "", parser = Parser.xmlParser())
         assertEquals(doc.outputSettings().syntax(), Syntax.xml)
         assertEquals(doc.outputSettings().escapeMode(), Entities.EscapeMode.xhtml)
-        assertEquals("<p one=\"&lt;two>©\">Three</p>", doc.html()) // only the < should be escaped
     }
 
     @Test
-    fun xmlSyntaxEscapesLtInAttributes() {
-        // Regardless of the entity escape mode, make sure < is escaped in attributes when in XML
-        val doc = Ksoup.parse(html = "<p one='&lt;two&gt;&copy'>Three</p>", baseUri = "", parser = Parser.xmlParser())
+    fun xmlSyntaxAlwaysEscapesLtAndGtInAttributeValues() {
+        // https://github.com/jhy/jsoup/issues/2337
+        val doc: Document = Ksoup.parse("<p one='&lt;two&gt;'>Three</p>", baseUri = "", parser = Parser.xmlParser())
         doc.outputSettings().escapeMode(Entities.EscapeMode.extended)
-        doc.outputSettings().charset("ISO-8859-1") // to make sure &copy; is output
         assertEquals(doc.outputSettings().syntax(), Syntax.xml)
-        assertEquals("<p one=\"&lt;two>©\">Three</p>", doc.html())
+        assertEquals("<p one=\"&lt;two&gt;\">Three</p>", doc.html())
     }
 
     @Test
@@ -408,7 +406,6 @@ class XmlTreeBuilderTest {
         // https://github.com/jhy/Ksoup/issues/1947
         val xml = "<x><?xmlDeclaration att1=\"value1\" att2=\"&lt;val2>\"?></x>"
         val doc: Document = Ksoup.parse(xml, Parser.xmlParser())
-        assertEquals(xml, doc.html())
         val decl = doc.expectFirst("x").childNode(0) as XmlDeclaration
         assertEquals("<val2>", decl.attr("att2"))
     }

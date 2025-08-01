@@ -680,12 +680,12 @@ public enum class HtmlTreeBuilderState {
                     tb.pushActiveFormattingElements(el)
                 }
 
-                else -> { // todo - bring scan groups in if desired
+                else -> {
                     val tag = tb.tagFor(startTag)
                     val textState = tag.textState()
-                    // custom rcdata or rawtext (if we were in head, will have auto-transitioned here)
-                    if (textState != null) handleTextState(startTag, tb, textState)
-                    else if (!tag.isKnownTag()) { // no other special rules for custom tags
+                    if (textState != null) { // custom rcdata or rawtext (if we were in head, will have auto-transitioned here)
+                        handleTextState(startTag, tb, textState)
+                    } else if (!tag.isKnownTag()) { // no other special rules for custom tags
                         tb.insertElementFor(startTag)
                     } else if (StringUtil.inSorted(name, Constants.InBodyStartPClosers)) {
                         if (tb.inButtonScope("p")) tb.processEndTag("p")
@@ -967,7 +967,7 @@ public enum class HtmlTreeBuilderState {
                     } else {
                         tb.aboveOnStack(el)
                     }
-                    if (el == null) {
+                    if (el == null || el.nameIs("body")) {
                         tb.error(this)
                         break
                     }
@@ -1016,10 +1016,7 @@ public enum class HtmlTreeBuilderState {
     },
     Text {
         // in script, style etc. normally treated as data tags
-        override fun process(
-            t: Token,
-            tb: HtmlTreeBuilder,
-        ): Boolean {
+        override fun process(t: Token, tb: HtmlTreeBuilder): Boolean {
             if (t.isCharacter()) {
                 tb.insertCharacterNode(t.asCharacter())
             } else if (t.isEOF()) {
@@ -1027,6 +1024,8 @@ public enum class HtmlTreeBuilderState {
                 // if current node is script: already started
                 tb.pop()
                 tb.transition(tb.originalState())
+                if (tb.state() === Text)  // stack is such that we couldn't transition out; just close
+                    tb.transition(InBody)
                 return tb.process(t)
             } else if (t.isEndTag()) {
                 // if: An end tag whose tag name is "script" -- scripting nesting level, if evaluating scripts
@@ -1037,10 +1036,7 @@ public enum class HtmlTreeBuilderState {
         }
     },
     InTable {
-        override fun process(
-            t: Token,
-            tb: HtmlTreeBuilder,
-        ): Boolean {
+        override fun process(t: Token, tb: HtmlTreeBuilder): Boolean {
             if (t.isCharacter() && StringUtil.inSorted(tb.currentElement().normalName(), Constants.InTableFoster)) {
                 tb.resetPendingTableCharacters()
                 tb.markInsertionMode()
@@ -1951,8 +1947,6 @@ public enum class HtmlTreeBuilderState {
                     if (textState != null) {
                         if (start.normalName == "script") tb.tokeniser!!.transition(TokeniserState.ScriptData)
                         else tb.tokeniser!!.transition(textState)
-                        tb.markInsertionMode()
-                        tb.transition(Text)
                     }
                 }
 
@@ -2238,7 +2232,7 @@ public enum class HtmlTreeBuilderState {
                 tb.tokeniser?.transition(state)
             }
             tb.markInsertionMode()
-            tb.transition(HtmlTreeBuilderState.Text)
+            tb.transition(Text)
             tb.insertElementFor(startTag)
         }
 
