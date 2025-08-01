@@ -3,6 +3,7 @@ package com.fleeksoft.ksoup.nodes
 import com.fleeksoft.ksoup.internal.QuietAppendable
 import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.parser.Tag
+import com.fleeksoft.ksoup.ported.codePointAt
 import com.fleeksoft.ksoup.select.NodeVisitor
 
 open class Printer(
@@ -105,7 +106,7 @@ open class Printer(
         fun textTrim(node: TextNode, options: Int): Int {
             if (!isBlockEl(node.parentNode())) return options
             val prev = node.previousSibling()
-            val next = node.nextSibling()
+            var next = node.nextSibling()
             var opts = options
             // if previous is not an inline element
             if (prev !is Element || isBlockEl(prev)) {
@@ -115,8 +116,15 @@ open class Printer(
                 }
             }
 
-            if (next == null || (next !is TextNode && shouldIndent(next)))
+            if (next == null || next !is TextNode && shouldIndent(next)) {
                 opts = opts or Entities.TrimTrailing
+            } else { // trim trailing whitespace if the next non-empty TextNode has leading whitespace
+                next = Printer.Pretty.nextNonBlank(next)
+                if (next is TextNode && StringUtil.isWhitespace(next.nodeValue().codePointAt(0).value)) {
+                    opts = opts or Entities.TrimTrailing
+                }
+            }
+
             return opts
         }
 
@@ -125,8 +133,8 @@ open class Printer(
             if (isBlockEl(node)) return true
             val prevSib = previousNonblank(node)
             if (isBlockEl(prevSib)) return true
-            val parent = node.parentNode() as? Element ?: return false
-            if (!isBlockEl(parent) || parent.tag().`is`(Tag.InlineContainer) || !hasNonTextNodes(parent))
+            val parent = node._parentNode
+            if (!isBlockEl(parent) || parent!!.tag().`is`(Tag.InlineContainer) || !hasNonTextNodes(parent))
                 return false
             return prevSib == null || (
                     prevSib !is TextNode &&

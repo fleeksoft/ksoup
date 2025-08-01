@@ -59,6 +59,19 @@ class PrinterTest {
     }
 
     @Test
+    fun sequentialTextNodesCollapseAdjacentWhitespace() {
+        // https://github.com/jhy/jsoup/pull/2349
+        // Tests that the pretty printer collapses whitespace between sequential text nodes into a single space.
+        // This must also work with intermediate empty and blank text nodes.
+        val doc: Document = Ksoup.parseBodyFragment("Before <span> </span> After")
+        doc.expectFirst("span")
+            .after(TextNode("")).after(TextNode("")).after(TextNode(" ")).after(TextNode(""))
+            .remove()
+        assertEquals(6, doc.body().textNodes().size) // no collapse before printing
+        assertEquals("Before After", doc.body().html())
+    }
+
+    @Test
     fun dontCollapseTextAfterNonElements() {
         val doc: Document = Ksoup.parse("<div><div></div>Hello <!-- -_- --> there</div>")
         val body = doc.body()
