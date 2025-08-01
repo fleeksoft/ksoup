@@ -10,7 +10,6 @@ package com.fleeksoft.ksoup.select
 
 import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.nodes.*
-import com.fleeksoft.ksoup.ported.ElementIterator
 import kotlin.reflect.KClass
 import kotlin.reflect.cast
 
@@ -23,8 +22,7 @@ import kotlin.reflect.cast
  * Methods that [set][.set], [remove][.remove], or [replace][.replaceAll] Elements in the list will also act on the underlying [DOM][com.fleeksoft.ksoup.nodes.Document].
  *
  */
-public class Elements(private val delegateList: ArrayList<Element> = arrayListOf()) :
-    MutableList<Element> by delegateList {
+public class Elements(delegateList: ArrayList<Element> = arrayListOf()) : Nodes<Element>(delegateList) {
 
     public constructor(element: Element) : this() {
         add(element)
@@ -38,7 +36,7 @@ public class Elements(private val delegateList: ArrayList<Element> = arrayListOf
      * Creates a deep copy of these elements.
      * @return a deep copy
      */
-    public fun clone(): Elements {
+    public override fun clone(): Elements {
         return Elements(this.map { it.clone() })
     }
 
@@ -52,12 +50,8 @@ public class Elements(private val delegateList: ArrayList<Element> = arrayListOf
      * @return a new ArrayList containing the elements in this list
      * @see .Elements
      */
-    fun asList(): ArrayList<Element> {
+    override fun asList(): ArrayList<Element> {
         return ArrayList(this)
-    }
-
-    override fun iterator(): MutableIterator<Element> {
-        return ElementIterator(delegateList.iterator())
     }
 
     // attribute methods
@@ -244,25 +238,6 @@ public class Elements(private val delegateList: ArrayList<Element> = arrayListOf
         return this.joinToString("\n") { it.html() }
     }
 
-    /**
-     * Get the combined outer HTML of all matched elements.
-     * @return string of all element's outer HTML.
-     * @see .text
-     * @see .html
-     */
-    public fun outerHtml(): String {
-        return this.map { it.outerHtml() }.joinToString("\n")
-    }
-
-    /**
-     * Get the combined outer HTML of all matched elements. Alias of [.outerHtml].
-     * @return string of all element's outer HTML.
-     * @see .text
-     * @see .html
-     */
-    override fun toString(): String {
-        return outerHtml()
-    }
 
     /**
      * Update (rename) the tag name of each matched element. For example, to change each `<i>` to a `<em>`, do
@@ -319,28 +294,26 @@ public class Elements(private val delegateList: ArrayList<Element> = arrayListOf
     }
 
     /**
-     * Insert the supplied HTML before each matched element's outer HTML.
+     *Insert the supplied HTML before each matched element's outer HTML.
+     *
      * @param html HTML to insert before each element
      * @return this, for chaining
-     * @see Element.before
+     * @see Element#before(String)
      */
-    public fun before(html: String): Elements {
-        for (element in this) {
-            element.before(html)
-        }
+    public override fun before(html: String): Elements {
+        super.before(html)
         return this
     }
 
     /**
      * Insert the supplied HTML after each matched element's outer HTML.
+     *
      * @param html HTML to insert after each element
      * @return this, for chaining
-     * @see Element.after
+     * @see Element#after(String)
      */
-    public fun after(html: String): Elements {
-        for (element in this) {
-            element.after(html)
-        }
+    public override fun after(html: String): Elements {
+        super.after(html)
         return this
     }
 
@@ -353,11 +326,8 @@ public class Elements(private val delegateList: ArrayList<Element> = arrayListOf
      * @return this (for chaining)
      * @see Element.wrap
      */
-    public fun wrap(html: String): Elements {
-        Validate.notEmpty(html)
-        for (element in this) {
-            element.wrap(html)
-        }
+    public override fun wrap(html: String): Elements {
+        super.wrap(html)
         return this
     }
 
@@ -423,10 +393,8 @@ public class Elements(private val delegateList: ArrayList<Element> = arrayListOf
      * @see .empty
      * @see .clear
      */
-    public fun remove(): Elements {
-        for (element in this) {
-            element.remove()
-        }
+    public override fun remove(): Elements {
+        super.remove()
         return this
     }
     // filters
@@ -462,10 +430,10 @@ public class Elements(private val delegateList: ArrayList<Element> = arrayListOf
      * @throws IllegalArgumentException if no match is found
      */
     fun expectFirst(cssQuery: String): Element {
-        return Validate.ensureNotNull(
+        return Validate.expectNotNull(
             Selector.selectFirst(cssQuery, this),
             "No elements matched the query '$cssQuery' in the elements."
-        ) as Element
+        )
     }
 
     /**
@@ -617,8 +585,8 @@ public class Elements(private val delegateList: ArrayList<Element> = arrayListOf
      * @return The first matched element, or `null` if contents is empty.
      */
 
-    public fun first(): Element? {
-        return if (isEmpty()) null else get(0)
+    public override fun first(): Element? {
+        return super.first()
     }
 
     /**
@@ -626,8 +594,8 @@ public class Elements(private val delegateList: ArrayList<Element> = arrayListOf
      * @return The last matched element, or `null` if contents is empty.
      */
 
-    public fun last(): Element? {
-        return if (isEmpty()) null else get(size - 1)
+    public override fun last(): Element? {
+        return super.last()
     }
 
     /**
@@ -695,154 +663,5 @@ public class Elements(private val delegateList: ArrayList<Element> = arrayListOf
             }
         }
         return nodes
-    }
-    // list methods that update the DOM:
-
-    /**
-     * Replace the Element at the specified index in this list, and in the DOM.
-     * @param index index of the element to replace
-     * @param element element to be stored at the specified position
-     * @return the old Element at this index
-     */
-    override operator fun set(index: Int, element: Element): Element {
-        val old: Element = delegateList.set(index = index, element = element)
-        old.replaceWith(element)
-        return old
-    }
-
-    /**
-     * Remove the Element at the specified index in this ist, and from the DOM.
-     * @param index the index of the element to be removed
-     * @return the old element at this index
-     */
-
-    override fun removeAt(index: Int): Element {
-        return delegateList.removeAt(index).apply { this.remove() }
-    }
-
-    /**
-     * Remove the specified Element from this list, and from the DOM
-     * @param element element to be removed from this list, if present
-     * @return if this list contained the Element
-     */
-    override fun remove(element: Element): Boolean {
-        val index: Int = this.indexOf(element)
-        return if (index == -1) {
-            false
-        } else {
-            removeAt(index)
-            true
-        }
-    }
-
-    /**
-     * Remove the Element at the specified index in this list, but not from the DOM.
-     * @param index the index of the element to be removed
-     * @return the old element at this index
-     * @see .remove
-     */
-    fun deselect(index: Int): Element {
-        return delegateList.removeAt(index)
-    }
-
-    /**
-     * Remove the specified Element from this list, but not from the DOM.
-     * @param o element to be removed from this list, if present
-     * @return if this list contained the Element
-     * @see .remove
-     */
-    fun deselect(o: Any?): Boolean {
-        return delegateList.remove(o)
-    }
-
-    /**
-     * Removes all the elements from this list, and each of them from the DOM.
-     * @see .remove
-     */
-    override fun clear() {
-        remove()
-        delegateList.clear()
-    }
-
-    /**
-     * Like [.clear], removes all the elements from this list, but not from the DOM.
-     * @see .clear
-     */
-    fun deselectAll() {
-        delegateList.clear()
-    }
-
-    /**
-     * Removes from this list, and from the DOM, each of the elements that are contained in the specified collection and
-     * are in this list.
-     * @param c collection containing elements to be removed from this list
-     * @return `true` if elements were removed from this list
-     */
-
-    override fun removeAll(elements: Collection<Element>): Boolean {
-        var removeAny: Boolean = false
-        elements.forEach {
-            removeAny = this.remove(it) || removeAny
-        }
-
-        return removeAny
-    }
-
-    /**
-     * Retain in this list, and in the DOM, only the elements that are in the specified collection and are in this list.
-     * In other words, remove elements from this list and the DOM any item that is in this list but not in the specified
-     * collection.
-     * @param c collection containing elements to be retained in this list
-     * @return `true` if elements were removed from this list
-     */
-    override fun retainAll(elements: Collection<Element>): Boolean {
-        val toRemoveEls: MutableList<Element> = mutableListOf()
-//        todo:// to avoid concurrent operate new list created
-        this.forEach { element ->
-            if (!elements.contains(element)) {
-                toRemoveEls.add(element)
-            }
-        }
-        if (toRemoveEls.isNotEmpty()) {
-            removeAll(toRemoveEls)
-        }
-        return toRemoveEls.size > 0
-    }
-
-    /**
-     * Remove from the list, and from the DOM, all elements in this list that mach the given filter.
-     * @param filter a predicate which returns `true` for elements to be removed
-     * @return `true` if elements were removed from this list
-     */
-
-    public fun removeIf(predicate: (element: Element) -> Boolean): Boolean {
-        val toRemoveEls = mutableListOf<Element>()
-        this.forEach { el ->
-            if (predicate(el)) {
-                toRemoveEls.add(el)
-            }
-        }
-        if (toRemoveEls.isNotEmpty()) {
-            removeAll(toRemoveEls)
-        }
-        return toRemoveEls.size > 0
-    }
-
-    /**
-     * Replace each element in this list with the result of the operator, and update the DOM.
-     * @param operator the operator to apply to each element
-     */
-    public fun replaceAll(operator: (element: Element) -> Element) {
-        for (i in this.indices) {
-            this[i] = operator(this[i])
-        }
-    }
-
-    override fun equals(other: Any?): Boolean {
-        return delegateList == other
-    }
-
-    override fun hashCode(): Int {
-        return delegateList.hashCode()
     }
 }

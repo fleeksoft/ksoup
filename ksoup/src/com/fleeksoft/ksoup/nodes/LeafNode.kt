@@ -47,6 +47,14 @@ public abstract class LeafNode : Node {
         return attr(nodeName())
     }
 
+    override fun parent(): Element? {
+        return _parentNode
+    }
+
+    public override fun nodeValue(): String {
+        return coreValue()
+    }
+
     public fun coreValue(value: String?) {
         attr(nodeName(), value)
     }

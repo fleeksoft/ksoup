@@ -12,8 +12,11 @@ import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.helper.Validate.isTrue
 import com.fleeksoft.ksoup.internal.Normalizer.normalize
 import com.fleeksoft.ksoup.internal.StringUtil
+import com.fleeksoft.ksoup.nodes.*
 import com.fleeksoft.ksoup.parser.TokenQueue
 import com.fleeksoft.ksoup.ported.jsSupportedRegex
+import com.fleeksoft.ksoup.select.NodeEvaluator.ContainsValue
+import com.fleeksoft.ksoup.select.NodeEvaluator.InstanceType
 import com.fleeksoft.ksoup.select.StructuralEvaluator.ImmediateParentRun
 
 
@@ -23,6 +26,7 @@ import com.fleeksoft.ksoup.select.StructuralEvaluator.ImmediateParentRun
 public class QueryParser private constructor(query: String) : AutoCloseable {
     private val tq: TokenQueue
     private val query: String
+    private var inNodeContext = false // ::comment:contains should act on node value, vs element text
 
     /**
      * Parse the query. We use this simplified expression of the grammar:
@@ -112,6 +116,7 @@ public class QueryParser private constructor(query: String) : AutoCloseable {
         return if (tq.matchChomp('#')) byId()
         else if (tq.matchChomp('.')) byClass()
         else if (tq.matches('[')) byAttribute()
+        else if (tq.matchChomp("::")) return parseNodeSelector() // ::comment etc
         else if (tq.matchChomp(':')) parsePseudoSelector()
         else null
     }
@@ -145,12 +150,38 @@ public class QueryParser private constructor(query: String) : AutoCloseable {
             "only-child" -> Evaluator.IsOnlyChild()
             "only-of-type" -> Evaluator.IsOnlyOfType()
             "empty" -> Evaluator.IsEmpty()
+            "blank" -> NodeEvaluator.BlankValue()
             "root" -> Evaluator.IsRoot()
             "matchText" -> Evaluator.MatchText()
             else -> throw Selector.SelectorParseException(
                 "Could not parse query '$query': unexpected token at '${tq.remainder()}'",
             )
         }
+    }
+
+    // ::comment etc
+    private fun parseNodeSelector(): Evaluator {
+        val pseudo = tq.consumeCssIdentifier()
+        inNodeContext = true // Enter node context
+
+        var left: Evaluator = when (pseudo) {
+            "node" -> InstanceType(Node::class, pseudo)
+            "leafnode" -> InstanceType(LeafNode::class, pseudo)
+            "text" -> InstanceType(TextNode::class, pseudo)
+            "comment" -> InstanceType(Comment::class, pseudo)
+            "data" -> InstanceType(DataNode::class, pseudo)
+            "cdata" -> InstanceType(CDataNode::class, pseudo)
+            else -> throw Selector.SelectorParseException("Could not parse query '$query': unknown node type '::${pseudo}'")
+        }
+
+        // Handle following subclasses in node context (like ::comment:contains())
+        var right: Evaluator?
+        while ((parseSubclass().also { right = it }) != null) {
+            left = and(left, right!!)
+        }
+
+        inNodeContext = false
+        return left
     }
 
     private fun byId(): Evaluator {
@@ -174,16 +205,16 @@ public class QueryParser private constructor(query: String) : AutoCloseable {
 
         // namespaces:
         if (tagName.startsWith("*|")) { // namespaces: wildcard match equals(tagName) or ending in ":"+tagName
-            val plainTag = tagName.substring(2); // strip *|
+            val plainTag = tagName.substring(2) // strip *|
             return CombiningEvaluator.Or(Evaluator.Tag(plainTag), Evaluator.TagEndsWith(":$plainTag"))
         } else if (tagName.endsWith("|*")) { // ns|*
-            val ns = "${tagName.substring(0, tagName.length - 2)}:"; // strip |*, to ns:
-            return Evaluator.TagStartsWith(ns);
+            val ns = "${tagName.substring(0, tagName.length - 2)}:" // strip |*, to ns:
+            return Evaluator.TagStartsWith(ns)
         } else if (tagName.contains("|")) { // flip "abc|def" to "abc:def"
-            tagName = tagName.replace("|", ":");
+            tagName = tagName.replace("|", ":")
         }
 
-        return Evaluator.Tag(tagName);
+        return Evaluator.Tag(tagName)
     }
 
     private fun byAttribute(): Evaluator {
@@ -316,6 +347,9 @@ public class QueryParser private constructor(query: String) : AutoCloseable {
         val query = if (own) ":containsOwn" else ":contains"
         val searchText: String = TokenQueue.unescape(consumeParens())
         Validate.notEmpty(searchText, "$query(text) query must not be empty")
+
+        if (inNodeContext) return ContainsValue(searchText)
+
         return if (own) Evaluator.ContainsOwnText(searchText) else Evaluator.ContainsText(searchText)
     }
 
@@ -336,12 +370,15 @@ public class QueryParser private constructor(query: String) : AutoCloseable {
     // :matches(regex), matchesOwn(regex)
     private fun matches(own: Boolean): Evaluator {
         val query = if (own) ":matchesOwn" else ":matches"
-        val regex = consumeParens() // don't unescape, as regex bits will be escaped
+        val regex = consumeParens()           // don’t un-escape; any regex escapes are intentional
         Validate.notEmpty(regex, "$query(regex) query must not be empty")
-        return if (own) {
-            Evaluator.MatchesOwn(jsSupportedRegex(regex))
-        } else {
-            Evaluator.Matches(jsSupportedRegex(regex))
+
+        val compiled = jsSupportedRegex(regex)        // Kotlin way to “compile” a pattern
+
+        return when {
+            inNodeContext -> NodeEvaluator.MatchesValue(compiled)
+            own -> Evaluator.MatchesOwn(compiled)
+            else -> Evaluator.Matches(compiled)
         }
     }
 

@@ -9,7 +9,6 @@
 package com.fleeksoft.ksoup.select
 
 import com.fleeksoft.ksoup.nodes.Node
-import com.fleeksoft.ksoup.ported.assert
 import com.fleeksoft.ksoup.select.NodeFilter.FilterResult
 import com.fleeksoft.ksoup.select.NodeTraversor.filter
 
@@ -36,19 +35,35 @@ public object NodeTraversor {
             val origSize = parent?.childNodeSize() ?: 0
             val next: Node? = node.nextSibling()
             visitor.head(node, depth) // visit current node
+
+            // check for modifications to the tree
+            // check for modifications to the tree
             if (parent != null && !node.hasParent()) { // removed or replaced
                 if (origSize == parent.childNodeSize()) { // replaced
-                    node =
-                        parent.childNode(node.siblingIndex()) // replace ditches parent but keeps sibling index
-                } else { // removed
-                    node = next
-                    if (node == null) { // last one, go up
-                        node = parent
-                        depth--
-                    }
-                    continue // don't tail removed
+                    node = parent.childNode(node.siblingIndex()) // replace ditches parent but keeps sibling index
+                    continue
                 }
+                // else, removed
+                node = next
+                if (node == null) {
+                    // was last in parent. need to walk up the tree, tail()ing on the way, until we find a suitable next. Otherwise, would revisit ancestor nodes.
+                    node = parent
+                    while (true) {
+                        depth--
+                        visitor.tail(node!!, depth)
+                        if (node === root) break
+                        if (node.nextSibling() != null) {
+                            node = node.nextSibling()
+                            break
+                        }
+                        node = node.parentNode()
+                        if (node == null) break
+                    }
+                    if (node === root || node == null) break // done, break outer
+                }
+                continue  // don't tail removed
             }
+
             if (node.childNodeSize() > 0) { // descend
                 node = node.childNode(0)
                 depth++
@@ -62,7 +77,7 @@ public object NodeTraversor {
                     node = node.parentNode()
                     depth--
                 }
-                visitor.tail(node!!, depth)
+                visitor.tail(node, depth)
                 if (node == root) break
                 node = node.nextSibling()
             }
@@ -100,7 +115,6 @@ public object NodeTraversor {
             }
             // No siblings, move upwards:
             while (true) {
-                assert(node != null, "depth > 0, so has parent")
                 if (!(node?.nextSibling() == null && depth > 0)) break
                 // 'tail' current node:
                 if (result == FilterResult.CONTINUE || result == FilterResult.SKIP_CHILDREN) {

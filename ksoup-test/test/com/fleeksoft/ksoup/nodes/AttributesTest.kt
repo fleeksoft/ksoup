@@ -269,7 +269,7 @@ class AttributesTest {
         a.put(Attributes.internalKey("another"), "example.com")
         a.put(Attributes.internalKey("last"), "example.com")
         a.remove(Attributes.internalKey("last"))
-        assertEquals(4, a.size())
+        assertEquals(2, a.size())
         assertEquals(2, a.asList().size) // excluded from lists
     }
 
@@ -361,5 +361,55 @@ class AttributesTest {
         assertEquals(4, two.size())
         assertEquals(3, one.size())
         assertNotEquals(one, two)
+    }
+
+
+    @Test
+    fun cloneGetsUniqueUserDataMap() {
+        val one = Attributes()
+        val data = "Hello"
+        one.userData("data", data)
+
+        val two = one.clone()
+        assertSame(two.userData("data"), one.userData("data"))
+        assertNotSame(two.userData(), one.userData())
+    }
+
+    @Test
+    fun dontCloneNullUserData() {
+        // https://github.com/jhy/jsoup/issues/2356
+        val span1: Element = Ksoup.parse("<span id=1></span>").expectFirst("span")
+        val attrs1 = span1.attributes()
+        assertFalse(attrs1.isEmpty())
+        span1.removeAttr("id")
+        assertTrue(attrs1.isEmpty())
+
+        val span2 = span1.clone()
+        val attrs2 = span2.attributes()
+        assertTrue(attrs2.isEmpty())
+    }
+
+    @Test
+    fun sizeDoesNotIncludeInternal() {
+        val el = Element("el")
+        val attrs = el.attributes()
+        assertEquals(0, attrs.size())
+        assertTrue(attrs.isEmpty())
+
+        attrs.userData("foo", "bar")
+        attrs.put(Attributes.internalKey("qux"), "bar")
+        assertEquals(0, attrs.size())
+        assertEquals(2, attrs.size)
+        assertTrue(attrs.isEmpty())
+
+        attrs.put("foo", "bar")
+        attrs.put("qux", "bar")
+        assertEquals(2, attrs.size())
+        assertEquals(4, attrs.size)
+
+        el.clearAttributes()
+        assertEquals(0, attrs.size())
+        assertEquals(2, attrs.size) // we keep the internals
+        assertTrue(attrs.isEmpty())
     }
 }

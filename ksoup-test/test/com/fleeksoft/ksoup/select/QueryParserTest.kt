@@ -2,6 +2,7 @@ package com.fleeksoft.ksoup.select
 
 import com.fleeksoft.ksoup.Ksoup
 import com.fleeksoft.ksoup.nodes.Document
+import com.fleeksoft.ksoup.select.EvaluatorDebug.sexpr
 import com.fleeksoft.ksoup.select.Selector.SelectorParseException
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -257,5 +258,13 @@ class QueryParserTest {
             "Could not parse query '+ + div': unexpected token at '+ div'",
             exception2.message
         )
+    }
+
+    @Test
+    fun hasNodeSelector() {
+        val q = "p:has(::comment:contains(some text))"
+        val e = QueryParser.parse(q)
+        assertEquals("(And (Tag 'p')(Has (And (InstanceType '::comment')(ContainsValue ':contains(some text)'))))", sexpr(e))
+        assertEquals(q, e.toString())
     }
 }

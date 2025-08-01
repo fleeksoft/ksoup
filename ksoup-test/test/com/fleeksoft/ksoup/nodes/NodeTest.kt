@@ -7,6 +7,7 @@ import com.fleeksoft.ksoup.parser.Tag
 import com.fleeksoft.ksoup.select.NodeVisitor
 import kotlin.test.*
 
+
 /**
  * Tests Nodes
  *
@@ -291,7 +292,7 @@ class NodeTest {
         val doc = Ksoup.parse("<div>One <span></span> Two</div>")
         val span = doc.select("span").first()
         val node = span!!.unwrap()
-        assertEquals("<div>One  Two</div>", TextUtil.stripNewlines(doc.body().html()))
+        assertEquals("<div>One Two</div>", TextUtil.stripNewlines(doc.body().html()))
         assertNull(node)
     }
 
@@ -470,6 +471,15 @@ class NodeTest {
         assertNull(a.lastElementChild())
         assertNull(firstEl.firstElementChild())
         assertNull(firstEl.lastElementChild())
+    }
+
+    @Test
+    fun firstLastSibling() {
+        val doc: Document = Ksoup.parse("<div><span>One</span> Two <span>Three</span>")
+        val spans = doc.select("span")
+        val text = spans.first()!!.nextSibling() as TextNode?
+        assertSame(spans[0], text!!.firstSibling())
+        assertSame(spans[1], text.lastSibling())
     }
 
     @Test

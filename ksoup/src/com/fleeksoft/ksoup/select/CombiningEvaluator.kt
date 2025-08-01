@@ -10,6 +10,9 @@ package com.fleeksoft.ksoup.select
 
 import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.nodes.Element
+import com.fleeksoft.ksoup.nodes.LeafNode
+import kotlin.js.JsName
+
 
 /**
  * Base combining (and, or) evaluator.
@@ -20,6 +23,8 @@ public abstract class CombiningEvaluator internal constructor() : Evaluator() {
     public val sortedEvaluators: ArrayList<Evaluator> = ArrayList()
     protected var num: Int = 0
     private var _cost = 0
+    @JsName("_wantsNodes")
+    var wantsNodes: Boolean = false
 
     internal constructor(evaluators: Collection<Evaluator>) : this() {
         this.evaluators.addAll(evaluators)
@@ -42,6 +47,10 @@ public abstract class CombiningEvaluator internal constructor() : Evaluator() {
         return _cost
     }
 
+    override fun wantsNodes(): Boolean {
+        return wantsNodes
+    }
+
     public fun updateEvaluators() {
         // used so we don't need to bash on size() for every match test
         num = evaluators.size
@@ -54,6 +63,15 @@ public abstract class CombiningEvaluator internal constructor() : Evaluator() {
         sortedEvaluators.clear()
         sortedEvaluators.addAll(evaluators)
         sortedEvaluators.sortWith { a, b -> a.cost() - b.cost() }
+
+
+        // any want nodes?
+        for (evaluator in evaluators) {
+            if (evaluator.wantsNodes()) {
+                wantsNodes = true
+                break
+            }
+        }
     }
 
     // ^ comparingInt, sortedEvaluators.sort not available in targeted version
@@ -61,13 +79,18 @@ public abstract class CombiningEvaluator internal constructor() : Evaluator() {
         CombiningEvaluator(evaluators) {
         constructor(vararg evaluators: Evaluator) : this(evaluators.toList())
 
-        override fun matches(
-            root: Element,
-            element: Element,
-        ): Boolean {
-            for (i in 0 until num) {
-                val s: Evaluator = sortedEvaluators[i]
-                if (!s.matches(root, element)) return false
+        override fun matches(root: Element, element: Element): Boolean {
+            for (i in 0..<num) {
+                val eval = sortedEvaluators[i]
+                if (!eval.matches(root, element)) return false
+            }
+            return true
+        }
+
+        public override fun matches(root: Element, leafNode: LeafNode): Boolean {
+            for (i in 0..<num) {
+                val eval = sortedEvaluators[i]
+                if (!eval.matches(root, leafNode)) return false
             }
             return true
         }
@@ -96,9 +119,17 @@ public abstract class CombiningEvaluator internal constructor() : Evaluator() {
         internal constructor() : super()
 
         override fun matches(root: Element, element: Element): Boolean {
-            for (i in 0 until num) {
-                val s: Evaluator = sortedEvaluators[i]
-                if (s.matches(root, element)) return true
+            for (i in 0..<num) {
+                val eval = sortedEvaluators[i]
+                if (eval.matches(root, element)) return true
+            }
+            return false
+        }
+
+        public override fun matches(root: Element, leafNode: LeafNode): Boolean {
+            for (i in 0..<num) {
+                val eval = sortedEvaluators[i]
+                if (eval.matches(root, leafNode)) return true
             }
             return false
         }

@@ -5,6 +5,7 @@ import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.nodes.Element
 import com.fleeksoft.ksoup.nodes.Node
 
+
 object EvaluatorDebug {
 
     /**
@@ -46,9 +47,12 @@ object EvaluatorDebug {
         return el
     }
 
-    fun sexpr(query: String?): String {
-        val doc: Document = asDocument(query)
+    fun sexpr(query: String): String {
+        return sexpr(QueryParser.parse(query))
+    }
 
+    fun sexpr(eval: Evaluator): String {
+        val doc = asDocument(eval)
         val sv = SexprVisitor()
         doc.childNode(0).traverse(sv) // skip outer #document
         return sv.result()

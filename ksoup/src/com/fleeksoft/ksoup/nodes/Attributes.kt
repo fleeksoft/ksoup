@@ -9,14 +9,12 @@
 package com.fleeksoft.ksoup.nodes
 
 import com.fleeksoft.ksoup.helper.Validate
+import com.fleeksoft.ksoup.internal.QuietAppendable
 import com.fleeksoft.ksoup.internal.SharedConstants
 import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.nodes.Range.AttributeRange.Companion.UntrackedAttr
 import com.fleeksoft.ksoup.parser.ParseSettings
 import com.fleeksoft.ksoup.ported.KCloneable
-import com.fleeksoft.io.exception.IOException
-import com.fleeksoft.ksoup.exception.SerializationException
-import com.fleeksoft.ksoup.internal.QuietAppendable
 import kotlin.js.JsName
 
 /**
@@ -42,8 +40,7 @@ public class Attributes : Iterable<Attribute>, KCloneable<Attributes> {
         private set
     internal var keys: Array<String?> =
         arrayOfNulls(InitialCapacity) // keys is not null, but contents may be. Same for vals
-    internal var vals =
-        arrayOfNulls<Any>(InitialCapacity) // Genericish: all non-internal attribute values must be Strings and are cast on access.
+    internal var vals = arrayOfNulls<Any>(InitialCapacity) // Genericish: all non-internal attribute values must be Strings and are cast on access.
     // todo - make keys iterable without creating Attribute objects
 
     // check there's room for more
@@ -148,12 +145,9 @@ public class Attributes : Iterable<Attribute>, KCloneable<Attributes> {
      * @param value attribute value (which can be null, to set a true boolean attribute)
      * @return these attributes, for chaining
      */
-    public fun put(
-        key: String,
-        value: String?,
-    ): Attributes {
+    public fun put(key: String, value: String?): Attributes {
         val i = indexOfKey(key)
-        if (i != NotFound) vals[i] = value else add(key, value)
+        if (i != NotFound) vals[i] = value else addObject(key, value)
         return this
     }
 
@@ -176,13 +170,20 @@ public class Attributes : Iterable<Attribute>, KCloneable<Attributes> {
     }
 
     /**
+     * Check if these attributes have any user data associated with them.
+     */
+    fun hasUserData(): Boolean {
+        return hasKey(SharedConstants.UserDataKey)
+    }
+
+    /**
      * Get an arbitrary user-data object by key.
      * @param key case-sensitive key to the object.
      * @return the object associated to this key, or `null` if not found.
      * @see .userData
      */
     public fun userData(key: String): Any? {
-        if (!hasKey(SharedConstants.UserDataKey)) return null // no user data exists
+        if (!hasUserData()) return null // no user data exists
 
         val userData: Map<String, Any> = userData()
         return userData[key]
@@ -195,18 +196,15 @@ public class Attributes : Iterable<Attribute>, KCloneable<Attributes> {
      * @return these attributes
      * @see .userData
      */
-    public fun userData(
-        key: String,
-        value: Any,
-    ): Attributes {
-        userData()[key] = value
+    public fun userData(key: String, value: Any?): Attributes {
+        if (value == null && !hasUserData()) return this // no user data exists, so short-circuit
+        val userData = userData()
+        if (value == null) userData.remove(key)
+        else userData.put(key, value)
         return this
     }
 
-    public fun putIgnoreCase(
-        key: String,
-        value: String?,
-    ) {
+    public fun putIgnoreCase(key: String, value: String?) {
         val i = indexOfKeyIgnoreCase(key)
         if (i != NotFound) {
             vals[i] = value
@@ -216,7 +214,7 @@ public class Attributes : Iterable<Attribute>, KCloneable<Attributes> {
                 keys[i] = key
             }
         } else {
-            add(key, value)
+            addObject(key, value)
         }
     }
 
@@ -325,29 +323,45 @@ public class Attributes : Iterable<Attribute>, KCloneable<Attributes> {
     }
 
     /**
-     * Get the number of attributes in this set, including any com.fleeksoft.ksoup internal-only attributes. Internal attributes are
-     * excluded from the [.html], [.asList], and [.iterator] methods.
+     * Get the number of attributes in this set, excluding any internal-only attributes (e.g. user data).
+     *
+     * Internal attributes are excluded from the [.html], [.asList], and [.iterator]
+     * methods.
+     *
      * @return size
      */
-    public fun size(): Int {
-        return size
-        // todo - exclude internal attributes from this count - maintain size, count of internals
+    fun size(): Int {
+        if (size == 0) return 0
+        var count = 0
+        for (i in 0..<size) {
+            if (!isInternalKey(keys[i]!!)) count++
+        }
+        return count
     }
 
-    public fun isEmpty(): Boolean = size == 0
+    /**
+     * Test if this Attributes list is empty.
+     *
+     * This does not include internal attributes, such as user data.
+     */
+    fun isEmpty(): Boolean {
+        return size() == 0
+    }
 
     /**
      * Add all the attributes from the incoming set to this set.
      * @param incoming attributes to add to these attributes.
      */
     public fun addAll(incoming: Attributes) {
-        if (incoming.size() == 0) return
-        checkCapacity(size + incoming.size)
-        val needsPut =
-            size != 0 // if this set is empty, no need to check existing set, so can add() vs put()
+        val incomingSize = incoming.size() // not adding internal
+        if (incomingSize == 0) return
+        checkCapacity(size + incomingSize)
+
+
+        val needsPut = size != 0 // if this set is empty, no need to check existing set, so can add() vs put()
         // (and save bashing on the indexOfKey()
         for (attr in incoming) {
-            if (needsPut) put(attr) else add(attr.key, attr.value)
+            if (needsPut) put(attr) else addObject(attr.key, attr.value)
         }
     }
 
@@ -380,7 +394,6 @@ public class Attributes : Iterable<Attribute>, KCloneable<Attributes> {
      * @param key the attribute name
      * @param range the range for the attribute's name and value
      * @return these attributes, for chaining
-     * @since 0.2.1
      */
     fun sourceRange(key: String, range: Range.AttributeRange): Attributes {
         var ranges = getRanges()
@@ -522,6 +535,13 @@ public class Attributes : Iterable<Attribute>, KCloneable<Attributes> {
 
         attributes.keys = keys.copyOf(size)
         attributes.vals = vals.copyOf(size)
+
+
+        // make a copy of the user data map. (Contents are shallow).
+        val i = indexOfKey(SharedConstants.UserDataKey)
+        if (i != NotFound) {
+            vals[i] = HashMap(vals[i] as MutableMap<String?, Any?>)
+        }
         return attributes
     }
 
@@ -541,7 +561,7 @@ public class Attributes : Iterable<Attribute>, KCloneable<Attributes> {
      * @return number of removed dupes
      */
     public fun deduplicate(settings: ParseSettings): Int {
-        if (isEmpty()) return 0
+        if (size == 0) return 0
         val preserve: Boolean = settings.preserveAttributeCase()
         var dupes = 0
         for (i in 0 until size) {
@@ -595,6 +615,7 @@ public class Attributes : Iterable<Attribute>, KCloneable<Attributes> {
         // The Attributes object is only created on the first use of an attribute; the Element will just have a null
         // Attribute slot otherwise
         public const val dataPrefix: String = "data-"
+        private const val EmptyString = ""
 
         // sampling found mean count when attrs present = 1.49; 1.08 overall. 2.6:1 don't have any attrs.
         private const val InitialCapacity = 3
@@ -603,7 +624,6 @@ public class Attributes : Iterable<Attribute>, KCloneable<Attributes> {
         private const val GrowthFactor = 2
 
         internal const val NotFound: Int = -1
-        private const val EmptyString = ""
 
         // we track boolean attributes as null in values - they're just keys. so returns empty for consumers
         // casts to String, so only for non-internal attributes
