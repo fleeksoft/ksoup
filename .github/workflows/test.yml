@@ -93,7 +93,7 @@ jobs:
           distribution: temurin
           java-version: ${{ matrix.java-version }}
 
-      - uses: gradle/gradle-build-action@v3
+      - uses: gradle/actions/setup-gradle@v4
         name: Set up Gradle
 
       - name: Run tests for ${{ matrix.libBuildType }} on ${{ matrix.target }}
