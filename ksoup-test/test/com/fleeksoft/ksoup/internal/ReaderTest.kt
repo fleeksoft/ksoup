@@ -15,10 +15,6 @@ class ReaderTest {
 
     @Test
     fun readerOfStringAndFile() = runTest {
-        // TODO: remove after release
-        if (Platform.isJsOrWasm()) {
-            return@runTest
-        }
         // make sure that reading from a String and from a File produce the same bytes
         val resourceName = "fuzztests/garble.html"
         val fromBytes = TestHelper.readResourceAsString(resourceName)

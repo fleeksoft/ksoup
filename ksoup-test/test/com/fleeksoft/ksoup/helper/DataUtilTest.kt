@@ -382,10 +382,6 @@ class DataUtilTest {
     @Test
     fun streamParserSurrogateAcrossBuffer() = runTest {
         // https://github.com/jhy/jsoup/issues/2353
-        // TODO: remove after release
-        if (Platform.isJsOrWasm()) {
-            return@runTest
-        }
         val inputPath = TestHelper.readResourceAsString("fuzztests/2353.html.gz").byteInputStream()
         DataUtil.streamParser(inputPath, "", Charsets.UTF8, Parser.htmlParser()).use { parser ->
             val doc = parser.complete()
@@ -396,10 +392,6 @@ class DataUtilTest {
 
     @Test
     fun parseSurrogateAcrossBuffer() = runTest {
-        // TODO: remove after release
-        if (Platform.isJsOrWasm()) {
-            return@runTest
-        }
         val doc: Document = TestHelper.parseResource("fuzztests/2353.html.gz")
         assertTrue(doc.html().contains("Read-Fully!"))
     }
