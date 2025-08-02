@@ -3,10 +3,10 @@ name: test
 on:
   push:
     branches: [ "release", "develop" ]
-    paths-ignore: [ "**.md" ]
+    paths-ignore: [ "**.md", "**/LICENSE*", "**/NOTICE*", "**/CONTRIBUTING*", "**/AUTHORS*", "**/CHANGELOG*", "**/CODE_OF_CONDUCT*" ]
   pull_request:
     branches: [ "release", "develop" ]
-    paths-ignore: [ "**.md" ]
+    paths-ignore: [ "**.md", "**/LICENSE*", "**/NOTICE*", "**/CONTRIBUTING*", "**/AUTHORS*", "**/CHANGELOG*", "**/CODE_OF_CONDUCT*" ]
   workflow_dispatch:
 
 concurrency:
