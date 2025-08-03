@@ -2,8 +2,8 @@ package com.fleeksoft.ksoup.nodes
 
 import com.fleeksoft.ksoup.Ksoup
 import com.fleeksoft.ksoup.TextUtil
-import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.exception.ValidationException
+import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.ported.toCodePoint
 import kotlin.test.*
 
@@ -58,16 +58,14 @@ class TextNodeTest {
     }
 
     @Test
-    fun testSplitAnEmbolden() {
+    fun testSplitAndEmbolden() {
         val doc = Ksoup.parse("<div>Hello there</div>")
         val div = doc.select("div").first()
         val tn = div!!.childNode(0) as TextNode
         val tail = tn.splitText(6)
         tail.wrap("<b></b>")
-        assertEquals(
-            "Hello <b>there</b>",
-            TextUtil.stripNewlines(div.html()),
-        ) // not great that we get \n<b>there there... must correct
+
+        assertEquals("Hello <b>there</b>", div.html())
     }
 
     @Test
@@ -216,5 +214,16 @@ class TextNodeTest {
         assertTrue(t.hasSameValue(clone))
         assertEquals("/foo.html", clone.attr("href"))
         assertEquals("Two", clone.text())
+    }
+
+    @Test
+    fun parentElement() {
+        val doc: Document = Ksoup.parse("<p>Text</p>")
+        val text = doc.selectNodes("::text", TextNode::class).first()
+        assertNotNull(text)
+        var p = text.parent()
+        assertNotNull(p)
+        p = (text as Node).parentElement()
+        assertNotNull(p)
     }
 }

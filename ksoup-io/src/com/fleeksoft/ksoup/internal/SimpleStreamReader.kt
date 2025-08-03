@@ -48,7 +48,9 @@ class SimpleStreamReader(private val input: InputStream, charset: Charset) : Rea
         }
 
         if (readFully) decoder.reset()
-        if (charBuf.position() == 0) return -1
+        if (charBuf.position() == 0) {
+            return if (readFully) -1 else 0 // 0 if there was a surrogate and the reader tried to read only 1.
+        }
         return charBuf.position()
     }
 

@@ -10,23 +10,34 @@ package com.fleeksoft.ksoup.select
 
 import com.fleeksoft.ksoup.internal.SoftPool
 import com.fleeksoft.ksoup.internal.StringUtil
-import com.fleeksoft.ksoup.nodes.Element
-import com.fleeksoft.ksoup.nodes.NodeIterator
+import com.fleeksoft.ksoup.nodes.*
 import com.fleeksoft.ksoup.ported.IdentityHashMap
 import com.fleeksoft.ksoup.ported.ThreadLocal
+import kotlin.js.JsName
 
 /**
  * Base structural evaluator.
  */
 public abstract class StructuralEvaluator(public val evaluator: Evaluator) : Evaluator() {
-    // Memoize inner matches, to save repeated re-evaluations of parent, sibling etc.
-    // root + element: Boolean matches. ThreadLocal in case the Evaluator is compiled then reused across multi threads
-    public val threadMemo: ThreadLocal<IdentityHashMap<Element, IdentityHashMap<Element, Boolean>>> =
+    @JsName("_wantsNodes")
+    var wantsNodes: Boolean = evaluator.wantsNodes() // if the evaluator requested nodes, not just elements
+
+    override fun wantsNodes(): Boolean {
+        return wantsNodes
+    }
+
+    public val threadMemo: ThreadLocal<IdentityHashMap<Node, IdentityHashMap<Node, Boolean>>> =
         ThreadLocal { IdentityHashMap() }
 
-    public fun memoMatches(root: Element, element: Element): Boolean {
+    /*boolean memoMatches(final Element root, final Node node) {
+        Map<Node, IdentityHashMap<Node, Boolean>> rootMemo = threadMemo.get();
+        Map<Node, Boolean> memo = rootMemo.computeIfAbsent(root, Functions.identityMapFunction());
+        return memo.computeIfAbsent(node, key -> evaluator.matches(root, key));
+    }*/
+
+    public fun memoMatches(root: Element, element: Node): Boolean {
         val rootMemo = threadMemo.get()
-        val memo: MutableMap<Element, Boolean> = rootMemo.getOrPut(root) { IdentityHashMap() }
+        val memo = rootMemo.getOrPut(root) { IdentityHashMap() }
         return memo.getOrPut(element) { evaluator.matches(root, element) }
     }
 
@@ -35,6 +46,16 @@ public abstract class StructuralEvaluator(public val evaluator: Evaluator) : Eva
         evaluator.reset()
         super.reset()
     }
+
+    override fun matches(root: Element, element: Element): Boolean {
+        return evaluateMatch(root, element)
+    }
+
+    override fun matches(root: Element, leafNode: LeafNode): Boolean {
+        return evaluateMatch(root, leafNode)
+    }
+
+    abstract fun evaluateMatch(root: Element, node: Node): Boolean
 
     internal class Root : Evaluator() {
         override fun matches(root: Element, element: Element): Boolean {
@@ -46,13 +67,13 @@ public abstract class StructuralEvaluator(public val evaluator: Evaluator) : Eva
         }
 
         override fun toString(): String {
-            return ""
+            return ">"
         }
     }
 
     internal class Has(evaluator: Evaluator) : StructuralEvaluator(evaluator) {
         companion object {
-            private val ElementIterPool: SoftPool<NodeIterator<Element>> = SoftPool { NodeIterator(Element("html"), Element::class) }
+            private val NodeIterPool: SoftPool<NodeIterator<Node>> = SoftPool { NodeIterator(TextNode(""), Node::class) }
         }
 
         private val checkSiblings = evalWantsSiblings(evaluator) // evaluating against siblings (or children)
@@ -68,18 +89,22 @@ public abstract class StructuralEvaluator(public val evaluator: Evaluator) : Eva
                 }
             }
             // otherwise we only want to match children (or below), and not the input element. And we want to minimize GCs so reusing the Iterator obj
-            val it = ElementIterPool.borrow()
+            val it = NodeIterPool.borrow()
             it.restart(element)
             try {
                 while (it.hasNext()) {
-                    val el = it.next()
-                    if (el === element) continue  // don't match self, only descendants
-                    if (evaluator.matches(element, el)) return true
+                    val node = it.next()
+                    if (node === element) continue  // don't match self, only descendants
+                    if (evaluator.matches(element, node)) return true
                 }
             } finally {
-                ElementIterPool.release(it)
+                NodeIterPool.release(it)
             }
             return false
+        }
+
+        override fun evaluateMatch(root: Element, node: Node): Boolean {
+            return false // unused; :has(::comment)) goes via implicit root combinator
         }
 
         /* Test if the :has sub-clause wants sibling elements (vs nested elements) - will be a Combining eval */
@@ -103,11 +128,8 @@ public abstract class StructuralEvaluator(public val evaluator: Evaluator) : Eva
 
     /** Implements the :is(sub-query) pseudo-selector  */
     internal class Is(evaluator: Evaluator) : StructuralEvaluator(evaluator) {
-        override fun matches(
-            root: Element,
-            element: Element,
-        ): Boolean {
-            return evaluator.matches(root, element)
+        override fun evaluateMatch(root: Element, node: Node): Boolean {
+            return evaluator.matches(root, node)
         }
 
         override fun cost(): Int {
@@ -120,11 +142,8 @@ public abstract class StructuralEvaluator(public val evaluator: Evaluator) : Eva
     }
 
     class Not(evaluator: Evaluator) : StructuralEvaluator(evaluator) {
-        override fun matches(
-            root: Element,
-            element: Element,
-        ): Boolean {
-            return !memoMatches(root, element)
+        override fun evaluateMatch(root: Element, node: Node): Boolean {
+            return !memoMatches(root, node)
         }
 
         override fun cost(): Int {
@@ -140,9 +159,9 @@ public abstract class StructuralEvaluator(public val evaluator: Evaluator) : Eva
      * Any Ancestor (i.e., ascending parent chain.).
      */
     public class Ancestor(evaluator: Evaluator) : StructuralEvaluator(evaluator) {
-        override fun matches(root: Element, element: Element): Boolean {
-            if (root === element) return false
-            var parent: Element? = element.parent()
+        override fun evaluateMatch(root: Element, node: Node): Boolean {
+            if (root === node) return false
+            var parent = node.parent()
             while (parent != null) {
                 if (memoMatches(root, parent)) return true
                 if (parent === root) break
@@ -164,7 +183,7 @@ public abstract class StructuralEvaluator(public val evaluator: Evaluator) : Eva
      * Holds a list of evaluators for one > two > three immediate parent matches, and the final direct evaluator under
      * test. To match, these are effectively ANDed together, starting from the last, matching up to the first.
      */
-    public class ImmediateParentRun(evaluator: Evaluator) : Evaluator() {
+    public class ImmediateParentRun(evaluator: Evaluator) : StructuralEvaluator(evaluator) {
         public val evaluators: ArrayList<Evaluator> = ArrayList<Evaluator>()
         private var _cost = 2
 
@@ -176,14 +195,15 @@ public abstract class StructuralEvaluator(public val evaluator: Evaluator) : Eva
         public fun add(evaluator: Evaluator) {
             evaluators.add(evaluator)
             _cost += evaluator.cost()
+            wantsNodes = wantsNodes or evaluator.wantsNodes()
         }
 
-        override fun matches(root: Element, element: Element): Boolean {
-            var el: Element? = element
+        override fun evaluateMatch(root: Element, node: Node): Boolean {
+            var el: Node? = node
             if (el === root) return false // cannot match as the second eval (first parent test) would be above the root
             for (i in evaluators.indices.reversed()) {
                 if (el == null) return false
-                val eval: Evaluator = evaluators.get(i)
+                val eval: Evaluator = evaluators[i]
                 if (!eval.matches(root, el)) return false
                 el = el.parent()
             }
@@ -207,14 +227,12 @@ public abstract class StructuralEvaluator(public val evaluator: Evaluator) : Eva
     }
 
     public class PreviousSibling(evaluator: Evaluator) : StructuralEvaluator(evaluator) {
-        override fun matches(
-            root: Element,
-            element: Element,
-        ): Boolean {
-            if (root === element) return false
-            var sibling: Element? = element.firstElementSibling()
+        // matches any previous sibling, so can be same in Element only or wantsNodes context
+        override fun evaluateMatch(root: Element, node: Node): Boolean {
+            if (root === node) return false
+            var sibling = node.firstSibling()
             while (sibling != null) {
-                if (sibling === element) break
+                if (sibling === node) break
                 if (memoMatches(root, sibling)) return true
                 sibling = sibling.nextElementSibling()
             }
@@ -231,9 +249,9 @@ public abstract class StructuralEvaluator(public val evaluator: Evaluator) : Eva
     }
 
     internal class ImmediatePreviousSibling(evaluator: Evaluator) : StructuralEvaluator(evaluator) {
-        override fun matches(root: Element, element: Element): Boolean {
-            if (root === element) return false
-            val prev: Element? = element.previousElementSibling()
+        override fun evaluateMatch(root: Element, node: Node): Boolean {
+            if (root === node) return false
+            val prev = if (wantsNodes) node.previousSibling() else node.previousElementSibling()
             return prev != null && memoMatches(root, prev)
         }
 

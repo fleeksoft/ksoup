@@ -506,6 +506,25 @@ class HtmlParserTest {
     }
 
     @Test
+    fun siblingIndexFromFragment() {
+        val doc: Document = Ksoup.parseBodyFragment("<table><input></table>")
+        val input = doc.expectFirst("input")
+        val table = doc.expectFirst("table")
+        assertEquals(0, input.siblingIndex())
+        assertEquals(1, table.siblingIndex())
+    }
+
+    @Test
+    fun siblingIndexFromParse() {
+        val doc: Document = Ksoup.parse("<table><input></table>")
+        val input = doc.expectFirst("input")
+        val table = doc.expectFirst("table")
+        assertEquals(0, input.siblingIndex())
+        assertEquals(1, table.siblingIndex())
+    }
+
+
+    @Test
     fun handlesUnknownNamespaceTags() {
         val h = "<foo:bar id='1' /><abc:def id=2>Foo<p>Hello</p></abc:def><foo:bar>There</foo:bar>"
         val parser = Parser.htmlParser()

@@ -201,7 +201,7 @@ public enum class TokeniserState {
     RCDATAEndTagName {
         override fun read(t: Tokeniser, r: CharacterReader) {
             if (r.matchesAsciiAlpha()) {
-                val name: String = r.consumeLetterSequence()
+                val name: String = r.consumeTagName()
                 t.tagPending.appendTagName(name)
                 t.dataBuffer.append(name)
                 return
@@ -1659,7 +1659,7 @@ public enum class TokeniserState {
          */
         private fun handleDataEndTag(t: Tokeniser, r: CharacterReader, elseTransition: TokeniserState) {
             if (r.matchesAsciiAlpha()) {
-                val name: String = r.consumeLetterSequence()
+                val name: String = r.consumeTagName()
                 t.tagPending.appendTagName(name)
                 t.dataBuffer.append(name)
                 return

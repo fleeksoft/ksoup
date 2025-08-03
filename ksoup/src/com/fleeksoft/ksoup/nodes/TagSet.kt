@@ -79,14 +79,20 @@ class TagSet {
         return null
     }
 
-    /** Tag.valueOf with the normalName via the token.normalName, to save redundant lower-casing passes.  */
-    fun valueOf(tagName: String, normalName: String, namespace: String, preserveTagCase: Boolean): Tag {
+    /**
+     * Tag.valueOf with the normalName via the token.normalName, to save redundant lower-casing passes.
+     * Provide a null normalName unless we already have one; will be normalized if required from tagName.
+     */
+    fun valueOf(tagName: String, normalNameParam: String?, namespace: String, preserveTagCase: Boolean): Tag {
         var tName = tagName.trim()
         Validate.notEmpty(tName)
         var tag = get(tName, namespace)
         if (tag != null) return tag
 
         // not found by tagName, try by normal
+        // not found by tagName, try by normal
+        var normalName = normalNameParam
+        if (normalName == null) normalName = ParseSettings.normalName(tagName)
         tName = if (preserveTagCase) tName else normalName
         tag = get(normalName, namespace)
         if (tag != null) {
@@ -109,28 +115,14 @@ class TagSet {
      *
      * New tags will be added to this TagSet.
      *
-     * @param tagName Name of tag, e.g. "p".
-     * @param namespace the namespace for the tag.
-     * @param settings used to control tag name sensitivity
-     * @return The tag, either defined or new generic.
-     */
-    /**
-     * Get a Tag by name from this TagSet. If not previously defined (unknown), returns a new tag.
-     *
-     * New tags will be added to this TagSet.
-     *
      * @param tagName Name of tag, e.g. "p". **Case-sensitive**.
      * @param namespace the namespace for the tag.
      * @return The tag, either defined or new generic.
      * @see .valueOf
      */
     @JvmOverloads
-    fun valueOf(
-        tagName: String,
-        namespace: String,
-        settings: ParseSettings = ParseSettings.preserveCase
-    ): Tag {
-        return valueOf(tagName, ParseSettings.normalName(tagName), namespace, settings.preserveTagCase())
+    fun valueOf(tagName: String, namespace: String, settings: ParseSettings = ParseSettings.preserveCase): Tag {
+        return valueOf(tagName, null, namespace, settings.preserveTagCase())
     }
 
     /**

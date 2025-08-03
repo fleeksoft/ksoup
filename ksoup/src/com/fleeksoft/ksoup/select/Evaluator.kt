@@ -16,8 +16,8 @@ import com.fleeksoft.ksoup.nodes.*
 import com.fleeksoft.ksoup.parser.ParseSettings
 
 /**
- * An Evaluator tests if an element meets the selector's requirements. Obtain an evaluator for a given CSS selector
- * with {@link QueryParser#parse}. If you are executing the same selector on many elements (or documents), it
+ * An Evaluator tests if an element (or a node) meets the selector's requirements. Obtain an evaluator for a given CSS selector
+ * with {@link Selector#evaluatorOf(String css)}. If you are executing the same selector on many elements (or documents), it
  * can be more efficient to compile and reuse an Evaluator than to reparse the selector on each invocation of select().
  * <p>Evaluators are thread-safe and may be used concurrently across multiple documents.</p>
  */
@@ -29,6 +29,10 @@ public abstract class Evaluator protected constructor() {
      */
     public fun asPredicate(root: Element): (Element) -> Boolean = { element -> matches(root, element) }
 
+    fun asNodePredicate(root: Element): (Node) -> Boolean {
+        return { node: Node -> matches(root, node) }
+    }
+
     /**
      * Test if the element meets the evaluator's requirements.
      *
@@ -37,10 +41,24 @@ public abstract class Evaluator protected constructor() {
      * @return Returns <tt>true</tt> if the requirements are met or
      * <tt>false</tt> otherwise
      */
-    public abstract fun matches(
-        root: Element,
-        element: Element,
-    ): Boolean
+    public abstract fun matches(root: Element, element: Element): Boolean
+
+    open fun matches(root: Element, node: Node): Boolean {
+        if (node is Element) {
+            return matches(root, node)
+        } else if (node is LeafNode && wantsNodes()) {
+            return matches(root, node)
+        }
+        return false
+    }
+
+    open fun matches(root: Element, leafNode: LeafNode): Boolean {
+        return false
+    }
+
+    open fun wantsNodes(): Boolean {
+        return false
+    }
 
     /**
      * Reset any internal state in this Evaluator before executing a new Collector evaluation.
@@ -312,11 +330,7 @@ public abstract class Evaluator protected constructor() {
     /**
      * Abstract evaluator for attribute name/value matching
      */
-    public abstract class AttributeKeyPair(
-        key: String,
-        value: String,
-        trimValue: Boolean = true,
-    ) : Evaluator() {
+    public abstract class AttributeKeyPair(key: String, value: String, trimQuoted: Boolean = true) : Evaluator() {
         public var key: String
         public var value: String
 
@@ -325,14 +339,15 @@ public abstract class Evaluator protected constructor() {
             Validate.notEmpty(key)
             Validate.notEmpty(resultValue)
             this.key = normalize(key)
-            val isStringLiteral = (
-                    resultValue.startsWith("'") && resultValue.endsWith("'") ||
-                            resultValue.startsWith("\"") && resultValue.endsWith("\"")
-                    )
-            if (isStringLiteral) {
-                resultValue = resultValue.substring(1, resultValue.length - 1)
-            }
-            this.value = if (trimValue) normalize(resultValue) else normalize(resultValue, isStringLiteral)
+            val quoted = resultValue.startsWith("'") && resultValue.endsWith("'")
+                    || resultValue.startsWith("\"") && resultValue.endsWith("\"")
+            if (quoted) resultValue = value.substring(1, resultValue.length - 1)
+
+
+            // normalize value based on whether it was quoted and trimQuoted flag
+            // keeps whitespace for attribute val starting or ending, when quoted
+            if (trimQuoted || !quoted) this.value = normalize(resultValue) // lowercase and trims
+            else this.value = lowerCase(resultValue) // only lowercase
         }
     }
 
@@ -748,10 +763,7 @@ public abstract class Evaluator protected constructor() {
      * Evaluator for matching Element's own text with regex
      */
     public class MatchesOwn(private val pattern: Regex) : Evaluator() {
-        override fun matches(
-            root: Element,
-            element: Element,
-        ): Boolean {
+        override fun matches(root: Element, element: Element): Boolean {
             return pattern.containsMatchIn(element.ownText())
         }
 
@@ -792,11 +804,23 @@ public abstract class Evaluator protected constructor() {
         override fun toString(): String = ":matchesWholeOwnText(${pattern.pattern})"
     }
 
+    @Deprecated("This selector is deprecated and will be removed in a future version. Migrate to <code>::textnode</code> using the <code>Element#selectNodes()</code> method instead.")
     public class MatchText : Evaluator() {
-        override fun matches(
-            root: Element,
-            element: Element,
-        ): Boolean {
+        companion object {
+            private var loggedError: Boolean = false
+        }
+
+        init {
+
+
+            // log a deprecated error on first use; users typically won't directly construct this Evaluator and so won't otherwise get deprecation warnings
+            if (!loggedError) {
+                loggedError = true
+                println("WARNING: :matchText selector is deprecated and will be removed in a future version. Use Element#selectNodes(String, Class) with selector ::textnode and class TextNode instead.")
+            }
+        }
+
+        override fun matches(root: Element, element: Element): Boolean {
             if (element is PseudoTextElement) return true
             val textNodes: List<TextNode> = element.textNodes()
             for (textNode in textNodes) {

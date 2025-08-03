@@ -1,10 +1,8 @@
 package com.fleeksoft.ksoup.select
 
 import com.fleeksoft.ksoup.Ksoup
-import com.fleeksoft.ksoup.nodes.Document
-import com.fleeksoft.ksoup.nodes.Element
+import com.fleeksoft.ksoup.nodes.*
 import com.fleeksoft.ksoup.parser.Parser
-import com.fleeksoft.ksoup.ported.IdentityHashMap
 import com.fleeksoft.ksoup.ported.toCodePoint
 import com.fleeksoft.ksoup.select.Selector.escapeCssIdentifier
 import com.fleeksoft.ksoup.select.Selector.evaluatorOf
@@ -454,6 +452,27 @@ class SelectorTest {
     fun generalSiblings() {
         val h = "<ol><li id=1>One<li id=2>Two<li id=3>Three</ol>"
         val doc = Ksoup.parse(h)
+        val els = doc.select("#1 ~ #3")
+        assertEquals(1, els.size)
+        assertEquals("Three", els.first()!!.text())
+    }
+
+    @Test
+    fun elementDescendantSkipsNodes() {
+        val h = "<div class=foo> <!-- foo --> <ol> <li>One<li><!-- bar --> Two<li>Three</ol></div>"
+        val doc: Document = Ksoup.parse(h)
+        val els = doc.select(".foo > ol, ol > li + li")
+
+        assertEquals(3, els.size)
+        assertEquals("ol", els[0].tagName())
+        assertEquals("Two", els[1].text())
+        assertEquals("Three", els[2].text())
+    }
+
+    @Test
+    fun siblingsSkipNodes() {
+        val h = "<ol><li id=1><!-- foo -->One<li id=2><!-- foo -->Two<li id=3><!-- foo -->Three</ol>"
+        val doc: Document = Ksoup.parse(h)
         val els = doc.select("#1 ~ #3")
         assertEquals(1, els.size)
         assertEquals("Three", els.first()!!.text())
@@ -1106,7 +1125,7 @@ class SelectorTest {
         val eval = QueryParser.parse("p ~ p")
         val andEval = eval as CombiningEvaluator.And
         val prevEval = andEval.evaluators[0] as StructuralEvaluator.PreviousSibling
-        val map: IdentityHashMap<Element, IdentityHashMap<Element, Boolean>> = prevEval.threadMemo.get()
+        val map = prevEval.threadMemo.get()
         assertEquals(0, map.size) // no memo yet
         val doc1 = Ksoup.parse("<p>One<p>Two<p>Three")
         val doc2 = Ksoup.parse("<p>One2<p>Two2<p>Three2")
@@ -1400,6 +1419,256 @@ class SelectorTest {
     fun evaluatorOf() {
         val eval = evaluatorOf("div > p")
         assertEquals("div > p", eval.toString())
+    }
+
+
+    @Test
+    fun hasComment() {
+        val doc: Document = Ksoup.parse("<div id=1>One</div><div id=2>Two <!-- foo --></div>")
+        val els = doc.select("div:has(::comment)")
+        assertSelectedIds(els, "2")
+    }
+
+    @Test
+    fun hasCommentWithText() {
+        val doc: Document = Ksoup.parse("<div id=1>One <!-- qux bar --></div><div id=2>Two <!-- foo qux --></div>")
+        val els = doc.select("div:has(::comment:contains(foo):contains(qux))")
+        assertSelectedIds(els, "2")
+    }
+
+    @Test
+    fun descendantComment() {
+        val doc: Document =
+            Ksoup.parse("<div id=1><div id=2><!-- comment2 --><div id=3><!-- comment3 --></div></div></div><div id=4><div id=5><div id=6>Not</div></div></div>")
+
+        val q = "div > div:has(::comment)"
+        assertEquals("(ImmediateParentRun (Tag 'div')(And (Tag 'div')(Has (InstanceType '::comment'))))", EvaluatorDebug.sexpr(q))
+        val els1 = doc.select(q)
+        assertSelectedIds(els1, "2", "3")
+
+        val q2 = "div div:has(>::comment:contains(comment3))"
+        assertEquals(
+            "(And (Ancestor (Tag 'div'))(And (Tag 'div')(Has (ImmediateParentRun (Root '>')(And (InstanceType '::comment')(ContainsValue ':contains(comment3)'))))))",
+            EvaluatorDebug.sexpr(q2)
+        )
+        val els2 = doc.select(q2)
+        assertSelectedIds(els2, "3")
+
+        val q3 = "div:has(>::comment) div"
+        assertEquals(
+            "(And (Tag 'div')(Ancestor (And (Tag 'div')(Has (ImmediateParentRun (Root '>')(InstanceType '::comment'))))))",
+            EvaluatorDebug.sexpr(q3)
+        )
+        val els3 = doc.select(q3)
+        assertSelectedIds(els3, "3")
+    }
+
+    @Test
+    fun nodeWithElementAncestor() {
+        val doc: Document = Ksoup.parse("<div id=1><div id=2><p> <!-- comment --></p></div></div>")
+        val q = "div:has(p ::comment)"
+        assertEquals("(And (Tag 'div')(Has (And (InstanceType '::comment')(Ancestor (Tag 'p')))))", EvaluatorDebug.sexpr(q))
+        val els = doc.select(q)
+        assertSelectedIds(els, "1", "2")
+    }
+
+    @Test
+    fun precedingComment() {
+        val doc: Document = Ksoup.parse("<div><!-- comment --><p id=1><p id=2></div><div><p id=3><p id=4>")
+
+        val q = "::comment ~ p"
+        assertEquals("(And (Tag 'p')(PreviousSibling (InstanceType '::comment')))", EvaluatorDebug.sexpr(q))
+        val els1 = doc.select(q)
+        assertSelectedIds(els1, "1", "2")
+
+        val q2 = "::comment + p"
+        assertEquals("(And (Tag 'p')(ImmediatePreviousSibling (InstanceType '::comment')))", EvaluatorDebug.sexpr(q2))
+        val els2 = doc.select(q2)
+        assertSelectedIds(els2, "1")
+    }
+
+    @Test
+    fun datanode() {
+        val doc: Document = Ksoup.parse("<div id=1> <!-- foo --> </div> <div id=2> <script>foo</script> </div> <div><script>bar></script>")
+        val q = "div:has(::data:contains(foo))"
+        assertEquals("(And (Tag 'div')(Has (And (InstanceType '::data')(ContainsValue ':contains(foo)'))))", EvaluatorDebug.sexpr(q))
+        val els = doc.select(q)
+        assertSelectedIds(els, "2")
+    }
+
+    @Test
+    fun leafNode() {
+        val doc: Document = Ksoup.parse("<div id=1></div><div id=2> </div>")
+        val q = "div:has(::leafnode)"
+        assertEquals("(And (Tag 'div')(Has (InstanceType '::leafnode')))", EvaluatorDebug.sexpr(q))
+        val els = doc.select(q)
+        assertSelectedIds(els, "2")
+    }
+
+    @Test
+    fun leafNodeContains() {
+        val doc: Document =
+            Ksoup.parse("<div id=1>foo</div><div id=2><!-- bar --></div><div id=3>Bar</div><div id=4><script id=5> Bar </script></div>")
+        val q = "div:has(::leafnode:contains(Bar))"
+        assertEquals("(And (Tag 'div')(Has (And (InstanceType '::leafnode')(ContainsValue ':contains(bar)'))))", EvaluatorDebug.sexpr(q))
+        val els = doc.select(q)
+        assertSelectedIds(els, "2", "3", "4")
+    }
+
+    @Test
+    fun nodeContains() {
+        val doc: Document = Ksoup.parse("<div><p>One</p></div><div>Two</div>")
+        val q = "div ::node:contains(One)"
+        val nodes = doc.selectNodes(evaluatorOf(q))
+        // should have the P and the Text (because nodeValue is ownText)
+        assertEquals(2, nodes.size)
+        assertEquals("One", nodes[0].nodeValue())
+        assertEquals("p", nodes[0].nodeName())
+        assertEquals("One", nodes[1].nodeValue())
+        assertEquals("#text", nodes[1].nodeName())
+    }
+
+    @Test
+    fun selectComment() {
+        val doc: Document = Ksoup.parse("<div><!-- find this --></div><!-- and this --><p><!-- not that --></p>")
+        val q = "::comment:contains(this)"
+        assertEquals("(And (InstanceType '::comment')(ContainsValue ':contains(this)'))", EvaluatorDebug.sexpr(q))
+        val comments = doc.selectNodes(q, Comment::class)
+
+        assertEquals(2, comments.size)
+        assertEquals(" find this ", comments[0].getData())
+        assertEquals(" find this ", comments[0].nodeValue())
+        assertEquals(" and this ", comments[1].getData())
+
+        val nodes = doc.selectNodes("::comment")
+        assertEquals(3, nodes.size)
+        assertEquals(" find this ", nodes[0].nodeValue())
+        assertEquals(" and this ", nodes[1].nodeValue())
+        assertEquals(" not that ", nodes[2].nodeValue())
+    }
+
+    @Test
+    fun selectTextNodes() {
+        val doc: Document = Ksoup.parse("<p>One</p> <p>Two</p>")
+        val text: Nodes<TextNode> = doc.selectNodes("p ::text", TextNode::class)
+        assertEquals(2, text.size)
+        assertEquals("One", text[0].getWholeText())
+        assertEquals("Two", text[1].getWholeText())
+    }
+
+    @Test
+    fun elementsViaNodeInterface() {
+        val doc: Document = Ksoup.parse("<p>One</p> <p>Two</p>")
+        val ps: Nodes<Element> = doc.selectNodes("p", Element::class)
+        assertEquals(2, ps.size)
+        assertEquals("One", ps[0].text())
+        assertEquals("Two", ps[1].text())
+    }
+
+    @Test
+    fun blankNodes() {
+        val doc: Document = Ksoup.parse("<p> </p><p><!--  --><!----></p><p>\n</p><p>One</p><p><!-- two --></p>")
+
+        val nodes: Nodes<Node> = doc.selectNodes("::node:blank", Node::class)
+        assertEquals(12, nodes.size)
+        assertEquals("#document", nodes[0].nodeName())
+        assertEquals("html", nodes[1].nodeName())
+        assertEquals("head", nodes[2].nodeName())
+        assertEquals("body", nodes[3].nodeName())
+        assertEquals("p", nodes[4].nodeName())
+        assertEquals("#text", nodes[5].nodeName())
+        assertEquals("p", nodes[6].nodeName())
+        assertEquals("#comment", nodes[7].nodeName())
+        assertEquals("#comment", nodes[8].nodeName())
+        assertEquals("p", nodes[9].nodeName())
+        assertEquals("#text", nodes[10].nodeName())
+        assertEquals("p", nodes[11].nodeName())
+
+        val comments: Nodes<Comment> = doc.selectNodes("::comment:blank", Comment::class)
+        assertEquals(2, comments.size)
+        assertEquals("  ", comments[0].getData())
+        assertEquals("", comments[1].getData())
+
+        val notBlank = "::comment:not(:blank)"
+        val notBlankEval = QueryParser.parse(notBlank)
+        assertEquals("(And (InstanceType '::comment')(Not (BlankValue ':blank')))", EvaluatorDebug.sexpr(notBlankEval))
+        val commentsWithData: Nodes<Comment> = doc.selectNodes(notBlankEval, Comment::class)
+        assertEquals(1, commentsWithData.size)
+        assertEquals(" two ", commentsWithData[0].getData())
+    }
+
+    @Test
+    fun blankElements() {
+        val doc: Document = Ksoup.parse("<p id=1>  </p><p id=2>One</p><p id=3><span>One</span></p>")
+        val els = doc.select("p:blank")
+        assertSelectedIds(els, "1", "3")
+    }
+
+    @Test
+    fun nonBlankText() {
+        val doc: Document = Ksoup.parse("<p id=1>  </p><p id=2>One</p><p id=3><span id=4>Two</span></p>")
+        val els = doc.select(":not(:blank)")
+        assertSelectedIds(els, "2", "4")
+
+        val text: Nodes<TextNode> = doc.selectNodes("::text:not(:blank)", TextNode::class)
+        assertEquals(2, text.size)
+        assertEquals("One", text[0].getWholeText())
+        assertEquals("Two", text[1].getWholeText())
+    }
+
+    @Test
+    fun nodeMatches() {
+        val doc: Document = Ksoup.parse("<p>1234</p> <p>123</p> <p>12</p> <p>1</p> <!--4321--> <!--432--> <!-- 43 -->")
+
+        val regex = "::leafnode:matches(\\d{3,4})"
+        val eval = evaluatorOf(regex)
+        assertEquals("(And (InstanceType '::leafnode')(MatchesValue ':matches(\\d{3,4})'))", EvaluatorDebug.sexpr(eval))
+
+        val nodes = doc.selectNodes(eval)
+        assertEquals(4, nodes.size)
+        assertEquals("1234", nodes[0].nodeValue())
+        assertEquals("123", nodes[1].nodeValue())
+        assertEquals("4321", nodes[2].nodeValue())
+        assertEquals("432", nodes[3].nodeValue())
+    }
+
+    @Test
+    fun cdataNodes() {
+        val xml = "<body><![CDATA[One]]><p>Two</p><![CDATA[Three]]><x><![CDATA[ ]]></body>"
+        val doc: Document = Ksoup.parse(xml, Parser.xmlParser())
+
+        // via leafnode:
+        val leafnodes: Nodes<CDataNode> = doc.selectNodes("::leafnode", CDataNode::class)
+        assertEquals(3, leafnodes.size)
+
+        // cdata via unfiltered
+        val nodes = doc.selectNodes("::cdata")
+        assertEquals(3, nodes.size)
+
+        // (not) blank:
+        val notBlanks: Nodes<CDataNode> = doc.selectNodes("::cdata:not(:blank)", CDataNode::class)
+        assertEquals(2, notBlanks.size)
+        assertEquals("One", notBlanks[0].nodeValue())
+        assertEquals("Three", notBlanks[1].nodeValue())
+
+        // contains:
+        val contains: Nodes<CDataNode> = doc.selectNodes("::cdata:contains(One)", CDataNode::class)
+        assertEquals(1, contains.size)
+        assertEquals("One", contains[0].nodeValue())
+
+        // matches:
+        val matches: Nodes<CDataNode> = doc.selectNodes("::cdata:matches(re)", CDataNode::class)
+        assertEquals(1, matches.size)
+        assertEquals("Three", matches[0].nodeValue())
+    }
+
+    @Test
+    fun unknownPseudoNodeSelectError() {
+        val ex = assertFailsWith<Selector.SelectorParseException> { evaluatorOf("::unknown:contains(foo)") }
+        assertEquals(
+            "Could not parse query '::unknown:contains(foo)': unknown node type '::unknown'",
+            ex.message
+        )
     }
 
     companion object {

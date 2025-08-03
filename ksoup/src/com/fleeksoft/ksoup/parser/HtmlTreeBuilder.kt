@@ -16,7 +16,6 @@ import com.fleeksoft.ksoup.nodes.*
 import com.fleeksoft.ksoup.parser.HtmlTreeBuilderState.Constants.InTableFoster
 import com.fleeksoft.ksoup.parser.HtmlTreeBuilderState.ForeignContent
 import com.fleeksoft.ksoup.parser.Parser.Companion.NamespaceHtml
-import com.fleeksoft.ksoup.ported.assert
 import kotlin.jvm.JvmOverloads
 
 /**
@@ -243,10 +242,10 @@ public open class HtmlTreeBuilder : TreeBuilder() {
 
     public fun createElementFor(startTag: Token.StartTag, namespace: String, forcePreserveCase: Boolean): Element {
         // dedupe and normalize the attributes:
-        var attributes = startTag.attributes
-        if (!forcePreserveCase) attributes = settings!!.normalizeAttributes(attributes)
+        val attributes = startTag.attributes
         if (attributes != null && !attributes.isEmpty()) {
-            val dupes = attributes.deduplicate(settings!!)
+            if (!forcePreserveCase) settings.normalizeAttributes(attributes)
+            val dupes = attributes.deduplicate(settings)
             if (dupes > 0) {
                 error("Dropped duplicate attribute(s) in tag [${startTag.normalName}]")
             }
@@ -490,8 +489,8 @@ public open class HtmlTreeBuilder : TreeBuilder() {
     @return the Element immediately above the supplied element, or null if there is no such element.
      */
     public fun aboveOnStack(el: Element): Element? {
-        assert(onStack(el))
-        for (pos in getStack().size - 1 downTo 0) {
+        if (!onStack(el)) return null
+        for (pos in getStack().size - 1 downTo 1) {
             val next: Element? = getStack()[pos]
             if (next === el) {
                 return getStack()[pos - 1]

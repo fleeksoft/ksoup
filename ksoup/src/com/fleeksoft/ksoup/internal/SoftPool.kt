@@ -18,7 +18,6 @@ import com.fleeksoft.ksoup.ported.ThreadLocal
  *
  * Like a ThreadLocal, should be stored in a static field.
  * @param <T> the type of object to pool.
- * @since 1.18.2
 </T> */
 class SoftPool<T>(private val initializer: () -> T) {
     val threadLocalStack: ThreadLocal<ArrayDeque<T>> = ThreadLocal { ArrayDeque() }

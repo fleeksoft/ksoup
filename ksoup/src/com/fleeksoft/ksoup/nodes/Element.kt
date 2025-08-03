@@ -8,8 +8,11 @@
 
 package com.fleeksoft.ksoup.nodes
 
+import co.touchlab.stately.concurrency.Synchronizable
+import co.touchlab.stately.concurrency.synchronize
 import com.fleeksoft.ksoup.exception.PatternSyntaxException
 import com.fleeksoft.ksoup.helper.Validate
+import com.fleeksoft.ksoup.helper.Validate.isTrue
 import com.fleeksoft.ksoup.internal.Normalizer
 import com.fleeksoft.ksoup.internal.Normalizer.normalize
 import com.fleeksoft.ksoup.internal.QuietAppendable
@@ -27,6 +30,7 @@ import com.fleeksoft.ksoup.ported.Consumer
 import com.fleeksoft.ksoup.ported.jsSupportedRegex
 import com.fleeksoft.ksoup.select.*
 import com.fleeksoft.ksoup.select.Collector.findFirst
+import com.fleeksoft.ksoup.select.Selector.evaluatorOf
 import kotlin.js.JsName
 import kotlin.jvm.JvmOverloads
 import kotlin.reflect.KClass
@@ -40,6 +44,8 @@ import kotlin.reflect.KClass
  */
 
 public open class Element : Node, Iterable<Element> {
+    private val lock = Synchronizable()
+
     @JsName("_tag")
     var tag: Tag
         protected set
@@ -87,7 +93,7 @@ public open class Element : Node, Iterable<Element> {
         this.attributes = attributes
         this.tag = tag
         _baseUri = baseUri
-        if (baseUri != null) this.setBaseUri(baseUri)
+        if (!StringUtil.isBlank(baseUri)) this.setBaseUri(baseUri!!)
     }
 
     /**
@@ -126,7 +132,8 @@ public open class Element : Node, Iterable<Element> {
     }
 
     override fun baseUri(): String {
-        return searchUpForAttribute(this, BaseUriKey)
+        val baseUri = searchUpForAttribute(this, BaseUriKey)
+        return baseUri ?: ""
     }
 
     public override fun doSetBaseUri(baseUri: String?) {
@@ -196,7 +203,7 @@ public open class Element : Node, Iterable<Element> {
     public fun tagName(tagName: String, namespace: String = tag.namespace()): Element {
         Validate.notEmptyParam(tagName, "tagName")
         Validate.notEmptyParam(namespace, "namespace")
-        val parser = NodeUtils.parser(this)
+        val parser = parser(this)
         tag = parser.tagSet().valueOf(tagName, namespace, parser.settings()) // maintains the case option of the original parse
         return this
     }
@@ -328,7 +335,23 @@ public open class Element : Node, Iterable<Element> {
      * @see .childNode
      */
     public fun child(index: Int): Element {
-        return childElementsList()[index]
+        Validate.isTrue(index >= 0, "Index must be >= 0")
+        val cached: List<Element>? = cachedChildren()
+        if (cached != null) return cached[index]
+
+        // otherwise, iter on elementChild; saves creating list
+        val size = childNodes.size
+        var i = 0
+        var e = 0
+        while (i < size) {
+            // direct iter is faster than chasing firstElSib, nextElSibd
+            val node: Node? = childNodes[i]
+            if (node is Element) {
+                if (e++ == index) return node
+            }
+            i++
+        }
+        throw IndexOutOfBoundsException("No child at index: $index")
     }
 
     /**
@@ -343,7 +366,8 @@ public open class Element : Node, Iterable<Element> {
      * @see .child
      */
     public fun childrenSize(): Int {
-        return childElementsList().size
+        if (childNodeSize() == 0) return 0
+        return childElementsList().size // gets children into cache; faster subsequent child(i) if unmodified
     }
 
     /**
@@ -364,18 +388,23 @@ public open class Element : Node, Iterable<Element> {
      * @return a list of child elements
      */
     public fun childElementsList(): List<Element> {
-        if (childNodeSize() == 0) return Element.EmptyChildren // short circuit creating empty
-        var children: List<Element>? = cachedChildren()
-        if (children == null) {
-            children = filterNodes<Element>(Element::class)
-            stashChildren(children)
+        if (childNodeSize() == 0) return EmptyChildren // short circuit creating empty
+
+        // set atomically, so works in multi-thread. Calling methods look like reads, so should be thread-safe
+        return lock.synchronize {
+            var children: List<Element>? = cachedChildren()
+            if (children == null) {
+                children = filterNodes<Element>(Element::class)
+                stashChildren(children)
+            }
+            children
         }
-        return children
     }
 
     // Returns the cached child elements if they exist, and if the modCount matches
-    private fun cachedChildren(): List<Element>? {
-        val userData = attributes().userData()
+    fun cachedChildren(): List<Element>? {
+        if (attributes == null || !attributes!!.hasUserData()) return null // don't create empty userdata
+        val userData = attributes!!.userData()
 
         @Suppress("UNCHECKED_CAST")
         val ref = userData[childElsKey] as? WeakReference<List<Element>>
@@ -456,7 +485,7 @@ public open class Element : Node, Iterable<Element> {
      * <li>{@code el.select("* div")} - finds all divs that descend from this element (and excludes this element)</li>
      * <li>{@code el.select("> div")} - finds all divs that are direct children of this element (and excludes this element)</li>
      * </ul>
-     * <p>See the query syntax documentation in {@link org.jsoup.select.Selector}.</p>
+     * <p>See the query syntax documentation in {@link Selector}.</p>
      * <p>Also known as {@code querySelectorAll()} in the Web DOM.</p>
      *
      * @param cssQuery a {@link Selector} CSS-like query
@@ -527,7 +556,7 @@ public open class Element : Node, Iterable<Element> {
      * match.
      */
     public fun selectFirst(evaluator: Evaluator): Element? {
-        return Collector.findFirst(evaluator, this)
+        return findFirst(evaluator, this)
     }
 
     /**
@@ -538,10 +567,110 @@ public open class Element : Node, Iterable<Element> {
      * @throws IllegalArgumentException if no match is found
      */
     public fun expectFirst(cssQuery: String): Element {
-        return Validate.ensureNotNull(
+        return Validate.expectNotNull(
             Selector.selectFirst(cssQuery, this),
             if (parent() != null) "No elements matched the query '$cssQuery' on element '${this.tagName()}'." else "No elements matched the query '$cssQuery' in the document."
-        ) as Element
+        )
+    }
+
+    /**
+     * Find nodes that match the supplied [Evaluator], with this element as the starting context. Matched
+     * nodes may include this element, or any of its descendents.
+     *
+     * @param evaluator an evaluator
+     * @return a list of nodes that match the query (empty if none match)
+     */
+    fun selectNodes(evaluator: Evaluator): Nodes<Node> {
+        return selectNodes(evaluator, Node::class)
+    }
+
+    /**
+     * Find nodes that match the supplied [Selector] CSS query, with this element as the starting context. Matched
+     * nodes may include this element, or any of its descendents.
+     *
+     * To select leaf nodes, the query should specify the node type, e.g. `::text`,
+     * `::comment`, `::data`, `::leafnode`.
+     *
+     * @param cssQuery a [Selector] CSS query
+     * @return a list of nodes that match the query (empty if none match)
+     */
+    fun selectNodes(cssQuery: String): Nodes<Node> {
+        return selectNodes(cssQuery, Node::class)
+    }
+
+    /**
+     * Find nodes that match the supplied Evaluator, with this element as the starting context. Matched
+     * nodes may include this element, or any of its descendents.
+     *
+     * @param evaluator an evaluator
+     * @param type the type of node to collect (e.g. [Element], [LeafNode], [TextNode] etc)
+     * @param <T> the type of node to collect
+     * @return a list of nodes that match the query (empty if none match)
+    </T> */
+    fun <T : Node> selectNodes(evaluator: Evaluator, type: KClass<T>): Nodes<T> {
+        return Collector.collectNodes(evaluator, this, type)
+    }
+
+    /**
+     * Find nodes that match the supplied [Selector] CSS query, with this element as the starting context. Matched
+     * nodes may include this element, or any of its descendents.
+     *
+     * To select specific node types, use `::text`, `::comment`, `::leafnode`, etc. For example, to
+     * select all text nodes under `p` elements:
+     * <pre>    Nodes&lt;TextNode&gt; textNodes = doc.selectNodes("p ::text", TextNode.class);</pre>
+     *
+     * @param cssQuery a [Selector] CSS query
+     * @param type the type of node to collect (e.g. [Element], [LeafNode], [TextNode] etc)
+     * @param <T> the type of node to collect
+     * @return a list of nodes that match the query (empty if none match)
+    </T> */
+    fun <T : Node> selectNodes(cssQuery: String, type: KClass<T>): Nodes<T> {
+        Validate.notEmpty(cssQuery)
+        return selectNodes(Selector.evaluatorOf(cssQuery), type)
+    }
+
+    /**
+     * Find the first Node that matches the [Selector] CSS query, with this element as the starting context.
+     *
+     * This is effectively the same as calling `element.selectNodes(query).first()`, but is more efficient as
+     * query
+     * execution stops on the first hit.
+     *
+     * Also known as `querySelector()` in the Web DOM.
+     *
+     * @param cssQuery cssQuery a [Selector] CSS-like query
+     * @return the first matching node, or **`null`** if there is no match.
+     * @see .expectFirst
+     */
+    fun <T : Node> selectFirstNode(cssQuery: String, type: KClass<T>): T? {
+        return selectFirstNode(evaluatorOf(cssQuery), type)
+    }
+
+    /**
+     * Finds the first Node that matches the supplied Evaluator, with this element as the starting context, or
+     * `null` if none match.
+     *
+     * @param evaluator an element evaluator
+     * @return the first matching node (walking down the tree, starting from this element), or `null` if none
+     * match.
+     */
+    fun <T : Node> selectFirstNode(evaluator: Evaluator, type: KClass<T>): T? {
+        return Collector.findFirstNode(evaluator, this, type)
+    }
+
+    /**
+     * Just like [.selectFirstNode], but if there is no match, throws an
+     * [IllegalArgumentException]. This is useful if you want to simply abort processing on a failed match.
+     *
+     * @param cssQuery a [Selector] CSS-like query
+     * @return the first matching node
+     * @throws IllegalArgumentException if no match is found
+     */
+    fun <T : Node> expectFirstNode(cssQuery: String, type: KClass<T>): T {
+        return Validate.expectNotNull(
+            selectFirstNode(cssQuery, type),
+            if (parent() != null) "No nodes matched the query '${cssQuery}' on element '${this.tagName()}'." else "No nodes matched the query '${cssQuery}' in the document.",
+        )
     }
 
     /**
@@ -665,16 +794,12 @@ public open class Element : Node, Iterable<Element> {
      * @param children child nodes to insert
      * @return this element, for chaining.
      */
-    public fun insertChildren(
-        index: Int,
-        children: Collection<Node>,
-    ): Element {
+    public fun insertChildren(index: Int, children: Collection<Node>): Element {
         var calculatedIndex = index
         val currentSize = childNodeSize()
         if (calculatedIndex < 0) calculatedIndex += currentSize + 1 // roll around
-        Validate.isTrue(calculatedIndex in 0..currentSize, "Insert position out of bounds.")
-        val nodeArray: Array<Node> = children.toTypedArray()
-        addChildren(calculatedIndex, *nodeArray)
+        isTrue(calculatedIndex >= 0 && calculatedIndex <= currentSize, "Insert position out of bounds.")
+        addChildren(calculatedIndex, *children.toTypedArray())
         return this
     }
 
@@ -707,7 +832,7 @@ public open class Element : Node, Iterable<Element> {
      * @return the new element, in the specified namespace
      */
     public fun appendElement(tagName: String, namespace: String = tag.namespace()): Element {
-        val parser: Parser = NodeUtils.parser(this)
+        val parser: Parser = parser(this)
         val child = Element(parser.tagSet().valueOf(tagName, namespace, parser.settings()), baseUri())
         appendChild(child)
         return child
@@ -759,7 +884,7 @@ public open class Element : Node, Iterable<Element> {
      * @see .html
      */
     public fun append(html: String): Element {
-        val nodes: List<Node> = NodeUtils.parser(this).parseFragmentInput(html, this, baseUri())
+        val nodes: List<Node> = parser(this).parseFragmentInput(html, this, baseUri())
         addChildren(*nodes.toTypedArray())
         return this
     }
@@ -771,7 +896,7 @@ public open class Element : Node, Iterable<Element> {
      * @see .html
      */
     public fun prepend(html: String): Element {
-        val nodes: List<Node> = NodeUtils.parser(this).parseFragmentInput(html, this, baseUri())
+        val nodes: List<Node> = parser(this).parseFragmentInput(html, this, baseUri())
         addChildren(0, *nodes.toTypedArray())
         return this
     }
@@ -825,9 +950,10 @@ public open class Element : Node, Iterable<Element> {
      */
     override fun empty(): Element {
         // Detach each of the children -> parent links:
-        for (child in childNodes) {
-            child._parentNode = null
-        }
+
+        // Detach each of the children -> parent links:
+        val size = childNodes.size
+        for (i in 0..<size) childNodes[i]._parentNode = null
         childNodes.clear()
         return this
     }
@@ -924,45 +1050,12 @@ public open class Element : Node, Iterable<Element> {
     }
 
     /**
-     * Gets the next sibling element of this element. E.g., if a `div` contains two `p`s,
-     * the `nextElementSibling` of the first `p` is the second `p`.
-     *
-     *
-     * This is similar to [.nextSibling], but specifically finds only Elements
-     *
-     * @return the next element, or null if there is no next element
-     * @see .previousElementSibling
-     */
-//    @Nullable
-    public fun nextElementSibling(): Element? {
-        var next: Node = this
-        while (next.nextSibling()?.also { next = it } != null) {
-            if (next is Element) return next as Element
-        }
-        return null
-    }
-
-    /**
      * Get each of the sibling elements that come after this element.
      *
      * @return each of the element siblings after this element, or an empty list if there are no next sibling elements
      */
     public fun nextElementSiblings(): Elements {
         return nextElementSiblings(true)
-    }
-
-    /**
-     * Gets the previous element sibling of this element.
-     * @return the previous element, or null if there is no previous element
-     * @see .nextElementSibling
-     */
-//    @Nullable
-    public fun previousElementSibling(): Element? {
-        var prev: Node = this
-        while (prev.previousSibling()?.also { prev = it } != null) {
-            if (prev is Element) return prev as Element
-        }
-        return null
     }
 
     /**
@@ -1031,10 +1124,10 @@ public open class Element : Node, Iterable<Element> {
      * @see .lastElementChild
      */
     public fun firstElementChild(): Element? {
-        var child: Node? = firstChild()
-        while (child != null) {
-            if (child is Element) return child
-            child = child.nextSibling()
+        val size = childNodes.size
+        for (i in 0..<size) {
+            val node: Node = childNodes[i]
+            if (node is Element) return node
         }
         return null
     }
@@ -1046,10 +1139,9 @@ public open class Element : Node, Iterable<Element> {
      * @see .firstElementChild
      */
     public fun lastElementChild(): Element? {
-        var child: Node? = lastChild()
-        while (child != null) {
-            if (child is Element) return child
-            child = child.previousSibling()
+        for (i in childNodes.indices.reversed()) {
+            val node: Node = childNodes[i]
+            if (node is Element) return node
         }
         return null
     }
@@ -1370,6 +1462,13 @@ public open class Element : Node, Iterable<Element> {
         return wholeTextOf(nodeStream())
     }
 
+    /**
+     * An Element's nodeValue is its whole own text.
+     */
+    public override fun nodeValue(): String {
+        return wholeOwnText()
+    }
+
 
     /**
      * Get the non-normalized, decoded text of this element, <b>not including</b> any child elements, including any
@@ -1639,7 +1738,7 @@ public open class Element : Node, Iterable<Element> {
      * Get the source range (start and end positions) of the end (closing) tag for this Element. Position tracking must be
      * enabled prior to parsing the content.
      * @return the range of the closing tag for this element, or {@code untracked} if its range was not tracked.
-     * @see com.fleeksoft.ksoup.parser.Parser#setTrackPosition(boolean)
+     * @see Parser#setTrackPosition(boolean)
      * @see Node#sourceRange()
      * @see Range#isImplicit()
      */
@@ -1729,9 +1828,15 @@ public open class Element : Node, Iterable<Element> {
 
     protected override fun doClone(parent: Node?): Element {
         val clone = super.doClone(parent) as Element
-        clone.attributes = attributes?.clone()
         clone.childNodes = NodeList(childNodes.size)
         clone.childNodes.addAll(childNodes) // the children then get iterated and cloned in Node.clone
+
+        if (attributes != null) {
+            clone.attributes = attributes?.clone()
+            // clear any cached children
+            clone.attributes!!.userData(Element.childElsKey, null)
+        }
+
         return clone
     }
 
@@ -1745,7 +1850,7 @@ public open class Element : Node, Iterable<Element> {
     override fun clearAttributes(): Element {
         if (attributes != null) {
             super.clearAttributes() // keeps internal attributes via iterator
-            if (attributes!!.isEmpty()) attributes = null // only remove entirely if no internal attributes
+            if (attributes!!.size == 0) attributes = null // only remove entirely if no internal attributes
         }
 
         return this
@@ -1785,16 +1890,34 @@ public open class Element : Node, Iterable<Element> {
         return super.filter(nodeFilter) as Element
     }
 
+    fun reindexChildren() {
+        val size: Int = childNodes.size
+        for (i in 0..<size) {
+            childNodes[i]._siblingIndex = i
+        }
+        childNodes.validChildren = true
+    }
+
+    fun invalidateChildren() {
+        childNodes.validChildren = false
+    }
+
+    fun hasValidChildren(): Boolean {
+        return childNodes.validChildren
+    }
+
     companion object {
         private const val childElsKey: String = "ksoup.childEls"
         private const val childElsMod: String = "ksoup.childElsMod"
         private val EmptyChildren: List<Element> = emptyList()
         private val EmptyNodeList: NodeList = NodeList(0)
         private val ClassSplit: Regex = Regex("\\s+")
-        private val BaseUriKey: String = Attributes.internalKey("baseUri")
+        val BaseUriKey: String = Attributes.internalKey("baseUri")
 
 
         class NodeList(initialCapacity: Int) : MutableList<Node> {
+            /** Tracks if the children have valid sibling indices. We only need to reindex on siblingIndex() demand. */
+            var validChildren: Boolean = true
             private val list = ArrayList<Node>(initialCapacity)
             private var modCount = 0
             override fun iterator(): MutableIterator<Node> = list.toMutableList().iterator()
@@ -1893,19 +2016,16 @@ public open class Element : Node, Iterable<Element> {
             override fun subList(fromIndex: Int, toIndex: Int): MutableList<Node> = list.subList(fromIndex, toIndex)
         }
 
-        private fun searchUpForAttribute(start: Element, key: String): String {
+        fun searchUpForAttribute(start: Element, key: String): String? {
             var el: Element? = start
             while (el != null) {
                 if (el.attributes?.hasKey(key) == true) return el.attributes!![key]
                 el = el.parent()
             }
-            return ""
+            return null
         }
 
-        private fun <E : Element?> indexInList(
-            search: Element,
-            elements: List<E>,
-        ): Int {
+        private fun <E : Element?> indexInList(search: Element, elements: List<E>): Int {
             val size = elements.size
             for (i in 0 until size) {
                 if (elements[i] === search) return i

@@ -18,7 +18,6 @@ import com.fleeksoft.ksoup.nodes.Node
 import com.fleeksoft.ksoup.ported.LinkedList
 import com.fleeksoft.ksoup.select.Evaluator
 import com.fleeksoft.ksoup.select.NodeVisitor
-import com.fleeksoft.ksoup.select.QueryParser
 import com.fleeksoft.ksoup.select.Selector
 
 /**
@@ -222,10 +221,10 @@ class StreamParser(private val parser: Parser) {
      * @throws com.fleeksoft.io.exception.IOException if an I/O error occurs
      */
     fun expectFirst(query: String): Element {
-        return Validate.ensureNotNull(
+        return Validate.expectNotNull(
             selectFirst(query),
             "No elements matched the query '$query' in the document."
-        ) as Element
+        )
     }
 
     /**
@@ -268,10 +267,10 @@ class StreamParser(private val parser: Parser) {
      * @throws com.fleeksoft.io.exception.IOException if an I/O error occurs
      */
     fun expectNext(query: String): Element {
-        return Validate.ensureNotNull(
+        return Validate.expectNotNull(
             selectNext(query),
             "No elements matched the query '$query' in the document."
-        ) as Element
+        )
     }
 
     /**
@@ -361,7 +360,7 @@ class StreamParser(private val parser: Parser) {
         // NodeVisitor Interface:
         override fun head(node: Node, depth: Int) {
             if (node is Element) {
-                val prev: Element? = (node as Element).previousElementSibling()
+                val prev: Element? = node.previousElementSibling()
                 // We prefer to wait until an element has a next sibling before emitting it; otherwise, get it in tail
                 if (prev != null) emitQueue.add(prev)
             }

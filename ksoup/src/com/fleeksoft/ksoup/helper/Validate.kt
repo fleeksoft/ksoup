@@ -6,17 +6,21 @@ import com.fleeksoft.ksoup.exception.ValidationException
  * Validators to check that method arguments meet expectations.
  */
 object Validate {
+
     /**
-     * Verifies the input object is not null, and returns that object. Effectively this casts a nullable object to a non-
-     * null object. (Works around lack of Objects.requestNonNull in Android version.)
-     * @param obj nullable object to case to not-null
-     * @param msg the String format message to include in the validation exception when thrown
+     * Verifies the input object is not null, and returns that object, maintaining its type. Effectively this casts a
+     * nullable object to a non-null object.
+     *
+     * @param obj nullable object to cast to not-null
+     * @param msg the String formatted message to include in the validation exception when thrown
      * @return the object, or throws an exception if it is null
-     * @throws com.fleeksoft.ksoup.exception.ValidationException if the object is null
+     * @throws ValidationException if the object is null
      */
-    fun ensureNotNull(obj: Any?, msg: String?): Any {
-        return obj ?: throw ValidationException(msg)
+    fun <T> expectNotNull(obj: T?, msg: String? = null): T {
+        if (obj == null) throw ValidationException(msg ?: "Object must not be null")
+        else return obj
     }
+
 
     /**
      * Validates that the value is true

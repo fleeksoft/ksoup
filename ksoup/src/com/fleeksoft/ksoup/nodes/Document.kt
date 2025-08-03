@@ -193,7 +193,10 @@ public class Document(
      * @return new element
      */
     public fun createElement(tagName: String): Element {
-        return Element(parser.tagSet().valueOf(tagName, parser.defaultNamespace(), ParseSettings.preserveCase), this.baseUri())
+        return Element(
+            parser.tagSet().valueOf(tagName, parser.defaultNamespace(), ParseSettings.preserveCase),
+            Element.searchUpForAttribute(this, Element.BaseUriKey)
+        )
     }
 
     override fun outerHtml(): String {

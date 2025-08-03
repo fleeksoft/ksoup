@@ -16,6 +16,12 @@ class AttributeTest {
     }
 
     @Test
+    fun htmlWithLtAndGtInValue() {
+        val attr = Attribute("key", "<value>")
+        assertEquals("key=\"&lt;value&gt;\"", attr.html())
+    }
+
+    @Test
     fun testWithSupplementaryCharacterInAttributeKeyAndValue() {
         val s = 135361.toCodePoint().toChars().concatToString()
         val attr = Attribute(s, "A" + s + "B")

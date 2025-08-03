@@ -137,40 +137,33 @@ public object Entities {
     @return the escaped string
      */
     public fun escape(data: String?, out: OutputSettings): String {
-        return escapeString(data, out.escapeMode(), out.syntax(), out.charset())
+        return escapeString(data, out.escapeMode(), out.charset())
     }
 
     /**
-    HTML escape an input string, using the default settings (UTF-8, base entities, HTML syntax). That is, {@code <} is
+    HTML escape an input string, using the default settings (UTF-8, base entities). That is, {@code <} is
     returned as {@code &lt;}. The escaped string is suitable for use both in attributes and in text data.
     @param data the un-escaped string to escape
     @return the escaped string
     @see #escape(String, OutputSettings)
      */
     public fun escape(data: String?): String {
-        return escapeString(data, base, Syntax.html, Charsets.UTF8)
+        return escapeString(data, base, Charsets.UTF8)
     }
 
-    public fun escapeString(data: String?, escapeMode: EscapeMode, syntax: Syntax, charset: Charset): String {
+    public fun escapeString(data: String?, escapeMode: EscapeMode, charset: Charset): String {
         if (data == null) return ""
         val sb = borrowBuilder()
-        doEscape(data, QuietAppendable.wrap(sb), escapeMode, syntax, charset, ForText or ForAttribute)
+        doEscape(data, QuietAppendable.wrap(sb), escapeMode, charset, ForText or ForAttribute)
         return releaseBuilder(sb)
     }
 
     fun escape(accum: QuietAppendable, data: String, out: OutputSettings, options: Int) {
-        doEscape(data, accum, out.escapeMode(), out.syntax(), out.charset(), options)
+        doEscape(data, accum, out.escapeMode(), out.charset(), options)
     }
 
     // this method does a lot, but other breakups cause rescanning and stringbuilder generations
-    private fun doEscape(
-        data: String,
-        accum: QuietAppendable,
-        mode: EscapeMode,
-        syntax: Syntax,
-        charset: Charset,
-        options: Int
-    ) {
+    private fun doEscape(data: String, accum: QuietAppendable, mode: EscapeMode, charset: Charset, options: Int) {
         val coreCharset: CoreCharset = CoreCharset.byName(charset.name())
         val fallback: CharsetEncoder = encoderFor(charset)
         val length = data.length
@@ -211,7 +204,7 @@ public object Entities {
                 }
             }
 
-            appendEscaped(codePoint, accum, options, mode, syntax, coreCharset, fallback)
+            appendEscaped(codePoint, accum, options, mode, coreCharset, fallback)
             // surrogate pairs, split implementation for efficiency on single char common case (saves creating strings, char[]):
             offset += codePoint.charCount
         }
@@ -222,7 +215,6 @@ public object Entities {
         accum: QuietAppendable,
         options: Int,
         escapeMode: EscapeMode,
-        syntax: Syntax,
         coreCharset: CoreCharset,
         fallback: CharsetEncoder
     ) {
@@ -244,14 +236,11 @@ public object Entities {
                 }
 
                 c == '<' -> {
-
-                    // escape when in character data or when in a xml attribute val or XML syntax; not needed in html attr val
-                    appendLt(accum, options, escapeMode, syntax)
+                    accum.append("&lt;")
                 }
 
                 c == '>' -> {
-                    if ((options and ForText) != 0) accum.append("&gt;")
-                    else accum.append(c)
+                    accum.append("&gt;")
                 }
 
                 c == '"' -> {
@@ -293,14 +282,6 @@ public object Entities {
     private fun appendNbsp(accum: QuietAppendable, escapeMode: EscapeMode) {
         if (escapeMode != EscapeMode.xhtml) accum.append("&nbsp;")
         else accum.append("&#xa0;")
-    }
-
-    private fun appendLt(accum: QuietAppendable, options: Int, escapeMode: EscapeMode, syntax: Syntax) {
-        if ((options and ForText) != 0 || (escapeMode == EscapeMode.xhtml) || (syntax === Syntax.xml)) {
-            accum.append("&lt;")
-        } else {
-            accum.append('<') // no need to escape < when in an HTML attribute
-        }
     }
 
     private fun appendApos(accum: QuietAppendable, options: Int, escapeMode: EscapeMode) {
@@ -392,7 +373,7 @@ public object Entities {
         e.codeKeys = IntArray(size)
         e.nameVals = arrayOfNulls(size)
         var i = 0
-        CharacterReader(pointsData).use { reader->
+        CharacterReader(pointsData).use { reader ->
             while (!reader.isEmpty()) {
                 // NotNestedLessLess=10913,824;1887&
                 val name: String = reader.consumeTo('=')

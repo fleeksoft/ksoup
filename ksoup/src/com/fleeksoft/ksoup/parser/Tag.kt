@@ -62,7 +62,6 @@ public data class Tag(var tagName: String, var normalName: String, var namespace
      *
      * For example, `<book:title>` has local name `title`, and tag name `book:title`.
      * @return the tag's local name
-     * @since 1.20.1
      */
     fun localName(): String {
         val pos = tagName.indexOf(':')
@@ -172,7 +171,7 @@ public data class Tag(var tagName: String, var normalName: String, var namespace
      *
      * @return true if an InlineContainer (which formats children as inline).
      */
-    @Deprecated("setting is only used within the Printer. Will be removed")
+    @Deprecated("setting is only used within the Printer. Will be removed in a future release.")
     public fun formatAsBlock(): Boolean {
         return (options and InlineContainer) != 0
     }
@@ -277,7 +276,7 @@ public data class Tag(var tagName: String, var normalName: String, var namespace
          */
         @JvmOverloads
         public fun valueOf(tagName: String, namespace: String = Parser.NamespaceHtml, settings: ParseSettings = ParseSettings.preserveCase): Tag {
-            return TagSet.Html().valueOf(tagName, ParseSettings.normalName(tagName), namespace, settings.preserveTagCase())
+            return TagSet.Html().valueOf(tagName, null, namespace, settings.preserveTagCase())
         }
 
         /**

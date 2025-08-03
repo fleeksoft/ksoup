@@ -203,16 +203,6 @@ public open class Attribute : Map.Entry<String, String?>, KCloneable<Attribute> 
         return html()
     }
 
-    /**
-     * Collapsible if it's a boolean attribute and value is empty or same as name
-     *
-     * @param out output settings
-     * @return Returns whether collapsible or not
-     */
-    protected fun shouldCollapseAttribute(out: Document.OutputSettings): Boolean {
-        return shouldCollapseAttribute(attributeKey, attributeValue, out)
-    }
-
     override fun equals(other: Any?): Boolean { // note parent not considered
         if (this === other) return true
         if (other == null || this::class != other::class) return false

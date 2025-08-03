@@ -112,6 +112,7 @@ public open class XmlTreeBuilder : TreeBuilder() {
 
         val attributes = startTag.attributes
         if (attributes != null) {
+            settings.normalizeAttributes(attributes)
             attributes.deduplicate(settings)
             processNamespaces(attributes, namespaces)
             applyNamespacesToAttributes(attributes, namespaces)
@@ -120,7 +121,7 @@ public open class XmlTreeBuilder : TreeBuilder() {
         val tagName = startTag.tagName.value()
         val ns = resolveNamespace(tagName, namespaces)
         val tag = tagFor(tagName, startTag.normalName!!, ns!!, settings)
-        val el = Element(tag, null, settings.normalizeAttributes(attributes))
+        val el = Element(tag, null, attributes)
         currentElement().appendChild(el)
         push(el)
 

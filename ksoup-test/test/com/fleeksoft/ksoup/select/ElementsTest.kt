@@ -562,7 +562,9 @@ class ElementsTest {
         val it = ps.iterator()
         while (it.hasNext()) {
             val el = it.next()
-            if (el.text().contains("Two")) it.remove()
+            if (el.text().contains("Two")) {
+                it.remove()
+            }
         }
         assertEquals(3, ps.size)
         assertEquals("<p>One</p>\n<p>Three</p>\n<p>Four</p>", doc.body().html())

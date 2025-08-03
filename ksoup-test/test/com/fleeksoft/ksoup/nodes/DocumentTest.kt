@@ -199,7 +199,7 @@ class DocumentTest {
                     "<html>\n" +
                     " <head></head>\n" +
                     " <body>\n" +
-                    "  <img async checked src=\"&amp;<>&quot;\">&lt;&gt;&amp;\"<foo></foo>bar\n" +  // html won't include self-closing
+                    "  <img async checked src=\"&amp;&lt;&gt;&quot;\">&lt;&gt;&amp;\"<foo></foo>bar\n" +  // html won't include self-closing
                     " </body>\n" +
                     "</html>", doc.html()
         )
@@ -210,7 +210,7 @@ class DocumentTest {
                     "<html>\n" +
                     " <head></head>\n" +
                     " <body>\n" +
-                    "  <img async=\"\" checked=\"checked\" src=\"&amp;&lt;>&quot;\" />&lt;&gt;&amp;\"<foo />bar\n" +  // xml will
+                    "  <img async=\"\" checked=\"checked\" src=\"&amp;&lt;&gt;&quot;\" />&lt;&gt;&amp;\"<foo />bar\n" +  // xml will
                     " </body>\n" +
                     "</html>", doc.html()
         )

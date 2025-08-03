@@ -1611,6 +1611,36 @@ class ElementTest {
     }
 
     @Test
+    fun shadowChildrenOnClone() {
+        // https://github.com/jhy/jsoup/issues/2334
+        val listHtml = "<ul>" +
+                "<li><h2>initial1</h2></li>" +
+                "</ul>"
+        val origDoc: Document = Ksoup.parseBodyFragment(listHtml)
+        origDoc.body().children().first()
+        val cloneDoc = origDoc.clone()
+
+        val ulEl = cloneDoc.body().expectFirst("ul")
+
+        for (i in 0..<(ulEl.children().size)) ulEl.child(i).children()
+
+        val growthSize = 3
+        val liEl = ulEl.firstElementChild()
+        assertNotNull(liEl)
+        while ((ulEl.children().size) < growthSize) ulEl.appendChild(liEl.clone())
+
+        val listItems = ulEl.children()
+        for (i in 0..<(listItems.size)) {
+            val item = listItems[i]
+            val h2 = item.child(0)
+            h2.text("other text $i")
+        }
+
+        assertFalse(ulEl.text().contains("initial"))
+        assertEquals("other text 0 other text 1 other text 2", ulEl.text())
+    }
+
+    @Test
     fun classNamesAndAttributeNameIsCaseInsensitive() {
         val html = "<p Class='SomeText AnotherText'>One</p>"
         val doc = Ksoup.parse(html)
@@ -2312,8 +2342,7 @@ class ElementTest {
     fun prettySerializationRoundTrips() {
         parameterizedTest(testOutputSettings()) { settings ->
             // tests that repeated html() and parse() does not accumulate errant spaces / newlines
-            val doc =
-                Ksoup.parse("<div>\nFoo\n<p>\nBar\nqux</p></div>\n<script>\n alert('Hello!');\n</script>")
+            val doc = Ksoup.parse("<div>\nFoo\n<p>\nBar\nqux</p></div>\n<script>\n alert('Hello!');\n</script>")
             doc.outputSettings(settings)
             val html = doc.html()
             val doc2 = Ksoup.parse(html)
@@ -2325,8 +2354,7 @@ class ElementTest {
 
     @Test
     fun prettyPrintScriptsDoesNotGrowOnRepeat() {
-        val doc =
-            Ksoup.parse("<div>\nFoo\n<p>\nBar\nqux</p></div>\n<script>\n alert('Hello!');\n</script>")
+        val doc = Ksoup.parse("<div>\nFoo\n<p>\nBar\nqux</p></div>\n<script>\n alert('Hello!');\n</script>")
         val settings = doc.outputSettings()
         settings
             .prettyPrint(true)
@@ -3246,6 +3274,7 @@ Three
         assertSelectedIds(all, "out", "1", "2", "3")
     }
 
+
     @Test
     fun setTextOnSvgScriptSetsDataNode() {
         // calling .text() on svg script will create a datanode, as defined in TagSet
@@ -3255,6 +3284,83 @@ Three
         script.text("a < b")
         assertEquals("<script>a < b</script>", script.outerHtml()) // not encoded
         assertEquals("a < b", script.data())
+    }
+
+    @Test
+    fun expectFirstNode() {
+        val doc: Document = Ksoup.parse("<span id=1>One</span> <span id=2>Two</span>")
+        val text: TextNode? = doc.expectFirstNode("::text", TextNode::class)
+        assertEquals("1", text!!.parent()!!.id())
+
+        val text2: TextNode? = doc.selectFirstNode("::text", TextNode::class)
+        assertSame(text, text2)
+
+        assertNull(doc.selectFirstNode("::comment", Comment::class))
+    }
+
+    @Test
+    fun expectFirstThrows() {
+        val doc: Document = Ksoup.parse("<span id=1>One</span> <span id=2>Two</span>")
+        var threw = false
+        try {
+            doc.expectFirstNode("::comment", Comment::class)
+        } catch (e: IllegalArgumentException) {
+            threw = true
+            assertEquals("No nodes matched the query '::comment' in the document.", e.message)
+        }
+        assertTrue(threw)
+    }
+
+    @Test
+    fun childByIndex() {
+        // uncached, cached paths
+        val el: Element = Ksoup.parse("<div>One <p>Two</p> Three <p>Four</p> Five <p>Six</p>").expectFirst("div")
+
+        // uncached
+        val p0 = el.child(0)
+        val p1 = el.child(1)
+        val p2 = el.child(2)
+        assertNull(el.cachedChildren())
+
+        assertEquals("Two", p0.text())
+        assertEquals("Four", p1.text())
+        assertEquals("Six", p2.text())
+
+        // cached
+        val children = el.children()
+        assertNotNull(el.cachedChildren())
+        assertSame(p0, el.child(0))
+        assertSame(p1, el.child(1))
+        assertSame(p2, el.child(2))
+    }
+
+    @Test
+    fun testChildThrowsIndexOutOfBoundsWhenCachedChildrenIsNull() {
+        val el: Element = Ksoup.parse("<div><p>One</p></div>").expectFirst("div")
+        assertNull(el.cachedChildren())
+        val exception = assertFailsWith<IndexOutOfBoundsException> { el.child(5) }
+        assertTrue(exception.message?.contains("No child at index: 5") == true)
+    }
+
+    @Test
+    fun testChildrenSizeUncachedAndCached() {
+        var el: Element = Ksoup.parse("<div>One <p>Two</p> Three <p>Four</p> Five <p>Six</p>").expectFirst("div")
+
+        // uncached
+        assertNull(el.cachedChildren())
+        assertEquals(3, el.childrenSize())
+        // gets cached. As we have to iter elements anyway, might as well make and cache the list, so later child(i) is fast. supports for(i=0;i<el.childrenSize()){child=el.child(i)} case. (But better just to for el.children() ).
+        assertNotNull(el.cachedChildren())
+
+        el = Ksoup.parse("<div>One <p>Two</p> Three <p>Four</p> Five <p>Six</p> <b></b>").expectFirst("div") // resest
+        assertNull(el.cachedChildren())
+        el.children()
+        assertNotNull(el.cachedChildren())
+        assertEquals(4, el.childrenSize())
+
+        val empty = el.expectFirst("b")
+        assertEquals(0, empty.childrenSize())
+        assertNull(empty.cachedChildren()) // 0 node fast path, does not create list
     }
 
     companion object {

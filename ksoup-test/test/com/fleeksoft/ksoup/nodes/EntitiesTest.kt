@@ -166,15 +166,18 @@ class EntitiesTest {
     }
 
     @Test
-    fun escapesGtInXmlAttributesButNotInHtml() {
-        //< is OK in HTML attribute values, but not in XML
+    fun alwaysEscapeLtAndGtInAttributeValues() {
+        // https://github.com/jhy/jsoup/issues/2337
+
         val docHtml = "<a title='<p>One</p>'>One</a>"
-        val doc = Ksoup.parse(docHtml)
+        val doc: Document = Ksoup.parse(docHtml)
         val element = doc.select("a").first()
+
         doc.outputSettings().escapeMode(Entities.EscapeMode.base)
-        assertEquals("<a title=\"<p>One</p>\">One</a>", element?.outerHtml())
+        assertEquals("<a title=\"&lt;p&gt;One&lt;/p&gt;\">One</a>", element!!.outerHtml())
+
         doc.outputSettings().escapeMode(Entities.EscapeMode.xhtml)
-        assertEquals("<a title=\"&lt;p>One&lt;/p>\">One</a>", element?.outerHtml())
+        assertEquals("<a title=\"&lt;p&gt;One&lt;/p&gt;\">One</a>", element.outerHtml())
     }
 
     @Test
