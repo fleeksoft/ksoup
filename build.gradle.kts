@@ -298,6 +298,12 @@ class MicroAmper(val project: Project) {
                 }
 
                 "js" -> kotlin.js {
+                    outputModuleName = project.layout.projectDirectory.asFile.name
+                    binaries.library()
+                    generateTypeScriptDefinitions()
+                    compilerOptions {
+                        target = "es2015"
+                    }
                     browser {
                         testTask {
                             useMocha {

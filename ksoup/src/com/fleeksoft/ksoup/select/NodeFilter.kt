@@ -10,6 +10,7 @@ package com.fleeksoft.ksoup.select
 
 import com.fleeksoft.ksoup.nodes.Node
 import com.fleeksoft.ksoup.select.NodeTraversor.filter
+import kotlin.js.JsExport
 
 
 /**

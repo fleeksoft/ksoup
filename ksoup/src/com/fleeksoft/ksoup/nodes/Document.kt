@@ -19,6 +19,9 @@ import com.fleeksoft.ksoup.ported.KCloneable
 import com.fleeksoft.ksoup.select.Elements
 import com.fleeksoft.ksoup.select.Evaluator
 import com.fleeksoft.ksoup.select.Selector
+import kotlin.js.ExperimentalJsExport
+import kotlin.js.JsExport
+import kotlin.js.JsName
 
 /**
  * Create a new, empty Document, in the specified namespace.
@@ -26,6 +29,8 @@ import com.fleeksoft.ksoup.select.Selector
  * @param location base URI of document
  * @see .createShell
  */
+@OptIn(ExperimentalJsExport::class)
+@JsExport
 public class Document(
     private val namespace: String,
     private val location: String?,
@@ -40,6 +45,7 @@ public class Document(
      * @see com.fleeksoft.ksoup.Ksoup.parseFile
      * @see .Document
      */
+    @JsExport.Ignore
     public constructor(baseUri: String?) : this(Parser.NamespaceHtml, baseUri)
 
     /**
@@ -178,6 +184,7 @@ public class Document(
      * not present
      * @param title string to set as title
      */
+    @JsName("setTitle")
     public fun title(title: String) {
         var titleEl: Element? = head().selectFirst(titleEval)
         if (titleEl == null) {
@@ -235,6 +242,7 @@ public class Document(
      * @param charset Charset
      * @see OutputSettings#charset(java.nio.charset.Charset)
      */
+    @JsName("setCharset")
     public fun charset(charset: Charset) {
         outputSettings.charset(charset)
         ensureMetaCharsetElement()
@@ -347,6 +355,7 @@ public class Document(
          * @param escapeMode the new escape mode to use
          * @return the document's output settings, for chaining
          */
+        @JsName("setEscapeMode")
         public fun escapeMode(escapeMode: Entities.EscapeMode): OutputSettings {
             this.escapeMode = escapeMode
             return this
@@ -370,6 +379,7 @@ public class Document(
          * @param charset the new charset to use.
          * @return the document's output settings, for chaining
          */
+        @JsExport.Ignore
         public fun charset(charset: Charset): OutputSettings {
             this.charset = charset
             return this
@@ -380,6 +390,7 @@ public class Document(
          * @param charset the new charset (by name) to use.
          * @return the document's output settings, for chaining
          */
+        @JsName("setCharset")
         public fun charset(charset: String): OutputSettings {
             charset(Charsets.forName(charset))
             return this
@@ -402,6 +413,7 @@ public class Document(
          * @param syntax serialization syntax
          * @return the document's output settings, for chaining
          */
+        @JsName("setSyntax")
         public fun syntax(syntax: Syntax): OutputSettings {
             this.syntax = syntax
             if (syntax == Syntax.xml) this.escapeMode(Entities.EscapeMode.xhtml)
@@ -422,6 +434,7 @@ public class Document(
          * @param pretty new pretty print setting
          * @return this, for chaining
          */
+        @JsName("setPrettyPrint")
         public fun prettyPrint(pretty: Boolean): OutputSettings {
             prettyPrint = pretty
             return this
@@ -441,6 +454,7 @@ public class Document(
          * @param outlineMode new outline setting
          * @return this, for chaining
          */
+        @JsName("setOutline")
         public fun outline(outlineMode: Boolean): OutputSettings {
             outline = outlineMode
             return this
@@ -459,6 +473,7 @@ public class Document(
          * @param indentAmount number of spaces to use for indenting each level. Must be &gt;= 0.
          * @return this, for chaining
          */
+        @JsName("setIndentAmount")
         public fun indentAmount(indentAmount: Int): OutputSettings {
             Validate.isTrue(indentAmount >= 0)
             this.indentAmount = indentAmount
@@ -480,6 +495,7 @@ public class Document(
          * Default is 30 and -1 means unlimited.
          * @return this, for chaining
          */
+        @JsName("setMaxPaddingWidth")
         public fun maxPaddingWidth(maxPaddingWidth: Int): OutputSettings {
             Validate.isTrue(maxPaddingWidth >= -1)
             this.maxPaddingWidth = maxPaddingWidth
@@ -504,6 +520,7 @@ public class Document(
      * @param outputSettings new output settings.
      * @return this document, for chaining.
      */
+    @JsName("setOutputSettings")
     public fun outputSettings(outputSettings: OutputSettings): Document {
         this.outputSettings = outputSettings
         return this
@@ -519,6 +536,7 @@ public class Document(
         return quirksMode
     }
 
+    @JsName("setQuirksMode")
     public fun quirksMode(quirksMode: QuirksMode): Document {
         this.quirksMode = quirksMode
         return this
@@ -538,6 +556,7 @@ public class Document(
      * @param parser the configured parser to use when further parsing is required for this document.
      * @return this document, for chaining.
      */
+    @JsName("setParser")
     public fun parser(parser: Parser): Document {
         this.parser = parser
         return this

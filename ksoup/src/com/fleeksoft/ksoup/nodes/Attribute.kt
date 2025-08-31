@@ -16,15 +16,25 @@ import com.fleeksoft.ksoup.internal.StringUtil.releaseBuilder
 import com.fleeksoft.ksoup.nodes.Document.OutputSettings.Syntax
 import com.fleeksoft.ksoup.ported.KCloneable
 import com.fleeksoft.ksoup.ported.binarySearchBy
+import kotlin.js.ExperimentalJsExport
+import kotlin.js.JsExport
+import kotlin.js.JsName
 
 
 /**
  * A single key + value attribute. (Only used for presentation.)
  */
-public open class Attribute : Map.Entry<String, String?>, KCloneable<Attribute> {
-    private var attributeKey: String
+@OptIn(ExperimentalJsExport::class)
+@JsExport
+public open class Attribute(key: String, value: String?, parent: Attributes?) : Map.Entry<String, String?>,
+    KCloneable<Attribute> {
 
-    private var attributeValue: String?
+    // since key and value is not exported to js, make attributeKey and attributeValue public
+    var attributeKey: String
+        private set
+
+    var attributeValue: String?
+        private set
 
     public var parent: Attributes?
 
@@ -34,6 +44,7 @@ public open class Attribute : Map.Entry<String, String?>, KCloneable<Attribute> 
      * @param value attribute value (may be null)
      * @see .createFromEncoded
      */
+    @JsExport.Ignore
     public constructor(key: String, value: String?) : this(key, value, null)
 
     /**
@@ -50,7 +61,7 @@ public open class Attribute : Map.Entry<String, String?>, KCloneable<Attribute> 
      * @param parent the containing Attributes (this Attribute is not automatically added to said Attributes)
      * @see .createFromEncoded
      */
-    public constructor(key: String, value: String?, parent: Attributes?) {
+    init {
         var sKey = key
         sKey = sKey.trim { it <= ' ' }
         Validate.notEmpty(sKey) // trimming could potentially make empty, so validate here
@@ -162,6 +173,7 @@ public open class Attribute : Map.Entry<String, String?>, KCloneable<Attribute> 
         return releaseBuilder(sb)
     }
 
+    @JsExport.Ignore
     // todo @Deprecate
     @Deprecated("internal method and will be removed ")
     protected fun html(accum: Appendable, out: Document.OutputSettings) {
@@ -170,6 +182,7 @@ public open class Attribute : Map.Entry<String, String?>, KCloneable<Attribute> 
 
     // todo @Deprecate
     @Deprecated("internal method and will be removed ")
+    @JsExport.Ignore
     protected fun html(key: String, value: String, accum: Appendable, out: Document.OutputSettings) {
         html(key, value, QuietAppendable.wrap(accum), out)
     }
@@ -191,6 +204,7 @@ public open class Attribute : Map.Entry<String, String?>, KCloneable<Attribute> 
         return parent!!.sourceRange(key)
     }
 
+    @JsExport.Ignore
     protected fun html(accum: QuietAppendable, out: Document.OutputSettings) {
         html(attributeKey, attributeValue, accum, out)
     }
@@ -364,7 +378,9 @@ public open class Attribute : Map.Entry<String, String?>, KCloneable<Attribute> 
         // collapse unknown foo=null, known checked=null, checked="", checked=checked; write out others
         protected fun shouldCollapseAttribute(key: String, value: String?, out: Document.OutputSettings): Boolean {
             return out.syntax() === Syntax.html &&
-                    (value == null || (value.isEmpty() || value.equals(key, ignoreCase = true)) && isBooleanAttribute(key))
+                    (value == null || (value.isEmpty() || value.equals(key, ignoreCase = true)) && isBooleanAttribute(
+                        key
+                    ))
         }
 
         /**

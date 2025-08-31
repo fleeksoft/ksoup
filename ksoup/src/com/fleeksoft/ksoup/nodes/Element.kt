@@ -31,6 +31,7 @@ import com.fleeksoft.ksoup.ported.jsSupportedRegex
 import com.fleeksoft.ksoup.select.*
 import com.fleeksoft.ksoup.select.Collector.findFirst
 import com.fleeksoft.ksoup.select.Selector.evaluatorOf
+import kotlin.js.JsExport
 import kotlin.js.JsName
 import kotlin.jvm.JvmOverloads
 import kotlin.reflect.KClass
@@ -43,6 +44,7 @@ import kotlin.reflect.KClass
  * From an Element, you can extract data, traverse the node graph, and manipulate the HTML.
  */
 
+@JsExport
 public open class Element : Node, Iterable<Element> {
     private val lock = Synchronizable()
 
@@ -63,6 +65,7 @@ public open class Element : Node, Iterable<Element> {
      * @param tag tag name
      * @param namespace namespace for this element
      */
+    @JsExport.Ignore
     public constructor(tag: String, namespace: String) : this(
         Tag.valueOf(
             tag,
@@ -77,6 +80,7 @@ public open class Element : Node, Iterable<Element> {
      * @param tag tag name
      * @see .Element
      */
+    @JsExport.Ignore
     public constructor(tag: String) : this(tag, Parser.NamespaceHtml)
 
     /**
@@ -88,6 +92,7 @@ public open class Element : Node, Iterable<Element> {
      * @see #appendChild(Node)
      * @see #appendElement(String)
      */
+    @JsExport.Ignore
     public constructor(tag: Tag, baseUri: String?, attributes: Attributes?) {
         childNodes = EmptyNodeList
         this.attributes = attributes
@@ -103,6 +108,7 @@ public open class Element : Node, Iterable<Element> {
      * @param baseUri the base URI of this element. Optional, and will inherit from its parent, if any.
      * @see Tag.valueOf
      */
+    @JsExport.Ignore
     public constructor(tag: Tag, baseUri: String?) : this(tag, baseUri, null)
 
     /**
@@ -200,6 +206,7 @@ public open class Element : Node, Iterable<Element> {
      * @see Elements.tagName
      */
     @JvmOverloads
+    @JsExport.Ignore
     public fun tagName(tagName: String, namespace: String = tag.namespace()): Element {
         Validate.notEmptyParam(tagName, "tagName")
         Validate.notEmptyParam(namespace, "namespace")
@@ -222,6 +229,7 @@ public open class Element : Node, Iterable<Element> {
      * @param tag the new tag
      * @return this element, for chaining
      */
+    @JsName("setTag")
     fun tag(tag: Tag): Element {
         this.tag = tag
         return this
@@ -243,6 +251,7 @@ public open class Element : Node, Iterable<Element> {
      * @param id the ID value to use
      * @return this Element, for chaining
      */
+    @JsName("setId")
     public fun id(id: String): Element {
         attr("id", id)
         return this
@@ -269,6 +278,7 @@ public open class Element : Node, Iterable<Element> {
      *
      * @return this element
      */
+    @JsName("setBooleanAttr")
     public fun attr(attributeKey: String, attributeValue: Boolean): Element {
         attributes().put(attributeKey, attributeValue)
         return this
@@ -506,6 +516,7 @@ public open class Element : Node, Iterable<Element> {
      * @return an [Elements] list containing elements that match the query (empty if none match)
      * @see Selector#evaluatorOf(String css)
      */
+    @JsExport.Ignore
     public fun select(evaluator: Evaluator): Elements {
         return Selector.select(evaluator, this)
     }
@@ -555,6 +566,7 @@ public open class Element : Node, Iterable<Element> {
      * @return the first matching element (walking down the tree, starting from this element), or `null` if none
      * match.
      */
+    @JsExport.Ignore
     public fun selectFirst(evaluator: Evaluator): Element? {
         return findFirst(evaluator, this)
     }
@@ -580,6 +592,7 @@ public open class Element : Node, Iterable<Element> {
      * @param evaluator an evaluator
      * @return a list of nodes that match the query (empty if none match)
      */
+    @JsExport.Ignore
     fun selectNodes(evaluator: Evaluator): Nodes<Node> {
         return selectNodes(evaluator, Node::class)
     }
@@ -607,6 +620,7 @@ public open class Element : Node, Iterable<Element> {
      * @param <T> the type of node to collect
      * @return a list of nodes that match the query (empty if none match)
     </T> */
+    @JsExport.Ignore
     fun <T : Node> selectNodes(evaluator: Evaluator, type: KClass<T>): Nodes<T> {
         return Collector.collectNodes(evaluator, this, type)
     }
@@ -624,6 +638,7 @@ public open class Element : Node, Iterable<Element> {
      * @param <T> the type of node to collect
      * @return a list of nodes that match the query (empty if none match)
     </T> */
+    @JsExport.Ignore
     fun <T : Node> selectNodes(cssQuery: String, type: KClass<T>): Nodes<T> {
         Validate.notEmpty(cssQuery)
         return selectNodes(Selector.evaluatorOf(cssQuery), type)
@@ -654,6 +669,7 @@ public open class Element : Node, Iterable<Element> {
      * @return the first matching node (walking down the tree, starting from this element), or `null` if none
      * match.
      */
+    @JsExport.Ignore
     fun <T : Node> selectFirstNode(evaluator: Evaluator, type: KClass<T>): T? {
         return Collector.findFirstNode(evaluator, this, type)
     }
@@ -689,6 +705,7 @@ public open class Element : Node, Iterable<Element> {
      * @param evaluator an element evaluator
      * @return if this element matches
      */
+    @JsExport.Ignore
     public fun `is`(evaluator: Evaluator?): Boolean {
         return evaluator!!.matches(root(), this)
     }
@@ -712,6 +729,7 @@ public open class Element : Node, Iterable<Element> {
      * found.
      */
 //    @Nullable
+    @JsExport.Ignore
     public fun closest(evaluator: Evaluator): Element? {
         var el: Element? = this
         val root = root()
@@ -812,6 +830,7 @@ public open class Element : Node, Iterable<Element> {
      * @param children child nodes to insert
      * @return this element, for chaining.
      */
+    @JsExport.Ignore
     public fun insertChildren(
         index: Int,
         vararg children: Node,
@@ -1286,6 +1305,7 @@ public open class Element : Node, Iterable<Element> {
      * @param regex regular expression to match against attribute values. You can use <a href="http://java.sun.com/docs/books/tutorial/essential/regex/pattern.html#embedded">embedded flags</a> (such as {@code (?i)} and {@code (?m)}) to control regex options.
      * @return elements that have attributes matching this regular expression
      */
+    @JsExport.Ignore
     public fun getElementsByAttributeValueMatching(key: String, regex: String): Elements {
         val pattern: Regex = try {
             jsSupportedRegex(regex)
@@ -1340,6 +1360,7 @@ public open class Element : Node, Iterable<Element> {
      * @return elements that contain the string, case-insensitive.
      * @see Element.ownText
      */
+    @JsExport.Ignore
     public fun getElementsContainingOwnText(searchText: String): Elements {
         return Collector.collect(Evaluator.ContainsOwnText(searchText), this)
     }
@@ -1360,6 +1381,7 @@ public open class Element : Node, Iterable<Element> {
      * @return elements matching the supplied regular expression.
      * @see Element#text()
      */
+    @JsExport.Ignore
     public fun getElementsMatchingText(regex: String): Elements {
         val pattern: Regex =
             try {
@@ -1386,6 +1408,7 @@ public open class Element : Node, Iterable<Element> {
      * @return elements matching the supplied regular expression.
      * @see Element#ownText()
      */
+    @JsExport.Ignore
     public fun getElementsMatchingOwnText(regex: String): Elements {
         val pattern: Regex =
             try {
@@ -1519,6 +1542,7 @@ public open class Element : Node, Iterable<Element> {
      * @param text decoded text
      * @return this element
      */
+    @JsName("setText")
     public open fun text(text: String): Element {
         empty()
         // special case for script/style in HTML (or customs): should be data node
@@ -1614,6 +1638,7 @@ public open class Element : Node, Iterable<Element> {
      * @param classNames set of classes
      * @return this element, for chaining
      */
+    @JsName("setClassNames")
     public fun classNames(classNames: Set<String>): Element {
         if (classNames.isEmpty()) {
             attributes().remove("class")
@@ -1729,6 +1754,7 @@ public open class Element : Node, Iterable<Element> {
      * @param value value to set
      * @return this element (for chaining)
      */
+    @JsName("setValue")
     public fun value(value: String): Element {
         if (elementIs("textarea", Parser.NamespaceHtml)) text(value) else attr("value", value)
         return this
@@ -1808,6 +1834,7 @@ public open class Element : Node, Iterable<Element> {
      * @return this element
      * @see .append
      */
+    @JsName("setHtml")
     public fun html(html: String): Element {
         empty()
         append(html)
