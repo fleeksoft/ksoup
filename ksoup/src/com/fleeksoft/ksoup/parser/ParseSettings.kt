@@ -11,10 +11,14 @@ package com.fleeksoft.ksoup.parser
 import com.fleeksoft.ksoup.internal.Normalizer.lowerCase
 import com.fleeksoft.ksoup.internal.Normalizer.normalize
 import com.fleeksoft.ksoup.nodes.Attributes
+import kotlin.js.ExperimentalJsExport
+import kotlin.js.JsExport
 
 /**
  * Controls parser case settings, to optionally preserve tag and/or attribute name case.
  */
+@OptIn(ExperimentalJsExport::class)
+@JsExport
 public class ParseSettings
 /**
  * Define parse settings.

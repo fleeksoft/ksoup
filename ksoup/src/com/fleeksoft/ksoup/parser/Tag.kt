@@ -10,6 +10,8 @@ package com.fleeksoft.ksoup.parser
 
 import com.fleeksoft.ksoup.nodes.TagSet
 import com.fleeksoft.ksoup.ported.KCloneable
+import kotlin.js.ExperimentalJsExport
+import kotlin.js.JsExport
 import kotlin.js.JsName
 import kotlin.jvm.JvmOverloads
 
@@ -17,10 +19,14 @@ import kotlin.jvm.JvmOverloads
  * Tag capabilities.
  *
  */
+@OptIn(ExperimentalJsExport::class)
+@JsExport
 public data class Tag(var tagName: String, var normalName: String, var namespace: String) : KCloneable<Tag> {
     var options: Int = 0
 
+    @JsExport.Ignore
     constructor(tagName: String) : this(tagName, ParseSettings.normalName(tagName), Parser.NamespaceHtml)
+    @JsExport.Ignore
     constructor(tagName: String, namespace: String) : this(tagName, ParseSettings.normalName(tagName), namespace)
 
     /**
@@ -40,6 +46,7 @@ public data class Tag(var tagName: String, var normalName: String, var namespace
      * @param tagName the new name of the tag. Case-sensitive.
      * @return this tag
      */
+    @JsName("setName")
     fun name(tagName: String): Tag {
         this.tagName = tagName
         this.normalName = ParseSettings.normalName(tagName)
@@ -126,6 +133,7 @@ public data class Tag(var tagName: String, var normalName: String, var namespace
      * @param namespace the new namespace of the tag.
      * @return this tag
      */
+    @JsName("setNamespace")
     fun namespace(namespace: String): Tag {
         this.namespace = namespace
         return this
@@ -275,6 +283,7 @@ public data class Tag(var tagName: String, var normalName: String, var namespace
          * @see .valueOf
          */
         @JvmOverloads
+        @JsExport.Ignore
         public fun valueOf(tagName: String, namespace: String = Parser.NamespaceHtml, settings: ParseSettings = ParseSettings.preserveCase): Tag {
             return TagSet.Html().valueOf(tagName, null, namespace, settings.preserveTagCase())
         }

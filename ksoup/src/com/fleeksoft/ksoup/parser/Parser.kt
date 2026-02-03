@@ -17,6 +17,7 @@ import com.fleeksoft.ksoup.nodes.Element
 import com.fleeksoft.ksoup.nodes.Node
 import com.fleeksoft.ksoup.nodes.TagSet
 import com.fleeksoft.ksoup.ported.KCloneable
+import kotlin.js.JsExport
 import kotlin.js.JsName
 
 /**
@@ -26,6 +27,7 @@ import kotlin.js.JsName
  * synchronize.) To reuse a Parser configuration in a multithreaded environment, use {@link #newInstance()} to make
  * copies.</p>
  */
+@JsExport
 public class Parser : KCloneable<Parser> {
     private var treeBuilder: TreeBuilder
     private var errors: ParseErrorList
@@ -47,6 +49,7 @@ public class Parser : KCloneable<Parser> {
      * Create a new Parser, using the specified TreeBuilder
      * @param treeBuilder TreeBuilder to use to parse input into Documents.
      */
+    @JsName("withTreeBuilder")
     public constructor(treeBuilder: TreeBuilder) {
         this.treeBuilder = treeBuilder
         settings = treeBuilder.defaultSettings()
@@ -76,6 +79,7 @@ public class Parser : KCloneable<Parser> {
         return parseInput(StringReader(input), baseUri)
     }
 
+    @JsName("parseReaderInput")
     public fun parseInput(reader: Reader, baseUri: String): Document {
         return lock.synchronize { treeBuilder.parse(reader, baseUri, this) }
     }
@@ -85,6 +89,7 @@ public class Parser : KCloneable<Parser> {
     }
 
 
+    @JsName("parseReaderFragmentInput")
     fun parseFragmentInput(fragment: Reader, context: Element?, baseUri: String): List<Node> {
         return lock.synchronize { treeBuilder.parseFragment(fragment, context, baseUri, this) }
     }
@@ -135,6 +140,7 @@ public class Parser : KCloneable<Parser> {
      * @param settings the new settings
      * @return this Parser
      */
+    @JsName("setSettings")
     public fun settings(settings: ParseSettings): Parser {
         this.settings = settings
         return this
@@ -157,6 +163,7 @@ public class Parser : KCloneable<Parser> {
      * @param tagSet the TagSet to use. This gets copied, so that changes that the parse makes (tags found in the document will be added) do not clobber the original TagSet.
      * @return this Parser
      */
+    @JsName("setTagSet")
     fun tagSet(tagSet: TagSet): Parser {
         this.tagSet = TagSet(tagSet) // copy it as we are going to mutate it
         return this
