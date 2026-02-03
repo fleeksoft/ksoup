@@ -39,15 +39,6 @@ allprojects {
 
     java.toolchain.languageVersion = JavaLanguageVersion.of(JDK_VERSION.majorVersion)
     kotlin.jvmToolchain(JDK_VERSION.majorVersion.toInt())
-    afterEvaluate {
-        tasks.withType(Test::class) {
-            //this.javaLauncher.set()
-            this.javaLauncher.set(javaToolchains.launcherFor {
-                // 17 is latest at the current moment
-                languageVersion.set(JavaLanguageVersion.of(JDK_VERSION.majorVersion))
-            })
-        }
-    }
 
     android {
         compileOptions {
