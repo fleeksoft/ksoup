@@ -1,6 +1,6 @@
 [versions]
 libraryVersion = "0.2.5"
-agp = "8.13.2"
+agp = "8.12.3"
 kotlin = "2.3.0"
 compileSdk = "36"
 minSdk = "21"
@@ -16,11 +16,11 @@ kotlinx-benchmark = "0.4.15"
 #korlibs = "999.0.0.999" # 999.0.0.999 is local version
 korlibs = "6.0.2"
 korlibs-network = "6.0.1"
-mavenPublish = "0.36.0"
+mavenPublish = "0.34.0"
 
 stately = "2.1.0"
 jsoup = "1.22.1" # for testing only
-fleeksoft-io = "0.0.5"
+fleeksoft-io = "0.0.6-alpha"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }

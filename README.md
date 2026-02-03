@@ -19,8 +19,6 @@
 ## 🚨 Deprecation Notice
 
 > The following extension libraries are **deprecated** and will be removed in a future release:
-> - `ksoup-korlibs` (I/O extension)
-> - `ksoup-network-korlibs` (Network extension)
 > - `ksoup-network-ktor2` (Network extension)
 >
 > **Recommendation:** 
@@ -74,13 +72,6 @@ Choose one of the following I/O libraries:
    implementation("com.fleeksoft.ksoup:ksoup-okio:<version>")
    ```
 
-3. ~~**[korlibs-io](https://github.com/korlibs/korlibs-io)**~~ **(DEPRECATED: Use kotlinx-io instead)**
-   ```kotlin
-   // Deprecated: Not recommended for new projects
-   // Provides Ksoup.parseFile, Ksoup.parseStream & Other InputStream APIs
-   implementation("com.fleeksoft.ksoup:ksoup-korlibs:<version>")
-   ```
-
 ### 3. Network Extensions (Optional)
 **Add one of these extensions only if you need to fetch and parse HTML/XML directly from URLs.**
 
@@ -98,13 +89,6 @@ Choose one of the following network libraries:
    // Deprecated: Not recommended for new projects
    // Provides Ksoup.parseGetRequest, Ksoup.parseSubmitRequest, Ksoup.parsePostRequest
    implementation("com.fleeksoft.ksoup:ksoup-network-ktor2:<version>")
-   ```
-
-3. ~~**[korlibs-io](https://github.com/korlibs/korlibs-io) Network**~~ **(DEPRECATED: Use Ktor 3 instead)**
-   ```kotlin
-   // Deprecated: Not recommended for new projects
-   // Provides Ksoup.parseGetRequest, Ksoup.parseSubmitRequest, Ksoup.parsePostRequest
-   implementation("com.fleeksoft.ksoup:ksoup-network-korlibs:<version>")
    ```
 
 #### Ksoup supports [Charsets](https://github.com/fleeksoft/fleeksoft-io/blob/main/CharsetsReadme.md)
@@ -169,10 +153,9 @@ In this example, `Ksoup.parseGetRequest` fetches and parses HTML content from Wi
   - **Ksoup.clean( bodyHtml: String, safelist: Safelist = Safelist.relaxed(), baseUri: String = "", outputSettings: Document.OutputSettings? = null): String**
   - **Ksoup.isValid(bodyHtml: String, safelist: Safelist = Safelist.relaxed()): Boolean**
 ### Ksoup I/O Public functions
-  - **Ksoup.parseInput(input: InputStream, baseUri: String, charsetName: String? = null, parser: Parser = Parser.htmlParser())** from (ksoup-io, ksoup-okio, ksoup-kotlinx, ksoup-korlibs)
-  - **Ksoup.parseFile** from (ksoup-okio, ksoup-kotlinx, ksoup-korlibs)
+  - **Ksoup.parseInput(input: InputStream, baseUri: String, charsetName: String? = null, parser: Parser = Parser.htmlParser())** from (ksoup-io, ksoup-okio, ksoup-kotlinx)
+  - **Ksoup.parseFile** from (ksoup-okio, ksoup-kotlinx)
   - **Ksoup.parseSource** from (ksoup-okio, ksoup-kotlinx)
-  - **Ksoup.parseStream** from (ksoup-korlibs)
 
 ### Ksoup Network Public functions
 - Suspend functions

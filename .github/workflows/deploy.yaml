@@ -10,7 +10,6 @@ jobs:
         buildType:
           - "core"
           - "kotlinx"
-          - "korlibs"
           - "okio"
     runs-on: macos-latest
     name: Publish ${{ matrix.buildType }}

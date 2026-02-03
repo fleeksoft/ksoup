@@ -27,11 +27,6 @@ object TestHelper {
     }
 
     fun getResourceAbsolutePath(resourceName: String, absForWindows: Boolean = true): String {
-        if (Platform.isWindows() && BuildConfig.isKorlibs && absForWindows) {
-            return "../../../../testResources/$resourceName"
-        } else if (Platform.isJsOrWasm() && BuildConfig.isKorlibs) {
-            return "https://raw.githubusercontent.com/fleeksoft/ksoup/develop/ksoup-test/testResources/$resourceName"
-        }
         return "${BuildConfig.PROJECT_ROOT}/ksoup-test/testResources/$resourceName"
     }
 
@@ -88,7 +83,7 @@ object TestHelper {
         }
     }
 
-    fun isGzipSupported(): Boolean = BuildConfig.isKorlibs
+    fun isGzipSupported(): Boolean = false
     fun isShiftJsSupported(): Boolean = Platform.isJvmOrAndroid()
 
     //    fun isUtf16Supported(): Boolean = !(((BuildConfig.isKotlinx || BuildConfig.isOkio || BuildConfig.isKtor2) && Platform.isJsOrWasm()))
@@ -97,11 +92,9 @@ object TestHelper {
     //    fun isUtf32Supported(): Boolean = !(Platform.isJsOrWasm() || Platform.isWindows() || Platform.isLinux())
     fun isUtf32Supported(): Boolean = true
 
-    //    fun isEUCKRSupported(): Boolean = !(Platform.isJsOrWasm() || Platform.isApple() || Platform.isWindows() || (BuildConfig.isKorlibs && Platform.isLinux()))
     fun isEUCKRSupported(): Boolean = true
 
-    //    fun isGB2312Supported(): Boolean = !(Platform.isApple() || Platform.isWindows() || ((BuildConfig.isKotlinx || BuildConfig.isOkio || BuildConfig.isKtor2) && Platform.isJsOrWasm()) || (BuildConfig.isKorlibs && Platform.isLinux()))
     fun isGB2312Supported(): Boolean = true
 
-    fun canReadResourceFile(): Boolean = (!Platform.isWasmJs() || BuildConfig.isKorlibs) && !BuildConfig.isCore
+    fun canReadResourceFile(): Boolean = Platform.isWasmJs().not() && BuildConfig.isCore.not()
 }

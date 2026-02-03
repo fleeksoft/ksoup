@@ -12,11 +12,6 @@ kotlin {
                         implementation(project(":ksoup-kotlinx"))
                     }
 
-                    "korlibs" -> {
-//                        implementation("com.fleeksoft.ksoup:ksoup-korlibs:${libs.versions.libraryVersion.get()}")
-                        implementation(project(":ksoup-korlibs"))
-                    }
-
                     "okio" -> {
 //                        implementation("com.fleeksoft.ksoup:ksoup-okio:${libs.versions.libraryVersion.get()}")
                         implementation(project(":ksoup-okio"))
@@ -53,7 +48,6 @@ val generateBuildConfigFile: Task by tasks.creating {
                 const val isGithubActions: Boolean = $isGithubActions
                 const val libBuildType: String = "$libBuildType"
                 const val isKotlinx: Boolean = ${libBuildType == "kotlinx" || libBuildType == "common"}
-                const val isKorlibs: Boolean = ${libBuildType == "korlibs"}
                 const val isOkio: Boolean = ${libBuildType == "okio"}
                 const val isCore: Boolean = ${libBuildType == "core"}
             }
