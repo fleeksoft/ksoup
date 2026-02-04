@@ -16,8 +16,9 @@ import com.fleeksoft.ksoup.nodes.Range.AttributeRange.Companion.UntrackedAttr
 import com.fleeksoft.ksoup.parser.ParseSettings
 import com.fleeksoft.ksoup.ported.KCloneable
 import kotlin.js.ExperimentalJsExport
-import kotlin.js.JsExport
 import kotlin.js.JsName
+import com.fleeksoft.ksoup.KmpJsExport
+import kotlin.js.JsExport
 
 /**
  * The attributes of an Element.
@@ -35,7 +36,7 @@ import kotlin.js.JsName
  * @author Jonathan Hedley, jonathan@hedley.net
  */
 @OptIn(ExperimentalJsExport::class)
-@JsExport
+@KmpJsExport
 public class Attributes : Iterable<Attribute>, KCloneable<Attributes> {
     // the number of instance fields is kept as low as possible giving an object size of 24 bytes
 

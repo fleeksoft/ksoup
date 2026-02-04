@@ -19,20 +19,20 @@ import com.fleeksoft.ksoup.parser.ParseSettings
 import com.fleeksoft.ksoup.ported.Consumer
 import com.fleeksoft.ksoup.ported.KCloneable
 import com.fleeksoft.ksoup.ported.LinkedList
-import com.fleeksoft.ksoup.ported.assert
 import com.fleeksoft.ksoup.select.NodeFilter
 import com.fleeksoft.ksoup.select.NodeVisitor
 import kotlin.js.ExperimentalJsExport
 import kotlin.js.JsExport
 import kotlin.js.JsName
 import kotlin.reflect.KClass
+import com.fleeksoft.ksoup.KmpJsExport
 
 
 /**
 The base, abstract Node model. {@link Element}, {@link Document}, {@link Comment}, {@link TextNode}, et al.,
 are instances of Node.
  */
-@JsExport
+@KmpJsExport
 public abstract class Node protected constructor() : KCloneable<Node> {
     public var _parentNode: Element? = null // Nodes don't always have parents
     public var _siblingIndex: Int = 0

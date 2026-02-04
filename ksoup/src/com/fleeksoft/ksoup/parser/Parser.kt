@@ -12,12 +12,12 @@ import co.touchlab.stately.concurrency.Synchronizable
 import co.touchlab.stately.concurrency.synchronize
 import com.fleeksoft.io.Reader
 import com.fleeksoft.io.StringReader
+import com.fleeksoft.ksoup.KmpJsExport
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.nodes.Element
 import com.fleeksoft.ksoup.nodes.Node
 import com.fleeksoft.ksoup.nodes.TagSet
 import com.fleeksoft.ksoup.ported.KCloneable
-import kotlin.js.JsExport
 import kotlin.js.JsName
 
 /**
@@ -27,7 +27,7 @@ import kotlin.js.JsName
  * synchronize.) To reuse a Parser configuration in a multithreaded environment, use {@link #newInstance()} to make
  * copies.</p>
  */
-@JsExport
+@KmpJsExport
 public class Parser : KCloneable<Parser> {
     private var treeBuilder: TreeBuilder
     private var errors: ParseErrorList

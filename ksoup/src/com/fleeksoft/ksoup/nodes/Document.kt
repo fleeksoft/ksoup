@@ -10,6 +10,7 @@ package com.fleeksoft.ksoup.nodes
 
 import com.fleeksoft.charset.Charset
 import com.fleeksoft.charset.Charsets
+import com.fleeksoft.ksoup.KmpJsExport
 import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.parser.ParseSettings
@@ -30,7 +31,7 @@ import kotlin.js.JsName
  * @see .createShell
  */
 @OptIn(ExperimentalJsExport::class)
-@JsExport
+@KmpJsExport
 public class Document(
     private val namespace: String,
     private val location: String?,

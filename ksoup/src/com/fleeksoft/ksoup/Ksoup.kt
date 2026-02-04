@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalJsExport::class)
+
 package com.fleeksoft.ksoup
 
 import com.fleeksoft.io.Reader
@@ -11,15 +13,13 @@ import com.fleeksoft.ksoup.safety.Safelist
 import kotlin.js.ExperimentalJsExport
 import kotlin.js.JsExport
 import kotlin.js.JsName
-import kotlin.js.JsStatic
 
 
 /**
  * The core public access point to the com.fleeksoft.ksoup functionality.
  *
  */
-@OptIn(ExperimentalJsExport::class)
-@JsExport
+@KmpJsExport
 public object Ksoup {
 
     /**

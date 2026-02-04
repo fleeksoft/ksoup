@@ -10,6 +10,7 @@ package com.fleeksoft.ksoup.nodes
 
 import co.touchlab.stately.concurrency.Synchronizable
 import co.touchlab.stately.concurrency.synchronize
+import com.fleeksoft.ksoup.KmpJsExport
 import com.fleeksoft.ksoup.exception.PatternSyntaxException
 import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.helper.Validate.isTrue
@@ -44,7 +45,7 @@ import kotlin.reflect.KClass
  * From an Element, you can extract data, traverse the node graph, and manipulate the HTML.
  */
 
-@JsExport
+@KmpJsExport
 public open class Element : Node, Iterable<Element> {
     private val lock = Synchronizable()
 

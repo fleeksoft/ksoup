@@ -8,6 +8,7 @@
 
 package com.fleeksoft.ksoup.nodes
 
+import com.fleeksoft.ksoup.KmpJsExport
 import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.internal.QuietAppendable
 import com.fleeksoft.ksoup.internal.SharedConstants
@@ -18,14 +19,13 @@ import com.fleeksoft.ksoup.ported.KCloneable
 import com.fleeksoft.ksoup.ported.binarySearchBy
 import kotlin.js.ExperimentalJsExport
 import kotlin.js.JsExport
-import kotlin.js.JsName
 
 
 /**
  * A single key + value attribute. (Only used for presentation.)
  */
 @OptIn(ExperimentalJsExport::class)
-@JsExport
+@KmpJsExport
 public open class Attribute(key: String, value: String?, parent: Attributes?) : Map.Entry<String, String?>,
     KCloneable<Attribute> {
 

@@ -8,6 +8,7 @@
 
 package com.fleeksoft.ksoup.parser
 
+import com.fleeksoft.ksoup.KmpJsExport
 import com.fleeksoft.ksoup.nodes.TagSet
 import com.fleeksoft.ksoup.ported.KCloneable
 import kotlin.js.ExperimentalJsExport
@@ -20,12 +21,13 @@ import kotlin.jvm.JvmOverloads
  *
  */
 @OptIn(ExperimentalJsExport::class)
-@JsExport
+@KmpJsExport
 public data class Tag(var tagName: String, var normalName: String, var namespace: String) : KCloneable<Tag> {
     var options: Int = 0
 
     @JsExport.Ignore
     constructor(tagName: String) : this(tagName, ParseSettings.normalName(tagName), Parser.NamespaceHtml)
+
     @JsExport.Ignore
     constructor(tagName: String, namespace: String) : this(tagName, ParseSettings.normalName(tagName), namespace)
 

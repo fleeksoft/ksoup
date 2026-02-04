@@ -8,17 +8,17 @@
 
 package com.fleeksoft.ksoup.parser
 
+import com.fleeksoft.ksoup.KmpJsExport
 import com.fleeksoft.ksoup.internal.Normalizer.lowerCase
 import com.fleeksoft.ksoup.internal.Normalizer.normalize
 import com.fleeksoft.ksoup.nodes.Attributes
 import kotlin.js.ExperimentalJsExport
-import kotlin.js.JsExport
 
 /**
  * Controls parser case settings, to optionally preserve tag and/or attribute name case.
  */
 @OptIn(ExperimentalJsExport::class)
-@JsExport
+@KmpJsExport
 public class ParseSettings
 /**
  * Define parse settings.
@@ -62,7 +62,7 @@ public class ParseSettings
         return trimmedName
     }
 
-    
+
     public fun normalizeAttributes(attributes: Attributes?) {
         if (!preserveAttributeCase) {
             attributes?.normalize()

@@ -4,6 +4,8 @@ import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.nodes.Element
 import com.fleeksoft.ksoup.nodes.Node
 import com.fleeksoft.ksoup.ported.NodesIterator
+import kotlin.js.ExperimentalJsExport
+import com.fleeksoft.ksoup.KmpJsExport
 import kotlin.js.JsExport
 
 /**
@@ -18,14 +20,16 @@ import kotlin.js.JsExport
  * @see Element.selectNodes
  * @see Element.selectNodes
  */
-@JsExport
+
+@OptIn(ExperimentalJsExport::class)
+@KmpJsExport
 open class Nodes<T : Node>(private val delegateList: MutableList<T> = mutableListOf()) :
     MutableList<T> by delegateList {
-    
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is Nodes<*>) return false
-        
+
         // Compare the contents of the lists
         if (this.size != other.size) return false
         for (i in this.indices) {
@@ -33,7 +37,7 @@ open class Nodes<T : Node>(private val delegateList: MutableList<T> = mutableLis
         }
         return true
     }
-    
+
     override fun hashCode(): Int {
         return delegateList.hashCode()
     }

@@ -8,6 +8,7 @@
 
 package com.fleeksoft.ksoup.select
 
+import com.fleeksoft.ksoup.KmpJsExport
 import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.nodes.*
 import kotlin.js.ExperimentalJsExport
@@ -26,7 +27,7 @@ import kotlin.reflect.cast
  *
  */
 @OptIn(ExperimentalJsExport::class)
-@JsExport
+@KmpJsExport
 public class Elements(delegateList: ArrayList<Element> = arrayListOf()) : Nodes<Element>(delegateList) {
 
     @JsExport.Ignore
