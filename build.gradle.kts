@@ -1,9 +1,7 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 import java.nio.file.Paths
-import kotlin.io.path.absolute
 import kotlin.io.path.pathString
-import kotlin.io.path.relativeTo
 import kotlin.jvm.optionals.getOrNull
 
 plugins {
@@ -292,9 +290,6 @@ class MicroAmper(val project: Project) {
                     outputModuleName = project.layout.projectDirectory.asFile.name
                     binaries.library()
                     generateTypeScriptDefinitions()
-                    compilerOptions {
-                        target = "es2015"
-                    }
                     browser {
                         testTask {
                             useMocha {
