@@ -1,7 +1,7 @@
 [versions]
 libraryVersion = "0.2.5"
 agp = "8.13.2"
-kotlin = "2.3.0"
+kotlin = "2.3.10"
 compileSdk = "36"
 minSdk = "21"
 ktor = "3.4.0"
