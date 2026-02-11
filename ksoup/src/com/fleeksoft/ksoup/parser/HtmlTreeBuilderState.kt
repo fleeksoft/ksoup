@@ -338,10 +338,7 @@ public enum class HtmlTreeBuilderState {
             when (t.type) {
                 Token.TokenType.Character -> {
                     val c: Token.Character = t.asCharacter()
-                    if (c.getData() == nullString) {
-                        tb.error(this)
-                        return false
-                    } else if (tb.framesetOk() && isWhitespace(c)) { // don't check if whitespace if frames already closed
+                    if (tb.framesetOk() && isWhitespace(c)) { // don't check if whitespace if frames already closed
                         tb.reconstructFormattingElements()
                         tb.insertCharacterNode(c)
                     } else {
@@ -438,7 +435,7 @@ public enum class HtmlTreeBuilderState {
                 "body" -> {
                     tb.error(this)
                     stack = tb.getStack()
-                    if (stack.size == 1 || stack.size > 2 && !stack[1]!!.nameIs("body") ||
+                    if (stack.size < 2 || stack.size > 2 && !stack[1]!!.nameIs("body") ||
                         tb.onStack("template")
                     ) {
                         // only in fragment case
@@ -454,7 +451,7 @@ public enum class HtmlTreeBuilderState {
                 "frameset" -> {
                     tb.error(this)
                     stack = tb.getStack()
-                    if (stack.size == 1 || stack.size > 2 && !stack[1]!!.nameIs("body")) {
+                    if (stack.size < 2 || stack.size > 2 && !stack[1]!!.nameIs("body")) {
                         // only in fragment case
                         return false // ignore
                     } else if (!tb.framesetOk()) {
@@ -985,6 +982,11 @@ public enum class HtmlTreeBuilderState {
                     }
 
                     // [Create an element for the token] for which the element node was created, ...
+                    if (!tb.onStack(el)) { // stale formatting element; cannot adopt/replace
+                        tb.error(this)
+                        tb.removeFromActiveFormattingElements(el)
+                        break // exit the inner loop; proceed with step 14 using current lastEl
+                    }
                     val replacement = Element(
                         tb.tagFor(el.nodeName(), el.normalName(), tb.defaultNamespace(), ParseSettings.preserveCase),
                         tb.baseUri
@@ -1142,10 +1144,7 @@ public enum class HtmlTreeBuilderState {
             return anythingElse(t, tb)
         }
 
-        public fun anythingElse(
-            t: Token,
-            tb: HtmlTreeBuilder,
-        ): Boolean {
+        public fun anythingElse(t: Token, tb: HtmlTreeBuilder): Boolean {
             tb.error(this)
             tb.isFosterInserts = true
             tb.process(t, InBody)
@@ -1154,18 +1153,9 @@ public enum class HtmlTreeBuilderState {
         }
     },
     InTableText {
-        override fun process(
-            t: Token,
-            tb: HtmlTreeBuilder,
-        ): Boolean {
+        override fun process(t: Token, tb: HtmlTreeBuilder): Boolean {
             if (t.type === Token.TokenType.Character) {
-                val c: Token.Character = t.asCharacter()
-                if (c.getData() == nullString) {
-                    tb.error(this)
-                    return false
-                } else {
-                    tb.addPendingTableCharacters(c)
-                }
+                tb.addPendingTableCharacters(t.asCharacter()) // gets to insertCharacterNode, which strips nulls
             } else {
                 // insert gathered table text into the correct element:
                 if (tb.getPendingTableCharacters()!!.isNotEmpty()) {
@@ -1509,13 +1499,7 @@ public enum class HtmlTreeBuilderState {
 
             when (t.type) {
                 Token.TokenType.Character -> {
-                    val c = t.asCharacter()
-                    if (c.getData() == nullString) {
-                        tb.error(this)
-                        return false
-                    } else {
-                        tb.insertCharacterNode(c)
-                    }
+                    tb.insertCharacterNode(t.asCharacter())
                 }
 
                 Token.TokenType.Comment -> {
@@ -1555,7 +1539,13 @@ public enum class HtmlTreeBuilderState {
                             tb.error(this)
                             if (!tb.inSelectScope("select"))
                                 return false
-                            tb.processEndTag("select")
+
+                            // spec says close select then reprocess; leads to recursion. iter directly:
+                            do {
+                                tb.popStackToClose("select")
+                                tb.resetInsertionMode()
+                            } while (tb.inSelectScope("select")) // collapse invalid nested selects
+
                             return tb.process(start)
                         }
 
@@ -1804,7 +1794,7 @@ public enum class HtmlTreeBuilderState {
                     }
                 }
             } else if (t.isEndTag() && t.asEndTag().retrieveNormalName() == "frameset") {
-                if (tb.currentElementIs("html")) { // frag
+                if (!tb.currentElementIs("frameset")) { // frag
                     tb.error(this)
                     return false
                 } else {
@@ -1906,12 +1896,10 @@ public enum class HtmlTreeBuilderState {
             when (t.type) {
                 Token.TokenType.Character -> {
                     val c: Token.Character = t.asCharacter()
-                    if (c.getData() == nullString) {
-                        tb.error(this)
-                    } else if (isWhitespace(c)) {
+                    if (HtmlTreeBuilderState.isWhitespace(c))
                         tb.insertCharacterNode(c)
-                    } else {
-                        tb.insertCharacterNode(c)
+                    else {
+                        tb.insertCharacterNode(c, true) // replace nulls
                         tb.framesetOk(false)
                     }
                 }
