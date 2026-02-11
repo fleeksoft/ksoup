@@ -27,7 +27,7 @@ fun ByteArray.openSourceReader(): SourceReader = SourceReader.from(this)
     message = "SourceReader.toReader is deprecated, use com.fleeksoft.io.InputStream instead.",
     level = DeprecationLevel.WARNING
 )
-fun SourceReader.toReader(charset: Charset = Charsets.UTF8, chunkSize: Int = SharedConstants.DEFAULT_BYTE_BUFFER_SIZE): Reader =
+fun SourceReader.toReader(charset: Charset = Charsets.UTF8, chunkSize: Int = SharedConstants.DefaultBufferSize): Reader =
     SourceInputStream(this).reader(charset).buffered(chunkSize)
 
 

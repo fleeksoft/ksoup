@@ -12,7 +12,7 @@ public object SharedConstants {
     const val XmlnsAttr: String = "ksoup.xmlns-"
 
     const val DEFAULT_CHAR_BUFFER_SIZE: Int = 8192
-    const val DEFAULT_BYTE_BUFFER_SIZE: Int = 8192
+    const val DefaultBufferSize: Int = 8 * 1024
 
     public val FormSubmitTags: Array<String> = arrayOf("input", "keygen", "object", "select", "textarea")
 
