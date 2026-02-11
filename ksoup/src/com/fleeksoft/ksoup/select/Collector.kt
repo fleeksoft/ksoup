@@ -17,7 +17,7 @@ import kotlin.reflect.KClass
  * Collects a list of elements that match the supplied criteria.
  *
  */
-internal object Collector {
+object Collector {
 
     /**
      * Build a list of elements, by visiting the root and every descendant of root, and testing it against the Evaluator.
@@ -32,7 +32,9 @@ internal object Collector {
             stream(eval, root)
         }
 
-        return sequence.toCollection(Elements())
+        val els = sequence.toCollection(Elements())
+        eval.reset() // drops any held memos
+        return els
     }
 
     /**
@@ -70,7 +72,9 @@ internal object Collector {
      */
 
     fun findFirst(eval: Evaluator, root: Element): Element? {
-        return stream(eval, root).firstOrNull()
+        val el = stream(eval, root).firstOrNull()
+        eval.reset()
+        return el
     }
 
     /**
@@ -83,7 +87,9 @@ internal object Collector {
      * @return the first match; null if none
      */
     fun <T : Node> findFirstNode(eval: Evaluator, root: Element, type: KClass<T>): T? {
-        return streamNodes(eval, root, type).firstOrNull()
+        val node = streamNodes(eval, root, type).firstOrNull()
+        eval.reset()
+        return node
     }
 
     /**

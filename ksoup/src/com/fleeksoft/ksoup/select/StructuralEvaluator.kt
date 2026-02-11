@@ -29,12 +29,6 @@ public abstract class StructuralEvaluator(public val evaluator: Evaluator) : Eva
     public val threadMemo: ThreadLocal<IdentityHashMap<Node, IdentityHashMap<Node, Boolean>>> =
         ThreadLocal { IdentityHashMap() }
 
-    /*boolean memoMatches(final Element root, final Node node) {
-        Map<Node, IdentityHashMap<Node, Boolean>> rootMemo = threadMemo.get();
-        Map<Node, Boolean> memo = rootMemo.computeIfAbsent(root, Functions.identityMapFunction());
-        return memo.computeIfAbsent(node, key -> evaluator.matches(root, key));
-    }*/
-
     public fun memoMatches(root: Element, element: Node): Boolean {
         val rootMemo = threadMemo.get()
         val memo = rootMemo.getOrPut(root) { IdentityHashMap() }
