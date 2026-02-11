@@ -146,6 +146,7 @@ open class Printer(
             if (node == null) return false
             if (node is Element) {
                 val el = node
+                if (el.nameIs("br")) return true // give <br> a newline; actually an inline tag
                 return el.isBlock() ||
                         (!el.tag.isKnownTag() &&
                                 (el.parentNode() is Document || hasChildBlocks(el)))

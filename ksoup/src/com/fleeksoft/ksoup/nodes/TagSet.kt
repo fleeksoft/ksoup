@@ -16,15 +16,35 @@ import kotlin.jvm.JvmOverloads
 class TagSet {
     val tags: MutableMap<String, MutableMap<String, Tag>> = HashMap() // namespace -> tag name -> Tag
 
-    val source: TagSet? // source to pull tags from on demand
+    val source: TagSet? // internal fallback for lazy tag copies
     private var customizers: ArrayList<((Tag) -> Unit)>? = null // optional onNewTag tag customizer
 
-    constructor() {
-        source = null
+    constructor(original: TagSet?, customizers: ArrayList<((Tag) -> Unit)>? = null) {
+        this.source = original
+        this.customizers = customizers
     }
 
-    constructor(original: TagSet) {
-        this.source = original
+    constructor() : this(null, null)
+
+    /**
+     *   Creates a new TagSet by copying the current tags and customizers from the provided source TagSet. Changes made to
+     *   one TagSet will not affect the other.
+     *   @param template the TagSet to copy
+     */
+    constructor(template: TagSet) : this(template.source, copyCustomizers(template)) {
+
+
+        // copy tags eagerly; any lazy pull-through should come only from the root source (which would be the HTML defaults), not the template itself.
+        // that way the template tagset is not mutated when we do read through
+        if (template.tags.isEmpty()) return
+
+        for (namespaceEntry in template.tags.entries) {
+            val nsTags: MutableMap<String, Tag> = HashMap(namespaceEntry.value.size)
+            for (tagEntry in namespaceEntry.value.entries) {
+                nsTags[tagEntry.key] = tagEntry.value.clone()
+            }
+            tags[namespaceEntry.key] = nsTags
+        }
     }
 
     /**
@@ -49,7 +69,7 @@ class TagSet {
                 customizer(tag)
             }
         }
-        tags.getOrPut(tag.namespace()) { HashMap() }.put(tag.tagName, tag)
+        tags.getOrPut(tag.namespace()) { HashMap() }[tag.tagName] = tag
     }
 
 
@@ -153,10 +173,9 @@ class TagSet {
         return this
     }
 
-    override fun equals(o: Any?): Boolean {
-        if (o !is TagSet) return false
-        val tagSet = o
-        return tags == tagSet.tags
+    override fun equals(other: Any?): Boolean {
+        if (other !is TagSet) return false
+        return tags == other.tags
     }
 
     override fun hashCode(): Int {
@@ -183,7 +202,12 @@ class TagSet {
          * Returns a mutable copy of the default HTML tag set.
          */
         fun Html(): TagSet {
-            return TagSet(HtmlTagSet)
+            return TagSet(HtmlTagSet, null)
+        }
+
+        fun copyCustomizers(base: TagSet): ArrayList<((Tag) -> Unit)>? {
+            if (base.customizers == null) return null
+            return ArrayList(base.customizers!!)
         }
 
         // Default HTML initialization
@@ -191,10 +215,10 @@ class TagSet {
          * Initialize the default HTML tag set.
          */
         fun initHtmlDefault(): TagSet {
-            val blockTags = arrayOf<String>(
+            val blockTags = arrayOf(
                 "html", "head", "body", "frameset", "script", "noscript", "style", "meta", "link", "title", "frame",
                 "noframes", "section", "nav", "aside", "hgroup", "header", "footer", "p", "h1", "h2", "h3", "h4", "h5",
-                "h6", "br", "button",
+                "h6", "button",
                 "ul", "ol", "pre", "div", "blockquote", "hr", "address", "figure", "figcaption", "form", "fieldset", "ins",
                 "del", "dl", "dt", "dd", "li", "table", "caption", "thead", "tfoot", "tbody", "colgroup", "col", "tr", "th",
                 "td", "video", "audio", "canvas", "details", "menu", "plaintext", "template", "article", "main",
@@ -202,7 +226,7 @@ class TagSet {
                 "dir", "applet", "marquee", "listing",  // deprecated but still known / special handling
                 "#root" // the outer Document
             )
-            val inlineTags = arrayOf<String>(
+            val inlineTags = arrayOf(
                 "object", "base", "font", "tt", "i", "b", "u", "big", "small", "em", "strong", "dfn", "code", "samp", "kbd",
                 "var", "cite", "abbr", "time", "acronym", "mark", "ruby", "rt", "rp", "rtc", "a", "img", "wbr", "map",
                 "q",
@@ -212,25 +236,25 @@ class TagSet {
                 "data", "bdi", "s", "strike", "nobr",
                 "rb",  // deprecated but still known / special handling
             )
-            val inlineContainers = arrayOf<String>( // can only contain inline; aka phrasing content
+            val inlineContainers = arrayOf( // can only contain inline; aka phrasing content
                 "title", "a", "p", "h1", "h2", "h3", "h4", "h5", "h6", "pre", "address", "li", "th", "td", "script", "style",
                 "ins", "del", "s", "button"
             )
-            val voidTags = arrayOf<String>(
+            val voidTags = arrayOf(
                 "meta", "link", "base", "frame", "img", "br", "wbr", "embed", "hr", "input", "keygen", "col", "command",
                 "device", "area", "basefont", "bgsound", "menuitem", "param", "source", "track"
             )
-            val preserveWhitespaceTags = arrayOf<String>(
+            val preserveWhitespaceTags = arrayOf(
                 "pre", "plaintext", "title", "textarea", "script"
             )
-            val rcdataTags = arrayOf<String>("title", "textarea")
-            val dataTags = arrayOf<String>("iframe", "noembed", "noframes", "script", "style", "xmp")
+            val rcdataTags = arrayOf("title", "textarea")
+            val dataTags = arrayOf("iframe", "noembed", "noframes", "script", "style", "xmp")
             val formSubmitTags: Array<String> = SharedConstants.FormSubmitTags
-            val blockMathTags = arrayOf<String>("math")
-            val inlineMathTags = arrayOf<String>("mi", "mo", "msup", "mn", "mtext")
-            val blockSvgTags = arrayOf<String>("svg", "femerge", "femergenode") // note these are LC versions, but actually preserve case
-            val inlineSvgTags = arrayOf<String>("text")
-            val dataSvgTags = arrayOf<String>("script")
+            val blockMathTags = arrayOf("math")
+            val inlineMathTags = arrayOf("mi", "mo", "msup", "mn", "mtext")
+            val blockSvgTags = arrayOf("svg", "femerge", "femergenode") // note these are LC versions, but actually preserve case
+            val inlineSvgTags = arrayOf("text")
+            val dataSvgTags = arrayOf("script")
 
             return TagSet()
                 .setupTags(Parser.NamespaceHtml, blockTags) { it.set(Tag.Block) }
