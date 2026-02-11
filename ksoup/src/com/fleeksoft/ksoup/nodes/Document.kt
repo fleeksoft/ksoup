@@ -547,7 +547,7 @@ public class Document(
      * Get the parser that was used to parse this document.
      * @return the parser
      */
-    public fun parser(): Parser? {
+    public fun parser(): Parser {
         return parser
     }
 

@@ -10,6 +10,7 @@
 
 package com.fleeksoft.ksoup.nodes
 
+import com.fleeksoft.ksoup.KmpJsExport
 import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.internal.QuietAppendable
 import com.fleeksoft.ksoup.internal.StringUtil
@@ -25,7 +26,6 @@ import kotlin.js.ExperimentalJsExport
 import kotlin.js.JsExport
 import kotlin.js.JsName
 import kotlin.reflect.KClass
-import com.fleeksoft.ksoup.KmpJsExport
 
 
 /**
@@ -524,6 +524,8 @@ public abstract class Node protected constructor() : KCloneable<Node> {
         inNode._parentNode = this as Element
         inNode._siblingIndex = index
         out._parentNode = null
+
+        this.childNodes.incrementMod() // as mod count not changed in set(), requires explicit update, to invalidate the child element cache
     }
 
     protected open fun removeChild(out: Node) {

@@ -2017,6 +2017,10 @@ public open class Element : Node, Iterable<Element> {
 
             fun modCount(): Int = modCount
 
+            fun incrementMod() {
+                this.modCount++
+            }
+
             override fun clear() {
                 modCount++
                 list.clear()
