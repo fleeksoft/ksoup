@@ -146,7 +146,7 @@ public class Tokeniser(treeBuilder: TreeBuilder) {
 
             if (charval == -1 || charval > 0x10FFFF) {
                 characterReferenceError("character [$charval] outside of valid range")
-                codeRef[0] = Tokeniser.ReplacementChar.code
+                codeRef[0] = ReplacementChar.code
             } else {
                 if (charval >= win1252ExtensionsStart && charval < win1252ExtensionsStart + win1252Extensions.size) {
                     characterReferenceError("character [$charval] is not a valid unicode code point")
