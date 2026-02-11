@@ -1,6 +1,8 @@
 package com.fleeksoft.ksoup.io.internal
 
 import com.fleeksoft.io.*
+import com.fleeksoft.io.exception.IOException
+import kotlin.math.max
 import kotlin.math.min
 
 /**
@@ -15,8 +17,9 @@ class ControllableInputStream private constructor(val buff: SimpleBufferedInput,
     private var interrupted = false
     private var allowClose = true
     private var readPos = 0
+    private var contentLength = -1
 
-    override fun read(b: ByteArray, off: Int, len: Int): Int {
+    override fun read(bytes: ByteArray, off: Int, len: Int): Int {
         var len = len
         val capped = maxSize != 0
         if (interrupted || capped && remaining <= 0)
@@ -24,13 +27,23 @@ class ControllableInputStream private constructor(val buff: SimpleBufferedInput,
 
         if (capped && len > remaining)
             len = remaining
+        buff.capRemaining(if (capped) remaining else Int.MAX_VALUE)
 
-        val read = super.read(b, off, len)
-        if (read != -1) {
-            remaining -= read
+        val read = super.read(bytes, off, len)
+        if (read == -1) {
+            contentLength = readPos
+        } else {
+            if (capped && read > 0) {
+                remaining -= read // track bytes returned to the caller
+            }
             readPos += read
         }
+
         return read
+    }
+
+    override fun markSupported(): Boolean {
+        return true
     }
 
 
@@ -52,22 +65,37 @@ class ControllableInputStream private constructor(val buff: SimpleBufferedInput,
 
     fun max(newMax: Int) {
         remaining += newMax - maxSize
+        if (remaining < 0) remaining = 0;
         maxSize = newMax
+        buff.capRemaining(if (newMax == 0) Int.MAX_VALUE else remaining)
+    }
+
+    override fun mark(readLimit: Int) {
+        markPos = readPos
+        buff.setMark()
     }
 
     fun baseReadFully(): Boolean {
         return buff.baseReadFully()
     }
 
-    override fun mark(readlimit: Int) {
-        super.mark(readlimit)
-        markPos = maxSize - remaining
+    fun resetFullyRead() {
+        buff.resetFullyRead()
     }
 
     override fun reset() {
-        super.reset()
-        remaining = maxSize - markPos
-        readPos = markPos
+        if (markPos < 0) throw IOException("Resetting to invalid mark")
+        buff.rewindToMark()
+        buff.clearMark()
+        if (maxSize != 0) {
+            remaining = maxSize - markPos
+            buff.capRemaining(remaining)
+        } else {
+            remaining = 0
+            buff.capRemaining(Int.MAX_VALUE)
+        }
+        readPos = markPos // readPos is used for progress emits
+        markPos = -1
     }
 
     companion object {
@@ -79,7 +107,7 @@ class ControllableInputStream private constructor(val buff: SimpleBufferedInput,
         fun readToByteBuffer(input: InputStream, max: Int): ByteBuffer {
             require(max >= 0) { "maxSize must be 0 (unlimited) or larger" }
             val capped = max > 0
-            val readBuf = SimpleBufferedInput.Companion.BufferPool.borrow()
+            val readBuf = SimpleBufferedInput.BufferPool.borrow()
             val outSize = (if (capped) min(max, Constants.DEFAULT_BYTE_BUFFER_SIZE) else Constants.DEFAULT_BYTE_BUFFER_SIZE).coerceAtLeast(0)
             var outBuf = ByteBufferFactory.allocate(outSize)
 
@@ -93,10 +121,7 @@ class ControllableInputStream private constructor(val buff: SimpleBufferedInput,
                     ).also { read = it } != -1
                 ) {
                     if (outBuf.remaining() < read) {
-                        val newCapacity =
-                            (outBuf.capacity() * 1.5).toLong().coerceAtLeast(
-                                (outBuf.capacity() + read).toLong()
-                            ).toInt()
+                        val newCapacity = max(outBuf.capacity() * 1.5, (outBuf.capacity() + read).toDouble()).toInt()
                         val newBuffer = ByteBufferFactory.allocate(newCapacity)
                         outBuf.flipExt()
                         newBuffer.put(outBuf)
@@ -111,7 +136,7 @@ class ControllableInputStream private constructor(val buff: SimpleBufferedInput,
                 outBuf.flipExt()
                 return outBuf
             } finally {
-                SimpleBufferedInput.Companion.BufferPool.release(readBuf)
+                SimpleBufferedInput.BufferPool.release(readBuf)
             }
         }
     }
