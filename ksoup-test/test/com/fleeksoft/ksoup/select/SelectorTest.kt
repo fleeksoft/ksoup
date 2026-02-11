@@ -1,7 +1,13 @@
 package com.fleeksoft.ksoup.select
 
 import com.fleeksoft.ksoup.Ksoup
-import com.fleeksoft.ksoup.nodes.*
+import com.fleeksoft.ksoup.nodes.CDataNode
+import com.fleeksoft.ksoup.nodes.Comment
+import com.fleeksoft.ksoup.nodes.Document
+import com.fleeksoft.ksoup.nodes.Element
+import com.fleeksoft.ksoup.nodes.Node
+import com.fleeksoft.ksoup.nodes.TextNode
+import com.fleeksoft.ksoup.parameterizedTest
 import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.ported.toCodePoint
 import com.fleeksoft.ksoup.select.Selector.escapeCssIdentifier
@@ -143,7 +149,7 @@ class SelectorTest {
 
     @Test
     fun testNamespacedWildcardTag() {
-        val doc: Document = Ksoup.parse("<p>One</p> <ac:p id=2>Two</ac:p> <ac:img id=3>Three</ac:img>")
+        val doc = Ksoup.parse("<p>One</p> <ac:p id=2>Two</ac:p> <ac:img id=3>Three</ac:img>")
         val byNs = doc.select("ac|*")
         assertSelectedIds(byNs, "2", "3")
     }
@@ -371,7 +377,7 @@ class SelectorTest {
     @Test
     fun streamParentChildStar() {
         val h = "<div id=1><p>Hello<p><b>there</b></p></div><div id=2><span>Hi</span></div>"
-        val doc: Document = Ksoup.parse(h)
+        val doc = Ksoup.parse(h)
 
         val divChilds: List<Element?> = doc.selectStream("div > *").toList()
 
@@ -834,14 +840,15 @@ class SelectorTest {
             <div class="value ">class with space</div>
             """.trimIndent()
         val doc = Ksoup.parse(html)
+
         var found = doc.select("div[class=value ]")
-        assertEquals(2, found.size)
-        assertEquals("class without space", found[0].text())
-        assertEquals("class with space", found[1].text())
+        assertEquals(1, found.size)
+        assertEquals("class with space", found[0].text())
+
         found = doc.select("div[class=\"value \"]")
-        assertEquals(2, found.size)
-        assertEquals("class without space", found[0].text())
-        assertEquals("class with space", found[1].text())
+        assertEquals(1, found.size)
+        assertEquals("class with space", found[0].text())
+
         found = doc.select("div[class=\"value\\ \"]")
         assertEquals(0, found.size)
     }
@@ -1135,7 +1142,8 @@ class SelectorTest {
         val s2 = doc2.select(eval)
         assertEquals(2, s2.size)
         assertEquals("Two2", s2.first()!!.text())
-        assertEquals(1, map.size) // root of doc 2
+
+        assertEquals(0, map.size) // reset after collect
     }
 
     @Test
@@ -1669,6 +1677,70 @@ class SelectorTest {
             "Could not parse query '::unknown:contains(foo)': unknown node type '::unknown'",
             ex.message
         )
+    }
+
+
+    @Test
+    fun attributeSelectorQuotedWhitespace() {
+        // https://github.com/jhy/jsoup/issues/2380
+        val doc: Document = Ksoup.parse(
+            "<div id=1 data=foobar></div>" +
+                    "<div id=2 data=' foobar '></div>" +
+                    "<div id=3 data='xfoobarx'></div>"
+        )
+
+        // match: literal compare (no trimming)
+        assertSelectedIds(doc.select("div[data=\"foobar\"]"), "1")
+        assertSelectedIds(doc.select("div[data=\" foobar \"]"), "2")
+
+        // prefix
+        assertSelectedIds(doc.select("div[data^=\"foo\"]"), "1")
+        assertSelectedIds(doc.select("div[data^=\" foo\"]"), "2")
+
+        // suffix
+        assertSelectedIds(doc.select("div[data$=\"bar\"]"), "1")
+        assertSelectedIds(doc.select("div[data$=\"bar \"]"), "2")
+
+        // contains
+        assertSelectedIds(doc.select("div[data*=\"foobar\"]"), "1", "2", "3")
+        assertSelectedIds(doc.select("div[data*=\" foobar \"]"), "2")
+    }
+
+    @Test
+    fun canSelectBlankAttribute() {
+        val doc: Document = Ksoup.parse(
+            "<div id=1 data=''></div>" +
+                    "<div id=2 data></div>" +
+                    "<div id=3 data=one></div>"
+        )
+
+        assertSelectedIds(doc.select("div[data]"), "1", "2", "3")
+        assertSelectedIds(doc.select("div[data='']"), "1", "2")
+        assertSelectedIds(doc.select("div[data=]"), "1", "2")
+
+        assertSelectedIds(doc.select("div[data^='']"), "1", "2", "3")
+        assertSelectedIds(doc.select("div[data$='']"), "1", "2", "3")
+        assertSelectedIds(doc.select("div[data*='']"), "1", "2", "3")
+    }
+
+    @Test
+    fun parseExceptionOnEmptyAbsKey() = parameterizedTest(listOf("[abs:!=]", "[ abs:^=]")) { query: String ->
+        val ex = assertFailsWith<Selector.SelectorParseException> { Selector.evaluatorOf(query) }
+        assertEquals("Absolute attribute key must have a name", ex.message)
+    }
+
+    @Test
+    fun parseExceptionOnEmptyKeyVal() {
+        // was previously firing at match time, not eval time
+        val q = "[\"=\"]"
+        var threw = false
+        try {
+            val e: Evaluator = Selector.evaluatorOf(q)
+        } catch (ex: Selector.SelectorParseException) {
+            threw = true
+            assertEquals("Quoted value must have content", ex.message)
+        }
+        assertTrue(threw)
     }
 
     companion object {
