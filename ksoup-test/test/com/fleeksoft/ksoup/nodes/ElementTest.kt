@@ -1,10 +1,15 @@
 package com.fleeksoft.ksoup.nodes
 
-import com.fleeksoft.ksoup.*
+import com.fleeksoft.ksoup.Ksoup
 import com.fleeksoft.ksoup.Ksoup.parseBodyFragment
+import com.fleeksoft.ksoup.Platform
+import com.fleeksoft.ksoup.TextUtil
 import com.fleeksoft.ksoup.exception.ValidationException
 import com.fleeksoft.ksoup.internal.StringUtil
+import com.fleeksoft.ksoup.isJsOrWasm
+import com.fleeksoft.ksoup.isWasmJs
 import com.fleeksoft.ksoup.nodes.NodeIteratorTest.Companion.assertIterates
+import com.fleeksoft.ksoup.parameterizedTest
 import com.fleeksoft.ksoup.parser.ParseSettings
 import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.parser.Tag
@@ -3361,6 +3366,31 @@ Three
         val empty = el.expectFirst("b")
         assertEquals(0, empty.childrenSize())
         assertNull(empty.cachedChildren()) // 0 node fast path, does not create list
+    }
+
+    @Test
+    fun testReplaceInvalidates() {
+        // https://github.com/jhy/jsoup/issues/2391
+        val html = "<div>test</div>"
+        val doc: Document = Ksoup.parseBodyFragment(html)
+        val div: Element = doc.expectFirst("div")
+
+        // Cached
+        val divChildren: Elements = div.children() // 0 child elements, 1 node
+        val origCount: Int = divChildren.size
+
+        // Modify child
+        val text: TextNode = div.childNode(0) as TextNode
+        val p: Element = doc.createElement("p")
+        text.replaceWith(p)
+        p.appendChild(text)
+
+        val reported: Int = div.childrenSize() // invalidated ^^
+        val actualSize = div.childNodes().filterIsInstance<Element>().count()
+
+        assertEquals(0, origCount)
+        assertEquals(1, actualSize)
+        assertEquals(1, reported) // was 0 via cache
     }
 
     companion object {

@@ -1313,7 +1313,7 @@ public open class Element : Node, Iterable<Element> {
         } catch (e: PatternSyntaxException) {
             throw IllegalArgumentException("Pattern syntax error: $regex", e)
         }
-        return getElementsByAttributeValueMatching(key, pattern)
+        return Collector.collect(Evaluator.AttributeWithValueMatching(key, pattern), this)
     }
 
     /**
@@ -1390,7 +1390,7 @@ public open class Element : Node, Iterable<Element> {
             } catch (e: PatternSyntaxException) {
                 throw IllegalArgumentException("Pattern syntax error: $regex", e)
             }
-        return getElementsMatchingText(pattern)
+        return Collector.collect(Evaluator.Matches(pattern), this)
     }
 
     /**
@@ -1417,7 +1417,7 @@ public open class Element : Node, Iterable<Element> {
             } catch (e: PatternSyntaxException) {
                 throw IllegalArgumentException("Pattern syntax error: $regex", e)
             }
-        return getElementsMatchingOwnText(pattern)
+        return Collector.collect(Evaluator.MatchesOwn(pattern), this)
     }
 
     public fun getAllElements(): Elements = Collector.collect(Evaluator.AllElements(), this)
