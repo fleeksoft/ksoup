@@ -89,6 +89,10 @@ public open class XmlTreeBuilder : TreeBuilder() {
         return TagSet() // an empty tagset
     }
 
+    override fun defaultMaxDepth(): Int {
+        return Int.MAX_VALUE
+    }
+
     override fun process(token: Token): Boolean {
         currentToken = token
 
@@ -117,6 +121,8 @@ public open class XmlTreeBuilder : TreeBuilder() {
             processNamespaces(attributes, namespaces)
             applyNamespacesToAttributes(attributes, namespaces)
         }
+
+        enforceStackDepthLimit()
 
         val tagName = startTag.tagName.value()
         val ns = resolveNamespace(tagName, namespaces)

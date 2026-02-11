@@ -183,6 +183,33 @@ public abstract class TreeBuilder {
     }
 
     /**
+     * Ensures the stack respects [Parser.getMaxDepth] by closing the deepest open elements until there is room for
+     * a new insertion.
+     */
+    fun enforceStackDepthLimit() {
+        val maxDepth: Int = parser.getMaxDepth()
+        if (maxDepth == Int.Companion.MAX_VALUE) return
+        while (_stack!!.size >= maxDepth) {
+            val trimmed = pop()
+            trimmed?.let { onStackPrunedForDepth(it) }
+        }
+    }
+
+    /**
+     * Hook for the HTML Tree Builder that needs to clean up when an element is removed due to the depth limit
+     */
+    open fun onStackPrunedForDepth(element: Element) {
+        // default no-op
+    }
+
+    /**
+     * Default maximum depth for parsers using this tree builder.
+     */
+    open fun defaultMaxDepth(): Int {
+        return 512
+    }
+
+    /**
      * Get the current element (last on the stack). If all items have been removed, returns the document instead
      * (which might not actually be on the stack; use stack.size() == 0 to test if required.
      * @return the last element on the stack, if any; or the root document
