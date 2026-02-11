@@ -67,7 +67,7 @@ public object DataUtil {
     fun streamParser(input: InputStream, baseUri: String, charset: Charset?, parser: Parser): StreamParser {
         val streamer = StreamParser(parser)
         val charsetName: String? = charset?.name()
-        val charsetDoc: CharsetDoc = detectCharset(openStream(input), baseUri, charsetName, parser, fromStreamer = true)
+        val charsetDoc: CharsetDoc = detectCharset(openStream(input), baseUri, charsetName, parser)
         try {
             val reader = SimpleStreamReader(charsetDoc.input, charsetDoc.charset)
             streamer.parse(reader, baseUri) // initializes the parse and the document, but does not step() it
@@ -104,12 +104,11 @@ public object DataUtil {
 
 
     private val metaCharset = Selector.evaluatorOf("meta[http-equiv=content-type], meta[charset]")
-    private fun detectCharset(
+    fun detectCharset(
         input: ControllableInputStream,
         baseUri: String,
         charsetName: String?,
-        parser: Parser,
-        fromStreamer: Boolean = false
+        parser: Parser
     ): CharsetDoc {
         var effectiveCharsetName: String? = charsetName
 
@@ -123,6 +122,7 @@ public object DataUtil {
         if (effectiveCharsetName == null) { // read ahead and determine from meta. safe first parse as UTF-8
             val origMax = input.max()
             input.max(firstReadBufferSize)
+            input.resetFullyRead() // clear any pre-read (e.g., BOM) state before capped sniff
             input.mark(firstReadBufferSize)
             input.allowClose(false) // ignores closes during parse, in case we need to rewind
             try {
@@ -168,7 +168,7 @@ public object DataUtil {
                 foundCharset = foundCharset.trim { it <= ' ' }.replace("[\"']".toRegex(), "")
                 effectiveCharsetName = foundCharset
                 doc = null
-            } else if (input.baseReadFully() && !fromStreamer) { // if we have read fully, and the charset was correct, keep that current parse
+            } else if (input.baseReadFully()) { // if we have read fully, and the charset was correct, keep that current parse
                 // but don't close input in streamer
                 input.close()
             } else {
