@@ -11,7 +11,7 @@ kotlinxDatetime = "0.7.1"
 kotlinx-io = "0.8.2"
 okio = "3.16.4"
 dokka = "2.1.0"
-kotlinx-benchmark = "0.4.15"
+kotlinx-benchmark = "0.4.16"
 
 #korlibs = "999.0.0.999" # 999.0.0.999 is local version
 korlibs = "6.0.2"
