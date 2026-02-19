@@ -80,6 +80,13 @@ class TagTest {
     }
 
     @Test
+    fun brSemantics() {
+        val br: Tag = Tag.valueOf("br")
+        assertTrue(br.isInline())
+        assertFalse(br.isBlock())
+    }
+
+    @Test
     fun imgSemantics() {
         val img = Tag.valueOf("img")
         assertTrue(img.isInline())
@@ -219,7 +226,7 @@ class TagTest {
     @Test
     fun valueOfWithSettings() {
         val img1 = Tag.valueOf("img", ParseSettings.htmlDefault)
-        val img2: Tag? = Tag.valueOf("IMG", ParseSettings.htmlDefault)
+        val img2: Tag = Tag.valueOf("IMG", ParseSettings.htmlDefault)
         val img3 = Tag.valueOf("IMG", ParseSettings.preserveCase)
 
         assertNotSame(img1, img2) // because we are creating new TagSets with html()

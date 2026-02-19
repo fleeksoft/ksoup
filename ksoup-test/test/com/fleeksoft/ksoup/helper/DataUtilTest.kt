@@ -6,14 +6,15 @@ import com.fleeksoft.io.InputStream
 import com.fleeksoft.io.byteInputStream
 import com.fleeksoft.io.inputStream
 import com.fleeksoft.ksoup.Ksoup
-import com.fleeksoft.ksoup.Platform
 import com.fleeksoft.ksoup.TestHelper
+import com.fleeksoft.ksoup.helper.DataUtil.parseInputStream
 import com.fleeksoft.ksoup.io.internal.ControllableInputStream
-import com.fleeksoft.ksoup.isJsOrWasm
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.parseInput
 import com.fleeksoft.ksoup.parser.Parser
+import korlibs.io.lang.toByteArray
 import kotlinx.coroutines.test.runTest
+import kotlin.math.min
 import kotlin.test.*
 
 
@@ -394,5 +395,60 @@ class DataUtilTest {
     fun parseSurrogateAcrossBuffer() = runTest {
         val doc: Document = TestHelper.parseResource("fuzztests/2353.html.gz")
         assertTrue(doc.html().contains("Read-Fully!"))
+    }
+
+    @Test
+    fun charsetSniffingCanReuseTruncatedPreParse() {
+        // #2448: when available() reports buffered bytes after the first read, the sniffed pre-parse may be reused while capped, leading to truncation
+
+        val sb = StringBuilder()
+        sb.append("<!doctype html><html><head><title>t</title></head><body><pre>")
+        while (sb.length < 6200) {
+            sb.append("0123456789 abcdefghijklmnopqrstuvwxyz\n")
+        }
+        sb.append("</pre><main>list</main><hr></body></html>")
+        val html = sb.toString()
+
+
+        val bytes: ByteArray = html.toByteArray()
+        val input = ControllableInputStream.wrap(BufferedOnceAvailableStream(bytes), 0)
+
+        val charsetDoc = DataUtil.detectCharset(input, charsetName = null, baseUri = "http://example.com/", parser = Parser.htmlParser())
+        val doc = parseInputStream(charsetDoc, "http://example.com/", Parser.htmlParser())
+
+        assertNotNull(doc.selectFirst("hr"), "hr should survive the sniff + full parse")
+    }
+
+    // delivers all bytes in the first read, then signals available()>0 once to trigger a second read and baseReadFully=true
+    class BufferedOnceAvailableStream internal constructor(private val data: ByteArray) : InputStream() {
+        private var pos = 0
+        private var extraSignal = true
+
+        override fun read(bytes: ByteArray, off: Int, len: Int): Int {
+            if (pos >= data.size) return -1
+            val take = min(len, data.size - pos)
+            data.copyInto(
+                destination = bytes,
+                destinationOffset = off,
+                startIndex = pos,
+                endIndex = pos + take
+            )
+            pos += take
+            return take
+        }
+
+
+        public override fun read(): Int {
+            return if (pos < data.size) (data[pos++].toInt() and 0xff) else -1
+        }
+
+        public override fun available(): Int {
+            if (pos < data.size) return data.size - pos
+            if (extraSignal) {
+                extraSignal = false
+                return 1 // nudge SimpleBufferedInput.fill() to try another read
+            }
+            return 0
+        }
     }
 }

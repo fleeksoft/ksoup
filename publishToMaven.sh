@@ -13,7 +13,7 @@ if [ "$1" == "--remote" ]; then
 fi
 
 # Default build types if none are passed
-default_build_types=("core" "io" "kotlinx" "okio" "ktor2" "korlibs")
+default_build_types=("core" "io" "kotlinx" "okio" "ktor2")
 
 # If build types are passed, use them; otherwise, use the default list
 if [ "$#" -ge 1 ]; then
@@ -34,9 +34,6 @@ add_projects_based_on_key() {
       ;;
     "kotlinx")
       projects=("ksoup-kotlinx" "ksoup-network")
-      ;;
-    "korlibs")
-      projects=("ksoup-korlibs" "ksoup-network-korlibs")
       ;;
     "ktor2")
       projects=("ksoup-network-ktor2")

@@ -1052,7 +1052,7 @@ class HtmlParserTest {
     fun handlesNullInData() {
         val doc = Ksoup.parse("<p id=\u0000>Blah \u0000</p>")
         assertEquals(
-            "<p id=\"\uFFFD\">Blah &#x0;</p>",
+            "<p id=\"\uFFFD\">Blah</p>",
             doc.body().html(),
         ) // replaced in attr, NOT replaced in data (but is escaped as control char <0x20)
     }
@@ -1744,7 +1744,7 @@ class HtmlParserTest {
     @Test
     fun readerClosedAfterParse() {
         val doc = Ksoup.parse("Hello")
-        val treeBuilder = doc.parser()!!.getTreeBuilder()
+        val treeBuilder = doc.parser().getTreeBuilder()
         assertTrue(treeBuilder.reader.isClosed())
         assertNull(treeBuilder.tokeniser)
     }
@@ -1857,7 +1857,7 @@ class HtmlParserTest {
     @Test
     fun parseFragmentOnCreatedDocument() {
         val bareFragment = "<h2>text</h2>"
-        val nodes = Document("").parser()!!.parseFragmentInput(bareFragment, Element("p"), "")
+        val nodes = Document("").parser().parseFragmentInput(bareFragment, Element("p"), "")
         assertEquals(1, nodes.size)
         val node = nodes[0]
         assertEquals("h2", node.nodeName())
@@ -1867,7 +1867,7 @@ class HtmlParserTest {
     @Test
     fun nestedPFragments() {
         val bareFragment = "<p></p><a></a>"
-        val nodes = Document("").parser()!!.parseFragmentInput(bareFragment, Element("p"), "")
+        val nodes = Document("").parser().parseFragmentInput(bareFragment, Element("p"), "")
         assertEquals(2, nodes.size)
         val node = nodes[0]
         assertEquals(
@@ -1916,7 +1916,7 @@ class HtmlParserTest {
         val doc = Ksoup.parse(html)
         assertEquals(Document.OutputSettings.Syntax.html, doc.outputSettings().syntax())
         val out = doc.body().outerHtml()
-        assertEquals("<body style=\"color: red\" _ name_>\n <div _></div>\n</body>", out);
+        assertEquals("<body style=\"color: red\" _ name_>\n <div _></div>\n</body>", out)
     }
 
     @Test
@@ -2229,6 +2229,19 @@ class HtmlParserTest {
     }
 
     @Test
+    fun svgForeignObjectInParagraph() {
+        val html = "<p><svg><foreignObject><div><p>One</p></div></foreignObject></svg></p>"
+        val doc = Ksoup.parse(html)
+
+        val foreignObject = doc.expectFirst("foreignObject")
+        assertSvgNamespace(foreignObject)
+        val div = foreignObject.selectFirst("div")
+        assertNotNull(div, "div should stay within foreignObject")
+        assertHtmlNamespace(div)
+        assertEquals("One", div.expectFirst("p").text())
+    }
+
+    @Test
     fun mathParseText() {
         val html = "<div><math><mi><p>One</p><svg><text>Blah</text></svg></mi><ms></ms></div>"
         val doc = Ksoup.parse(html)
@@ -2481,6 +2494,47 @@ class HtmlParserTest {
     }
 
     @Test
+    fun customVoidTagsBehaveLikeHtmlVoids() {
+        val parser: Parser = Parser.htmlParser().setTrackErrors(10).tagSet(TagSet.Html())
+        val tags: TagSet = parser.tagSet()
+        tags.valueOf("voidtag", Parser.NamespaceHtml).set(Tag.Void)
+
+        val html = "<p><voidtag>Hello World</p>"
+        val doc = Ksoup.parse(html, parser)
+        assertEquals(0, parser.getErrors().size)
+
+        doc.outputSettings().syntax(Document.OutputSettings.Syntax.html)
+        val emittedHtml: String? = TextUtil.stripNewlines(doc.body().html())
+        assertEquals("<p><voidtag>Hello World</p>", emittedHtml)
+        assertEquals("Hello World", doc.body().text())
+
+        doc.outputSettings().syntax(Document.OutputSettings.Syntax.xml)
+        assertEquals("<p><voidtag />Hello World</p>", TextUtil.stripNewlines(doc.body().html()))
+    }
+
+    @Test
+    fun customSelfClosingVoidTagsRoundTrip() {
+        val parser: Parser = Parser.htmlParser().setTrackErrors(10).tagSet(TagSet.Html())
+        val tags: TagSet = parser.tagSet()
+        tags.valueOf("selfclosingvoidtag", Parser.NamespaceHtml).set(Tag.Void).set(Tag.SelfClose)
+
+        val html = "<p><selfclosingvoidtag />Hello World</p>"
+        val doc = Ksoup.parse(html, parser)
+        assertEquals(0, parser.getErrors().size)
+
+        doc.outputSettings().syntax(Document.OutputSettings.Syntax.html)
+        val emittedHtml = TextUtil.stripNewlines(doc.body().html())
+        assertEquals("<p><selfclosingvoidtag>Hello World</p>", emittedHtml)
+
+        val reparsed = Ksoup.parse(emittedHtml, parser)
+        reparsed.outputSettings().syntax(Document.OutputSettings.Syntax.html)
+        assertEquals(emittedHtml, TextUtil.stripNewlines(reparsed.body().html()))
+
+        doc.outputSettings().syntax(Document.OutputSettings.Syntax.xml)
+        assertEquals("<p><selfclosingvoidtag />Hello World</p>", TextUtil.stripNewlines(doc.body().html()))
+    }
+
+    @Test
     fun svgScriptParsedAsScriptData() {
         // https://github.com/jhy/jsoup/issues/2320
         val html = "<svg><script>a < b</script></svg>"
@@ -2505,6 +2559,163 @@ class HtmlParserTest {
         assertEquals("", data.text())
         assertEquals("a < b", data.data())
         assertEquals("<data>a < b</data>", data.outerHtml())
+    }
+
+    @Test
+    fun dropsNullsFromBody() {
+        // https://github.com/jhy/jsoup/issues/2395
+        val html = "<p>\u0000</p><p>\u0000\u0000</p><p>Hi\u0000</p>"
+
+        val parser: Parser = Parser.htmlParser()
+        parser.setTrackErrors(10)
+
+        val doc = Ksoup.parse(html, parser)
+        assertEquals("<p></p>\n<p></p>\n<p>Hi</p>", doc.body().html())
+        assertEquals("Hi", doc.body().text())
+
+        val errors: ParseErrorList = parser.getErrors()
+        assertEquals(4, errors.size)
+        assertEquals("<1:4>: Unexpected character '\u0000' in input state [Data]", errors.get(0).toString())
+        assertEquals("<1:12>: Unexpected character '\u0000' in input state [Data]", errors.get(1).toString())
+        assertEquals("<1:13>: Unexpected character '\u0000' in input state [Data]", errors.get(2).toString())
+        assertEquals("<1:23>: Unexpected character '\u0000' in input state [Data]", errors.get(3).toString())
+        // todo should we replace that null, for convenience?
+    }
+
+    @Test
+    fun replacesNullsInForeign() {
+        val html = "<svg><text>\u0000</text><text>\u0000\u0000</text><text>Hi\u0000</text></svg>"
+        val parser: Parser = Parser.htmlParser()
+        parser.setTrackErrors(10)
+
+        val doc = Ksoup.parse(html, parser)
+        assertEquals("<svg>\n <text>�</text><text>��</text><text>Hi�</text>\n</svg>", doc.body().html())
+        assertEquals("���Hi�", doc.body().text())
+
+        val errors: ParseErrorList = parser.getErrors()
+        assertEquals(4, errors.size)
+        assertEquals("<1:12>: Unexpected character '\u0000' in input state [Data]", errors.get(0).toString())
+        assertEquals("<1:26>: Unexpected character '\u0000' in input state [Data]", errors.get(1).toString())
+        assertEquals("<1:27>: Unexpected character '\u0000' in input state [Data]", errors.get(2).toString())
+        assertEquals("<1:43>: Unexpected character '\u0000' in input state [Data]", errors.get(3).toString())
+    }
+
+    class DeepHtmlTrees {
+        private fun depth(el: Element): Int {
+            var el: Element = el
+            var depth = 0
+            while ((el.parent()?.also { el = it }) != null) {
+                depth++
+            }
+            return depth
+        }
+
+        /**
+         * Parse the HTML code in `contents`, wrapped in enough divs to ensure that the root elements
+         * of contents are at depth `startingDepth`.
+         */
+        private fun parseDeepHtml(startingDepth: Int, contents: String?): Element {
+            val html = StringBuilder()
+            html.append("<html><body>")
+            for (i in 0..<startingDepth - 4) {
+                html.append("<div>")
+            }
+            html.append("<div id='container'>")
+            html.append(contents)
+
+            val parser: Parser = Parser.htmlParser()
+            val doc = Ksoup.parse(html.toString(), parser)
+            val container = doc.getElementById("container")
+            assertNotNull(container)
+            assertEquals(startingDepth - 1, depth(container))
+
+            return container
+        }
+
+        @Test
+        fun nestedDivs() {
+            val container = parseDeepHtml(511, "<div><div><div>")
+
+            assertEquals("<div>\n <div></div>\n <div></div>\n</div>", container.html())
+        }
+
+        @Test
+        fun closingTagOfTagClosedByDepthLimit() {
+            // The <a></a> tag would be nested too deep, so it first closes the innermost <span>.
+            // This means that the first </span> will close the outer <span>, as it's the only
+            // one that is currently open. The last </span> is then just ignored, as there is no
+            // open <span> left to close.
+            val container = parseDeepHtml(511, "<span><span><a></a></span><b></b></span>")
+
+            assertEquals("<span><span></span><a></a></span><b></b>", container.html())
+        }
+
+        @Test
+        fun tableAtDepthLimitWithDirectTd() {
+            val container = parseDeepHtml(512, "<table><td>")
+
+            assertEquals("<table></table>\n<tbody></tbody>\n<tr></tr>\n<td></td>", container.html())
+        }
+
+        @Test
+        fun tableRightBeforeDepthLimitWithDirectTd() {
+            val container = parseDeepHtml(511, "<table><td>")
+
+            assertEquals("<table>\n <tbody></tbody>\n <tr></tr>\n <td></td>\n</table>", container.html())
+        }
+
+        @Test
+        fun customDepthLimit() {
+            val parser: Parser = Parser.htmlParser().setMaxDepth(5)
+            val input = "<html><body><div><div><div><div><div><div>"
+
+            val doc = Ksoup.parse(input, parser)
+            val expected = StringBuilder()
+                .append("<html>\n")
+                .append(" <head></head>\n")
+                .append(" <body>\n")
+                .append("  <div>\n")
+                .append("   <div>\n")
+                .append("    <div></div>\n")
+                .append("    <div></div>\n")
+                .append("    <div></div>\n")
+                .append("    <div></div>\n")
+                .append("   </div>\n")
+                .append("  </div>\n")
+                .append(" </body>\n")
+                .append("</html>")
+                .toString()
+
+            assertEquals(expected, doc.html())
+        }
+
+        @Test
+        fun formControlsDetachWhenFormTrimmed() {
+            val parser: Parser = Parser.htmlParser().setMaxDepth(3)
+            val input = "<form id='f'><div><input name='foo'></div></form>"
+
+            val doc = Ksoup.parse(input, baseUri = "", parser = parser)
+            val formEl = doc.getElementById("f")
+            assertNotNull(formEl)
+            assertTrue(formEl is FormElement)
+            val form: FormElement = formEl as FormElement
+            assertEquals("", form.html())
+            assertEquals(0, form.elements().size)
+        }
+
+        @Test
+        fun templateModesClearedWhenTrimmed() {
+            val parser: Parser = Parser.htmlParser().setMaxDepth(3)
+            val input = "<template id='tmpl'><div><span>One</span></div></template><p>Two</p>"
+
+            val doc = Ksoup.parse(input, baseUri = "", parser = parser)
+            val template = doc.getElementById("tmpl")
+            assertNotNull(template)
+            assertEquals("", template.html())
+            val paragraph = doc.selectFirst("p")
+            assertNotNull(paragraph)
+            assertEquals("Two", paragraph.text())
+        }
     }
 
     companion object {

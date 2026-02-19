@@ -8,8 +8,10 @@
 
 package com.fleeksoft.ksoup.nodes
 
+import com.fleeksoft.ksoup.KmpJsExport
 import com.fleeksoft.ksoup.internal.SharedConstants
 import com.fleeksoft.ksoup.internal.StringUtil
+import kotlin.js.ExperimentalJsExport
 
 /**
  * A Range object tracks the character positions in the original input source where a Node starts or ends. If you want to
@@ -21,6 +23,8 @@ import com.fleeksoft.ksoup.internal.StringUtil
  * @param start the start position
  * @param end the end position
  */
+@OptIn(ExperimentalJsExport::class)
+@KmpJsExport
 public data class Range(private val start: Position, private val end: Position) {
     /**
      * Get the start position of this node.

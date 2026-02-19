@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalJsExport::class)
+
 package com.fleeksoft.ksoup
 
 import com.fleeksoft.io.Reader
@@ -8,12 +10,16 @@ import com.fleeksoft.ksoup.nodes.Element
 import com.fleeksoft.ksoup.parser.Parser
 import com.fleeksoft.ksoup.safety.Cleaner
 import com.fleeksoft.ksoup.safety.Safelist
+import kotlin.js.ExperimentalJsExport
+import kotlin.js.JsExport
+import kotlin.js.JsName
 
 
 /**
  * The core public access point to the com.fleeksoft.ksoup functionality.
  *
  */
+@KmpJsExport
 public object Ksoup {
 
     /**
@@ -38,6 +44,7 @@ public object Ksoup {
      * @param parser alternate [parser][Parser.xmlParser] to use.
      * @return sane HTML
      */
+    @JsName("parseWithParser")
     public fun parse(html: String, parser: Parser = Parser.htmlParser(), baseUri: String = ""): Document {
         return parser.parseInput(html, baseUri)
     }
@@ -52,6 +59,7 @@ public object Ksoup {
      * before the HTML declares a `<base href>` tag.
      * @return sane HTML
      */
+    @JsExport.Ignore
     public fun parse(reader: Reader, parser: Parser = Parser.htmlParser(), baseUri: String = ""): Document {
         return parser.parseInput(reader, baseUri)
     }
@@ -160,6 +168,7 @@ public object Ksoup {
      * @param interceptor Optional function to intercept and manipulate the head element and generated MetaData.
      * @return MetaData object containing parsed metadata information.
      */
+    @JsName("parseMetaDataOfHtml")
     fun parseMetaData(
         html: String,
         baseUri: String = "",

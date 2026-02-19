@@ -213,7 +213,7 @@ public abstract class Evaluator protected constructor() {
             root: Element,
             element: Element,
         ): Boolean {
-            return element.hasAttr(key) && value.equals(element.attr(key).trim(), ignoreCase = true)
+            return element.hasAttr(key) && value.equals(element.attr(key), ignoreCase = true)
         }
 
         override fun cost(): Int {
@@ -248,12 +248,8 @@ public abstract class Evaluator protected constructor() {
     /**
      * Evaluator for attribute name/value matching (value prefix)
      */
-    public class AttributeWithValueStarting(key: String, value: String) :
-        AttributeKeyPair(key, value, false) {
-        override fun matches(
-            root: Element,
-            element: Element,
-        ): Boolean {
+    public class AttributeWithValueStarting(key: String, value: String) : AttributeKeyPair(key, value) {
+        override fun matches(root: Element, element: Element): Boolean {
             return element.hasAttr(key) && lowerCase(element.attr(key)).startsWith(value) // value is lower case already
         }
 
@@ -269,12 +265,8 @@ public abstract class Evaluator protected constructor() {
     /**
      * Evaluator for attribute name/value matching (value ending)
      */
-    public class AttributeWithValueEnding(key: String, value: String) :
-        AttributeKeyPair(key, value, false) {
-        override fun matches(
-            root: Element,
-            element: Element,
-        ): Boolean {
+    public class AttributeWithValueEnding(key: String, value: String) : AttributeKeyPair(key, value) {
+        override fun matches(root: Element, element: Element): Boolean {
             return element.hasAttr(key) && lowerCase(element.attr(key)).endsWith(value) // value is lower case
         }
 
@@ -330,24 +322,22 @@ public abstract class Evaluator protected constructor() {
     /**
      * Abstract evaluator for attribute name/value matching
      */
-    public abstract class AttributeKeyPair(key: String, value: String, trimQuoted: Boolean = true) : Evaluator() {
+    public abstract class AttributeKeyPair(key: String, value: String) : Evaluator() {
         public var key: String
         public var value: String
 
         init {
             var resultValue = value
             Validate.notEmpty(key)
-            Validate.notEmpty(resultValue)
             this.key = normalize(key)
             val quoted = resultValue.startsWith("'") && resultValue.endsWith("'")
                     || resultValue.startsWith("\"") && resultValue.endsWith("\"")
-            if (quoted) resultValue = value.substring(1, resultValue.length - 1)
+            if (quoted) {
+                Validate.isTrue(value.length > 1, "Quoted value must have content");
+                resultValue = value.substring(1, resultValue.length - 1)
+            }
 
-
-            // normalize value based on whether it was quoted and trimQuoted flag
-            // keeps whitespace for attribute val starting or ending, when quoted
-            if (trimQuoted || !quoted) this.value = normalize(resultValue) // lowercase and trims
-            else this.value = lowerCase(resultValue) // only lowercase
+            this.value = lowerCase(resultValue) // only lowercase
         }
     }
 

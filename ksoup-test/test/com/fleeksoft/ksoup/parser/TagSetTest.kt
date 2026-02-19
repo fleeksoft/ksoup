@@ -3,6 +3,8 @@ package com.fleeksoft.ksoup.parser
 import com.fleeksoft.ksoup.Ksoup
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.nodes.TagSet
+import kotlinx.atomicfu.AtomicInt
+import kotlinx.atomicfu.atomic
 import kotlin.test.*
 
 
@@ -190,5 +192,34 @@ class TagSetTest {
         copy.onNewTag { tag -> tag.set(Tag.Void) }
         assertTrue(copy.valueOf("custom-tag", Parser.NamespaceHtml).`is`(Tag.Void))
         assertFalse(source.valueOf("custom-tag", Parser.NamespaceHtml).`is`(Tag.Void))
+    }
+
+    @Test
+    fun copyPullThroughDoesNotMutateSource() {
+        val source: TagSet = TagSet.Html()
+        val copy = TagSet(source)
+
+        val sourceNamespacesBefore = tagSetNamespaceCount(source)
+        assertNotNull(copy.get("div", Parser.NamespaceHtml))
+        val sourceNamespacesAfter = tagSetNamespaceCount(source)
+        assertEquals(sourceNamespacesBefore, sourceNamespacesAfter)
+    }
+
+    @Test
+    fun copyPullWithCustomizerThroughDoesNotMutateSource() {
+        val source: TagSet = TagSet.Html()
+        val copy = TagSet(source)
+
+        val sourceAdds: AtomicInt = atomic(0)
+        source.onNewTag { tag: Tag -> sourceAdds.incrementAndGet() }
+
+        assertNotNull(copy.get("div", Parser.NamespaceHtml))
+        assertEquals(0, sourceAdds.value)
+    }
+
+    companion object {
+        private fun tagSetNamespaceCount(tagSet: TagSet): Int {
+            return tagSet.tags.size
+        }
     }
 }

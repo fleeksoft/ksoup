@@ -5,6 +5,7 @@ import com.fleeksoft.io.FilterInputStream
 import com.fleeksoft.io.InputStream
 import com.fleeksoft.io.exception.IOException
 import com.fleeksoft.ksoup.internal.SoftPool
+import kotlin.math.max
 import kotlin.math.min
 
 class SimpleBufferedInput(private val inputStream: InputStream) : FilterInputStream(inputStream) {
@@ -13,6 +14,7 @@ class SimpleBufferedInput(private val inputStream: InputStream) : FilterInputStr
     private var bufMark = -1
     private var inReadFully = false
     private var byteBuf: ByteArray? = null
+    private var capRemaining = Int.MAX_VALUE // how many bytes we are allowed to pull from the underlying stream
 
     override fun read(): Int {
         if (bufPos >= bufLength) {
@@ -22,66 +24,49 @@ class SimpleBufferedInput(private val inputStream: InputStream) : FilterInputStr
         return byteBuf!![bufPos++].toInt() and 0xff
     }
 
-    override fun read(dest: ByteArray, offset: Int, desiredLen: Int): Int {
-        if (offset < 0 || desiredLen < 0 || desiredLen > dest.size - offset) {
+    override fun read(bytes: ByteArray, off: Int, len: Int): Int {
+        if (off < 0 || len < 0 || len > bytes.size - off) {
             throw IndexOutOfBoundsException()
-        } else if (desiredLen == 0) {
+        } else if (len == 0) {
             return 0
         }
         var bufAvail = bufLength - bufPos
         if (bufAvail <= 0) {
-            if (!inReadFully && bufMark < 0) {
-                val read = inputStream.read(dest, offset, desiredLen)
-                closeIfDone(read)
-                return read
-            }
             fill()
             bufAvail = bufLength - bufPos
         }
-        val read = min(bufAvail, desiredLen)
+        val read = min(bufAvail, len)
         if (read <= 0) return -1
-        byteBuf!!.copyInto(dest, destinationOffset = offset, startIndex = bufPos, endIndex = bufPos + read)
+        byteBuf!!.copyInto(bytes, destinationOffset = off, startIndex = bufPos, endIndex = bufPos + read)
         bufPos += read
         return read
     }
 
     private fun fill() {
         if (inReadFully) return
-        if (byteBuf == null) {
+        if (byteBuf == null) { // get one on first demand
             byteBuf = BufferPool.borrow()
         }
-        if (bufMark < 0) {
-            bufPos = 0
-        } else if (bufPos >= Constants.DEFAULT_BYTE_BUFFER_SIZE) {
-            if (bufMark > 0) {
-                val size = bufPos - bufMark
-                byteBuf!!.copyInto(byteBuf!!, destinationOffset = 0, startIndex = bufMark, endIndex = bufMark + size)
-                bufPos = size
-                bufMark = 0
-            } else {
-                bufMark = -1
-                bufPos = 0
-            }
-        }
+
+        compact()
         bufLength = bufPos
-        val read = inputStream.read(byteBuf!!, bufPos, byteBuf!!.size - bufPos)
+        var toRead: Int = min(byteBuf!!.size - bufPos, capRemaining)
+        if (toRead <= 0) return
+        var read: Int = inputStream.read(byteBuf!!, bufPos, toRead)
         if (read > 0) {
             bufLength = read + bufPos
-            while (byteBuf!!.size - bufLength > 0) {
+            capRemaining -= read
+            while (byteBuf!!.size - bufLength > 0 && capRemaining > 0) { // read in more if we have space, without blocking
                 if (inputStream.available() < 1) break
-                val readSub = inputStream.read(byteBuf!!, bufLength, byteBuf!!.size - bufLength)
-                if (readSub <= 0) break
-                bufLength += readSub
+                toRead = min(byteBuf!!.size - bufLength, capRemaining)
+                if (toRead <= 0) break
+                read = inputStream.read(byteBuf!!, bufLength, toRead)
+                if (read <= 0) break
+                bufLength += read
+                capRemaining -= read
             }
         }
-        closeIfDone(read)
-    }
-
-    private fun closeIfDone(read: Int) {
-        if (read == -1) {
-            inReadFully = true
-            super.close()
-        }
+        if (read == -1) inReadFully = true
     }
 
     fun getBuf(): ByteArray {
@@ -92,16 +77,55 @@ class SimpleBufferedInput(private val inputStream: InputStream) : FilterInputStr
         return inReadFully
     }
 
-    override fun available(): Int = if (byteBuf != null && bufLength - bufPos > 0) bufLength - bufPos else if (inReadFully) 0 else inputStream.available()
+    fun resetFullyRead() {
+        inReadFully = false
+    }
 
-    override fun mark(readlimit: Int) {
-        if (readlimit > Constants.DEFAULT_BYTE_BUFFER_SIZE) throw IllegalArgumentException("Read-ahead limit is greater than buffer size")
+    override fun available(): Int {
+        val buffered = if (byteBuf != null) (bufLength - bufPos) else 0
+        if (buffered > 0) {
+            return buffered // doesn't include those in.available(), but mostly used as a block test
+        }
+        val avail = if (inReadFully) 0 else inputStream.available()
+        return avail
+    }
+
+    fun capRemaining(newRemaining: Int) {
+        capRemaining = max(0, newRemaining)
+    }
+
+    fun setMark() {
         bufMark = bufPos
     }
 
-    override fun reset() {
-        bufPos = bufMark
+    fun rewindToMark() {
         if (bufMark < 0) throw IOException("Resetting to invalid mark")
+        bufPos = bufMark
+    }
+
+    fun clearMark() {
+        bufMark = -1
+    }
+
+    private fun compact() {
+        if (byteBuf == null || bufPos == 0) return
+        val keepFrom = if (bufMark >= 0) bufMark else bufPos
+        if (keepFrom <= 0) return
+
+        val remaining = bufLength - keepFrom
+        if (remaining > 0) {
+            byteBuf?.copyInto(
+                destination = byteBuf!!,
+                destinationOffset = 0,
+                startIndex = keepFrom,
+                endIndex = keepFrom + remaining
+            )
+        }
+        bufLength = remaining
+        bufPos -= keepFrom
+        if (bufMark >= 0) {
+            bufMark -= keepFrom
+        }
     }
 
     override fun close() {

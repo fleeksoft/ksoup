@@ -1,9 +1,12 @@
+@file:OptIn(ExperimentalTime::class)
+
 package com.fleeksoft.ksoup
 
 import kotlinx.coroutines.test.runTest
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import kotlin.test.Ignore
 import kotlin.test.Test
+import kotlin.time.ExperimentalTime
 
 class PerformanceTest {
 

@@ -18,6 +18,7 @@ import com.fleeksoft.ksoup.parser.HtmlTreeBuilderState.ForeignContent
 import com.fleeksoft.ksoup.parser.Parser.Companion.NamespaceHtml
 import kotlin.jvm.JvmOverloads
 
+
 /**
  * HTML Tree Builder; creates a DOM from Tokens.
  */
@@ -277,7 +278,9 @@ public open class HtmlTreeBuilder : TreeBuilder() {
         if (startTag.selfClosing) {
             val tag: Tag = el.tag()
             tag.setSeenSelfClose() // can infer output if in xml syntax
-            if (tag.isKnownTag() && (tag.isEmpty() || tag.isSelfClosing())) {
+            if (tag.isEmpty()) {
+                // treated as empty below; nothing further
+            } else if (tag.isKnownTag() && tag.isSelfClosing()) {
                 // ok, allow it. effectively a pop, but fiddles with the state. handles empty style, title etc which would otherwise leave us in data state
                 tokeniser!!.transition(TokeniserState.Data) // handles <script />, otherwise needs breakout steps from script data
                 tokeniser!!.emit(
@@ -287,6 +290,10 @@ public open class HtmlTreeBuilder : TreeBuilder() {
                 // error it, and leave the inserted element on
                 tokeniser!!.error("Tag [${tag.normalName()}] cannot be self-closing; not a void tag")
             }
+        }
+
+        if (el.tag().isEmpty()) {
+            pop() // custom void tags behave like built-in voids (no children, not left on the stack); known empty go via insertEmpty
         }
 
         return el
@@ -333,6 +340,7 @@ public open class HtmlTreeBuilder : TreeBuilder() {
      * @param el the Element to insert and make the current element
      */
     private fun doInsertElement(el: Element) {
+        enforceStackDepthLimit()
         if (formElement != null && el.tag().namespace() == NamespaceHtml && StringUtil.inSorted(
                 el.normalName(),
                 TagFormListed
@@ -361,10 +369,22 @@ public open class HtmlTreeBuilder : TreeBuilder() {
         onNodeInserted(node)
     }
 
-    /** Inserts the provided character token into the current element.  */
-    public fun insertCharacterNode(characterToken: Token.Character) {
-        // will be doc if no current element; allows for whitespace to be inserted into the doc root object (not on the stack)
-        val el = currentElement()
+    /** Inserts the provided character token into the current element. Any nulls in the data will be removed.  */
+    fun insertCharacterNode(characterToken: Token.Character) {
+        insertCharacterNode(characterToken, false)
+    }
+
+    /**
+     * Inserts the provided character token into the current element. The tokenizer will have already raised precise character errors.
+     *
+     * @param characterToken the character token to insert
+     * @param replace if true, replaces any null chars in the data with the replacement char (U+FFFD). If false, removes
+     * null chars.
+     */
+    fun insertCharacterNode(characterToken: Token.Character, replace: Boolean) {
+        characterToken.normalizeNulls(replace)
+        val el =
+            currentElement() // will be doc if no current element; allows for whitespace to be inserted into the doc root object (not on the stack)
         insertCharacterToElement(characterToken, el)
     }
 
@@ -420,8 +440,19 @@ public open class HtmlTreeBuilder : TreeBuilder() {
         return false
     }
 
-    /** Pops the stack until the given HTML element is removed.  */
+    public override fun onStackPrunedForDepth(element: Element) {
+        // handle other effects of popping to keep state correct
+        if (element === headElement) headElement = null
+        if (element === formElement) setFormElement(null)
+        removeFromActiveFormattingElements(element)
+        if (element.nameIs("template")) {
+            clearFormattingElementsToLastMarker()
+            if (templateModeSize() > 0) popTemplateMode()
+            resetInsertionMode()
+        }
+    }
 
+    /** Pops the stack until the given HTML element is removed.  */
     public fun popStackToClose(elName: String): Element? {
         for (pos in getStack().size - 1 downTo 0) {
             val el: Element? = pop()
@@ -499,17 +530,19 @@ public open class HtmlTreeBuilder : TreeBuilder() {
         return null
     }
 
-    public fun insertOnStackAfter(
-        after: Element,
-        inEl: Element,
-    ) {
-        val i: Int = getStack().lastIndexOf(after)
-        Validate.isTrue(i != -1)
-        getStack().add(i + 1, inEl)
+    public fun insertOnStackAfter(after: Element, inEl: Element) {
+        val i: Int = _stack!!.lastIndexOf(after)
+        if (i == -1) {
+            error("Did not find element on stack to insert after")
+            _stack?.add(inEl)
+            // may happen on particularly malformed inputs during adoption
+        } else {
+            _stack?.add(i + 1, inEl)
+        }
     }
 
-    public fun replaceOnStack(out: Element, `in`: Element) {
-        replaceInQueue(getStack(), out, `in`)
+    public fun replaceOnStack(out: Element, inEl: Element) {
+        replaceInQueue(getStack(), out, inEl)
     }
 
     /**
@@ -632,12 +665,10 @@ public open class HtmlTreeBuilder : TreeBuilder() {
 
         // https://html.spec.whatwg.org/multipage/parsing.html#has-an-element-in-the-specific-scope
         val bottom: Int = _stack!!.size - 1
-        val top =
-            if (bottom > MaxScopeSearchDepth) bottom - MaxScopeSearchDepth else 0
 
         // don't walk too far up the tree
-        for (pos in bottom downTo top) {
-            val el: Element = _stack!!.get(pos)!!
+        for (pos in bottom downTo 0) {
+            val el: Element = _stack!![pos]!!
             val elName: String = el.normalName()
             // namespace checks - arguments provided are always in html ns, with this bolt-on for math and svg:
             val ns: String = el.tag().namespace()
@@ -698,17 +729,13 @@ public open class HtmlTreeBuilder : TreeBuilder() {
                 return false
             }
         }
-        Validate.fail("Should not be reachable")
-        return false
+        return false // nothing left on stack
     }
 
     /** Tests if there is some element on the stack that is not in the provided set.  */
     public fun onStackNot(allowedTags: Array<String>): Boolean {
-        val bottom: Int = getStack().size - 1
-        val top = if (bottom > MaxScopeSearchDepth) bottom - MaxScopeSearchDepth else 0
-        // don't walk too far up the tree
-        for (pos in bottom downTo top) {
-            val elName: String = getStack()[pos]?.normalName() ?: continue
+        for (pos in _stack!!.size - 1 downTo 0) {
+            val elName: String = _stack!![pos]!!.normalName()
             if (!StringUtil.inSorted(elName, allowedTags)) return true
         }
         return false
@@ -873,7 +900,7 @@ public open class HtmlTreeBuilder : TreeBuilder() {
             doInsertElement(newEl)
 
             // 10. replace entry with new entry
-            formattingElements.set(pos, newEl)
+            formattingElements[pos] = newEl
 
             // 11
             if (pos == size - 1) {
@@ -985,7 +1012,7 @@ public open class HtmlTreeBuilder : TreeBuilder() {
             "annotation-xml", "mi", "mn", "mo", "ms", "mtext"
         )
         val TagSearchInScopeSvg: Array<String> = arrayOf<String>(
-            "desc", "foreignObject", "title"
+            "desc", "foreignobject", "title" // note normalized to lowercase to match other scope searches; will preserve input case as appropriate
         )
         public val TagSearchList: Array<String> = arrayOf("ol", "ul")
         public val TagSearchButton: Array<String> = arrayOf("button")
@@ -1013,6 +1040,9 @@ public open class HtmlTreeBuilder : TreeBuilder() {
         val TagFormListed: Array<String> = arrayOf<String>(
             "button", "fieldset", "input", "keygen", "object", "output", "select", "textarea"
         )
+
+
+        @Deprecated("Not used anymore; configure parser depth via {@link Parser#setMaxDepth(int)}")
         public const val MaxScopeSearchDepth: Int =
             100 // prevents the parser bogging down in exceptionally broken pages
         private const val maxQueueDepth: Int = 256 // an arbitrary tension point between real HTML and crafted pain

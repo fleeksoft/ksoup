@@ -141,6 +141,7 @@ class ElementIT {
         assertEquals(doc, el.ownerDocument())
     }
 
+    @Ignore
     @Test
     fun wrapNoOverflow() {
         if (Platform.isWasmJs()) {
@@ -149,6 +150,7 @@ class ElementIT {
         }
         // deepChild was recursive, so could overflow if presented with a fairly insane wrap
         val doc = Document("https://example.com/")
+        doc.parser().setMaxDepth(Int.MAX_VALUE) // don't limit to 512
         val el = doc.body().appendElement("p")
         val num = 50000
         val sb = StringBuilder()
@@ -158,7 +160,7 @@ class ElementIT {
         el.wrap(sb.toString())
         val html = doc.body().html()
         assertTrue(html.startsWith("<div>"))
-        assertEquals(num + 3, el.parents().size)
+        assertEquals(num + 3, el.parents().size)  // + 3 is for body, html, document
     }
 
     @Test

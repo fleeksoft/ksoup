@@ -59,8 +59,17 @@ class ParserIT {
         val start = System.currentTimeMillis()
         val doc = Parser.parseBodyFragment(longBody.toString(), "")
 
+        var depth = 1
+        var el = doc.body()
+        while (el.childrenSize() > 0) {
+            el = el.child(0)
+            depth++
+        }
+
+
         // Assert
-        assertEquals(2, doc.body().childNodeSize())
+        assertEquals(1, doc.body().childrenSize())
+        assertEquals(512, depth)
         assertEquals(25000, doc.select("dd").size)
         val end = System.currentTimeMillis() - start
         assertTrue(

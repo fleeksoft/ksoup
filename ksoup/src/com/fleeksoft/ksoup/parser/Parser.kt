@@ -12,6 +12,8 @@ import co.touchlab.stately.concurrency.Synchronizable
 import co.touchlab.stately.concurrency.synchronize
 import com.fleeksoft.io.Reader
 import com.fleeksoft.io.StringReader
+import com.fleeksoft.ksoup.KmpJsExport
+import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.nodes.Element
 import com.fleeksoft.ksoup.nodes.Node
@@ -26,6 +28,7 @@ import kotlin.js.JsName
  * synchronize.) To reuse a Parser configuration in a multithreaded environment, use {@link #newInstance()} to make
  * copies.</p>
  */
+@KmpJsExport
 public class Parser : KCloneable<Parser> {
     private var treeBuilder: TreeBuilder
     private var errors: ParseErrorList
@@ -34,6 +37,7 @@ public class Parser : KCloneable<Parser> {
     @JsName("_tagSet")
     private var tagSet: TagSet? = null
     private val lock = Synchronizable()
+    private var maxDepthValue: Int
 
     /**
      * Test if position tracking is enabled. If it is, Nodes will have a Position to track where in the original input
@@ -47,10 +51,12 @@ public class Parser : KCloneable<Parser> {
      * Create a new Parser, using the specified TreeBuilder
      * @param treeBuilder TreeBuilder to use to parse input into Documents.
      */
+    @JsName("withTreeBuilder")
     public constructor(treeBuilder: TreeBuilder) {
         this.treeBuilder = treeBuilder
-        settings = treeBuilder.defaultSettings()
-        errors = ParseErrorList.noTracking()
+        this.settings = treeBuilder.defaultSettings()
+        this.errors = ParseErrorList.noTracking()
+        this.maxDepthValue = treeBuilder.defaultMaxDepth()
     }
 
     /**
@@ -70,12 +76,15 @@ public class Parser : KCloneable<Parser> {
         errors = ParseErrorList(copy.errors) // only copies size, not contents
         settings = ParseSettings(copy.settings)
         isTrackPosition = copy.isTrackPosition
+        maxDepthValue = copy.maxDepthValue
+        tagSet = TagSet(copy.tagSet())
     }
 
     public fun parseInput(input: String, baseUri: String): Document {
         return parseInput(StringReader(input), baseUri)
     }
 
+    @JsName("parseReaderInput")
     public fun parseInput(reader: Reader, baseUri: String): Document {
         return lock.synchronize { treeBuilder.parse(reader, baseUri, this) }
     }
@@ -85,6 +94,7 @@ public class Parser : KCloneable<Parser> {
     }
 
 
+    @JsName("parseReaderFragmentInput")
     fun parseFragmentInput(fragment: Reader, context: Element?, baseUri: String): List<Node> {
         return lock.synchronize { treeBuilder.parseFragment(fragment, context, baseUri, this) }
     }
@@ -135,6 +145,7 @@ public class Parser : KCloneable<Parser> {
      * @param settings the new settings
      * @return this Parser
      */
+    @JsName("setSettings")
     public fun settings(settings: ParseSettings): Parser {
         this.settings = settings
         return this
@@ -149,6 +160,28 @@ public class Parser : KCloneable<Parser> {
     }
 
     /**
+     * Set the parser's maximum stack depth (maximum number of open elements). When reached, new open elements will be
+     * removed to prevent excessive nesting. Defaults to 512 for the HTML parser, and unlimited for the XML
+     * parser.
+     *
+     * @param maxDepth maximum parser depth; must be >= 1
+     * @return this Parser, for chaining
+     */
+    fun setMaxDepth(maxDepth: Int): Parser {
+        Validate.isTrue(maxDepth >= 1, "maxDepth must be >= 1")
+        this.maxDepthValue = maxDepth
+        return this
+    }
+
+    /**
+     * Get the maximum parser depth (maximum number of open elements).
+     * @return the current max parser depth
+     */
+    fun getMaxDepth(): Int {
+        return maxDepthValue
+    }
+
+    /**
      * Set a custom TagSet to use for this Parser. This allows you to define your own tags, and control how they are
      * parsed. For example, you can set a tag to preserve whitespace, or to be treated as a block tag.
      *
@@ -157,6 +190,7 @@ public class Parser : KCloneable<Parser> {
      * @param tagSet the TagSet to use. This gets copied, so that changes that the parse makes (tags found in the document will be added) do not clobber the original TagSet.
      * @return this Parser
      */
+    @JsName("setTagSet")
     fun tagSet(tagSet: TagSet): Parser {
         this.tagSet = TagSet(tagSet) // copy it as we are going to mutate it
         return this
@@ -170,6 +204,24 @@ public class Parser : KCloneable<Parser> {
         if (tagSet == null)
             tagSet = treeBuilder.defaultTagSet()
         return tagSet!!
+    }
+
+    /**
+     * Utility method to unescape HTML entities from a string, using this `Parser`'s configuration (for example, to
+     * collect errors while unescaping).
+     *
+     * @param string HTML escaped string
+     * @param inAttribute if the string is to be escaped in strict mode (as attributes are)
+     * @return an unescaped string
+     * @see .setTrackErrors
+     * @see .unescapeEntities
+     */
+    fun unescape(string: String, inAttribute: Boolean): String {
+        if (string.indexOf('&') < 0) return string // nothing to unescape
+
+        this.treeBuilder.initialiseParse(StringReader(string), "", this)
+        val tokeniser = Tokeniser(this.treeBuilder)
+        return tokeniser.unescapeEntities(inAttribute)
     }
 
     public fun defaultNamespace(): String {
@@ -193,7 +245,7 @@ public class Parser : KCloneable<Parser> {
          */
         public fun parse(html: String, baseUri: String): Document {
             val treeBuilder: TreeBuilder = HtmlTreeBuilder()
-            return treeBuilder.parse(StringReader(html), baseUri, Parser(treeBuilder))
+            return treeBuilder.parse(input = StringReader(html), baseUri = baseUri, parser = Parser(treeBuilder))
         }
 
         /**
@@ -250,19 +302,19 @@ public class Parser : KCloneable<Parser> {
         }
 
         /**
-         * Utility method to unescape HTML entities from a string
-         * @param html HTML escaped string
-         * @param inAttribute if the string is to be escaped in strict mode (as attributes are)
-         * @return an unescaped string
+         *Utility method to unescape HTML entities from a string.
+         *<p>To track errors while unescaping, use
+         *{@link #unescape(String, boolean)} with a Parser instance that has error tracking enabled.</p>
+         *
+         *@param string HTML escaped string
+         *@param inAttribute if the string is to be escaped in strict mode (as attributes are)
+         *@return an unescaped string
+         *@see #unescape(String, boolean)
          */
         public fun unescapeEntities(html: String, inAttribute: Boolean): String {
             if (html.indexOf('&') < 0) return html // nothing to unescape
-            val parser: Parser = htmlParser()
-            parser.treeBuilder.initialiseParse(StringReader(html), "", parser)
-            val tokeniser = Tokeniser(parser.treeBuilder)
-            return tokeniser.unescapeEntities(inAttribute)
+            return htmlParser().unescape(html, inAttribute)
         }
-        // builders
 
         /**
          * Create a new HTML parser. This parser treats input as HTML5, and enforces the creation of a normalised document,
@@ -279,7 +331,7 @@ public class Parser : KCloneable<Parser> {
          * @return a new simple XML parser.
          */
         public fun xmlParser(): Parser {
-            return Parser(XmlTreeBuilder())
+            return Parser(XmlTreeBuilder()).setMaxDepth(Int.MAX_VALUE)
         }
     }
 }

@@ -15,7 +15,10 @@ import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.nodes.Range.AttributeRange.Companion.UntrackedAttr
 import com.fleeksoft.ksoup.parser.ParseSettings
 import com.fleeksoft.ksoup.ported.KCloneable
+import kotlin.js.ExperimentalJsExport
 import kotlin.js.JsName
+import com.fleeksoft.ksoup.KmpJsExport
+import kotlin.js.JsExport
 
 /**
  * The attributes of an Element.
@@ -32,6 +35,8 @@ import kotlin.js.JsName
  *
  * @author Jonathan Hedley, jonathan@hedley.net
  */
+@OptIn(ExperimentalJsExport::class)
+@KmpJsExport
 public class Attributes : Iterable<Attribute>, KCloneable<Attributes> {
     // the number of instance fields is kept as low as possible giving an object size of 24 bytes
 
@@ -182,6 +187,7 @@ public class Attributes : Iterable<Attribute>, KCloneable<Attributes> {
      * @return the object associated to this key, or `null` if not found.
      * @see .userData
      */
+    @JsName("getUserDataByKey")
     public fun userData(key: String): Any? {
         if (!hasUserData()) return null // no user data exists
 
@@ -196,6 +202,7 @@ public class Attributes : Iterable<Attribute>, KCloneable<Attributes> {
      * @return these attributes
      * @see .userData
      */
+    @JsName("putUserData")
     public fun userData(key: String, value: Any?): Attributes {
         if (value == null && !hasUserData()) return this // no user data exists, so short-circuit
         val userData = userData()
@@ -224,6 +231,7 @@ public class Attributes : Iterable<Attribute>, KCloneable<Attributes> {
      * @param value attribute value
      * @return these attributes, for chaining
      */
+    @JsName("putBoolean")
     public fun put(
         key: String,
         value: Boolean,
@@ -237,6 +245,7 @@ public class Attributes : Iterable<Attribute>, KCloneable<Attributes> {
      * @param attribute attribute with case-sensitive key
      * @return these attributes, for chaining
      */
+    @JsName("putAttribute")
     public fun put(attribute: Attribute): Attributes {
         put(attribute.key, attribute.value)
         attribute.parent = this
@@ -395,6 +404,7 @@ public class Attributes : Iterable<Attribute>, KCloneable<Attributes> {
      * @param range the range for the attribute's name and value
      * @return these attributes, for chaining
      */
+    @JsExport.Ignore
     fun sourceRange(key: String, range: Range.AttributeRange): Attributes {
         var ranges = getRanges()
         if (ranges == null) {
@@ -481,6 +491,7 @@ public class Attributes : Iterable<Attribute>, KCloneable<Attributes> {
         return StringUtil.releaseBuilder(sb)
     }
 
+    @JsExport.Ignore
     public fun html(accum: QuietAppendable, out: Document.OutputSettings) {
         val sz = size
         for (i in 0 until sz) {

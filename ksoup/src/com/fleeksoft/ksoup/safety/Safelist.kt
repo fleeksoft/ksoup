@@ -145,10 +145,7 @@ public open class Safelist() {
      * @param attributes List of valid attributes for the tag
      * @return this (for chaining)
      */
-    public fun addAttributes(
-        tag: String,
-        vararg attributes: String,
-    ): Safelist {
+    public fun addAttributes(tag: String, vararg attributes: String): Safelist {
         Validate.notEmpty(tag)
         Validate.isTrue(attributes.isNotEmpty(), "No attribute names supplied.")
 
@@ -232,11 +229,7 @@ public open class Safelist() {
      * @param value The enforced attribute value
      * @return this (for chaining)
      */
-    public fun addEnforcedAttribute(
-        tag: String,
-        attribute: String,
-        value: String,
-    ): Safelist {
+    public fun addEnforcedAttribute(tag: String, attribute: String, value: String): Safelist {
         Validate.notEmpty(tag)
         Validate.notEmpty(attribute)
         Validate.notEmpty(value)
@@ -247,8 +240,7 @@ public open class Safelist() {
         if (enforcedAttributes.containsKey(tagName)) {
             enforcedAttributes[tagName]?.set(attrKey, attrVal)
         } else {
-            val attrMap: MutableMap<AttributeKey, AttributeValue> =
-                HashMap()
+            val attrMap: MutableMap<AttributeKey, AttributeValue> = HashMap()
             attrMap[attrKey] = attrVal
             enforcedAttributes[tagName] = attrMap
         }
@@ -321,11 +313,7 @@ public open class Safelist() {
      * @param protocols List of valid protocols
      * @return this, for chaining
      */
-    public fun addProtocols(
-        tag: String,
-        attribute: String,
-        vararg protocols: String,
-    ): Safelist {
+    public fun addProtocols(tag: String, attribute: String, vararg protocols: String): Safelist {
         Validate.notEmpty(tag)
         Validate.notEmpty(attribute)
         val tagName = TagName.valueOf(tag)

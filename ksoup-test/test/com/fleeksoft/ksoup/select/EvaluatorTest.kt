@@ -255,6 +255,34 @@ class EvaluatorTest {
     }
 
     @Test
+    fun testMatchesToStringRegex() {
+        val pattern = Regex("example")
+        val evaluator: Evaluator.Matches = Evaluator.Matches(pattern)
+        assertEquals(":matches(example)", evaluator.toString())
+    }
+
+    @Test
+    fun testMatchesOwnToStringRegex() {
+        val pattern = Regex("example")
+        val evaluator: Evaluator.MatchesOwn = Evaluator.MatchesOwn(pattern)
+        assertEquals(":matchesOwn(example)", evaluator.toString())
+    }
+
+    @Test
+    fun testMatchesWholeTextToStringRegex() {
+        val pattern = Regex("example")
+        val evaluator: Evaluator.MatchesWholeText = Evaluator.MatchesWholeText(pattern)
+        assertEquals(":matchesWholeText(example)", evaluator.toString())
+    }
+
+    @Test
+    fun testMatchesWholeOwnTextToStringRegex() {
+        val pattern = Regex("example")
+        val evaluator: Evaluator.MatchesWholeOwnText = Evaluator.MatchesWholeOwnText(pattern)
+        assertEquals(":matchesWholeOwnText(example)", evaluator.toString())
+    }
+
+    @Test
     fun testMatchTextToString() {
         val evaluator = Evaluator.MatchText()
         assertEquals(":matchText", evaluator.toString())

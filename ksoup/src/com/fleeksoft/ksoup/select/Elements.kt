@@ -8,8 +8,12 @@
 
 package com.fleeksoft.ksoup.select
 
+import com.fleeksoft.ksoup.KmpJsExport
 import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.nodes.*
+import kotlin.js.ExperimentalJsExport
+import kotlin.js.JsExport
+import kotlin.js.JsName
 import kotlin.reflect.KClass
 import kotlin.reflect.cast
 
@@ -22,12 +26,16 @@ import kotlin.reflect.cast
  * Methods that [set][.set], [remove][.remove], or [replace][.replaceAll] Elements in the list will also act on the underlying [DOM][com.fleeksoft.ksoup.nodes.Document].
  *
  */
+@OptIn(ExperimentalJsExport::class)
+@KmpJsExport
 public class Elements(delegateList: ArrayList<Element> = arrayListOf()) : Nodes<Element>(delegateList) {
 
+    @JsExport.Ignore
     public constructor(element: Element) : this() {
         add(element)
     }
 
+    @JsExport.Ignore
     public constructor(elements: Collection<Element>) : this() {
         addAll(elements)
     }
@@ -103,6 +111,7 @@ public class Elements(delegateList: ArrayList<Element> = arrayListOf()) : Nodes<
      * @param attributeValue attribute value
      * @return this
      */
+    @JsName("setAttr")
     public fun attr(attributeKey: String, attributeValue: String?): Elements {
         for (element in this) {
             element.attr(attributeKey, attributeValue)
@@ -188,6 +197,7 @@ public class Elements(delegateList: ArrayList<Element> = arrayListOf()) : Nodes<
      * @param value The value to set into each matched element
      * @return this (for chaining)
      */
+    @JsName("setValue")
     public fun value(value: String): Elements {
         for (element in this) element.value(value)
         return this
@@ -260,6 +270,7 @@ public class Elements(delegateList: ArrayList<Element> = arrayListOf()) : Nodes<
      * @return this, for chaining
      * @see Element.html
      */
+    @JsName("setHtml")
     public fun html(html: String): Elements {
         for (element in this) {
             element.html(html)
@@ -482,6 +493,7 @@ public class Elements(delegateList: ArrayList<Element> = arrayListOf()) : Nodes<
      * Get the immediate next element sibling of each element in this list.
      * @return next element siblings.
      */
+    @JsExport.Ignore
     public operator fun next(): Elements {
         return siblings(null, true, false)
     }
@@ -491,6 +503,7 @@ public class Elements(delegateList: ArrayList<Element> = arrayListOf()) : Nodes<
      * @param query CSS query to match siblings against
      * @return next element siblings.
      */
+    @JsExport.Ignore
     public fun next(query: String?): Elements {
         return siblings(query, true, false)
     }
@@ -499,6 +512,7 @@ public class Elements(delegateList: ArrayList<Element> = arrayListOf()) : Nodes<
      * Get each of the following element siblings of each element in this list.
      * @return all following element siblings.
      */
+    @JsExport.Ignore
     public fun nextAll(): Elements {
         return siblings(null, true, true)
     }
@@ -508,6 +522,7 @@ public class Elements(delegateList: ArrayList<Element> = arrayListOf()) : Nodes<
      * @param query CSS query to match siblings against
      * @return all following element siblings.
      */
+    @JsExport.Ignore
     public fun nextAll(query: String?): Elements {
         return siblings(query, true, true)
     }
@@ -516,6 +531,7 @@ public class Elements(delegateList: ArrayList<Element> = arrayListOf()) : Nodes<
      * Get the immediate previous element sibling of each element in this list.
      * @return previous element siblings.
      */
+    @JsExport.Ignore
     public fun prev(): Elements {
         return siblings(null, false, false)
     }
@@ -525,6 +541,7 @@ public class Elements(delegateList: ArrayList<Element> = arrayListOf()) : Nodes<
      * @param query CSS query to match siblings against
      * @return previous element siblings.
      */
+    @JsExport.Ignore
     public fun prev(query: String?): Elements {
         return siblings(query, false, false)
     }
@@ -533,6 +550,7 @@ public class Elements(delegateList: ArrayList<Element> = arrayListOf()) : Nodes<
      * Get each of the previous element siblings of each element in this list.
      * @return all previous element siblings.
      */
+    @JsExport.Ignore
     public fun prevAll(): Elements {
         return siblings(null, false, true)
     }
@@ -542,6 +560,7 @@ public class Elements(delegateList: ArrayList<Element> = arrayListOf()) : Nodes<
      * @param query CSS query to match siblings against
      * @return all previous element siblings.
      */
+    @JsExport.Ignore
     public fun prevAll(query: String?): Elements {
         return siblings(query, next = false, all = true)
     }

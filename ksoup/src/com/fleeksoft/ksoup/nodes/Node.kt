@@ -6,8 +6,11 @@
  * https://jsoup.org
  */
 
+@file:OptIn(ExperimentalJsExport::class)
+
 package com.fleeksoft.ksoup.nodes
 
+import com.fleeksoft.ksoup.KmpJsExport
 import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.internal.QuietAppendable
 import com.fleeksoft.ksoup.internal.StringUtil
@@ -17,9 +20,10 @@ import com.fleeksoft.ksoup.parser.ParseSettings
 import com.fleeksoft.ksoup.ported.Consumer
 import com.fleeksoft.ksoup.ported.KCloneable
 import com.fleeksoft.ksoup.ported.LinkedList
-import com.fleeksoft.ksoup.ported.assert
 import com.fleeksoft.ksoup.select.NodeFilter
 import com.fleeksoft.ksoup.select.NodeVisitor
+import kotlin.js.ExperimentalJsExport
+import kotlin.js.JsExport
 import kotlin.js.JsName
 import kotlin.reflect.KClass
 
@@ -28,6 +32,7 @@ import kotlin.reflect.KClass
 The base, abstract Node model. {@link Element}, {@link Document}, {@link Comment}, {@link TextNode}, et al.,
 are instances of Node.
  */
+@KmpJsExport
 public abstract class Node protected constructor() : KCloneable<Node> {
     public var _parentNode: Element? = null // Nodes don't always have parents
     public var _siblingIndex: Int = 0
@@ -154,6 +159,7 @@ public abstract class Node protected constructor() : KCloneable<Node> {
      * @param attributeValue The attribute value.
      * @return this (for chaining)
      */
+    @JsName("setAttribute")
     public open fun attr(attributeKey: String, attributeValue: String?): Node {
         val doc = ownerDocument()
         val settings = if (doc != null) doc.parser()?.settings() else ParseSettings.htmlDefault
@@ -389,6 +395,7 @@ public abstract class Node protected constructor() : KCloneable<Node> {
      * @return this node, for chaining
      * @see .after
      */
+    @JsName("beforeNode")
     public open fun before(node: Node): Node {
         // if the incoming node is a sibling of this, remove it first so siblingIndex is correct on add
         if (node.parentNode() === parentNode()) node.remove()
@@ -414,6 +421,7 @@ public abstract class Node protected constructor() : KCloneable<Node> {
      * @return this node, for chaining
      * @see .before
      */
+    @JsName("afterNode")
     public open fun after(node: Node): Node {
         // if the incoming node is a sibling of this, remove it first so siblingIndex is correct on add
         if (node.parentNode() === parentNode()) node.remove()
@@ -516,6 +524,8 @@ public abstract class Node protected constructor() : KCloneable<Node> {
         inNode._parentNode = this as Element
         inNode._siblingIndex = index
         out._parentNode = null
+
+        this.childNodes.incrementMod() // as mod count not changed in set(), requires explicit update, to invalidate the child element cache
     }
 
     protected open fun removeChild(out: Node) {
@@ -539,6 +549,7 @@ public abstract class Node protected constructor() : KCloneable<Node> {
         }
     }
 
+    @JsName("addChildrenAt")
     public fun addChildren(index: Int, vararg children: Node) {
         // todo clean up all these and use the list, not the var array. just need to be careful when iterating the incoming (as we are removing as we go)
         if (children.isEmpty()) {
@@ -754,6 +765,7 @@ public abstract class Node protected constructor() : KCloneable<Node> {
      * @return a stream of nodes filtered by type.
      * @see Element.stream
      */
+    @JsExport.Ignore
     public fun <T : Node> nodeStream(type: KClass<T>): Sequence<T> {
         return NodeUtils.stream(this, type)
     }
@@ -771,10 +783,12 @@ public abstract class Node protected constructor() : KCloneable<Node> {
     }
 
 
+    @JsExport.Ignore
     fun outerHtml(accum: Appendable) {
         outerHtml(QuietAppendable.wrap(accum))
     }
 
+    @JsExport.Ignore
     fun outerHtml(accum: QuietAppendable) {
         val printer = Printer.printerFor(this, accum)
         printer.traverse(this)
@@ -795,6 +809,7 @@ public abstract class Node protected constructor() : KCloneable<Node> {
      * @param appendable the [Appendable] to write to.
      * @return the supplied [Appendable], for chaining.
      */
+    @JsExport.Ignore
     public open fun <T : Appendable> html(appendable: T): T {
         outerHtml(appendable)
         return appendable

@@ -224,8 +224,9 @@ public class QueryParser private constructor(query: String) : AutoCloseable {
     }
 
     private fun evaluatorForAttribute(cq: TokenQueue): Evaluator {
-        val key: String = cq.consumeToAny(*AttributeEvals) // eq, not, start, end, contain, match, (no val)
+        val key: String = normalize(cq.consumeToAny(*AttributeEvals)) // eq, not, start, end, contain, match, (no val)
         Validate.notEmpty(key)
+        Validate.isFalse(key == "abs:", "Absolute attribute key must have a name")
         cq.consumeWhitespace()
         val eval: Evaluator
         if (cq.isEmpty()) {
@@ -387,10 +388,11 @@ public class QueryParser private constructor(query: String) : AutoCloseable {
         val query = if (own) ":matchesWholeOwnText" else ":matchesWholeText"
         val regex = consumeParens() // don't unescape, as regex bits will be escaped
         Validate.notEmpty(regex, "$query(regex) query must not be empty")
+        val pattern = jsSupportedRegex(regex)
         return if (own) {
-            Evaluator.MatchesWholeOwnText(jsSupportedRegex(regex))
+            Evaluator.MatchesWholeOwnText(pattern)
         } else {
-            Evaluator.MatchesWholeText(jsSupportedRegex(regex))
+            Evaluator.MatchesWholeText(pattern)
         }
     }
 

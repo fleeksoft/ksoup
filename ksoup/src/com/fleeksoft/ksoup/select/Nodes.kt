@@ -4,6 +4,9 @@ import com.fleeksoft.ksoup.helper.Validate
 import com.fleeksoft.ksoup.nodes.Element
 import com.fleeksoft.ksoup.nodes.Node
 import com.fleeksoft.ksoup.ported.NodesIterator
+import kotlin.js.ExperimentalJsExport
+import com.fleeksoft.ksoup.KmpJsExport
+import kotlin.js.JsExport
 
 /**
  * A list of [Node] objects, with methods that act on every node in the list.
@@ -17,13 +20,16 @@ import com.fleeksoft.ksoup.ported.NodesIterator
  * @see Element.selectNodes
  * @see Element.selectNodes
  */
+
+@OptIn(ExperimentalJsExport::class)
+@KmpJsExport
 open class Nodes<T : Node>(private val delegateList: MutableList<T> = mutableListOf()) :
     MutableList<T> by delegateList {
-    
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is Nodes<*>) return false
-        
+
         // Compare the contents of the lists
         if (this.size != other.size) return false
         for (i in this.indices) {
@@ -31,11 +37,12 @@ open class Nodes<T : Node>(private val delegateList: MutableList<T> = mutableLis
         }
         return true
     }
-    
+
     override fun hashCode(): Int {
         return delegateList.hashCode()
     }
 
+    @JsExport.Ignore
     companion object {
         /**
          * Factory function to create a new Nodes instance from a collection
@@ -48,10 +55,13 @@ open class Nodes<T : Node>(private val delegateList: MutableList<T> = mutableLis
         operator fun <T : Node> invoke(): Nodes<T> = Nodes()
     }
 
+    @JsExport.Ignore
     constructor(initialCapacity: Int) : this(ArrayList<T>(initialCapacity))
 
+    @JsExport.Ignore
     constructor(nodes: Collection<T>) : this(ArrayList<T>(nodes))
 
+    @JsExport.Ignore
     constructor(vararg nodes: T) : this(ArrayList<T>(nodes.asList()))
 
     override fun iterator(): MutableIterator<T> {
@@ -256,6 +266,7 @@ open class Nodes<T : Node>(private val delegateList: MutableList<T> = mutableLis
      * @return if this list contained the Node
      * @see remove
      */
+    @JsExport.Ignore
     open fun deselect(element: Any?): Boolean {
         return delegateList.remove(element)
     }

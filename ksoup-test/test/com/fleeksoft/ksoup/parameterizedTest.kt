@@ -8,3 +8,12 @@ fun <T> parameterizedTest(
         testFunc(it)
     }
 }
+
+suspend fun <T> parameterizedTestSuspend(
+    parameters: List<T>,
+    testFunc: suspend (T) -> Unit,
+) {
+    parameters.forEach {
+        testFunc(it)
+    }
+}

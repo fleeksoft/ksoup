@@ -280,7 +280,7 @@ class XmlTreeBuilderTest {
     @Test
     fun readerClosedAfterParse() {
         val doc = Ksoup.parse(html = "Hello", baseUri = "", parser = Parser.xmlParser())
-        val treeBuilder = doc.parser()!!.getTreeBuilder()
+        val treeBuilder = doc.parser().getTreeBuilder()
         assertTrue(treeBuilder.reader.isClosed())
         assertNull(treeBuilder.tokeniser)
     }
@@ -339,10 +339,10 @@ class XmlTreeBuilderTest {
     @Test
     fun rootHasXmlSettings() {
         val doc = Ksoup.parse("<foo>", Parser.xmlParser())
-        val settings = doc.parser()!!.settings()
-        assertTrue(settings!!.preserveTagCase())
+        val settings = doc.parser().settings()
+        assertTrue(settings.preserveTagCase())
         assertTrue(settings.preserveAttributeCase())
-        assertEquals(Parser.NamespaceXml, doc.parser()!!.defaultNamespace())
+        assertEquals(Parser.NamespaceXml, doc.parser().defaultNamespace())
     }
 
     @Test
@@ -417,12 +417,12 @@ class XmlTreeBuilderTest {
         val expect = xml
 
         var doc: Document = Ksoup.parse(xml, Parser.xmlParser().setTrackErrors(10))
-        assertEquals(0, doc.parser()!!.getErrors().size)
+        assertEquals(0, doc.parser().getErrors().size)
         assertEquals(expect, doc.html())
 
         xml = "<?xml version=\"1.0\" ?>\n<root></root>"
         doc = Ksoup.parse(xml, Parser.xmlParser().setTrackErrors(10))
-        assertEquals(0, doc.parser()!!.getErrors().size)
+        assertEquals(0, doc.parser().getErrors().size)
         assertEquals(expect, doc.html())
     }
 
@@ -538,7 +538,7 @@ class XmlTreeBuilderTest {
                     "  <dc:identifier id=\"pub-id\">id</dc:identifier> <dc:title>title</dc:title> <dc:language>ja</dc:language> <dc:description>desc</dc:description>\n" +
                     " </metadata>\n" +
                     "</package>", doc.html()
-        );
+        )
 
         // can customize
         val meta = doc.expectFirst("metadata")
@@ -702,9 +702,49 @@ class XmlTreeBuilderTest {
         // we infer that empty els can be represented with self-closing if seen in parse
     }
 
+    @Test
+    fun xmlParserHasUnlimitedDepthByDefault() {
+        val parser: Parser = Parser.xmlParser()
+        val doc: Document = Ksoup.parse(html = deepXml(600), baseUri = "", parser = parser)
+        val target: Element? = doc.selectFirst("target")
+        assertNotNull(target)
+        assertTrue(depth(target) > 512)
+    }
+
+    @Test
+    fun xmlParserRespectsConfiguredMaxDepth() {
+        val parser: Parser = Parser.xmlParser().setMaxDepth(5)
+        val doc: Document = Ksoup.parse(html = deepXml(100), baseUri = "", parser = parser)
+        val target: Element? = doc.selectFirst("target")
+        assertNotNull(target)
+        assertEquals(parser.getMaxDepth(), depth(target))
+    }
+
     companion object {
         private fun assertXmlNamespace(el: Element) {
             assertEquals(Parser.NamespaceXml, el.tag().namespace(), "Element ${el.tagName()} not in XML namespace")
+        }
+
+        private fun deepXml(depth: Int): String {
+            val xml = StringBuilder("<root>")
+            for (i in 0..<depth) {
+                xml.append("<n>")
+            }
+            xml.append("<target />")
+            for (i in 0..<depth) {
+                xml.append("</n>")
+            }
+            xml.append("</root>")
+            return xml.toString()
+        }
+
+        private fun depth(el: Element): Int {
+            var el: Element = el
+            var d = 0
+            while ((el.parent()?.also { el = it }) != null) {
+                d++
+            }
+            return d
         }
     }
 }

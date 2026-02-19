@@ -1,26 +1,26 @@
 [versions]
-libraryVersion = "0.2.5"
-agp = "8.7.3"
-kotlin = "2.2.0"
-compileSdk = "35"
+libraryVersion = "0.2.6"
+agp = "8.13.2"
+kotlin = "2.3.10"
+compileSdk = "36"
 minSdk = "21"
-ktor = "3.2.3"
+ktor = "3.4.0"
 ktor2 = "2.3.13"
 coroutines = "1.10.2"
-kotlinxDatetime = "0.6.2"
-kotlinx-io = "0.8.0"
-okio = "3.16.0"
-dokka = "2.0.0"
-kotlinx-benchmark = "0.4.14"
+kotlinxDatetime = "0.7.1"
+kotlinx-io = "0.8.2"
+okio = "3.16.4"
+dokka = "2.1.0"
+kotlinx-benchmark = "0.4.16"
 
 #korlibs = "999.0.0.999" # 999.0.0.999 is local version
 korlibs = "6.0.2"
 korlibs-network = "6.0.1"
-mavenPublish = "0.34.0"
+mavenPublish = "0.36.0"
 
 stately = "2.1.0"
-jsoup = "1.20.1" # for testing only
-fleeksoft-io = "0.0.5"
+jsoup = "1.22.1" # for testing only
+fleeksoft-io = "0.0.8"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }

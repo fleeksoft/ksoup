@@ -380,6 +380,21 @@ public abstract class Token private constructor(public var type: TokenType) {
         fun getData(): String = data.value()
 
         override fun toString(): String = getData()
+
+        /**
+         * Normalize null chars in the data. If replace is true, replaces with the replacement char; if false, removes.
+         */
+        fun normalizeNulls(replace: Boolean) {
+            var data = this.data.value()
+            if (data.indexOf(TokeniserState.nullChar) == -1) return
+
+            data = (if (replace) data.replace(TokeniserState.nullChar, Tokeniser.ReplacementChar) else data.replace(nullString, ""))
+            this.data.set(data)
+        }
+
+        companion object {
+            private const val nullString: String = TokeniserState.nullChar.toString()
+        }
     }
 
     internal class CData(data: String) : Character() {
