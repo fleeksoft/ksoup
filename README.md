@@ -15,6 +15,7 @@
 ![badge-windows](http://img.shields.io/badge/platform-windows-4D76CD.svg?style=flat)
 ![badge-js](https://img.shields.io/badge/platform-js-F8DB5D.svg?style=flat)
 ![badge-wasm](https://img.shields.io/badge/platform-wasm-F8DB5D.svg?style=flat)
+[![libs.tech recommends](https://libs.tech/project/719100459/badge.svg)](https://libs.tech/project/719100459/ksoup)
 
 ## 🚨 Deprecation Notice
 
